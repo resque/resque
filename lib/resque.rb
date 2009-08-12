@@ -53,6 +53,30 @@ class Resque
     Job.new(self, queue, payload)
   end
 
+  def add_worker(worker)
+    @redis.sadd(key(:workers), worker.to_s)
+  end
+
+  def remove_worker(worker)
+    @redis.srem(key(:workers), worker.to_s)
+  end
+
+  def workers
+    @redis.smembers(key(:workers))
+  end
+
+  def worker(id)
+    decode @redis.get(key(:worker, id.to_s))
+  end
+
+  def set_worker_status(id, payload = nil)
+    if payload
+      @redis.set(key(:worker, id.to_s), encode(:run_at => Time.now, :payload => payload))
+    else
+      @redis.del(key(:worker, id.to_s))
+    end
+  end
+
 
   #
   # encoding / decoding

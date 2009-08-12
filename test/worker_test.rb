@@ -52,4 +52,34 @@ context "Resque::Worker" do
       Resque::Worker.new('localhost:6379')
     end
   end
+
+  test "inserts itself into the 'workers' list on startup" do
+    @worker.register_worker
+    assert_equal @worker.to_s, @queue.workers[0]
+  end
+
+  test "removes itself from the 'workers' list on shutdown" do
+    @worker.register_worker
+    assert_equal @worker.to_s, @queue.workers[0]
+
+    @worker.unregister_worker
+    assert_equal [], @queue.workers
+  end
+
+  test "records what it is working on" do
+    job = @worker.reserve
+    @worker.working_on job
+    task = @queue.worker(@worker.to_s)
+    assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
+    assert task['run_at']
+  end
+
+  test "clears its status when not working on anything" do
+    job = @worker.reserve
+    @worker.working_on job
+    assert @queue.worker(@worker.to_s)
+
+    @worker.done_working
+    assert_equal nil, @queue.worker(@worker.to_s)
+  end
 end

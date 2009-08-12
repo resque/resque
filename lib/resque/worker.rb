@@ -17,8 +17,9 @@ class Resque
       end
     end
 
-    def work(interval = 5)
+    def work(interval = 5, once = false)
       register_signal_handlers
+      register_worker
 
       loop do
         break if @shutdown
@@ -30,13 +31,18 @@ class Resque
           log "Sleeping"
           sleep interval.to_i
         end
+
+        break if once
       end
+
+      unregister_worker
     end
 
     def process(job = nil)
       return unless job ||= reserve
 
       begin
+        working_on job
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
@@ -44,6 +50,8 @@ class Resque
       else
         log "#{job.inspect} done processing"
         job.done
+      ensure
+        done_working
       end
     end
 
@@ -65,6 +73,22 @@ class Resque
       end
 
       nil
+    end
+
+    def register_worker
+      @resque.add_worker self
+    end
+
+    def unregister_worker
+      @resque.remove_worker self
+    end
+
+    def working_on(job)
+      @resque.set_worker_status(self, job.payload)
+    end
+
+    def done_working
+      @resque.set_worker_status(self, nil)
     end
 
     def inspect
