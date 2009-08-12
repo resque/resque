@@ -16,7 +16,7 @@ class Resque
         if job = reserve
           process job
         else
-          sleep interval
+          sleep interval.to_i
         end
       end
     end
