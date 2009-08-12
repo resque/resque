@@ -1,7 +1,6 @@
 namespace :resque do
   desc "Start a Resque Ranger"
   task :work do
-    Rake::Task['environment'].invoke rescue nil
     Rake::Task['resque:setup'].invoke rescue nil
 
     queues = ENV['QUEUE'].to_s.split(',')
