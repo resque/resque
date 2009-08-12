@@ -17,7 +17,7 @@ class Resque
       end
     end
 
-    def work(interval = 5, once = false)
+    def work(interval = 5)
       register_signal_handlers
       register_worker
 
@@ -31,8 +31,6 @@ class Resque
           log "Sleeping"
           sleep interval.to_i
         end
-
-        break if once
       end
 
       unregister_worker
