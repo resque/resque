@@ -1,6 +1,9 @@
+require 'rake/testtask'
+
 task :default => :test
 
-desc "Run tests"
-task :test do
-  ruby Dir['test/*_test.rb'].join(' ')
+Rake::TestTask.new do |t|
+  t.libs << 'lib'
+  t.pattern = 'test/**/*_test.rb'
+  t.verbose = false
 end
