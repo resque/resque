@@ -1,15 +1,14 @@
-namespace :jobs do
+namespace :resque do
   desc "Start a Resque Ranger"
-  task :work => [ :environment, :setup ] do
-    queues = ENV['QUEUE'].split(',')
+  task :work do
+    Rake::Task['environment'].invoke rescue nil
+    Rake::Task['resque:setup'].invoke rescue nil
+
+    queues = ENV['QUEUE'].to_s.split(',')
     worker = Resque::Worker.new('localhost:6379', *queues)
 
     puts "*** Starting worker #{worker} for #{ENV['QUEUE']}"
 
-    worker.work(5) # interval, will block
-  end
-
-  task :setup do
-    Grit::Git.git_timeout = 10.minutes
+    worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
 end
