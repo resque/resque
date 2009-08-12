@@ -1,6 +1,7 @@
 class Resque
   class Job
     attr_accessor :worker
+    attr_reader   :payload
 
     def initialize(resque, queue, payload)
       @resque = resque
