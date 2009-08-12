@@ -52,5 +52,13 @@ class Resque
 
       nil
     end
+
+    def inspect
+      "#<Worker #{to_s}>"
+    end
+
+    def to_s
+      @to_s ||= "#{Process.pid}:#{`hostname`.chomp}"
+    end
   end
 end

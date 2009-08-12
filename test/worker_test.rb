@@ -42,4 +42,8 @@ context "Resque::Worker" do
     worker.process
     assert_equal 0, @queue.size(:high)
   end
+
+  test "has a unique id" do
+    assert_equal "#{$$}:#{`hostname`.chomp}", @worker.to_s
+  end
 end
