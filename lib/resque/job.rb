@@ -33,8 +33,6 @@ class Resque
     def objectify(payload)
       if payload.is_a?(Hash) && payload['class']
         constantize(payload['class']).new(*payload['args'])
-      else
-        raise "failed: #{inspect}"
       end
     end
 
