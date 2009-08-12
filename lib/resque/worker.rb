@@ -12,7 +12,6 @@ class Resque
 
       loop do
         break if @shutdown
-        puts "Gonna grab some shit"
 
         if job = reserve
           process job
