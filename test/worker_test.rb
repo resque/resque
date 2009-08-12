@@ -46,4 +46,10 @@ context "Resque::Worker" do
   test "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}", @worker.to_s
   end
+
+  test "complains if no queues are given" do
+    assert_raise Resque::Worker::NoQueueError do
+      Resque::Worker.new('localhost:6379')
+    end
+  end
 end
