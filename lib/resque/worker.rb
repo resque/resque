@@ -23,8 +23,10 @@ class Resque
         break if @shutdown
 
         if job = reserve
+          log "Got #{job.inspect}"
           process job
         else
+          log "Sleeping"
           sleep interval.to_i
         end
       end
@@ -36,8 +38,10 @@ class Resque
       begin
         job.perform
       rescue Object => e
+        log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e, self)
       else
+        log "#{job.inspect} done processing"
         job.done
       end
     end
@@ -48,7 +52,7 @@ class Resque
     end
 
     def shutdown
-      puts 'Exiting...'
+      log 'Exiting...'
       @shutdown = true
     end
 
@@ -68,6 +72,10 @@ class Resque
 
     def to_s
       @to_s ||= "#{`hostname`.chomp}:#{Process.pid}"
+    end
+
+    def log(message)
+      puts "*** #{message}"
     end
   end
 end
