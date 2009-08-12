@@ -1,6 +1,7 @@
 class Resque
   class Worker
-    attr_reader :resque
+    attr_reader   :resque
+    attr_accessor :logger
 
     def initialize(server, *queues)
       @resque = Resque.new(server)
@@ -75,7 +76,7 @@ class Resque
     end
 
     def log(message)
-      puts "*** #{message}"
+      puts "*** #{message}" if logger
     end
   end
 end
