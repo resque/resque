@@ -70,7 +70,7 @@ class Resque
   # namespacing
   #
 
-  def key(queue)
-    "resque:#{queue}"
+  def key(*queue)
+    "resque:#{queue.join(':')}"
   end
 end
