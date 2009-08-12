@@ -58,7 +58,7 @@ class Resque
     end
 
     def to_s
-      @to_s ||= "#{Process.pid}:#{`hostname`.chomp}"
+      @to_s ||= "#{`hostname`.chomp}:#{Process.pid}"
     end
   end
 end
