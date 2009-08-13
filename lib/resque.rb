@@ -64,6 +64,11 @@ class Resque
     Job.new(self, queue, payload)
   end
 
+
+  #
+  # workers
+  #
+
   def add_worker(worker)
     @redis.sadd(key(:workers), worker.to_s)
   end
@@ -81,11 +86,7 @@ class Resque
   end
 
   def worker_state(id)
-    if @redis.exists(key(:worker, id))
-      :working
-    else
-      :idle
-    end
+    @redis.exists(key(:worker, id)) ? :working : :idle
   end
 
   def set_worker_status(id, payload = nil)
