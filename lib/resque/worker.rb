@@ -82,11 +82,11 @@ class Resque
     end
 
     def working_on(job)
-      @resque.set_worker_status(self, job.payload)
+      @resque.set_worker_status(self, job.queue, job.payload)
     end
 
     def done_working
-      @resque.set_worker_status(self, nil)
+      @resque.clear_worker_status(self)
     end
 
     def inspect

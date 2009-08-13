@@ -72,6 +72,7 @@ context "Resque::Worker" do
     task = @queue.worker(@worker.to_s)
     assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
     assert task['run_at']
+    assert_equal 'jobs', task['queue']
   end
 
   test "clears its status when not working on anything" do

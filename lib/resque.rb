@@ -89,12 +89,16 @@ class Resque
     @redis.exists(key(:worker, id)) ? :working : :idle
   end
 
-  def set_worker_status(id, payload = nil)
-    if payload
-      @redis.set(key(:worker, id.to_s), encode(:run_at => Time.now, :payload => payload))
-    else
-      @redis.del(key(:worker, id.to_s))
-    end
+  def set_worker_status(id, queue, payload)
+    data = encode \
+      :queue   => queue,
+      :run_at  => Time.now,
+      :payload => payload
+    @redis.set(key(:worker, id.to_s), data)
+  end
+
+  def clear_worker_status(id)
+    @redis.del(key(:worker, id.to_s))
   end
 
 
