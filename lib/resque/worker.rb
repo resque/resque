@@ -94,7 +94,7 @@ class Resque
     end
 
     def to_s
-      @to_s ||= "#{`hostname`.chomp}:#{Process.pid}"
+      @to_s ||= "#{`hostname`.chomp}:#{Process.pid}:#{@queues.join(',')}"
     end
 
     def log(message)
