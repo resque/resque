@@ -6,7 +6,8 @@ h1 {
     color: #333;
     font: normal 12px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;    
     font-size: 1.5em;
-    text-shadow: 1px 1px #ddd;    
+    text-shadow: 1px 1px #ddd;
+    
 }
 table {
     margin-bottom: 50px;

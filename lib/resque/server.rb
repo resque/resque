@@ -13,10 +13,33 @@ class Resque
     helpers do
       include Rack::Utils
       alias_method :h, :escape_html
+
+      def current_section
+        request.path_info.sub('/','').split('/')[0].downcase
+      end
+
+      def current_page
+        request.path_info.sub('/','').downcase
+      end
+
+      def class_if_current(page = '')
+        'class="current"' if current_page.include? page.to_s
+      end
     end
 
-    get '/' do
-      erb :index, {}, :resque => resque
+    # to make things easier on ourselves
+    get "/" do |page|
+      redirect '/overview'
+    end
+
+    %w( overview queues processing workers stats ).each do |page|
+      get "/#{page}" do
+        erb page.to_sym, {}, :resque => resque
+      end
+
+      get "/#{page}/:id" do
+        erb page.to_sym, {}, :resque => resque
+      end
     end
 
     def self.start(host = 'localhost', port = 4567)
