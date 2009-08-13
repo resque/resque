@@ -18,22 +18,22 @@ class Resque
   #
 
   def push(queue, item)
-    @redis.rpush(key(queue), encode(item))
+    @redis.rpush(key(:queue, queue), encode(item))
   end
 
   def pop(queue)
-    decode @redis.lpop(key(queue))
+    decode @redis.lpop(key(:queue, queue))
   end
 
   def size(queue)
-    @redis.llen(key(queue))
+    @redis.llen(key(:queue, queue))
   end
 
   def peek(queue, start = 0, count = 1)
     if count == 1
-      decode @redis.lindex(key(queue), start)
+      decode @redis.lindex(key(:queue, queue), start)
     else
-      Array(@redis.lrange(key(queue), start, start+count-1)).map do |item|
+      Array(@redis.lrange(key(:queue, queue), start, start+count-1)).map do |item|
         decode item
       end
     end
