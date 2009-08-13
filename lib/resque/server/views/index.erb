@@ -28,17 +28,51 @@
 <h1>Workers</h1>
 <table border="1">
   <tr>
-    <th>Name</th>
-    <th>State</th>
+    <th>&nbsp;</th>
+    <th>Host</th>
+    <th>Pid</th>    
+    <th>Queues</th>        
+    <th>Queue</th>    
+    <th>Started Working</th>
+    <th>Job Class</th>
+    <th>Job Args</th>        
   </tr>
   <% for worker in resque.workers %>
     <tr>
-      <td><%= worker %></td>
-      <td><%= resque.worker_state(worker) %></td>
+      <td><img src="<%= state = resque.worker_state(worker) %>.png"></td>
+      
+      <% host, pid, queues = worker.split(':') %>
+      <td><%= host %></td>
+      <td><%= pid %></td>
+      <td><%= queues %></td>
+      
+      <% if state == :working %>
+        <% data = resque.worker(worker) %>
+        <td><%= data['queue'] %></td>        
+        <td><%= data['run_at'] %></td>
+        <td><%= data['payload']['class'] %></td>
+        <td><%= data['payload']['args'].inspect %></td>                
+      <% end %>
     </tr>
   <% end %>
 </table>
 
+
+<h1>Failed</h1>
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>State</th>
+    <th>Started Working</th>
+    <th>Job Class</th>
+    <th>Job Args</th>        
+  </tr>
+  <% for job in resque.peek(:failed, 0, 20) %>
+    <tr>
+      <td><%= job.inspect %></td>
+    </tr>
+  <% end %>
+</table>
 
 </body>
 </html>  
