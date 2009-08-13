@@ -4,15 +4,36 @@
   <title>Resque.</title>
 <!--   <link href="/reset.css" media="screen" rel="stylesheet" type="text/css" /> -->
 <style>
+  h1 {
+    color: #333;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  table {
+    margin-bottom: 50px;
+    border-collapse: collapse;     
+  }
+  th, td {
+    padding: 4px;
+    border-bottom: 1px solid #eee;
+
+  }
+  td {
+    padding: 5px 15px 5px 15px;
+  }
   th {
-    background-color: #eee;
+    color: #666;
+    font-family: Helvetica, Arial, sans-serif;
+    font-weight: bold;
+    text-align: left;
+    font-size: .9em;
+    padding: 0 15px 5px 15px;    
   }
 </style>
 </head>
 <body>
 
 <h1>Queues</h1>
-<table border="1">
+<table>
   <tr>
     <th>Name</th>
     <th>Pending</th>
@@ -26,7 +47,7 @@
 </table>
 
 <h1>Workers</h1>
-<table border="1">
+<table>
   <tr>
     <th>&nbsp;</th>
     <th>Host</th>
@@ -46,20 +67,18 @@
       <td><%= pid %></td>
       <td><%= queues %></td>
       
-      <% if state == :working %>
-        <% data = resque.worker(worker) %>
-        <td><%= data['queue'] %></td>        
-        <td><%= data['run_at'] %></td>
-        <td><%= data['payload']['class'] %></td>
-        <td><%= data['payload']['args'].inspect %></td>                
-      <% end %>
+      <% data = resque.worker(worker) || {} %>
+      <td><%= data['queue'] %></td>        
+      <td><%= data['run_at'] %></td>
+      <td><%= data['payload']['class'] if data['payload'] %></td>
+      <td><%= data['payload']['args'].inspect if data['payload'] %></td>
     </tr>
   <% end %>
 </table>
 
 
 <h1>Failed</h1>
-<table border="1">
+<table>
   <tr>
     <th>Name</th>
     <th>State</th>
