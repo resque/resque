@@ -6,8 +6,8 @@ class Resque
   class Server < Sinatra::Base
     dir = File.dirname(File.expand_path(__FILE__))
 
-    set :views,  "#{dir}/views"
-    set :public, "#{dir}/public"
+    set :views,  "#{dir}/server/views"
+    set :public, "#{dir}/server/public"
     set :static, true
 
     helpers do
@@ -16,8 +16,7 @@ class Resque
     end
 
     get '/' do
-      resque
-      erb :index
+      erb :index, {}, :resque => resque
     end
 
     def self.start(host = 'localhost', port = 4567)

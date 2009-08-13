@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Resque.</title>
+<!--   <link href="/reset.css" media="screen" rel="stylesheet" type="text/css" /> -->
+<style>
+  th {
+    background-color: #eee;
+  }
+</style>
+</head>
+<body>
+
+<h1>Queues</h1>
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Pending</th>
+  </tr>
+  <% for queue in resque.queues %> 
+    <tr>
+      <td><%= queue %></td>
+      <td><%= resque.size queue %></td>      
+    </tr>
+  <% end %>
+</table>
+
+<h1>Workers</h1>
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>State</th>
+  </tr>
+  <% for worker in resque.workers %>
+    <tr>
+      <td><%= worker %></td>
+      <td><%= resque.worker_state(worker) %></td>
+    </tr>
+  <% end %>
+</table>
+
+
+</body>
+</html>  
