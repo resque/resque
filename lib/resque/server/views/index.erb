@@ -28,6 +28,16 @@
     font-size: .9em;
     padding: 0 15px 5px 15px;    
   }
+  a.queue {
+    color: #666;
+    text-decoration: none;
+    text-transform: uppercase;
+    font-size: .9em;
+  }
+  a.queue:hover {
+    color: #000;
+    background-color: #e0f3ff;
+  }  
 </style>
 </head>
 <body>
@@ -40,7 +50,7 @@
   </tr>
   <% for queue in resque.queues %> 
     <tr>
-      <td><%= queue %></td>
+      <td><a class="queue" href="#"><%= queue %></a></td>
       <td><%= resque.size queue %></td>      
     </tr>
   <% end %>
@@ -53,45 +63,50 @@
     <th>Host</th>
     <th>Pid</th>    
     <th>Queues</th>        
-    <th>Queue</th>    
-    <th>Started Working</th>
-    <th>Job Class</th>
-    <th>Job Args</th>        
+    <th>Status</th>    
   </tr>
   <% for worker in resque.workers %>
     <tr>
-      <td><img src="<%= state = resque.worker_state(worker) %>.png"></td>
+      <td><img src="<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
       
       <% host, pid, queues = worker.split(':') %>
       <td><%= host %></td>
       <td><%= pid %></td>
-      <td><%= queues %></td>
+      <td><%= queues.split(',').map { |q| '<a class="queue" href="#">' + q + '</a>'}.join(', ') %></td>
       
+      <td>      
       <% data = resque.worker(worker) || {} %>
-      <td><%= data['queue'] %></td>        
-      <td><%= data['run_at'] %></td>
-      <td><%= data['payload']['class'] if data['payload'] %></td>
-      <td><%= data['payload']['args'].inspect if data['payload'] %></td>
+      <% if data['queue'] %>
+        Begun processing a <%= data['payload']['class'] %>
+        from <a class="queue" href="#"><%= data['queue'] %></a>
+        2 minutes ago
+      <% else %>
+        Chillin'
+      <% end %>
+      </td>
+        
     </tr>
   <% end %>
 </table>
 
-
-<h1>Failed</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>State</th>
-    <th>Started Working</th>
-    <th>Job Class</th>
-    <th>Job Args</th>        
-  </tr>
-  <% for job in resque.peek(:failed, 0, 20) %>
+<% failed = resque.peek(:failed, 0, 20) %>
+<% if failed.any? %>
+  <h1>Failed</h1>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>State</th>
+      <th>Started Working</th>
+      <th>Job Class</th>
+      <th>Job Args</th>        
+    </tr>
+    <% for job in resque.peek(:failed, 0, 20) %>
     <tr>
       <td><%= job.inspect %></td>
     </tr>
-  <% end %>
-</table>
+    <% end %>
+  </table>
+<% end %>
 
 </body>
 </html>  
