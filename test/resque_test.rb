@@ -62,4 +62,15 @@ context "Resque" do
     assert_equal nil, @queue.peek(:people, 3)
     assert_equal [], @queue.peek(:people, 3, 2)
   end
+
+  test "knows what queues it is managing" do
+    assert_equal %w( people ), @queue.queues
+    @queue.push(:cars, 'bmw')
+    assert_equal %w( cars people ), @queue.queues
+  end
+
+  test "queues are always a list" do
+    @queue.redis.flush_all
+    assert_equal [], @queue.queues
+  end
 end

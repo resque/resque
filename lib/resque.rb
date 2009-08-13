@@ -18,6 +18,7 @@ class Resque
   #
 
   def push(queue, item)
+    watch_queue(queue)
     @redis.rpush(key(:queue, queue), encode(item))
   end
 
@@ -37,6 +38,16 @@ class Resque
         decode item
       end
     end
+  end
+
+  def queues
+    @redis.smembers(key(:queues))
+  end
+
+  def watch_queue(queue)
+    @watched_queues ||= {}
+    return if @watched_queues[queue]
+    @redis.sadd(key(:queues), queue.to_s)
   end
 
 
