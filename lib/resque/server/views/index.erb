@@ -7,6 +7,7 @@
   h1 {
     color: #333;
     font-family: Helvetica, Arial, sans-serif;
+    font-size: 1.5em;
   }
   table {
     margin-bottom: 50px;
@@ -37,7 +38,10 @@
   a.queue:hover {
     color: #000;
     background-color: #e0f3ff;
-  }  
+  }
+  code {
+    font-size: 1.2em;
+  }
 </style>
 </head>
 <body>
@@ -77,9 +81,8 @@
       <td>      
       <% data = resque.worker(worker) || {} %>
       <% if data['queue'] %>
-        Begun processing a <%= data['payload']['class'] %>
-        from <a class="queue" href="#"><%= data['queue'] %></a>
-        2 minutes ago
+        <code><%= data['payload']['class'] %></code>
+        <small><a href="#" class="queue">2 minutes ago</a></small>
       <% else %>
         Chillin'
       <% end %>
