@@ -69,6 +69,14 @@ class Resque
     decode @redis.get(key(:worker, id.to_s))
   end
 
+  def worker_state(id)
+    if @redis.exists(key(:worker, id))
+      :working
+    else
+      :idle
+    end
+  end
+
   def set_worker_status(id, payload = nil)
     if payload
       @redis.set(key(:worker, id.to_s), encode(:run_at => Time.now, :payload => payload))

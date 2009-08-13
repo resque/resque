@@ -82,4 +82,21 @@ context "Resque::Worker" do
     @worker.done_working
     assert_equal nil, @queue.worker(@worker.to_s)
   end
+
+  test "knows when it is working" do
+    job = @worker.reserve
+    @worker.working_on job
+    assert @queue.worker(@worker.to_s)
+
+    assert_equal :working, @queue.worker_state(@worker.to_s)
+  end
+
+  test "knows when it is idle" do
+    job = @worker.reserve
+    @worker.working_on job
+    assert @queue.worker(@worker.to_s)
+
+    @worker.done_working
+    assert_equal :idle, @queue.worker_state(@worker.to_s)
+  end
 end
