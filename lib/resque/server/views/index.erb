@@ -2,74 +2,63 @@
 <html>
 <head>
   <title>Resque.</title>
-<!--   <link href="/reset.css" media="screen" rel="stylesheet" type="text/css" /> -->
+  <link href="/style.css" media="screen" rel="stylesheet" type="text/css" />
+  <link href="/tabs.css" media="screen" rel="stylesheet" type="text/css" />
 <style>
-  h1 {
-    color: #333;
-    font-family: Helvetica, Arial, sans-serif;
-    font-size: 1.5em;
-  }
-  table {
-    margin-bottom: 50px;
-    border-collapse: collapse;     
-  }
-  th, td {
-    padding: 4px;
-    border-bottom: 1px solid #eee;
 
-  }
-  td {
-    padding: 5px 15px 5px 15px;
-  }
-  th {
-    color: #666;
-    font-family: Helvetica, Arial, sans-serif;
-    font-weight: bold;
-    text-align: left;
-    font-size: .9em;
-    padding: 0 15px 5px 15px;    
-  }
-  a.queue {
-    color: #666;
-    text-decoration: none;
-    text-transform: uppercase;
-    font-size: .9em;
-  }
-  a.queue:hover {
-    color: #000;
-    background-color: #e0f3ff;
-  }
-  code {
-    font-size: 1.2em;
-  }
 </style>
 </head>
 <body>
+  
+<div class="navigation" id="top">
+  <div class="tabs">
+    <div style="float:right">
+      Resque
+    </div>
+    <ul>
+      <li class="current"><a href="#">Overview</a></li>
+      <li><a href="#">Queues</a></li>            
+      <li><a href="#">Processing</a></li>      
+      <li><a href="#">Workers</a></li>
+      <li><a href="#">Stats</a></li>
+    </ul>
+  </div>
+  <!--
+  <div class="tabs">
+    <ul>
+      <li class="current"><a href="annotated.html"><span>Class&nbsp;List</span></a></li>
+      <li><a href="hierarchy.html"><span>Class&nbsp;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&nbsp;Members</span></a></li>
+    </ul>
+  </div>
+  -->
+</div>
 
-<h1>Queues</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Pending</th>
-  </tr>
-  <% for queue in resque.queues %> 
+<div id="main">
+  <h1>Queues</h1>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Pending</th>
+    </tr>
+    <% for queue in resque.queues %> 
     <tr>
       <td><a class="queue" href="#"><%= queue %></a></td>
       <td><%= resque.size queue %></td>      
     </tr>
-  <% end %>
-</table>
+    <% end %>
+  </table>
 
-<h1>Workers</h1>
-<table>
-  <tr>
-    <th>&nbsp;</th>
-    <th>Host</th>
-    <th>Pid</th>    
-    <th>Queues</th>        
-    <th>Status</th>    
-  </tr>
-  <% for worker in resque.workers %>
+  <h1>Workers</h1>
+  <table>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Host</th>
+      <th>Pid</th>    
+      <th>Queues</th>        
+      <th>Status</th>    
+    </tr>
+    <% for worker in resque.workers %>
     <tr>
       <td><img src="<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
       
@@ -79,21 +68,21 @@
       <td><%= queues.split(',').map { |q| '<a class="queue" href="#">' + q + '</a>'}.join(', ') %></td>
       
       <td>      
-      <% data = resque.worker(worker) || {} %>
-      <% if data['queue'] %>
+        <% data = resque.worker(worker) || {} %>
+        <% if data['queue'] %>
         <code><%= data['payload']['class'] %></code>
         <small><a href="#" class="queue">2 minutes ago</a></small>
-      <% else %>
+        <% else %>
         Chillin'
-      <% end %>
+        <% end %>
       </td>
-        
+      
     </tr>
-  <% end %>
-</table>
+    <% end %>
+  </table>
 
-<% failed = resque.peek(:failed, 0, 20) %>
-<% if failed.any? %>
+  <% failed = resque.peek(:failed, 0, 20) %>
+  <% if failed.any? %>
   <h1>Failed</h1>
   <table>
     <tr>
@@ -109,7 +98,7 @@
     </tr>
     <% end %>
   </table>
-<% end %>
-
+  <% end %>
+</div>
 </body>
 </html>  
