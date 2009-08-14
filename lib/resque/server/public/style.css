@@ -52,6 +52,16 @@ code {
     font-size: 1.2em;
 }
 
+#logo {
+    float: right;
+    font-family: Collegiate, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    text-shadow: #0c0c0c 4px 4px 8px;   
+    font-size: 1.6em;
+    padding-right: 20px;
+    letter-spacing: 3px;
+    color: #333;
+}
+
 #main {
     margin: 10px;
 }
