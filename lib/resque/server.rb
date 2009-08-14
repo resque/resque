@@ -25,6 +25,17 @@ class Resque
       def class_if_current(page = '')
         'class="current"' if current_page.include? page.to_s
       end
+
+      def partial?
+        @partial
+      end
+
+      def partial(template)
+        @partial = true
+        erb(template.to_sym, :layout => false)
+      ensure
+        @partial = false
+      end
     end
 
     # to make things easier on ourselves

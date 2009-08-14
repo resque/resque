@@ -1,8 +1,15 @@
-<% @subtabs = resque.queues %>
+<% @subtabs = resque.queues unless partial? %>
 
-<%= current_page %>
-<br/>
-<%= request.path_info %>
-<br/>
-<%= "#{current_page}/critical" %>
-<%= "#{current_section}/critical" %>
+<h1>Queues</h1>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Pending</th>
+  </tr>
+  <% for queue in resque.queues %> 
+  <tr>
+    <td><a class="queue" href="#"><%= queue %></a></td>
+    <td><%= resque.size queue %></td>      
+  </tr>
+  <% end %>
+</table>

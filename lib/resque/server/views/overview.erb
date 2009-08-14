@@ -1,16 +1,4 @@
-<h1>Queues</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Pending</th>
-  </tr>
-  <% for queue in resque.queues %> 
-  <tr>
-    <td><a class="queue" href="#"><%= queue %></a></td>
-    <td><%= resque.size queue %></td>      
-  </tr>
-  <% end %>
-</table>
+<%= partial :queues %>
 
 <h1>Workers</h1>
 <table>
