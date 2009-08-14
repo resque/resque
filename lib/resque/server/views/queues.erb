@@ -1,15 +1,48 @@
 <% @subtabs = resque.queues unless partial? %>
 
-<h1>Queues</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Pending</th>
-  </tr>
-  <% for queue in resque.queues %> 
-  <tr>
-    <td><a class="queue" href="#"><%= queue %></a></td>
-    <td><%= resque.size queue %></td>      
-  </tr>
-  <% end %>
-</table>
+<% if queue = params[:id] %>
+
+  <h1><%= size = resque.size(queue) %> Pending Jobs in '<%= queue.upcase %>'</h1>
+  <h2>Showing <%= start = params[:start].to_i %> to <%= start + 20 %></h2>
+  <table>
+    <tr>
+      <th>Class</th>
+      <th>Args</th>
+    </tr>
+    <% for job in resque.peek(queue, start, 20) %> 
+    <tr>
+      <td><%= job['class'] %></td>
+      <td><%=h job['args'].inspect %></td>      
+    </tr>
+    <% end %>
+    <tr>
+      <td>
+        <% if start - 20 >= 0 %>
+          <a href="/<%= current_page %>?start=<%= start - 20 %>">&laquo; less</a>
+        <% end %>
+      </td>
+      <td>
+        <% if start + 20 <= size %>
+          <a href="/<%= current_page %>?start=<%= start + 20 %>">more &raquo;</a>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+  
+<% else %>
+
+  <h1>Queues</h1>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Pending</th>
+    </tr>
+    <% for queue in resque.queues %> 
+    <tr>
+      <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
+      <td><%= resque.size queue %></td>      
+    </tr>
+    <% end %>
+  </table>
+  
+<% end %>

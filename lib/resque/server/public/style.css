@@ -2,12 +2,19 @@ body {
     margin: 0;
     /* font: normal 12px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;         */
 }
-h1 {
+h1, h2, h3, h4, h5 {
     color: #333;
     font: normal 12px/1.5em "Helvetica Neue", Helvetica, Arial, sans-serif;    
-    font-size: 1.5em;
     text-shadow: 1px 1px #ddd;
-    
+}
+h1 {
+    font-size: 1.5em;
+}
+h2 {
+    font-size: 1.0em;
+}
+h3 {
+    font-size: 0.7em;
 }
 table {
     margin-bottom: 50px;
@@ -29,15 +36,17 @@ th {
     font-size: .9em;
     padding: 0 15px 5px 15px;    
 }
-a.queue {
+a {
     color: #666;
     text-decoration: none;
-    text-transform: uppercase;
     font-size: .9em;
 }
-a.queue:hover {
+a:hover {
     color: #000;
     background-color: #e0f3ff;
+}
+a.queue {
+    text-transform: uppercase;
 }
 code {
     font-size: 1.2em;

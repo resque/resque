@@ -16,7 +16,7 @@
     <% host, pid, queues = worker.split(':') %>
     <td><%= host %></td>
     <td><%= pid %></td>
-    <td><%= queues.split(',').map { |q| '<a class="queue" href="#">' + q + '</a>'}.join(', ') %></td>
+    <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
     
     <td>      
       <% data = resque.worker(worker) || {} %>
