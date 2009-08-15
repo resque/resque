@@ -44,7 +44,7 @@
         <td><img src="/<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.split(':') %>
         <td><%= host %></td>
-        <td><%= pid %></td>
+        <td><a href="/workers/<%= worker %>"><%= pid %></a></td>        
         <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
       
         <td>      
