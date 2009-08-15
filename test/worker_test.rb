@@ -103,7 +103,10 @@ context "Resque::Worker" do
     @queue.enqueue(:jobs, BadJob)
     @queue.enqueue(:jobs, BadJob)
 
-    @worker.work(0)
+    3.times do
+      job = @worker.reserve
+      @worker.process job
+    end
     assert_equal 3, @worker.processed
   end
 
@@ -111,7 +114,16 @@ context "Resque::Worker" do
     @queue.enqueue(:jobs, BadJob)
     @queue.enqueue(:jobs, BadJob)
 
-    @worker.work(0)
+    3.times do
+      job = @worker.reserve
+      @worker.process job
+    end
     assert_equal 2, @worker.failed
+  end
+
+  test "stats are erased when the worker goes away" do
+    @worker.work(0)
+    assert_equal 0, @worker.processed
+    assert_equal 0, @worker.failed
   end
 end

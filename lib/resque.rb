@@ -78,6 +78,8 @@ class Resque
   end
 
   def remove_worker(worker)
+    clear_processed_for worker
+    clear_failed_for worker
     @redis.srem(key(:workers), worker.to_s)
   end
 
@@ -143,12 +145,20 @@ class Resque
     @redis.get(target).to_i
   end
 
+  def clear_processed_for(id)
+    @redis.del key(:stats, :processed, id.to_s)
+  end
+
   def failed!(id = nil)
     @redis.incr(key(:stats, :failed, id.to_s)) if id
   end
 
   def failed(id = nil)
     id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : size(:failed).to_i
+  end
+
+  def clear_failed_for(id)
+    @redis.del key(:stats, :failed, id.to_s)
   end
 
 
