@@ -99,6 +99,10 @@ class Resque
     decode @redis.get(key(:worker, id.to_s))
   end
 
+  def worker?(id)
+    @redis.sismember(key(:workers), id.to_s)
+  end
+
   def working
     names = workers
     return [] unless names.any?

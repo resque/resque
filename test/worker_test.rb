@@ -133,4 +133,11 @@ context "Resque::Worker" do
       assert_equal time.to_s, @queue.worker_started(@worker.to_s)
     end
   end
+
+  test "knows whether it exists or not" do
+    @worker.work(0) do
+      assert @queue.worker?(@worker)
+      assert !@queue.worker?('blah-blah')
+    end
+  end
 end
