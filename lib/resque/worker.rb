@@ -4,6 +4,11 @@ class Resque
     attr_accessor :logger
     attr_writer   :to_s
 
+
+    #
+    # setup
+    #
+
     def initialize(server, *queues)
       @resque = server.respond_to?(:split) ? Resque.new(server) : server
       @queues = queues
@@ -28,6 +33,11 @@ class Resque
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
     end
+
+
+    #
+    # main loop / processing
+    #
 
     def work(interval = 5, &block)
       self.procline = "Starting"
@@ -72,6 +82,21 @@ class Resque
       end
     end
 
+    def reserve
+      @queues.each do |queue|
+        if job = @resque.reserve(queue)
+          return job
+        end
+      end
+
+      nil
+    end
+
+
+    #
+    # startup / teardown
+    #
+
     def register_signal_handlers
       trap('TERM') { shutdown }
       trap('INT')  { shutdown }
@@ -82,15 +107,27 @@ class Resque
       @shutdown = true
     end
 
-    def reserve
-      @queues.each do |queue|
-        if job = @resque.reserve(queue)
-          return job
-        end
-      end
-
-      nil
+    def register_worker
+      @resque.add_worker self
     end
+
+    def unregister_worker
+      @resque.remove_worker self
+    end
+
+    def working_on(job)
+      @resque.set_worker_status(self, job.queue, job.payload)
+    end
+
+    def done_working
+      @resque.clear_worker_status(self)
+      @resque.processed!(self)
+    end
+
+
+    #
+    # query the worker
+    #
 
     def processed
       @resque.stat_processed(self)
@@ -120,23 +157,6 @@ class Resque
       @resque.worker_state(to_s)
     end
 
-    def register_worker
-      @resque.add_worker self
-    end
-
-    def unregister_worker
-      @resque.remove_worker self
-    end
-
-    def working_on(job)
-      @resque.set_worker_status(self, job.queue, job.payload)
-    end
-
-    def done_working
-      @resque.clear_worker_status(self)
-      @resque.processed!(self)
-    end
-
     def inspect
       "#<Worker #{to_s}>"
     end
@@ -144,6 +164,11 @@ class Resque
     def to_s
       @to_s ||= "#{`hostname`.chomp}:#{Process.pid}:#{@queues.join(',')}"
     end
+
+
+    #
+    # randomness
+    #
 
     def log(message)
       puts "*** #{message}" if logger
