@@ -12,6 +12,10 @@ class Resque
     @redis = Redis.new(:host => host, :port => port)
   end
 
+  def to_s
+    "Resque Client connected to #{@redis.server}"
+  end
+
 
   #
   # queue manipulation
