@@ -81,11 +81,11 @@ class Resque
     end
 
     def processed
-      @resque.processed(self)
+      @resque.stat_processed(self)
     end
 
     def failed
-      @resque.failed(self)
+      @resque.stat_failed(self)
     end
 
     def register_worker

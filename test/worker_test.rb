@@ -20,7 +20,7 @@ context "Resque::Worker" do
     @worker.work(0)
     assert_equal 10, @queue.failed_size
 
-    assert_equal 10, @queue.failed_jobs(0, 20).size
+    assert_equal 10, @queue.failed(0, 20).size
   end
 
   test "catches exceptional jobs" do

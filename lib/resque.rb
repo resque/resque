@@ -51,6 +51,8 @@ class Resque
     @redis.smembers(key(:queues))
   end
 
+  # Used internally to keep track of which queues
+  # we've created.
   def watch_queue(queue)
     @watched_queues ||= {}
     return if @watched_queues[queue]
@@ -85,7 +87,7 @@ class Resque
     @redis.llen(key(:failed)).to_i
   end
 
-  def failed_jobs(start = 0, count = 1)
+  def failed(start = 0, count = 1)
     if count == 1
       decode @redis.lindex(key(:failed), start)
     else
@@ -169,17 +171,17 @@ class Resque
 
   def info
     return {
-      :pending   => pending,
-      :processed => processed,
+      :pending   => stat_pending,
+      :processed => stat_processed,
       :queues    => queues.size,
       :workers   => workers.size.to_i,
       :working   => working.size,
-      :failed    => failed,
+      :failed    => stat_failed,
       :servers   => [@redis.server]
     }
   end
 
-  def pending
+  def stat_pending
     queues.inject(0) { |m,k| m + size(k) }
   end
 
@@ -196,7 +198,7 @@ class Resque
     end
   end
 
-  def processed(id = nil)
+  def stat_processed(id = nil)
     target = id ? key(:stats, :processed, id.to_s) : key(:stats, :processed)
     @redis.get(target).to_i
   end
@@ -215,7 +217,7 @@ class Resque
     end
   end
 
-  def failed(id = nil)
+  def stat_failed(id = nil)
     id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : failed_size
   end
 
