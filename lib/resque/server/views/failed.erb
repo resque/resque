@@ -8,7 +8,6 @@
     <th>Class</th>
     <th>Args</th>    
     <th>Error</th>
-    <th>Backtrace</th>        
   </tr>
   <% for job in failed %>
   <tr>
@@ -16,10 +15,9 @@
     <td><span class="time"><%= job['failed_at'] %></span></td>
     <td><%= job['payload']['class'] %></td>
     <td><%= h(job['payload']['args']).inspect %></td>
-    <td><%= h(job['error']) %></td>
     <td> 
-      <a href="#" class="backtrace">...</a>
-      <pre style="display:none;"><%= h(job['error']) + "\n" %><%= h(job['backtrace'].join("\n")) %></pre>
+      <a href="#" class="backtrace"><%= h(job['error']) %></a>
+      <pre style="display:none;"><%= h(job['backtrace'].join("\n")) %></pre>
     </td>                
   </tr>
   <% end %>
