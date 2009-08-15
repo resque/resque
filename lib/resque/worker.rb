@@ -18,6 +18,7 @@ class Resque
     end
 
     def work(interval = 5, &block)
+      self.procline = "Starting"
       register_signal_handlers
       register_worker
 
@@ -26,10 +27,12 @@ class Resque
 
         if job = reserve
           log "Got #{job.inspect}"
+          self.procline = "Processing since #{Time.now.to_i}"
           process(job, &block)
         else
           break if interval.to_i == 0
           log "Sleeping"
+          self.procline = "Waiting"
           sleep interval.to_i
         end
       end
@@ -112,6 +115,10 @@ class Resque
 
     def log(message)
       puts "*** #{message}" if logger
+    end
+
+    def procline=(string)
+      $0 = "resque: #{string}"
     end
   end
 end

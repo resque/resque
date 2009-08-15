@@ -148,4 +148,10 @@ context "Resque::Worker" do
       assert !@queue.worker?('blah-blah')
     end
   end
+
+  test "sets $0 while working" do
+    @worker.work(0) do
+      assert_equal "resque: Processing since #{Time.now.to_i}", $0
+    end
+  end
 end
