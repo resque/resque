@@ -2,6 +2,20 @@
 
 <% if params[:id] == "resque" %>
 
+  <h1><%= resque %></h1>
+  <table>
+  <% for key, value in resque.info.to_a.sort_by { |i| i[0].to_s } %>
+    <tr>
+      <td>
+        <%= key %>
+      </td>
+      <td>
+        <%= value %>
+      </td>
+    </tr>
+  <% end %>
+  </table>
+
 <% elsif params[:id] == 'redis' %>
 
   <h1><%= resque.redis %></h1>
