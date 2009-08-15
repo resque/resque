@@ -34,6 +34,7 @@ class Resque
         end
       end
 
+    ensure
       unregister_worker
     end
 
