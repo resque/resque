@@ -23,7 +23,7 @@ class RedisRunner
 
   def self.start
     puts 'Detach with Ctrl+\  Re-attach with rake redis:attach'
-    sleep 3
+    sleep 1
     exec "dtach -A #{dtach_socket} redis-server #{redisconfdir}"
   end
 
