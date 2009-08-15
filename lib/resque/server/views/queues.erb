@@ -43,6 +43,10 @@
       <td><%= resque.size queue %></td>      
     </tr>
     <% end %>
+    <tr>
+      <td><a class="queue" href="/failed">failed</a></td>
+      <td><%= resque.failed_size %></td>      
+    </tr>
   </table>
   
 <% end %>
