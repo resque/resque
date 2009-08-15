@@ -75,15 +75,24 @@ context "Resque" do
   end
 
   test "keeps stats" do
-    @worker = Resque::Worker.new('localhost:6379', :jobs)
     @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
     @queue.enqueue(:jobs, BadJob)
     @queue.enqueue(:jobs, GoodJob)
-    3.times { @worker.process }
+
+    @worker = Resque::Worker.new('localhost:6379', :jobs)
+    @worker.register_worker
+    2.times { @worker.process }
+    job = @worker.reserve
+    @worker.working_on job
+
+    stats = @queue.info
+    assert_equal 1, stats[:working]
+    assert_equal 1, stats[:workers]
+
+    @worker.done_working
 
     stats = @queue.info
     assert_equal 3, stats[:queues]
-    assert_equal 0, stats[:workers]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
     assert_equal ['localhost:6379'], stats[:servers]

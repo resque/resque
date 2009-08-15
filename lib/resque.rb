@@ -85,6 +85,12 @@ class Resque
     decode @redis.get(key(:worker, id.to_s))
   end
 
+  def working
+    names = workers
+    return [] unless names.any?
+    @redis.mget(*names)
+  end
+
   def worker_state(id)
     @redis.exists(key(:worker, id)) ? :working : :idle
   end
@@ -110,7 +116,8 @@ class Resque
     return {
       :processed => @redis.get(key(:stats, :processed)).to_i,
       :queues    => queues.size,
-      :workers   => workers.size,
+      :workers   => workers.size.to_i,
+      :working   => working.size,
       :failed    => size(:failed),
       :servers   => [@redis.server]
     }
