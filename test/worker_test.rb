@@ -72,7 +72,7 @@ context "Resque::Worker" do
 
   test "records what it is working on" do
     @worker.work(0) do
-      task = @queue.worker(@worker.to_s)
+      task = @worker.processing
       assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
       assert task['run_at']
       assert_equal 'jobs', task['queue']
@@ -80,24 +80,18 @@ context "Resque::Worker" do
   end
 
   test "clears its status when not working on anything" do
-    @worker.work(0) do
-      assert @queue.worker(@worker.to_s)
-    end
-
-    assert_equal nil, @queue.worker(@worker.to_s)
+    @worker.work(0)
+    assert_equal nil, @worker.processing
   end
 
   test "knows when it is working" do
     @worker.work(0) do
-      assert @queue.worker(@worker.to_s)
       assert @worker.working?
     end
   end
 
   test "knows when it is idle" do
-    @worker.work(0) do
-      assert @queue.worker(@worker.to_s)
-    end
+    @worker.work(0)
     assert @worker.idle?
   end
 
@@ -138,7 +132,7 @@ context "Resque::Worker" do
   test "knows when it started" do
     time = Time.now
     @worker.work(0) do
-      assert_equal time.to_s, @queue.worker_started(@worker.to_s)
+      assert_equal time.to_s, @worker.started.to_s
     end
   end
 

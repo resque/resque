@@ -88,6 +88,14 @@ class Resque
       @resque.stat_failed(self)
     end
 
+    def started
+      @resque.worker_started(self)
+    end
+
+    def processing
+      @resque.worker(to_s)
+    end
+
     def working?
       state == :working
     end
