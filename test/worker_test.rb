@@ -9,14 +9,9 @@ context "Resque::Worker" do
     @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
   end
 
-  test "can finish jobs" do
-    job = @worker.reserve
-    assert job.done
-  end
-
   test "can fail jobs" do
-    job = @worker.reserve
-    job.fail(Exception.new)
+    @queue.enqueue(:jobs, BadJob)
+    @worker.work(0)
     assert_equal 1, @queue.size("failed")
   end
 
@@ -54,50 +49,53 @@ context "Resque::Worker" do
   end
 
   test "inserts itself into the 'workers' list on startup" do
-    @worker.register_worker
-    assert_equal @worker.to_s, @queue.workers[0]
+    @worker.work(0) do
+      assert_equal @worker.to_s, @queue.workers[0]
+    end
   end
 
   test "removes itself from the 'workers' list on shutdown" do
-    @worker.register_worker
-    assert_equal @worker.to_s, @queue.workers[0]
+    @worker.work(0) do
+      assert_equal @worker.to_s, @queue.workers[0]
+    end
 
-    @worker.unregister_worker
     assert_equal [], @queue.workers
   end
 
   test "records what it is working on" do
-    job = @worker.reserve
-    @worker.working_on job
-    task = @queue.worker(@worker.to_s)
-    assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
-    assert task['run_at']
-    assert_equal 'jobs', task['queue']
+    @worker.work(0) do
+      task = @queue.worker(@worker.to_s)
+      assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
+      assert task['run_at']
+      assert_equal 'jobs', task['queue']
+    end
   end
 
   test "clears its status when not working on anything" do
-    job = @worker.reserve
-    @worker.working_on job
-    assert @queue.worker(@worker.to_s)
+    @worker.work(0) do
+      assert @queue.worker(@worker.to_s)
+    end
 
-    @worker.done_working
     assert_equal nil, @queue.worker(@worker.to_s)
   end
 
   test "knows when it is working" do
-    job = @worker.reserve
-    @worker.working_on job
-    assert @queue.worker(@worker.to_s)
-
-    assert_equal :working, @queue.worker_state(@worker.to_s)
+    @worker.work(0) do
+      assert @queue.worker(@worker.to_s)
+      assert_equal :working, @queue.worker_state(@worker.to_s)
+    end
   end
 
   test "knows when it is idle" do
-    job = @worker.reserve
-    @worker.working_on job
-    assert @queue.worker(@worker.to_s)
-
-    @worker.done_working
+    @worker.work(0) do
+      assert @queue.worker(@worker.to_s)
+    end
     assert_equal :idle, @queue.worker_state(@worker.to_s)
+  end
+
+  xtest "keeps track of how many jobs it has processed" do
+  end
+
+  xtest "keeps track of how many failures it has seen" do
   end
 end

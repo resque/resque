@@ -17,7 +17,7 @@ class Resque
       end
     end
 
-    def work(interval = 5)
+    def work(interval = 5, &block)
       register_signal_handlers
       register_worker
 
@@ -26,8 +26,9 @@ class Resque
 
         if job = reserve
           log "Got #{job.inspect}"
-          process job
+          process(job, &block)
         else
+          break if interval.to_i == 0
           log "Sleeping"
           sleep interval.to_i
         end
@@ -49,6 +50,7 @@ class Resque
         log "#{job.inspect} done processing"
         job.done
       ensure
+        yield job if block_given?
         done_working
       end
     end
