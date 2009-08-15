@@ -1,0 +1,30 @@
+<h1>Processing</h1>
+<table>
+  <tr>
+    <th>&nbsp;</th>
+    <th>Host</th>
+    <th>Pid</th>    
+    <th>Queues</th>        
+    <th>Status</th>    
+  </tr>
+  <% for worker in resque.workers %>
+    <% next if resque.worker_state(worker) == :idle %>
+    <tr>
+      <td><img src="<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
+      <% host, pid, queues = worker.split(':') %>
+      <td><%= host %></td>
+      <td><%= pid %></td>
+      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
+      
+      <td>      
+        <% data = resque.worker(worker) || {} %>
+        <% if data['queue'] %>
+        <code><%= data['payload']['class'] %></code>
+        <small><a href="#" class="queue">2 minutes ago</a></small>
+        <% else %>
+        Chillin'
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+</table>
