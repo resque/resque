@@ -39,8 +39,7 @@
       <th>Queues</th>        
       <th>Status</th>    
     </tr>
-    <% for worker in resque.workers %>
-      <% next if resque.worker_state(worker) == :idle %>
+    <% for worker in resque.working %>
       <tr>
         <td><img src="/<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.split(':') %>
