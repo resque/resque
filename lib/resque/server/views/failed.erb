@@ -1,4 +1,4 @@
-<% failed = resque.failed_jobs(resque.failed_size - 20, 20) %>
+<% failed = resque.failed(resque.failed_size - 20, 20) %>
 
 <h1><%= resque.failed_size %> Jobs Failed</h1>
 <table>
