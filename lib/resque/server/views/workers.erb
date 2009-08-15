@@ -19,10 +19,10 @@
     <td>      
       <% data = resque.worker(worker) || {} %>
       <% if data['queue'] %>
-      <code><%= data['payload']['class'] %></code>
-      <small><a href="#" class="queue">2 minutes ago</a></small>
+        <code><%= data['payload']['class'] %></code>
+        <small><a class="queue time" href="/processing/<%= worker %>"><%= data['run_at'] %></a></small>      
       <% else %>
-      Chillin'
+        Chillin'
       <% end %>
     </td>
     

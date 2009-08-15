@@ -1,30 +1,64 @@
-<h1>Processing</h1>
-<table>
-  <tr>
-    <th>&nbsp;</th>
-    <th>Host</th>
-    <th>Pid</th>    
-    <th>Queues</th>        
-    <th>Status</th>    
-  </tr>
-  <% for worker in resque.workers %>
-    <% next if resque.worker_state(worker) == :idle %>
+<% if worker = params[:id] %>
+
+  <% data = resque.worker(worker) %>
+
+  <h1><%= worker %>'s job</h1>
+  <table>
     <tr>
-      <td><img src="<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
-      <% host, pid, queues = worker.split(':') %>
-      <td><%= host %></td>
-      <td><%= pid %></td>
-      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
-      
-      <td>      
-        <% data = resque.worker(worker) || {} %>
-        <% if data['queue'] %>
-        <code><%= data['payload']['class'] %></code>
-        <small><a href="#" class="queue">2 minutes ago</a></small>
-        <% else %>
-        Chillin'
-        <% end %>
-      </td>
+      <th>&nbsp;</th>
+      <th>Host</th>
+      <th>Pid</th>    
+      <th>Queue</th>        
+      <th>Class</th>
+      <th>Args</th>
+      <th>Started</th>      
     </tr>
-  <% end %>
-</table>
+      <tr>
+        <td><img src="/working.png" alt="working" title="working"></td>
+        <% host, pid, _ = worker.split(':') %>
+        <td><%= host %></td>
+        <td><%= pid %></td>
+        <% queue = data['queue'] %>
+        <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
+        <td>      
+          <code><%= data['payload']['class'] %></code>
+        </td>
+        <td><%= data['payload']['args'] %></td>
+        <td><span class="time"><%= data['run_at'] %></span></td>        
+      </tr>
+  </table>
+
+<% else %>
+
+  <h1>Processing</h1>
+  <table>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Host</th>
+      <th>Pid</th>    
+      <th>Queues</th>        
+      <th>Status</th>    
+    </tr>
+    <% for worker in resque.workers %>
+      <% next if resque.worker_state(worker) == :idle %>
+      <tr>
+        <td><img src="/<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
+        <% host, pid, queues = worker.split(':') %>
+        <td><%= host %></td>
+        <td><%= pid %></td>
+        <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
+      
+        <td>      
+          <% data = resque.worker(worker) || {} %>
+          <% if data['queue'] %>
+            <code><%= data['payload']['class'] %></code>
+            <small><a class="queue time" href="/processing/<%= worker %>"><%= data['run_at'] %></a></small>
+          <% else %>
+            Chillin'
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </table>
+
+<% end %>
