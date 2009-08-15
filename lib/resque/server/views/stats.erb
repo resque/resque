@@ -1,0 +1,23 @@
+<% @subtabs = %w( resque redis ) %>
+
+<% if params[:id] == "resque" %>
+
+<% elsif params[:id] == 'redis' %>
+
+  <h1><%= resque.redis %></h1>
+  <table>
+  <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
+    <tr>
+      <td>
+        <%= key %>
+      </td>
+      <td>
+        <%= value %>
+      </td>
+    </tr>
+  <% end %>
+  </table>
+
+<% else %>
+
+<% end %>
