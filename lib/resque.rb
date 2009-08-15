@@ -108,12 +108,20 @@ class Resque
 
   def info
     return {
-      :queues  => queues.size,
-      :workers => workers.size,
-      :errors  => size(:errors),
-      :servers => [@redis.server]
+      :processed => @redis.get(key(:stats, :processed)).to_i,
+      :queues    => queues.size,
+      :workers   => workers.size,
+      :failed    => size(:failed),
+      :servers   => [@redis.server]
     }
   end
+
+  # Called by workers when a job has been processed,
+  # regardless of pass or fail.
+  def processed!
+    @redis.incr(key(:stats, :processed))
+  end
+
 
   #
   # encoding / decoding

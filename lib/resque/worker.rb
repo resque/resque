@@ -87,6 +87,7 @@ class Resque
 
     def done_working
       @resque.clear_worker_status(self)
+      @resque.processed!
     end
 
     def inspect
