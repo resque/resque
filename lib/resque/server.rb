@@ -43,7 +43,7 @@ class Resque
       redirect '/overview'
     end
 
-    %w( overview queues processing workers stats ).each do |page|
+    %w( overview queues working workers stats ).each do |page|
       get "/#{page}" do
         erb page.to_sym, {}, :resque => resque
       end

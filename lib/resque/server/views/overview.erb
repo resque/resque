@@ -1,6 +1,6 @@
 <%= partial :queues %>
 
-<%= partial :workers %>
+<%= partial :working %>
 
 <% failed = resque.peek(:failed, 0, 20) %>
 <% if failed.any? %>
