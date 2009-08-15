@@ -144,6 +144,7 @@ class Resque
 
   def info
     return {
+      :pending   => pending,
       :processed => processed,
       :queues    => queues.size,
       :workers   => workers.size.to_i,
@@ -151,6 +152,10 @@ class Resque
       :failed    => failed,
       :servers   => [@redis.server]
     }
+  end
+
+  def pending
+    queues.inject(0) { |m,k| m + size(k) }
   end
 
   # Called by workers when a job has been processed,
