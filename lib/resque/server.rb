@@ -48,7 +48,7 @@ class Resque
       redirect '/overview'
     end
 
-    %w( overview failed queues working workers stats ).each do |page|
+    %w( overview failed queues working workers ).each do |page|
       get "/#{page}" do
         erb page.to_sym, {}, :resque => resque
       end
@@ -57,6 +57,15 @@ class Resque
         erb page.to_sym, {}, :resque => resque
       end
     end
+
+    get "/stats" do
+      redirect "/stats/resque"
+    end
+
+    get "/stats/:id" do
+      erb :stats, {}, :resque => resque
+    end
+
 
     def self.start(host = 'localhost', port = 4567)
       run! :host => host, :port => port
