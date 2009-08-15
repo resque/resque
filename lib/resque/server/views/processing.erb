@@ -1,8 +1,8 @@
 <% if worker = params[:id] %>
-
   <% data = resque.worker(worker) %>
 
   <h1><%= worker %>'s job</h1>
+  
   <table>
     <tr>
       <th>&nbsp;</th>
@@ -23,7 +23,7 @@
         <td>      
           <code><%= data['payload']['class'] %></code>
         </td>
-        <td><%= data['payload']['args'] %></td>
+        <td><%= h(data['payload']['args']).inspect %></td>
         <td><span class="time"><%= data['run_at'] %></span></td>        
       </tr>
   </table>
