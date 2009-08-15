@@ -49,12 +49,12 @@ class Resque
 
         if job = reserve
           log "Got #{job.inspect}"
-          self.procline = "Processing since #{Time.now.to_i}"
+          self.procline = "Processing #{job.queue} since #{Time.now.to_i}"
           process(job, &block)
         else
           break if interval.to_i == 0
           log "Sleeping"
-          self.procline = "Waiting"
+          self.procline = "Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
