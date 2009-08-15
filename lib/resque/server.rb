@@ -31,6 +31,32 @@ class Resque
         "<li #{class_if_current(dname)}><a href='/#{dname}'>#{name}</a></li>"
       end
 
+      def redis_get_size(key)
+        case resque.redis.type(key)
+        when 'none'
+          []
+        when 'list'
+          resque.redis.llen(key)
+        when 'set'
+          resque.redis.scard(key)
+        when 'string'
+          resque.redis.get(key).length
+        end
+      end
+
+      def redis_get_value_as_array(key)
+        case resque.redis.type(key)
+        when 'none'
+          []
+        when 'list'
+          resque.redis.lrange(key, 0, 20)
+        when 'set'
+          resque.redis.smembers(key)
+        when 'string'
+          [resque.redis.get(key)]
+        end
+      end
+
       def partial?
         @partial
       end
@@ -48,7 +74,7 @@ class Resque
       redirect '/overview'
     end
 
-    %w( overview failed queues working workers ).each do |page|
+    %w( overview failed queues working workers key ).each do |page|
       get "/#{page}" do
         erb page.to_sym, {}, :resque => resque
       end
