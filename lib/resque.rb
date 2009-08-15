@@ -111,11 +111,13 @@ class Resque
   end
 
   def remove_worker(worker)
-    clear_processed_for worker
-    clear_failed_for worker
-    clear_worker_status worker
-    @redis.del(key(:worker, worker.to_s, :started))
-    @redis.srem(key(:workers), worker.to_s)
+    @redis.pipelined do |redis|
+      clear_processed_for worker, redis
+      clear_failed_for worker, redis
+      clear_worker_status worker, redis
+      redis.del(key(:worker, worker.to_s, :started))
+      redis.srem(key(:workers), worker.to_s)
+    end
   end
 
   def workers
@@ -160,8 +162,8 @@ class Resque
     end
   end
 
-  def clear_worker_status(id)
-    @redis.del(key(:worker, id.to_s))
+  def clear_worker_status(id, redis = @redis)
+    redis.del(key(:worker, id.to_s))
   end
 
   def find_worker(id)
@@ -207,8 +209,8 @@ class Resque
     @redis.get(target).to_i
   end
 
-  def clear_processed_for(id)
-    @redis.del key(:stats, :processed, id.to_s)
+  def clear_processed_for(id, redis = @redis)
+    redis.del key(:stats, :processed, id.to_s)
   end
 
   def failed!(id = nil)
@@ -225,8 +227,8 @@ class Resque
     id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : failed_size
   end
 
-  def clear_failed_for(id)
-    @redis.del key(:stats, :failed, id.to_s)
+  def clear_failed_for(id, redis = @redis)
+    redis.del key(:stats, :failed, id.to_s)
   end
 
 
