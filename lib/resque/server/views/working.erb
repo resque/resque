@@ -6,8 +6,7 @@
   <table>
     <tr>
       <th>&nbsp;</th>
-      <th>Host</th>
-      <th>Pid</th>    
+      <th>Where</th>
       <th>Queue</th>
       <th>Started</th>      
       <th>Class</th>
@@ -16,8 +15,7 @@
       <tr>
         <td><img src="/working.png" alt="working" title="working"></td>
         <% host, pid, _ = worker.split(':') %>
-        <td><%= host %></td>
-        <td><%= pid %></td>
+        <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
         <% queue = data['queue'] %>
         <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>        
@@ -34,17 +32,15 @@
   <table>
     <tr>
       <th>&nbsp;</th>
-      <th>Host</th>
-      <th>Pid</th>    
+      <th>Where</th>
       <th>Queues</th>        
-      <th>Status</th>    
+      <th>Processing</th>    
     </tr>
     <% for worker in resque.working %>
       <tr>
         <td><img src="/<%= state = resque.worker_state(worker) %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.split(':') %>
-        <td><%= host %></td>
-        <td><a href="/workers/<%= worker %>"><%= pid %></a></td>        
+        <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
         <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
       
         <td>      
@@ -53,7 +49,7 @@
             <code><%= data['payload']['class'] %></code>
             <small><a class="queue time" href="/working/<%= worker %>"><%= data['run_at'] %></a></small>
           <% else %>
-            Chillin'
+            Waiting for more
           <% end %>
         </td>
       </tr>

@@ -26,6 +26,11 @@ class Resque
         'class="current"' if current_page.include? page.to_s
       end
 
+      def tab(name)
+        dname = name.to_s.downcase
+        "<li #{class_if_current(dname)}><a href='/#{dname}'>#{name}</a></li>"
+      end
+
       def partial?
         @partial
       end
@@ -43,7 +48,7 @@ class Resque
       redirect '/overview'
     end
 
-    %w( overview queues working workers stats ).each do |page|
+    %w( overview failed queues working workers stats ).each do |page|
       get "/#{page}" do
         erb page.to_sym, {}, :resque => resque
       end

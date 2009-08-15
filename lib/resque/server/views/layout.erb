@@ -17,11 +17,12 @@
       Resque
     </div>
     <ul>
-      <li <%= class_if_current :overview %>><a href="/overview">Overview</a></li>
-      <li <%= class_if_current :working %>><a href="/working">Working</a></li>
-      <li <%= class_if_current :queues %>><a href="/queues">Queues</a></li>      
-      <li <%= class_if_current :workers %>><a href="/workers">Workers</a></li>
-      <li <%= class_if_current :stats %>><a href="/stats">Stats</a></li>
+      <%= tab "Overview" %>
+      <%= tab "Working" %>
+      <%= tab "Failed" %>
+      <%= tab "Queues" %>
+      <%= tab "Workers" %>
+      <%= tab "Stats" %>
     </ul>
   </div>
   <% if @subtabs %>

@@ -2,22 +2,4 @@
 
 <%= partial :working %>
 
-<% failed = resque.peek(:failed, 0, 20) %>
-<% if failed.any? %>
-<h1>Failed</h1>
-<table>
-  <tr>
-    <th>Name</th>
-    <th>State</th>
-    <th>Started Working</th>
-    <th>Job Class</th>
-    <th>Job Args</th>        
-  </tr>
-  <% for job in resque.peek(:failed, 0, 20) %>
-  <tr>
-    <td><%= job.inspect %></td>
-  </tr>
-  <% end %>
-</table>
-<% end %>
-
+<%= partial :failed %>

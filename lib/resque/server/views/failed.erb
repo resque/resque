@@ -1,0 +1,23 @@
+<% failed = resque.failed_jobs(resque.failed_size - 20, 20) %>
+
+<h1>Failed</h1>
+<table>
+  <tr>
+    <th>Queue</th>
+    <th>Failed</th>    
+    <th>Class</th>
+    <th>Args</th>    
+    <th>Error</th>
+    <th>Backtrace</th>        
+  </tr>
+  <% for job in failed %>
+  <tr>
+    <td><%= job['queue'] %></td>
+    <td><span class="time"><%= job['failed_at'] %></span></td>
+    <td><%= job['payload']['class'] %></td>
+    <td><%= h(job['payload']['args']).inspect %></td>
+    <td><%= h(job['error']) %></td>
+    <td> ... </td>                
+  </tr>
+  <% end %>
+</table>
