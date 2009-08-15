@@ -92,7 +92,11 @@ class Resque
   def working
     names = workers
     return [] unless names.any?
-    @redis.mget(*names)
+    names = names.map { |name| key(:worker, name) }
+    @redis.mapped_mget(*names).keys.map do |key|
+      # cleanup
+      key.sub(key(:worker), '')
+    end
   end
 
   def worker_state(id)
