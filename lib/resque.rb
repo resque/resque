@@ -111,6 +111,7 @@ class Resque
   def remove_worker(worker)
     clear_processed_for worker
     clear_failed_for worker
+    clear_worker_status worker
     @redis.del(key(:worker, worker.to_s, :started))
     @redis.srem(key(:workers), worker.to_s)
   end
