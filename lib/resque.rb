@@ -92,7 +92,7 @@ class Resque
   def set_worker_status(id, queue, payload)
     data = encode \
       :queue   => queue,
-      :run_at  => Time.now,
+      :run_at  => Time.now.to_s,
       :payload => payload
     @redis.set(key(:worker, id.to_s), data)
   end
