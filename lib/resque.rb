@@ -85,6 +85,16 @@ class Resque
     @redis.llen(key(:failed)).to_i
   end
 
+  def failed_jobs(start = 0, count = 1)
+    if count == 1
+      decode @redis.lindex(key(:failed), start)
+    else
+      Array(@redis.lrange(key(:failed), start, start+count-1)).map do |item|
+        decode item
+      end
+    end
+  end
+
 
   #
   # workers

@@ -15,6 +15,14 @@ context "Resque::Worker" do
     assert_equal 1, @queue.failed_size
   end
 
+  test "can peek at failed jobs" do
+    10.times { @queue.enqueue(:jobs, BadJob) }
+    @worker.work(0)
+    assert_equal 10, @queue.failed_size
+
+    assert_equal 10, @queue.failed_jobs(0, 20).size
+  end
+
   test "catches exceptional jobs" do
     @queue.enqueue(:jobs, BadJob)
     @queue.enqueue(:jobs, BadJob)
