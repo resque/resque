@@ -71,6 +71,20 @@ class Resque
     Job.new(self, queue, payload)
   end
 
+  def fail(payload, exception, worker, queue)
+    @redis.rpush key(:failed), encode(
+      :failed_at => Time.now.to_s,
+      :payload   => payload,
+      :error     => exception.to_s,
+      :backtrace => exception.backtrace,
+      :worker    => worker,
+      :queue     => queue)
+  end
+
+  def failed_size
+    @redis.llen(key(:failed)).to_i
+  end
+
 
   #
   # workers
@@ -191,7 +205,7 @@ class Resque
   end
 
   def failed(id = nil)
-    id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : size(:failed).to_i
+    id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : failed_size
   end
 
   def clear_failed_for(id)

@@ -98,7 +98,7 @@ context "Resque" do
     @worker.done_working
 
     stats = @queue.info
-    assert_equal 4, stats[:queues]
+    assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
     assert_equal ['localhost:6378'], stats[:servers]

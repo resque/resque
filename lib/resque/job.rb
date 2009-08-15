@@ -14,13 +14,7 @@ class Resque
     end
 
     def fail(exception, worker = nil)
-      @resque.push "failed", \
-        :failed_at => Time.now,
-        :payload   => @payload,
-        :error     => exception.to_s,
-        :backtrace => exception.backtrace,
-        :worker    => worker.inspect,
-        :queue     => @queue
+      @resque.fail(@payload, exception, worker, queue)
     end
 
     def done

@@ -12,7 +12,7 @@ context "Resque::Worker" do
   test "can fail jobs" do
     @queue.enqueue(:jobs, BadJob)
     @worker.work(0)
-    assert_equal 1, @queue.size("failed")
+    assert_equal 1, @queue.failed_size
   end
 
   test "catches exceptional jobs" do
@@ -21,7 +21,7 @@ context "Resque::Worker" do
     @worker.process
     @worker.process
     @worker.process
-    assert_equal 2, @queue.size("failed")
+    assert_equal 2, @queue.failed_size
   end
 
   test "can work on multiple queues" do
