@@ -1,4 +1,6 @@
 require 'rake/testtask'
+eval File.read('tasks/redis.rake')
+eval File.read('tasks/resque.rake')
 
 task :default => :test
 
