@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque" do
   setup do
-    @queue = Resque.new('localhost:6379')
+    @queue = Resque.new('localhost:6378')
     @queue.redis.flush_all
 
     @queue.push(:people, 'chris')
@@ -79,7 +79,7 @@ context "Resque" do
     @queue.enqueue(:jobs, BadJob)
     @queue.enqueue(:jobs, GoodJob)
 
-    @worker = Resque::Worker.new('localhost:6379', :jobs)
+    @worker = Resque::Worker.new('localhost:6378', :jobs)
     @worker.register_worker
     2.times { @worker.process }
     job = @worker.reserve
@@ -95,6 +95,6 @@ context "Resque" do
     assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
-    assert_equal ['localhost:6379'], stats[:servers]
+    assert_equal ['localhost:6378'], stats[:servers]
   end
 end
