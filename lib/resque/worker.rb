@@ -2,11 +2,23 @@ class Resque
   class Worker
     attr_reader   :resque
     attr_accessor :logger
+    attr_writer   :to_s
 
     def initialize(server, *queues)
-      @resque = Resque.new(server)
+      @resque = server.respond_to?(:split) ? Resque.new(server) : server
       @queues = queues
       validate_queues
+    end
+
+    def self.attach(resque, worker_id)
+      if resque.worker?(worker_id)
+        queues = worker_id.split(':')[-1].split(',')
+        worker = new(resque, *queues)
+        worker.to_s = worker_id
+        worker
+      else
+        nil
+      end
     end
 
     class NoQueueError < RuntimeError; end

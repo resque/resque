@@ -148,4 +148,20 @@ context "Resque::Worker" do
       assert_equal "resque: Processing since #{Time.now.to_i}", $0
     end
   end
+
+  test "can be found" do
+    @worker.work(0) do
+      found = @queue.find_worker(@worker.to_s)
+      assert_equal @worker.to_s, found.to_s
+      assert found.working?
+      assert_equal @worker.processing, found.processing
+    end
+  end
+
+  test "doesn't find fakes" do
+    @worker.work(0) do
+      found = @queue.find_worker('blah-blah')
+      assert_equal nil, found
+    end
+  end
 end

@@ -164,6 +164,10 @@ class Resque
     @redis.del(key(:worker, id.to_s))
   end
 
+  def find_worker(id)
+    Worker.attach(self, id)
+  end
+
 
   #
   # stats
