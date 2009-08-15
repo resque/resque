@@ -8,10 +8,10 @@
       <th>&nbsp;</th>
       <th>Host</th>
       <th>Pid</th>    
-      <th>Queue</th>        
+      <th>Queue</th>
+      <th>Started</th>      
       <th>Class</th>
       <th>Args</th>
-      <th>Started</th>      
     </tr>
       <tr>
         <td><img src="/working.png" alt="working" title="working"></td>
@@ -20,11 +20,11 @@
         <td><%= pid %></td>
         <% queue = data['queue'] %>
         <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
+        <td><span class="time"><%= data['run_at'] %></span></td>        
         <td>      
           <code><%= data['payload']['class'] %></code>
         </td>
         <td><%= h(data['payload']['args']).inspect %></td>
-        <td><span class="time"><%= data['run_at'] %></span></td>        
       </tr>
   </table>
 
