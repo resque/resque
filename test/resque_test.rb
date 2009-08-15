@@ -74,6 +74,10 @@ context "Resque" do
     assert_equal [], @queue.queues
   end
 
+  test "keeps track of resque keys" do
+    assert_equal ["resque:queue:people", "resque:queues"], @queue.keys
+  end
+
   test "keeps stats" do
     @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
     @queue.enqueue(:jobs, BadJob)

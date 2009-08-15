@@ -231,6 +231,10 @@ class Resque
     redis.del key(:stats, :failed, id.to_s)
   end
 
+  def keys
+    @redis.keys("resque:*")
+  end
+
 
   #
   # encoding / decoding
