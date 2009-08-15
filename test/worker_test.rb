@@ -99,9 +99,19 @@ context "Resque::Worker" do
     end
   end
 
-  xtest "keeps track of how many jobs it has processed" do
+  test "keeps track of how many jobs it has processed" do
+    @queue.enqueue(:jobs, BadJob)
+    @queue.enqueue(:jobs, BadJob)
+
+    @worker.work(0)
+    assert_equal 3, @worker.processed
   end
 
-  xtest "keeps track of how many failures it has seen" do
+  test "keeps track of how many failures it has seen" do
+    @queue.enqueue(:jobs, BadJob)
+    @queue.enqueue(:jobs, BadJob)
+
+    @worker.work(0)
+    assert_equal 2, @worker.failed
   end
 end

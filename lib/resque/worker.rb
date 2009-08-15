@@ -46,6 +46,7 @@ class Resque
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e, self)
+        @resque.failed!(self)
       else
         log "#{job.inspect} done processing"
         job.done
@@ -75,6 +76,14 @@ class Resque
       nil
     end
 
+    def processed
+      @resque.processed(self)
+    end
+
+    def failed
+      @resque.failed(self)
+    end
+
     def register_worker
       @resque.add_worker self
     end
@@ -89,7 +98,7 @@ class Resque
 
     def done_working
       @resque.clear_worker_status(self)
-      @resque.processed!
+      @resque.processed!(self)
     end
 
     def inspect

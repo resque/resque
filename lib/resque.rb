@@ -122,19 +122,33 @@ class Resque
 
   def info
     return {
-      :processed => @redis.get(key(:stats, :processed)).to_i,
+      :processed => processed,
       :queues    => queues.size,
       :workers   => workers.size.to_i,
       :working   => working.size,
-      :failed    => size(:failed),
+      :failed    => failed,
       :servers   => [@redis.server]
     }
   end
 
   # Called by workers when a job has been processed,
   # regardless of pass or fail.
-  def processed!
+  def processed!(id = nil)
     @redis.incr(key(:stats, :processed))
+    @redis.incr(key(:stats, :processed, id.to_s)) if id
+  end
+
+  def processed(id = nil)
+    target = id ? key(:stats, :processed, id.to_s) : key(:stats, :processed)
+    @redis.get(target).to_i
+  end
+
+  def failed!(id = nil)
+    @redis.incr(key(:stats, :failed, id.to_s)) if id
+  end
+
+  def failed(id = nil)
+    id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : size(:failed).to_i
   end
 
 
