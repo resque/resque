@@ -88,6 +88,18 @@ class Resque
       @resque.stat_failed(self)
     end
 
+    def working?
+      state == :working
+    end
+
+    def idle?
+      state == :idle
+    end
+
+    def state
+      @resque.worker_state(to_s)
+    end
+
     def register_worker
       @resque.add_worker self
     end

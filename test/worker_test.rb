@@ -90,7 +90,7 @@ context "Resque::Worker" do
   test "knows when it is working" do
     @worker.work(0) do
       assert @queue.worker(@worker.to_s)
-      assert_equal :working, @queue.worker_state(@worker.to_s)
+      assert @worker.working?
     end
   end
 
@@ -98,7 +98,7 @@ context "Resque::Worker" do
     @worker.work(0) do
       assert @queue.worker(@worker.to_s)
     end
-    assert_equal :idle, @queue.worker_state(@worker.to_s)
+    assert @worker.idle?
   end
 
   test "knows who is working" do
