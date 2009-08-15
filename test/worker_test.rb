@@ -126,4 +126,11 @@ context "Resque::Worker" do
     assert_equal 0, @worker.processed
     assert_equal 0, @worker.failed
   end
+
+  test "knows when it started" do
+    time = Time.now
+    @worker.work(0) do
+      assert_equal time.to_s, @queue.worker_started(@worker.to_s)
+    end
+  end
 end

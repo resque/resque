@@ -77,12 +77,17 @@ class Resque
   #
 
   def add_worker(worker)
-    @redis.sadd(key(:workers), worker.to_s)
+    @redis.pipelined do |redis|
+      redis.sadd(key(:workers), worker.to_s)
+      redis.set(key(:worker, worker.to_s, :started), Time.now.to_s)
+      redis.expire(key(:worker, worker.to_s, :started), WORKER_TTL)
+    end
   end
 
   def remove_worker(worker)
     clear_processed_for worker
     clear_failed_for worker
+    @redis.del(key(:worker, worker.to_s, :started))
     @redis.srem(key(:workers), worker.to_s)
   end
 
@@ -102,6 +107,10 @@ class Resque
       # cleanup
       key.sub(key(:worker) + ':', '')
     end
+  end
+
+  def worker_started(id)
+    @redis.get(key(:worker, id.to_s, :started))
   end
 
   def worker_state(id)
