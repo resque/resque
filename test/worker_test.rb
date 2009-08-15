@@ -93,6 +93,12 @@ context "Resque::Worker" do
     assert_equal :idle, @queue.worker_state(@worker.to_s)
   end
 
+  test "knows who is working" do
+    @worker.work(0) do
+      assert_equal [@worker.to_s], @queue.working
+    end
+  end
+
   xtest "keeps track of how many jobs it has processed" do
   end
 

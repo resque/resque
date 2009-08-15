@@ -95,7 +95,7 @@ class Resque
     names = names.map { |name| key(:worker, name) }
     @redis.mapped_mget(*names).keys.map do |key|
       # cleanup
-      key.sub(key(:worker), '')
+      key.sub(key(:worker) + ':', '')
     end
   end
 
