@@ -73,4 +73,12 @@ context "Resque" do
     @queue.redis.flush_all
     assert_equal [], @queue.queues
   end
+
+  test "keeps stats" do
+    stats = @queue.info
+    assert_equal 1, stats[:queues]
+    assert_equal 0, stats[:workers]
+    assert_equal 0, stats[:errors]
+    assert_equal ['localhost:6379'], stats[:servers]
+  end
 end

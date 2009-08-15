@@ -103,6 +103,19 @@ class Resque
 
 
   #
+  # stats
+  #
+
+  def info
+    return {
+      :queues  => queues.size,
+      :workers => workers.size,
+      :errors  => size(:errors),
+      :servers => [@redis.server]
+    }
+  end
+
+  #
   # encoding / decoding
   #
 
