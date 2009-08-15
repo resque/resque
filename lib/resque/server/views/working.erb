@@ -51,7 +51,7 @@
           <% data = resque.worker(worker) || {} %>
           <% if data['queue'] %>
             <code><%= data['payload']['class'] %></code>
-            <small><a class="queue time" href="/processing/<%= worker %>"><%= data['run_at'] %></a></small>
+            <small><a class="queue time" href="/working/<%= worker %>"><%= data['run_at'] %></a></small>
           <% else %>
             Chillin'
           <% end %>
