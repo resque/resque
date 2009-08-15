@@ -12,7 +12,7 @@
     </tr>
       <tr>
         <td><img src="/working.png" alt="working" title="working"></td>
-        <% host, pid, _ = worker.split(':') %>
+        <% host, pid, _ = worker.to_s.split(':') %>
         <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
         <% data = worker.processing %>
         <% queue = data['queue'] %>
