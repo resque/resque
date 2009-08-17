@@ -10,7 +10,8 @@ class Resque
     end
 
     def perform
-      object.perform if object && object.respond_to?(:perform)
+      return unless object && object.respond_to?(:perform)
+      args ? object.perform(*args) : object.perform
     end
 
     def fail(exception, worker = nil)
@@ -25,9 +26,13 @@ class Resque
       @object ||= objectify(@payload)
     end
 
+    def args
+      @payload['args']
+    end
+
     def objectify(payload)
       if payload.is_a?(Hash) && payload['class']
-        constantize(payload['class']).new(*payload['args'])
+        constantize(payload['class'])
       end
     end
 

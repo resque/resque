@@ -20,9 +20,9 @@ context "Resque" do
     job = @queue.reserve(:jobs)
 
     assert_kind_of Resque::Job, job
-    assert_kind_of SomeJob, job.object
-    assert_equal 20, job.object.repo_id
-    assert_equal '/tmp', job.object.path
+    assert_equal SomeJob, job.object
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
   end
 
   test "can put items on a queue" do

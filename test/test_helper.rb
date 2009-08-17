@@ -20,17 +20,19 @@ def context(*args, &block)
   klass.class_eval &block
 end
 
-class SomeJob < Struct.new(:repo_id, :path)
+class SomeJob
+  def self.perform(repo_id, path)
+  end
 end
 
 class BadJob
-  def perform
+  def self.perform
     raise "Bad job!"
   end
 end
 
-class GoodJob < Struct.new(:name)
-  def perform
+class GoodJob
+  def self.perform(name)
     "Good job, #{name}"
   end
 end
