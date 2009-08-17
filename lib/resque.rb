@@ -25,7 +25,8 @@ class Resque
     @redis ||= DistRedis.new(:hosts => ['localhost:6379'])
   end
 
-  def initialize
+  def initialize(servers = nil)
+    Resque.redis = servers if servers
     @redis = Resque.redis
   end
 
