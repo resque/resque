@@ -7,9 +7,6 @@ require 'resque/worker'
 class Resque
   attr_reader :redis
 
-  WORKER_TTL = 10_000 # How many seconds until expiration for worker-specific
-                      # keys. Fake GC.
-
   def self.redis=(servers)
     case servers
     when String, Array
@@ -121,7 +118,6 @@ class Resque
     @redis.pipelined do |redis|
       redis.sadd(key(:workers), worker.to_s)
       redis.set(key(:worker, worker.to_s, :started), Time.now.to_s)
-      redis.expire(key(:worker, worker.to_s, :started), WORKER_TTL)
     end
   end
 
@@ -170,11 +166,7 @@ class Resque
       :queue   => queue,
       :run_at  => Time.now.to_s,
       :payload => payload
-    target = key(:worker, id.to_s)
-    @redis.pipelined do |redis|
-      redis.set(target, data)
-      redis.expire(target, WORKER_TTL)
-    end
+    @redis.set(key(:worker, id.to_s), data)
   end
 
   def clear_worker_status(id, redis = @redis)
@@ -211,11 +203,7 @@ class Resque
   def processed!(id = nil)
     @redis.incr(key(:stats, :processed))
     if id
-      target = key(:stats, :processed, id.to_s)
-      @redis.pipelined do |redis|
-        redis.incr(target)
-        redis.expire(target, WORKER_TTL)
-      end
+      @redis.incr(key(:stats, :processed, id.to_s))
     end
   end
 
@@ -230,11 +218,7 @@ class Resque
 
   def failed!(id = nil)
     if id
-      target = key(:stats, :failed, id.to_s)
-      @redis.pipelined do |redis|
-        redis.incr(target)
-        redis.expire(target, WORKER_TTL)
-      end
+      @redis.incr(key(:stats, :failed, id.to_s))
     end
   end
 
