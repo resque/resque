@@ -92,6 +92,9 @@ class Resque
       erb :stats, {}, :resque => resque
     end
 
+    get "/stats/keys/:key" do
+      erb :stats, {}, :resque => resque
+    end
 
     def self.start(host = 'localhost', port = 4567)
       run! :host => host, :port => port

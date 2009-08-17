@@ -1,6 +1,10 @@
 <% @subtabs = %w( resque redis keys ) %>
 
-<% if params[:id] == "resque" %>
+<% if params[:key] %>
+
+<%= partial :key %>
+
+<% elsif params[:id] == "resque" %>
 
   <h1><%= resque %></h1>
   <table>
@@ -34,7 +38,8 @@
   
 <% elsif params[:id] == 'keys' %>
 
-  <h1>Keys on <%= resque %></h1>
+  <h1>Keys owned by <%= resque %></h1>
+  <h2>(All keys are actually prefixed with "resque:")</h2>
   <table>
     <tr>
       <th>key</th>
@@ -44,7 +49,7 @@
   <% for key in resque.keys.sort %>
     <tr>
       <td>
-        <a href="/key/<%= key %>"><%= key.sub('resque:', '') %></a>
+        <a href="/stats/keys/<%= key %>"><%= key.sub('resque:', '') %></a>
       </td>
       <td><%= resque.redis.type key %></td>
       <td><%= redis_get_size key %></td>
