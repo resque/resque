@@ -13,7 +13,7 @@
     <td><%= job['queue'] %></td>
     <td><span class="time"><%= job['failed_at'] %></span></td>
     <td><%= job['payload']['class'] %></td>
-    <td><%= h(job['payload']['args']).inspect %></td>
+    <td><%=h job['payload']['args'].inspect %></td>
     <td> 
       <a href="#" class="backtrace"><%= h(job['error']) %></a>
       <pre style="display:none;"><%= h(job['backtrace'].join("\n")) %></pre>
