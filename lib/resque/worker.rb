@@ -18,7 +18,7 @@ class Resque
     def self.attach(resque, worker_id)
       if resque.worker?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
-        worker = new(resque, *queues)
+        worker = new(*queues)
         worker.to_s = worker_id
         worker
       else
