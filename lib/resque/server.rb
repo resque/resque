@@ -101,7 +101,9 @@ class Resque
     end
 
     def resque
-      @resque ||= Resque.new('localhost:6379')
+      return @resque if @resque
+      servers = ENV['REDIS'].to_s.split(',') if ENV['REDIS']
+      @resque = servers ? Resque.new(servers) : Resque.new
     end
   end
 end
