@@ -15,20 +15,8 @@
       <td><%=h job['args'].inspect %></td>      
     </tr>
     <% end %>
-    <tr>
-      <td>
-        <% if start - 20 >= 0 %>
-          <a href="/<%= current_page %>?start=<%= start - 20 %>">&laquo; less</a>
-        <% end %>
-      </td>
-      <td>
-        <% if start + 20 <= size %>
-          <a href="/<%= current_page %>?start=<%= start + 20 %>">more &raquo;</a>
-        <% end %>
-      </td>
-    </tr>
+    <%= partial :next_more, :start => start, :size => size %>  
   </table>
-  
 <% else %>
 
   <h1>Queues</h1>

@@ -1,6 +1,5 @@
-<% failed = resque.failed(resque.failed_size - 20, 20) %>
-
-<h1><%= resque.failed_size %> Jobs Failed</h1>
+<h1><%= size = resque.failed_size %> Jobs Failed</h1>
+<h2>Showing <%= start = params[:start].to_i %> to <%= start + 20 %></h2>
 <table>
   <tr>
     <th>Queue</th>
@@ -9,7 +8,7 @@
     <th>Args</th>    
     <th>Error</th>
   </tr>
-  <% for job in failed %>
+  <% for job in resque.failed(start, 20) %>  
   <tr>
     <td><%= job['queue'] %></td>
     <td><span class="time"><%= job['failed_at'] %></span></td>
@@ -21,4 +20,5 @@
     </td>                
   </tr>
   <% end %>
+  <%= partial :next_more, :start => start, :size => size %>    
 </table>

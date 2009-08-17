@@ -1,0 +1,12 @@
+    <tr>
+      <td>
+        <% if start - 20 >= 0 %>
+          <a href="/<%= current_page %>?start=<%= start - 20 %>">&laquo; less</a>
+        <% end %>
+      </td>
+      <td>
+        <% if start + 20 <= size %>
+          <a href="/<%= current_page %>?start=<%= start + 20 %>">more &raquo;</a>
+        <% end %>
+      </td>
+    </tr>

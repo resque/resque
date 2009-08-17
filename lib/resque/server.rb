@@ -61,9 +61,9 @@ class Resque
         @partial
       end
 
-      def partial(template)
+      def partial(template, local_vars = {})
         @partial = true
-        erb(template.to_sym, :layout => false)
+        erb(template.to_sym, {:layout => false}, local_vars)
       ensure
         @partial = false
       end
