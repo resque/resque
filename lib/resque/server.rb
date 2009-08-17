@@ -102,8 +102,11 @@ class Resque
 
     def resque
       return @resque if @resque
-      servers = ENV['REDIS'].to_s.split(',') if ENV['REDIS']
-      @resque = servers ? Resque.new(servers) : Resque.new
+      if ENV['REDIS']
+        @resque = Resque.new(ENV['REDIS'].to_s.split(','))
+      else
+        @resque = Resque.new
+      end
     end
   end
 end
