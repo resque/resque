@@ -2,7 +2,8 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque" do
   setup do
-    @queue = Resque.new('localhost:6378')
+    Resque.redis = 'localhost:6378'
+    @queue = Resque.new
     @queue.redis.flush_all
 
     @queue.push(:people, 'chris')
@@ -89,7 +90,7 @@ context "Resque" do
     stats = @queue.info
     assert_equal 8, stats[:pending]
 
-    @worker = Resque::Worker.new('localhost:6378', :jobs)
+    @worker = Resque::Worker.new(:jobs)
     @worker.register_worker
     2.times { @worker.process }
     job = @worker.reserve

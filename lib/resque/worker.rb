@@ -9,8 +9,8 @@ class Resque
     # setup
     #
 
-    def initialize(server, *queues)
-      @resque = server.respond_to?(:split) ? Resque.new(server) : server
+    def initialize(*queues)
+      @resque = Resque.new
       @queues = queues
       validate_queues
     end

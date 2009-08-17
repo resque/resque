@@ -1,4 +1,4 @@
-require 'redis'
+require 'dist_redis'
 require 'yajl'
 
 require 'resque/job'
@@ -10,9 +10,23 @@ class Resque
   WORKER_TTL = 10_000 # How many seconds until expiration for worker-specific
                       # keys. Fake GC.
 
-  def initialize(server)
-    host, port = server.split(':')
-    @redis = Redis.new(:host => host, :port => port)
+  def self.redis=(servers)
+    case servers
+    when String, Array
+      @redis = DistRedis.new(:hosts => Array(servers))
+    when Redis
+      @redis = servers
+    else
+      raise "I don't know what to do with #{servers.inspect}"
+    end
+  end
+
+  def self.redis
+    @redis ||= DistRedis.new(:hosts => ['localhost:6379'])
+  end
+
+  def initialize
+    @redis = Resque.redis
   end
 
   def to_s

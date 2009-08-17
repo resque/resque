@@ -2,10 +2,11 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque::Worker" do
   setup do
-    @queue = Resque.new('localhost:6378')
+    Resque.redis = 'localhost:6378'
+    @queue = Resque.new
     @queue.redis.flush_all
 
-    @worker = Resque::Worker.new('localhost:6378', :jobs)
+    @worker = Resque::Worker.new(:jobs)
     @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
   end
 
@@ -36,7 +37,7 @@ context "Resque::Worker" do
     @queue.enqueue(:high, GoodJob)
     @queue.enqueue(:critical, GoodJob)
 
-    worker = Resque::Worker.new('localhost:6378', :critical, :high)
+    worker = Resque::Worker.new(:critical, :high)
 
     worker.process
     assert_equal 1, @queue.size(:high)
@@ -52,7 +53,7 @@ context "Resque::Worker" do
 
   test "complains if no queues are given" do
     assert_raise Resque::Worker::NoQueueError do
-      Resque::Worker.new('localhost:6378')
+      Resque::Worker.new
     end
   end
 
