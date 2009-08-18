@@ -3,8 +3,8 @@ class Resque
     attr_accessor :worker
     attr_reader   :queue, :payload
 
-    def initialize(resque, queue, payload)
-      @resque = resque
+    def initialize(queue, payload)
+      @resque = Resque.new
       @queue = queue
       @payload = payload
     end

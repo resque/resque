@@ -83,7 +83,7 @@ class Resque
 
   def reserve(queue)
     return unless payload = pop(queue)
-    Job.new(self, queue, payload)
+    Job.new(queue, payload)
   end
 
   def fail(payload, exception, worker, queue)
