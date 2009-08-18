@@ -12,6 +12,7 @@ context "Resque" do
 
   test "can put jobs on a queue" do
     assert @queue.enqueue(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
   end
 
   test "can grab jobs off a queue" do

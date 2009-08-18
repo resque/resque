@@ -51,17 +51,11 @@ class Resque
   end
 
   def size(queue)
-    @redis.llen(key(:queue, queue))
+    redis_list_length [ :queue, queue ]
   end
 
   def peek(queue, start = 0, count = 1)
-    if count == 1
-      decode @redis.lindex(key(:queue, queue), start)
-    else
-      Array(@redis.lrange(key(:queue, queue), start, start+count-1)).map do |item|
-        decode item
-      end
-    end
+    redis_list_peek [ :queue, queue ], start, count
   end
 
   def queues
@@ -78,38 +72,35 @@ class Resque
 
 
   #
-  # jobs.
+  # jobs
   #
 
   def enqueue(queue, klass, *args)
-    push(queue, :class => klass.to_s, :args => args)
+    Job.create(queue, klass, *args)
   end
 
   def reserve(queue)
-    return unless payload = pop(queue)
-    Job.new(queue, payload)
+    Job.reserve(queue)
   end
 
-  def fail(job, exception)
-    failed! job.worker
-    @redis.rpush key(:failed), encode(
-      :failed_at => Time.now.to_s,
-      :payload   => job.payload,
-      :error     => exception.to_s,
-      :backtrace => exception.backtrace,
-      :worker    => job.worker,
-      :queue     => job.queue)
+
+  #
+  # access to redis
+  #
+
+  def redis_push(list, value)
+    @redis.rpush key(list), encode(value)
   end
 
-  def failed_size
-    @redis.llen(key(:failed)).to_i
+  def redis_list_length(list)
+    @redis.llen(key(list)).to_i
   end
 
-  def failed(start = 0, count = 1)
+  def redis_list_range(list, start = 0, count = 1)
     if count == 1
-      decode @redis.lindex(key(:failed), start)
+      decode @redis.lindex(key(list), start)
     else
-      Array(@redis.lrange(key(:failed), start, start+count-1)).map do |item|
+      Array(@redis.lrange(key(list), start, start+count-1)).map do |item|
         decode item
       end
     end
@@ -225,7 +216,7 @@ class Resque
   end
 
   def stat_failed(id = nil)
-    id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : failed_size
+    id ? @redis.get(key(:stats, :failed, id.to_s)).to_i : Job.failed_size
   end
 
   def clear_failed_for(id, redis = @redis)
