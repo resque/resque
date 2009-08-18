@@ -115,7 +115,7 @@ class Resque
 
     def working_on(job)
       job.worker = self
-      @resque.set_worker_status(self, job.queue, job.payload)
+      @resque.set_worker_status(self, job)
     end
 
     def done_working

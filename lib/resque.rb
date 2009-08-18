@@ -7,6 +7,10 @@ require 'resque/worker'
 class Resque
   attr_reader :redis
 
+  #
+  # We need a Redis server to connect to
+  #
+
   def self.redis=(server)
     case server
     when String
@@ -163,11 +167,11 @@ class Resque
     @redis.exists(key(:worker, id)) ? :working : :idle
   end
 
-  def set_worker_status(id, queue, payload)
+  def set_worker_status(id, job)
     data = encode \
-      :queue   => queue,
+      :queue   => job.queue,
       :run_at  => Time.now.to_s,
-      :payload => payload
+      :payload => job.payload
     @redis.set(key(:worker, id.to_s), data)
   end
 
