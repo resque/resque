@@ -35,6 +35,12 @@
       <th>Queues</th>        
       <th>Processing</th>    
     </tr>
+    <% if resque.working.empty? %>
+    <tr>
+      <td colspan="4">Not a one.</td>
+    </tr>
+    <% end %>
+    
     <% for worker_id in resque.working %>
       <% next unless worker = resque.find_worker(worker_id) %>
       <tr>
