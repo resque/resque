@@ -43,11 +43,11 @@ class Resque
 
   def push(queue, item)
     watch_queue(queue)
-    @redis.rpush(key(:queue, queue), encode(item))
+    redis_push [ :queue, queue ], item
   end
 
   def pop(queue)
-    decode @redis.lpop(key(:queue, queue))
+    redis_shift [ :queue, queue ]
   end
 
   def size(queue)
@@ -90,6 +90,10 @@ class Resque
 
   def redis_push(list, value)
     @redis.rpush key(list), encode(value)
+  end
+
+  def redis_shift(list)
+    decode @redis.lpop(key(list))
   end
 
   def redis_list_length(list)

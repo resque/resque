@@ -77,7 +77,6 @@ class Resque
         log "#{job.inspect} done processing"
       ensure
         yield job if block_given?
-        @resque.processed! self
         done_working
       end
     end
@@ -121,6 +120,7 @@ class Resque
     end
 
     def done_working
+      @resque.processed! self
       @resque.clear_worker_status self
     end
 
