@@ -14,14 +14,6 @@ class Resque
       args ? object.perform(*args) : object.perform
     end
 
-    def fail(exception, worker = nil)
-      @resque.fail(@payload, exception, worker, queue)
-    end
-
-    def done
-      :ok
-    end
-
     def object
       @object ||= objectify(@payload)
     end

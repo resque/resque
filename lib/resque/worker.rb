@@ -71,11 +71,9 @@ class Resque
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
-        job.fail(e, self)
-        @resque.failed!(self)
+        @resque.fail(job, e)
       else
         log "#{job.inspect} done processing"
-        job.done
       ensure
         yield job if block_given?
         done_working
@@ -116,12 +114,13 @@ class Resque
     end
 
     def working_on(job)
+      job.worker = self
       @resque.set_worker_status(self, job.queue, job.payload)
     end
 
     def done_working
-      @resque.clear_worker_status(self)
-      @resque.processed!(self)
+      @resque.processed! self
+      @resque.clear_worker_status self
     end
 
 

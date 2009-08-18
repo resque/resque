@@ -164,5 +164,4 @@ context "Resque::Worker" do
       assert_equal nil, found
     end
   end
-
 end

@@ -86,14 +86,15 @@ class Resque
     Job.new(queue, payload)
   end
 
-  def fail(payload, exception, worker, queue)
+  def fail(job, exception)
+    failed! job.worker
     @redis.rpush key(:failed), encode(
       :failed_at => Time.now.to_s,
-      :payload   => payload,
+      :payload   => job.payload,
       :error     => exception.to_s,
       :backtrace => exception.backtrace,
-      :worker    => worker,
-      :queue     => queue)
+      :worker    => job.worker,
+      :queue     => job.queue)
   end
 
   def failed_size
@@ -201,11 +202,9 @@ class Resque
 
   # Called by workers when a job has been processed,
   # regardless of pass or fail.
-  def processed!(id = nil)
+  def processed!(worker = nil)
     @redis.incr(key(:stats, :processed))
-    if id
-      @redis.incr(key(:stats, :processed, id.to_s))
-    end
+    @redis.incr(key(:stats, :processed, worker.to_s)) if worker
   end
 
   def stat_processed(id = nil)
@@ -217,10 +216,8 @@ class Resque
     redis.del key(:stats, :processed, id.to_s)
   end
 
-  def failed!(id = nil)
-    if id
-      @redis.incr(key(:stats, :failed, id.to_s))
-    end
+  def failed!(worker)
+    @redis.incr(key(:stats, :failed, worker.to_s))
   end
 
   def stat_failed(id = nil)
