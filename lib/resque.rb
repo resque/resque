@@ -110,6 +110,18 @@ class Resque
     end
   end
 
+  def redis_set_member?(set, member)
+    @redis.sismember(key(set), member)
+  end
+
+  def redis_get(slot)
+    @redis.get key(slot)
+  end
+
+  def redis_exists?(slot)
+    @redis.exists key(slot)
+  end
+
 
   #
   # workers
@@ -141,7 +153,7 @@ class Resque
   end
 
   def worker?(id)
-    @redis.sismember(key(:workers), id.to_s)
+    Worker.exists? id
   end
 
   def working
@@ -152,14 +164,6 @@ class Resque
       # cleanup
       key.sub(key(:worker) + ':', '')
     end
-  end
-
-  def worker_started(id)
-    @redis.get(key(:worker, id.to_s, :started))
-  end
-
-  def worker_state(id)
-    @redis.exists(key(:worker, id)) ? :working : :idle
   end
 
   def set_worker_status(id, job)
@@ -175,7 +179,15 @@ class Resque
   end
 
   def find_worker(id)
-    Worker.attach(id)
+    Worker.find(id)
+  end
+
+  def worker_started(id)
+    Worker.find(id).started
+  end
+
+  def worker_state(id)
+    Worker.find(id).state
   end
 
 

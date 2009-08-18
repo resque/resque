@@ -26,6 +26,14 @@ class Resque
       end
     end
 
+    def self.find(worker_id)
+      attach(worker_id)
+    end
+
+    def self.exists?(worker_id)
+      Resque.new.redis_set_member? :workers, worker_id
+    end
+
     class NoQueueError < RuntimeError; end
 
     def validate_queues
@@ -138,7 +146,7 @@ class Resque
     end
 
     def started
-      @resque.worker_started(self)
+      @resque.redis_get [ :worker, to_s, :started ]
     end
 
     def processing
@@ -154,7 +162,7 @@ class Resque
     end
 
     def state
-      @resque.worker_state(to_s)
+      @resque.redis_exists?([ :worker, to_s ]) ? :working : :idle
     end
 
     def inspect
