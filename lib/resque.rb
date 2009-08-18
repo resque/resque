@@ -1,4 +1,4 @@
-require 'dist_redis'
+require 'redis'
 require 'yajl'
 
 require 'resque/job'
@@ -7,23 +7,24 @@ require 'resque/worker'
 class Resque
   attr_reader :redis
 
-  def self.redis=(servers)
-    case servers
-    when String, Array
-      @redis = DistRedis.new(:hosts => Array(servers))
-    when DistRedis
-      @redis = servers
+  def self.redis=(server)
+    case server
+    when String
+      host, port = server.split(':')
+      @redis = Redis.new(:host => host, :port => port)
+    when Redis
+      @redis = server
     else
       raise "I don't know what to do with #{servers.inspect}"
     end
   end
 
   def self.redis
-    @redis ||= DistRedis.new(:hosts => ['localhost:6379'])
+    @redis ||= Redis.new(:host => 'localhost', :port => 6379)
   end
 
-  def initialize(servers = nil)
-    Resque.redis = servers if servers
+  def initialize(server = nil)
+    Resque.redis = server if server
     @redis = Resque.redis
   end
 
