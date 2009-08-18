@@ -2,8 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque::Worker" do
   setup do
-    Resque.redis = 'localhost:6378'
-    @queue = Resque.new
+    @queue = Resque.new('localhost:6378')
     @queue.redis.flush_all
 
     @worker = Resque::Worker.new(:jobs)
@@ -165,4 +164,5 @@ context "Resque::Worker" do
       assert_equal nil, found
     end
   end
+
 end
