@@ -5,15 +5,10 @@ module Resque
 
 
     #
-    # setup
+    # worker class methods
     #
 
-    def initialize(*queues)
-      @queues = queues
-      validate_queues
-    end
-
-    def self.attach(worker_id)
+    def self.find(worker_id)
       if Resque.worker?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
         worker = new(*queues)
@@ -24,12 +19,22 @@ module Resque
       end
     end
 
-    def self.find(worker_id)
-      attach(worker_id)
+    def self.attach(worker_id)
+      find(worker_id)
     end
 
     def self.exists?(worker_id)
       Resque.redis_set_member? :workers, worker_id
+    end
+
+
+    #
+    # setup
+    #
+
+    def initialize(*queues)
+      @queues = queues
+      validate_queues
     end
 
     class NoQueueError < RuntimeError; end

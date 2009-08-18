@@ -2,7 +2,7 @@ require 'sinatra/base'
 require 'erb'
 require 'resque'
 
-class Resque
+module Resque
   class Server < Sinatra::Base
     dir = File.dirname(File.expand_path(__FILE__))
 
@@ -32,28 +32,28 @@ class Resque
       end
 
       def redis_get_size(key)
-        case resque.redis.type(key)
+        case Resque.redis.type(key)
         when 'none'
           []
         when 'list'
-          resque.redis.llen(key)
+          Resque.redis.llen(key)
         when 'set'
-          resque.redis.scard(key)
+          Resque.redis.scard(key)
         when 'string'
-          resque.redis.get(key).length
+          Resque.redis.get(key).length
         end
       end
 
       def redis_get_value_as_array(key)
-        case resque.redis.type(key)
+        case Resque.redis.type(key)
         when 'none'
           []
         when 'list'
-          resque.redis.lrange(key, 0, 20)
+          Resque.redis.lrange(key, 0, 20)
         when 'set'
-          resque.redis.smembers(key)
+          Resque.redis.smembers(key)
         when 'string'
-          [resque.redis.get(key)]
+          [Resque.redis.get(key)]
         end
       end
 
@@ -76,11 +76,11 @@ class Resque
 
     %w( overview failed queues working workers key ).each do |page|
       get "/#{page}" do
-        erb page.to_sym, {}, :resque => resque
+        erb page.to_sym, {}, :resque => Resque
       end
 
       get "/#{page}/:id" do
-        erb page.to_sym, {}, :resque => resque
+        erb page.to_sym, {}, :resque => Resque
       end
     end
 
@@ -89,11 +89,11 @@ class Resque
     end
 
     get "/stats/:id" do
-      erb :stats, {}, :resque => resque
+      erb :stats, {}, :resque => Resque
     end
 
     get "/stats/keys/:key" do
-      erb :stats, {}, :resque => resque
+      erb :stats, {}, :resque => Resque
     end
 
     def self.start(host = 'localhost', port = 4567)
@@ -101,12 +101,7 @@ class Resque
     end
 
     def resque
-      return @resque if @resque
-      if ENV['REDIS']
-        @resque = Resque.new(ENV['REDIS'].to_s.split(','))
-      else
-        @resque = Resque.new
-      end
+      Resque
     end
   end
 end

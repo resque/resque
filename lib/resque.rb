@@ -28,7 +28,7 @@ module Resque
   end
 
   def to_s
-    "Resque Client connected to #{@redis.server}"
+    "Resque Client connected to #{redis.server}"
   end
 
 
