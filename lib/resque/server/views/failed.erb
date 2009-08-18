@@ -3,7 +3,8 @@
 <table>
   <tr>
     <th>Queue</th>
-    <th>Failed</th>    
+    <th>Worker</th>
+    <th>Failed</th>
     <th>Class</th>
     <th>Args</th>    
     <th>Error</th>
@@ -11,12 +12,16 @@
   <% for job in resque.failed(start, 20) %>  
   <tr>
     <td><%= job['queue'] %></td>
+    <td><a href="/workers/<%= job['worker'] %>"><%= job['worker'].split(':')[0...2].join(':') %></a></td>            
     <td><span class="time"><%= job['failed_at'] %></span></td>
     <td><%= job['payload']['class'] %></td>
-    <td><%=h job['payload']['args'].inspect %></td>
+    <td>
+      <a href="#" class="backtrace"><%= Array(job['payload']['args']).size %></a>
+      <pre style="display:none;"><%=h job['payload']['args'].join("\n") %></pre>
+    </td>
     <td> 
       <a href="#" class="backtrace"><%= h(job['error']) %></a>
-      <pre style="display:none;"><%= h(job['backtrace'].join("\n")) %></pre>
+      <pre style="display:none;"><%=h job['backtrace'].join("\n") %></pre>
     </td>                
   </tr>
   <% end %>
