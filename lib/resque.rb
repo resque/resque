@@ -11,7 +11,7 @@ class Resque
     case servers
     when String, Array
       @redis = DistRedis.new(:hosts => Array(servers))
-    when Redis
+    when DistRedis
       @redis = servers
     else
       raise "I don't know what to do with #{servers.inspect}"
