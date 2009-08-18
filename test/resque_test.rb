@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque" do
   setup do
-    @queue = Resque.new('localhost:6378')
+    @queue = Resque
     @queue.redis.flush_all
 
     @queue.push(:people, 'chris')

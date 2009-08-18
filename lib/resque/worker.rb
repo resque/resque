@@ -1,6 +1,5 @@
-class Resque
+module Resque
   class Worker
-    attr_reader   :resque
     attr_accessor :logger
     attr_writer   :to_s
 
@@ -10,13 +9,12 @@ class Resque
     #
 
     def initialize(*queues)
-      @resque = Resque.new
       @queues = queues
       validate_queues
     end
 
     def self.attach(worker_id)
-      if Resque.new.worker?(worker_id)
+      if Resque.worker?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
         worker = new(*queues)
         worker.to_s = worker_id
@@ -31,7 +29,7 @@ class Resque
     end
 
     def self.exists?(worker_id)
-      Resque.new.redis_set_member? :workers, worker_id
+      Resque.redis_set_member? :workers, worker_id
     end
 
     class NoQueueError < RuntimeError; end
@@ -80,7 +78,7 @@ class Resque
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e)
-        @resque.failed! self
+        Resque.failed! self
       else
         log "#{job.inspect} done processing"
       ensure
@@ -91,7 +89,7 @@ class Resque
 
     def reserve
       @queues.each do |queue|
-        if job = @resque.reserve(queue)
+        if job = Resque.reserve(queue)
           return job
         end
       end
@@ -115,21 +113,21 @@ class Resque
     end
 
     def register_worker
-      @resque.add_worker self
+      Resque.add_worker self
     end
 
     def unregister_worker
-      @resque.remove_worker self
+      Resque.remove_worker self
     end
 
     def working_on(job)
       job.worker = self
-      @resque.set_worker_status(self, job)
+      Resque.set_worker_status(self, job)
     end
 
     def done_working
-      @resque.processed! self
-      @resque.clear_worker_status self
+      Resque.processed! self
+      Resque.clear_worker_status self
     end
 
 
@@ -138,19 +136,19 @@ class Resque
     #
 
     def processed
-      @resque.stat_processed(self)
+      Resque.stat_processed(self)
     end
 
     def failed
-      @resque.stat_failed(self)
+      Resque.stat_failed(self)
     end
 
     def started
-      @resque.redis_get [ :worker, to_s, :started ]
+      Resque.redis_get [ :worker, to_s, :started ]
     end
 
     def processing
-      @resque.worker(to_s)
+      Resque.worker(to_s)
     end
 
     def working?
@@ -162,7 +160,7 @@ class Resque
     end
 
     def state
-      @resque.redis_exists?([ :worker, to_s ]) ? :working : :idle
+      Resque.redis_exists?([ :worker, to_s ]) ? :working : :idle
     end
 
     def inspect

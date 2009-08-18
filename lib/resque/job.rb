@@ -1,4 +1,4 @@
-class Resque
+module Resque
   class Job
     attr_accessor :worker
     attr_reader   :queue, :payload
@@ -9,11 +9,11 @@ class Resque
     end
 
     def self.create(queue, klass, *args)
-      resque.push(queue, :class => klass.to_s, :args => args)
+      Resque.push(queue, :class => klass.to_s, :args => args)
     end
 
     def self.reserve(queue)
-      return unless payload = resque.pop(queue)
+      return unless payload = Resque.pop(queue)
       new(queue, payload)
     end
 
@@ -37,7 +37,7 @@ class Resque
     end
 
     def fail(exception)
-      resque.redis_push :failed, \
+      Resque.redis_push :failed, \
         :failed_at => Time.now.to_s,
         :payload   => payload,
         :error     => exception.to_s,
@@ -47,11 +47,11 @@ class Resque
     end
 
     def self.failed_size
-      resque.redis_list_length(:failed)
+      Resque.redis_list_length(:failed)
     end
 
     def self.failed(start = 0, count = 1)
-      resque.redis_list_range(:failed, start, count)
+      Resque.redis_list_range(:failed, start, count)
     end
 
 
@@ -78,14 +78,6 @@ class Resque
         constant = constant.const_get(name) || constant.const_missing(name)
       end
       constant
-    end
-
-    def self.resque
-      @resque ||= Resque.new
-    end
-
-    def resque
-      @resque ||= Resque.new
     end
   end
 end
