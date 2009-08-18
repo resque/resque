@@ -4,7 +4,6 @@ class Resque
     attr_reader   :queue, :payload
 
     def initialize(queue, payload)
-      @resque = Resque.new
       @queue = queue
       @payload = payload
     end
@@ -38,7 +37,7 @@ class Resque
     end
 
     def fail(exception)
-      @resque.redis_push :failed, \
+      resque.redis_push :failed, \
         :failed_at => Time.now.to_s,
         :payload   => payload,
         :error     => exception.to_s,
@@ -52,7 +51,7 @@ class Resque
     end
 
     def self.failed(start = 0, count = 1)
-      resque.redis_list_peek(:failed, start, count)
+      resque.redis_list_range(:failed, start, count)
     end
 
 
@@ -82,6 +81,10 @@ class Resque
     end
 
     def self.resque
+      @resque ||= Resque.new
+    end
+
+    def resque
       @resque ||= Resque.new
     end
   end

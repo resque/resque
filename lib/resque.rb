@@ -55,7 +55,7 @@ class Resque
   end
 
   def peek(queue, start = 0, count = 1)
-    redis_list_peek [ :queue, queue ], start, count
+    redis_list_range [ :queue, queue ], start, count
   end
 
   def queues
@@ -171,7 +171,7 @@ class Resque
   end
 
   def find_worker(id)
-    Worker.attach(self, id)
+    Worker.attach(id)
   end
 
 

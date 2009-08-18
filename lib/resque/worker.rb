@@ -15,8 +15,8 @@ class Resque
       validate_queues
     end
 
-    def self.attach(resque, worker_id)
-      if resque.worker?(worker_id)
+    def self.attach(worker_id)
+      if Resque.new.worker?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
         worker = new(*queues)
         worker.to_s = worker_id
