@@ -22,7 +22,7 @@
 
 <% elsif params[:id] == 'redis' %>
 
-  <h1><%= resque.redis %></h1>
+  <h1>Redis Ring: <%= resque.redis.ring.nodes.map { |r| r.server }.inspect %></h1>
   <table>
   <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
