@@ -7,7 +7,7 @@ namespace :resque do
     queues = ENV['QUEUE'].to_s.split(',')
 
     begin
-      worker = Resque::Worker.new('localhost:6379', *queues)
+      worker = Resque::Worker.new(*queues)
       worker.logger = ENV['LOGGER']
     rescue Resque::Worker::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
