@@ -19,7 +19,7 @@ module Resque
     when Redis
       @redis = server
     else
-      raise "I don't know what to do with #{servers.inspect}"
+      raise "I don't know what to do with #{server.inspect}"
     end
   end
 
