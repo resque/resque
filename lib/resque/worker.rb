@@ -33,7 +33,8 @@ module Resque
     #
 
     def initialize(*queues)
-      @queues = queues
+      @queues  = queues
+      @waiting = false
       validate_queues
     end
 
@@ -57,6 +58,7 @@ module Resque
 
       loop do
         break if @shutdown
+        @waiting = false
 
         if job = reserve
           log "Got #{job.inspect}"
@@ -66,6 +68,7 @@ module Resque
           break if interval.to_i == 0
           log "Sleeping"
           self.procline = "Waiting for #{@queues.join(',')}"
+          @waiting = true
           sleep interval.to_i
         end
       end
@@ -115,6 +118,7 @@ module Resque
     def shutdown
       log 'Exiting...'
       @shutdown = true
+      exit! if @waiting
     end
 
     def register_worker
