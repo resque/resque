@@ -113,6 +113,7 @@ module Resque
     def register_signal_handlers
       trap('TERM') { shutdown }
       trap('INT')  { shutdown }
+      trap('HUP')  { shutdown }
     end
 
     def shutdown
