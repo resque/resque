@@ -17,7 +17,7 @@
     <td><%= job['payload']['class'] %></td>
     <td>
       <a href="#" class="backtrace"><%= Array(job['payload']['args']).size %></a>
-      <pre style="display:none;"><%=h job['payload']['args'].join("\n") %></pre>
+      <pre style="display:none;"><%=h show_args(job['payload']['args']) %></pre>
     </td>
     <td> 
       <a href="#" class="backtrace"><%= h(job['error']) %></a>

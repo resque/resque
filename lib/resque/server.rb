@@ -57,6 +57,16 @@ module Resque
         end
       end
 
+      def show_args(args)
+        if Array(args).size == 1
+          args.inspect
+        elsif Array(args).size > 1
+          args.join("\n")
+        else
+          "hrm"
+        end
+      end
+
       def partial?
         @partial
       end
