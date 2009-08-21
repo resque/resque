@@ -6,4 +6,11 @@ $LOAD_PATH.unshift APP_ROOT
 require 'resque/server'
 
 use Rack::ShowExceptions
-run Resque::Server.new
+app = Resque::Server.new
+
+begin
+  require 'thin'
+  Rack::Handler::Thin.run(app, :Port => 4000 )
+rescue LoadError
+  run app
+end
