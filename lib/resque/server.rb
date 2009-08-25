@@ -99,13 +99,5 @@ module Resque
     get "/stats/keys/:key" do
       erb :stats, {}, :resque => Resque
     end
-
-    def self.start(host = 'localhost', port = 4567)
-      run! :host => host, :port => port
-    end
-
-    def resque
-      Resque
-    end
   end
 end
