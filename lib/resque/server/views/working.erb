@@ -14,7 +14,7 @@
         <td><img src="/working.png" alt="working" title="working"></td>
         <% host, pid, _ = worker.to_s.split(':') %>
         <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
-        <% data = worker.processing %>
+        <% data = worker.job %>
         <% queue = data['queue'] %>
         <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>        
@@ -43,7 +43,7 @@
     <% end %>
     
     <% workers = working.map { |worker_id| Resque::Worker.find(worker_id) } %>
-    <% for worker_id in workers.compact.sort_by { |w| -w.job['run_at'].to_i } %>
+    <% for worker in workers.sort_by { |w| w.job['run_at'].to_i } %>
       <% job = worker.job || {} %>
       <tr>
         <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
