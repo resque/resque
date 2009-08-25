@@ -60,8 +60,13 @@ module Resque
 
         if job = reserve
           log "Got #{job.inspect}"
-          self.procline = "Processing #{job.queue} since #{Time.now.to_i}"
-          process(job, &block)
+          if @child = fork
+            self.procline "Forked #{@child} at #{Time.now.to_i}"
+            Process.wait
+          else
+            self.procline = "Processing #{job.queue} since #{Time.now.to_i}"
+            process(job, &block)
+          end
         else
           break if interval.to_i == 0
           log "Sleeping"
@@ -79,7 +84,11 @@ module Resque
 
       begin
         working_on job
-        job.perform
+        if @child = fork
+          Process.wait
+        else
+          job.perform
+        end
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e)
@@ -89,6 +98,7 @@ module Resque
       ensure
         yield job if block_given?
         done_working
+        @child = nil
       end
     end
 
@@ -108,14 +118,19 @@ module Resque
     #
 
     def register_signal_handlers
-      trap('TERM') { shutdown }
-      trap('INT')  { shutdown }
-      trap('HUP')  { shutdown }
+      trap('TERM') { shutdown  }
+      trap('INT')  { shutdown  }
+      trap('HUP')  { shutdown! }
     end
 
     def shutdown
       log 'Exiting...'
       @shutdown = true
+    end
+
+    def shutdown!
+      shutdown
+      Process.kill("KILL", @child) if @child
     end
 
     def register_worker
