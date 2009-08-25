@@ -99,5 +99,9 @@ module Resque
     get "/stats/keys/:key" do
       erb :stats, {}, :resque => Resque
     end
+
+    def resque
+      Resque
+    end
   end
 end
