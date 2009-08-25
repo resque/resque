@@ -38,23 +38,23 @@ module Resque
 
   def push(queue, item)
     watch_queue(queue)
-    redis_push [ :queue, queue ], item
+    redis_push "queue:#{queue}", item
   end
 
   def pop(queue)
-    redis_shift [ :queue, queue ]
+    redis_shift "queue:#{queue}"
   end
 
   def size(queue)
-    redis_list_length [ :queue, queue ]
+    redis_list_length "queue:#{queue}"
   end
 
   def peek(queue, start = 0, count = 1)
-    redis_list_range [ :queue, queue ], start, count
+    redis_list_range "queue:#{queue}", start, count
   end
 
   def queues
-    redis.smembers(key(:queues))
+    redis.smembers(:queues)
   end
 
   # Used internally to keep track of which queues
@@ -62,7 +62,7 @@ module Resque
   def watch_queue(queue)
     @watched_queues ||= {}
     return if @watched_queues[queue]
-    redis.sadd(key(:queues), queue.to_s)
+    redis.sadd(:queues, queue.to_s)
   end
 
 
@@ -84,41 +84,41 @@ module Resque
   #
 
   def redis_push(list, value)
-    redis.rpush key(list), encode(value)
+    redis.rpush list, encode(value)
   end
 
   def redis_shift(list)
-    decode redis.lpop(key(list))
+    decode redis.lpop(list)
   end
 
   def redis_list_length(list)
-    redis.llen(key(list)).to_i
+    redis.llen(list).to_i
   end
 
   def redis_list_range(list, start = 0, count = 1)
     if count == 1
-      decode redis.lindex(key(list), start)
+      decode redis.lindex(list, start)
     else
-      Array(redis.lrange(key(list), start, start+count-1)).map do |item|
+      Array(redis.lrange(list, start, start+count-1)).map do |item|
         decode item
       end
     end
   end
 
   def redis_set_member?(set, member)
-    redis.sismember(key(set), member)
+    redis.sismember(set, member)
   end
 
   def redis_get(slot)
-    redis.get key(slot)
+    redis.get slot
   end
 
   def redis_get_object(slot)
-    decode redis.get(key(slot))
+    decode redis.get(slot)
   end
 
   def redis_exists?(slot)
-    redis.exists key(slot)
+    redis.exists slot
   end
 
 
@@ -128,32 +128,32 @@ module Resque
 
   def add_worker(worker)
     redis.pipelined do |redis|
-      redis.sadd(key(:workers), worker.to_s)
-      redis.set(key(:worker, worker.to_s, :started), Time.now.to_s)
+      redis.sadd(:workers, worker.to_s)
+      redis.set("worker:#{worker}:started", Time.now.to_s)
     end
   end
 
   def remove_worker(worker)
-    redis.srem(key(:workers), worker.to_s)
+    redis.srem(:workers, worker.to_s)
     redis.pipelined do |redis|
       clear_processed_for worker, redis
       clear_failed_for worker, redis
       clear_worker_status worker, redis
-      redis.del(key(:worker, worker.to_s, :started))
+      redis.del("worker:#{worker}:started")
     end
   end
 
   def workers
-    redis.smembers(key(:workers))
+    redis.smembers(:workers)
   end
 
   def working
     names = workers
     return [] unless names.any?
-    names = names.map { |name| key(:worker, name) }
+    names = names.map { |name| "worker:#{name}" }
     redis.mapped_mget(*names).keys.map do |key|
       # cleanup
-      key.sub(key(:worker) + ':', '')
+      key.sub("worker:", '')
     end
   end
 
@@ -162,11 +162,11 @@ module Resque
       :queue   => job.queue,
       :run_at  => Time.now.to_s,
       :payload => job.payload
-    redis.set(key(:worker, id.to_s), data)
+    redis.set("worker:#{id}", data)
   end
 
   def clear_worker_status(id, redis = redis)
-    redis.del(key(:worker, id.to_s))
+    redis.del("worker:#{id}")
   end
 
 
@@ -193,29 +193,29 @@ module Resque
   # Called by workers when a job has been processed,
   # regardless of pass or fail.
   def processed!(worker = nil)
-    redis.incr(key(:stats, :processed))
-    redis.incr(key(:stats, :processed, worker.to_s)) if worker
+    redis.incr("stats:processed")
+    redis.incr("stats:processed:#{worker}") if worker
   end
 
   def stat_processed(id = nil)
-    target = id ? key(:stats, :processed, id.to_s) : key(:stats, :processed)
+    target = id ? "stats:processed:#{id}" : "stats:processed"
     redis.get(target).to_i
   end
 
-  def clear_processed_for(id, redis = redis)
-    redis.del key(:stats, :processed, id.to_s)
+  def clear_processed_for(worker, redis = redis)
+    redis.del "stats:processed:#{worker}"
   end
 
   def failed!(worker)
-    redis.incr(key(:stats, :failed, worker.to_s))
+    redis.incr("stats:failed:#{worker}")
   end
 
   def stat_failed(id = nil)
-    id ? redis.get(key(:stats, :failed, id.to_s)).to_i : Job.failed_size
+    id ? redis.get("stats:failed:#{id}").to_i : Job.failed_size
   end
 
   def clear_failed_for(id, redis = redis)
-    redis.del key(:stats, :failed, id.to_s)
+    redis.del "stats:failed:#{id}"
   end
 
   def keys

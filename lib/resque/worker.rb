@@ -164,11 +164,11 @@ module Resque
     end
 
     def started
-      Resque.redis_get [ :worker, to_s, :started ]
+      Resque.redis_get "worker:#{self}:started"
     end
 
     def job
-      Resque.redis_get_object([ :worker, to_s ]) || {}
+      Resque.redis_get_object("worker:#{self}") || {}
     end
     alias_method :processing, :job
 
@@ -181,7 +181,7 @@ module Resque
     end
 
     def state
-      Resque.redis_exists?([ :worker, to_s ]) ? :working : :idle
+      Resque.redis_exists?("worker:#{self}") ? :working : :idle
     end
 
     def inspect
