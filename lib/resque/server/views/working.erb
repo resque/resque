@@ -33,7 +33,7 @@
     <tr>
       <th>&nbsp;</th>
       <th>Where</th>
-      <th>Queues</th>        
+      <th>Queue</th>        
       <th>Processing</th>    
     </tr>
     <% if working.empty? %>
@@ -43,18 +43,19 @@
     <% end %>
     
     <% for worker_id in working %>
-      <% next unless worker = resque.find_worker(worker_id) %>
+      <% next unless worker = Resque::Worker.find(worker_id) %>
+      <% job = worker.job || {} %>
       <tr>
         <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>
         <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
-        <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
-      
+        <td>
+          <a class="queue" href="/queues/<%= job['queue'] %>"><%= job['queue'] %></a>
+        </td>
         <td>      
-          <% data = worker.processing || {} %>
-          <% if data['queue'] %>
-            <code><%= data['payload']['class'] %></code>
-            <small><a class="queue time" href="/working/<%= worker %>"><%= data['run_at'] %></a></small>
+          <% if job['queue'] %>
+            <code><%= job['payload']['class'] %></code>
+            <small><a class="queue time" href="/working/<%= worker %>"><%= job['run_at'] %></a></small>
           <% else %>
             Waiting for more
           <% end %>

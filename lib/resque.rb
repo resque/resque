@@ -113,6 +113,10 @@ module Resque
     redis.get key(slot)
   end
 
+  def redis_get_object(slot)
+    decode redis.get(key(slot))
+  end
+
   def redis_exists?(slot)
     redis.exists key(slot)
   end
@@ -144,7 +148,7 @@ module Resque
   end
 
   def worker(id)
-    decode redis.get(key(:worker, id.to_s))
+    Worker.find(id).job
   end
 
   def worker?(id)

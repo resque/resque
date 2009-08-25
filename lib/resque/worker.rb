@@ -157,9 +157,10 @@ module Resque
       Resque.redis_get [ :worker, to_s, :started ]
     end
 
-    def processing
-      Resque.worker(to_s)
+    def job
+      Resque.redis_get_object [ :worker, id.to_s ]
     end
+    alias_method :procesing, :job
 
     def working?
       state == :working
