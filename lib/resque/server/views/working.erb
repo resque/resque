@@ -43,7 +43,7 @@
     <% end %>
     
     <% workers = working.map { |worker_id| Resque::Worker.find(worker_id) } %>
-    <% for worker in workers.sort_by { |w| w.job['run_at'].to_i } %>
+    <% for worker in workers.sort_by { |w| w.job['run_at'] } %>
       <% job = worker.job || {} %>
       <tr>
         <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
