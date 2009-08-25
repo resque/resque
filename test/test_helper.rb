@@ -1,6 +1,38 @@
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+dir = File.dirname(File.expand_path(__FILE__))
+$LOAD_PATH.unshift dir + '/../lib'
+require 'test/unit'
+
 require 'resque'
-Resque.redis = 'localhost:6378'
+
+#
+# make sure we can run redis
+#
+
+if `which redis-server`.chomp.empty?
+  puts '', "** can't find `redis-server` in your path"
+  puts "** try running `sudo rake redis:install`"
+  abort ''
+end
+
+#
+# start our own redis when the tests start,
+# kill it when they end
+#
+
+at_exit do
+  unless $! || Test::Unit.run?
+    status = Test::Unit::AutoRunner.run
+    pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
+    puts "Killing test redis server..."
+    `rm -f #{dir}/dump.rdb`
+    Process.kill("KILL", pid.to_i)
+    exit status
+  end
+end
+
+puts "Starting redis for testing at localhost:9736..."
+`redis-server #{dir}/redis-test.conf`
+Resque.redis = 'localhost:9736'
 
 ##
 # test/spec/mini 2
