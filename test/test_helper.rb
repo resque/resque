@@ -10,7 +10,7 @@ require 'resque'
 
 if `which redis-server`.chomp.empty?
   puts '', "** can't find `redis-server` in your path"
-  puts "** try running `sudo rake redis:install`"
+  puts "** try running `sudo rake install`"
   abort ''
 end
 
