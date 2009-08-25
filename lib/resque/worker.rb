@@ -9,7 +9,7 @@ module Resque
     #
 
     def self.find(worker_id)
-      if Resque.worker?(worker_id)
+      if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
         worker = new(*queues)
         worker.to_s = worker_id
