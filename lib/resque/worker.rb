@@ -88,7 +88,6 @@ module Resque
 
       begin
         working_on job
-        Process.wait
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
