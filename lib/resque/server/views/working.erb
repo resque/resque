@@ -27,7 +27,8 @@
 
 <% else %>
 
-  <h1>Workers Working</h1>
+  <% working = resque.working %>
+  <h1>Workers Working (<%= working.size %>)</h1>
   <table>
     <tr>
       <th>&nbsp;</th>
@@ -35,13 +36,13 @@
       <th>Queues</th>        
       <th>Processing</th>    
     </tr>
-    <% if resque.working.empty? %>
+    <% if working.empty? %>
     <tr>
       <td colspan="4">Not a one.</td>
     </tr>
     <% end %>
     
-    <% for worker_id in resque.working %>
+    <% for worker_id in working %>
       <% next unless worker = resque.find_worker(worker_id) %>
       <tr>
         <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
