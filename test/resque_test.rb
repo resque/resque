@@ -106,6 +106,6 @@ context "Resque" do
     assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
-    assert_equal ['localhost:6378'], stats[:servers]
+    assert_equal ['localhost:9736'], stats[:servers]
   end
 end

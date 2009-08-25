@@ -72,7 +72,7 @@ context "Resque::Worker" do
 
   test "records what it is working on" do
     @worker.work(0) do
-      task = @worker.processing
+      task = @worker.job
       assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
       assert task['run_at']
       assert_equal 'jobs', task['queue']
@@ -81,7 +81,7 @@ context "Resque::Worker" do
 
   test "clears its status when not working on anything" do
     @worker.work(0)
-    assert_equal nil, @worker.processing
+    assert_equal Hash.new, @worker.job
   end
 
   test "knows when it is working" do
@@ -138,8 +138,8 @@ context "Resque::Worker" do
 
   test "knows whether it exists or not" do
     @worker.work(0) do
-      assert @queue.worker?(@worker)
-      assert !@queue.worker?('blah-blah')
+      assert Resque::Worker.exists?(@worker)
+      assert !Resque::Worker.exists?('blah-blah')
     end
   end
 
@@ -151,16 +151,16 @@ context "Resque::Worker" do
 
   test "can be found" do
     @worker.work(0) do
-      found = @queue.find_worker(@worker.to_s)
+      found = Resque::Worker.find(@worker.to_s)
       assert_equal @worker.to_s, found.to_s
       assert found.working?
-      assert_equal @worker.processing, found.processing
+      assert_equal @worker.job, found.job
     end
   end
 
   test "doesn't find fakes" do
     @worker.work(0) do
-      found = @queue.find_worker('blah-blah')
+      found = Resque::Worker.find('blah-blah')
       assert_equal nil, found
     end
   end
