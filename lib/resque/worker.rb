@@ -158,7 +158,7 @@ module Resque
     end
 
     def job
-      Resque.redis_get_object [ :worker, id.to_s ]
+      Resque.redis_get_object([ :worker, id.to_s ]) || {}
     end
     alias_method :procesing, :job
 
