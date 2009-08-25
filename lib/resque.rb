@@ -134,11 +134,11 @@ module Resque
   end
 
   def remove_worker(worker)
+    redis.srem(key(:workers), worker.to_s)
     redis.pipelined do |redis|
       clear_processed_for worker, redis
       clear_failed_for worker, redis
       clear_worker_status worker, redis
-      redis.srem(key(:workers), worker.to_s)
       redis.del(key(:worker, worker.to_s, :started))
     end
   end
