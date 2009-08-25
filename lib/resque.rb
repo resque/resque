@@ -147,10 +147,6 @@ module Resque
     redis.smembers(key(:workers))
   end
 
-  def worker(id)
-    Worker.find(id).job
-  end
-
   def worker?(id)
     Worker.exists? id
   end
@@ -175,10 +171,6 @@ module Resque
 
   def clear_worker_status(id, redis = redis)
     redis.del(key(:worker, id.to_s))
-  end
-
-  def find_worker(id)
-    Worker.find(id)
   end
 
   def worker_started(id)
