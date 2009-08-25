@@ -15,7 +15,7 @@ module Resque
     case server
     when String
       host, port = server.split(':')
-      @redis = Redis.new(:host => host, :port => port)
+      @redis = Redis.new(:host => host, :port => port, :namespace => :resque)
     when Redis
       @redis = server
     else
@@ -24,7 +24,7 @@ module Resque
   end
 
   def redis
-    @redis ||= Redis.new(:host => 'localhost', :port => 6379)
+    @redis ||= Redis.new(:host => 'localhost', :port => 6379, :namespace => :resque)
   end
 
   def to_s
@@ -219,7 +219,7 @@ module Resque
   end
 
   def keys
-    redis.keys("resque:*")
+    redis.keys("*")
   end
 
 
@@ -240,6 +240,6 @@ module Resque
   #
 
   def key(*queue)
-    "resque:#{queue.join(':')}"
+    queue.join(':')
   end
 end
