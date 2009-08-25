@@ -51,7 +51,7 @@ module Resque
     #
 
     def work(interval = 5, &block)
-      self.procline = "Starting"
+      $0 = "resque: Starting"
       register_signal_handlers
       register_worker
 
@@ -60,17 +60,21 @@ module Resque
 
         if job = reserve
           log "Got #{job.inspect}"
+
           if @child = fork
-            self.procline "Forked #{@child} at #{Time.now.to_i}"
+            $0 = "resque: Forked #{@child} at #{Time.now.to_i}"
             Process.wait
           else
-            self.procline = "Processing #{job.queue} since #{Time.now.to_i}"
+            $0 = "resque: Processing #{job.queue} since #{Time.now.to_i}"
             process(job, &block)
+            exit!
           end
+
+          @child = nil
         else
           break if interval.to_i == 0
           log "Sleeping"
-          self.procline = "Waiting for #{@queues.join(',')}"
+          $0 = "resque: Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
@@ -84,11 +88,8 @@ module Resque
 
       begin
         working_on job
-        if @child = fork
-          Process.wait
-        else
-          job.perform
-        end
+        Process.wait
+        job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e)
@@ -98,7 +99,6 @@ module Resque
       ensure
         yield job if block_given?
         done_working
-        @child = nil
       end
     end
 
@@ -200,10 +200,6 @@ module Resque
 
     def log(message)
       puts "*** #{message}" if logger
-    end
-
-    def procline=(string)
-      $0 = "resque: #{string}"
     end
   end
 end
