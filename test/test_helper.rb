@@ -1,8 +1,8 @@
 dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift dir + '/../lib'
 require 'test/unit'
-
 require 'resque'
+
 
 #
 # make sure we can run redis
@@ -13,6 +13,7 @@ if `which redis-server`.chomp.empty?
   puts "** try running `sudo rake redis:install`"
   abort ''
 end
+
 
 #
 # start our own redis when the tests start,
@@ -34,6 +35,7 @@ puts "Starting redis for testing at localhost:9736..."
 `redis-server #{dir}/redis-test.conf`
 Resque.redis = 'localhost:9736'
 
+
 ##
 # test/spec/mini 2
 # http://gist.github.com/25455
@@ -52,6 +54,11 @@ def context(*args, &block)
   end
   klass.class_eval &block
 end
+
+
+#
+# fixture classes
+#
 
 class SomeJob
   def self.perform(repo_id, path)
