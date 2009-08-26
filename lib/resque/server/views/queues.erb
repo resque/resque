@@ -25,7 +25,7 @@
       <th>Name</th>
       <th>Pending</th>
     </tr>
-    <% for queue in resque.queues %> 
+    <% for queue in resque.queues.sort_by { |q| q.to_s } %> 
     <tr>
       <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
       <td><%= resque.size queue %></td>      
