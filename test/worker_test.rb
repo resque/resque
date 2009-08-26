@@ -164,4 +164,22 @@ context "Resque::Worker" do
       assert_equal nil, found
     end
   end
+
+  test "cleans up dead worker info on start (crash recovery)" do
+    # first we fake out two dead workers
+    workerA = Resque::Worker.new(:jobs)
+    workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
+    workerA.register_worker
+
+    workerB = Resque::Worker.new(:high, :low)
+    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
+    workerB.register_worker
+
+    assert_equal 2, Resque.workers.size
+
+    # then we prune them
+    @worker.work(0) do
+      assert_equal 1, Resque.workers.size
+    end
+  end
 end

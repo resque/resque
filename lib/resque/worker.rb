@@ -52,8 +52,7 @@ module Resque
 
     def work(interval = 5, &block)
       $0 = "resque: Starting"
-      register_signal_handlers
-      register_worker
+      startup
 
       loop do
         break if @shutdown
@@ -116,6 +115,12 @@ module Resque
     # startup / teardown
     #
 
+    def startup
+      register_signal_handlers
+      prune_dead_workers
+      register_worker
+    end
+
     def register_signal_handlers
       trap('TERM') { shutdown  }
       trap('INT')  { shutdown  }
@@ -130,6 +135,15 @@ module Resque
     def shutdown!
       shutdown
       Process.kill("KILL", @child) if @child
+    end
+
+    def prune_dead_workers
+      Resque.workers.each do |worker|
+        host, pid, queues = worker.split(':')
+        next unless host == hostname
+        next if worker_pids.include?(pid)
+        Resque.remove_worker(worker)
+      end
     end
 
     def register_worker
@@ -189,7 +203,19 @@ module Resque
     end
 
     def to_s
-      @to_s ||= "#{`hostname`.chomp}:#{Process.pid}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
+    end
+
+    def hostname
+      @hostname ||= `hostname`.chomp
+    end
+
+    # Finds pids of all the other workers.
+    # Used when pruning dead workers on startup.
+    def worker_pids
+      `ps -e -o pid,command | grep [r]esque`.split("\n").map do |line|
+        line.split(' ')[0]
+      end
     end
 
 
