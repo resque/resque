@@ -39,19 +39,31 @@ module Resque
 
   def push(queue, item)
     watch_queue(queue)
-    redis_push "queue:#{queue}", item
+    redis.rpush "queue:#{queue}", encode(item)
   end
 
   def pop(queue)
-    redis_shift "queue:#{queue}"
+    decode redis.lpop("queue:#{queue}")
   end
 
   def size(queue)
-    redis_list_length "queue:#{queue}"
+    redis.llen("queue:#{queue}").to_i
   end
 
   def peek(queue, start = 0, count = 1)
-    redis_list_range "queue:#{queue}", start, count
+    list_range("queue:#{queue}", start, count)
+  end
+
+  # Also used by Resque::Job for access to the `failed` faux-queue
+  # (for now)
+  def list_range(key, start = 0, count = 1)
+    if count == 1
+      decode redis.lindex(key, start)
+    else
+      Array(redis.lrange(key, start, start+count-1)).map do |item|
+        decode item
+      end
+    end
   end
 
   def queues
@@ -78,50 +90,6 @@ module Resque
   def reserve(queue)
     Job.reserve(queue)
   end
-
-
-  #
-  # access to redis
-  #
-
-  def redis_push(list, value)
-    redis.rpush list, encode(value)
-  end
-
-  def redis_shift(list)
-    decode redis.lpop(list)
-  end
-
-  def redis_list_length(list)
-    redis.llen(list).to_i
-  end
-
-  def redis_list_range(list, start = 0, count = 1)
-    if count == 1
-      decode redis.lindex(list, start)
-    else
-      Array(redis.lrange(list, start, start+count-1)).map do |item|
-        decode item
-      end
-    end
-  end
-
-  def redis_set_member?(set, member)
-    redis.sismember(set, member)
-  end
-
-  def redis_get(slot)
-    redis.get slot
-  end
-
-  def redis_get_object(slot)
-    decode redis.get(slot)
-  end
-
-  def redis_exists?(slot)
-    redis.exists slot
-  end
-
 
   #
   # workers

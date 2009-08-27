@@ -37,21 +37,22 @@ module Resque
     end
 
     def fail(exception)
-      Resque.redis_push :failed, \
+      data = encode \
         :failed_at => Time.now.to_s,
         :payload   => payload,
         :error     => exception.to_s,
         :backtrace => exception.backtrace,
         :worker    => worker,
         :queue     => queue
+      redis.rpush(:failed, data)
     end
 
     def self.failed_size
-      Resque.redis_list_length(:failed)
+      redis.llen(:failed).to_i
     end
 
     def self.failed(start = 0, count = 1)
-      Resque.redis_list_range(:failed, start, count)
+      Resque.list_range(:failed, start, count)
     end
 
 
@@ -78,6 +79,22 @@ module Resque
         constant = constant.const_get(name) || constant.const_missing(name)
       end
       constant
+    end
+
+    def encode(*args)
+      Resque.encode(*args)
+    end
+
+    def decode(*args)
+      Resque.decode(*args)
+    end
+
+    def redis
+      Resque.redis
+    end
+
+    def self.redis
+      Resque.redis
     end
   end
 end
