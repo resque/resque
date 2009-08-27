@@ -8,6 +8,10 @@ module Resque
     # worker class methods
     #
 
+    def self.all
+      redis.smembers(:workers)
+    end
+
     def self.find(worker_id)
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
@@ -24,8 +28,9 @@ module Resque
     end
 
     def self.exists?(worker_id)
-      Resque.redis_set_member? :workers, worker_id
+      redis.sismember(:workers, worker_id)
     end
+
 
 
     #
@@ -91,7 +96,7 @@ module Resque
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         job.fail(e)
-        Resque.failed! self
+        failed!
       else
         log "#{job.inspect} done processing"
       ensure
@@ -102,7 +107,7 @@ module Resque
 
     def reserve
       @queues.each do |queue|
-        if job = Resque.reserve(queue)
+        if job = Resque::Job.reserve(queue)
           return job
         end
       end
@@ -138,30 +143,41 @@ module Resque
     end
 
     def prune_dead_workers
-      Resque.workers.each do |worker|
+      Worker.all.each do |worker|
         host, pid, queues = worker.split(':')
         next unless host == hostname
         next if worker_pids.include?(pid)
-        Resque.remove_worker(worker)
+        Worker.find(worker).unregister_worker
       end
     end
 
     def register_worker
-      Resque.add_worker self
+      redis.sadd(:workers, self)
+      started!
     end
 
     def unregister_worker
-      Resque.remove_worker self
+      done_working
+
+      redis.srem(:workers, self)
+      redis.del("worker:#{self}:started")
+
+      Stat.clear("processed:#{self}")
+      Stat.clear("failed:#{self}")
     end
 
     def working_on(job)
       job.worker = self
-      Resque.set_worker_status(self, job)
+      data = encode \
+        :queue   => job.queue,
+        :run_at  => Time.now.to_s,
+        :payload => job.payload
+      redis.set("worker:#{self}", data)
     end
 
     def done_working
-      Resque.processed! self
-      Resque.clear_worker_status self
+      processed!
+      redis.del("worker:#{self}")
     end
 
 
@@ -170,19 +186,33 @@ module Resque
     #
 
     def processed
-      Resque.stat_processed(self)
+      Stat["processed:#{self}"]
+    end
+
+    def processed!
+      Stat.incr("processed")
+      Stat.incr("processed:#{self}")
     end
 
     def failed
-      Resque.stat_failed(self)
+      Stat["failed:#{self}"]
+    end
+
+    def failed!
+      Stat.incr("failed")
+      Stat.incr("failed:#{self}")
     end
 
     def started
-      Resque.redis_get "worker:#{self}:started"
+      redis.get "worker:#{self}:started"
+    end
+
+    def started!
+      redis.set("worker:#{self}:started", Time.now.to_s)
     end
 
     def job
-      Resque.redis_get_object("worker:#{self}") || {}
+      decode(redis.get("worker:#{self}")) || {}
     end
     alias_method :processing, :job
 
@@ -195,7 +225,7 @@ module Resque
     end
 
     def state
-      Resque.redis_exists?("worker:#{self}") ? :working : :idle
+      redis.exists("worker:#{self}") ? :working : :idle
     end
 
     def inspect
@@ -225,6 +255,22 @@ module Resque
 
     def log(message)
       puts "*** #{message}" if logger
+    end
+
+    def redis
+      Resque.redis
+    end
+
+    def self.redis
+      Resque.redis
+    end
+
+    def encode(*args)
+      Resque.encode(*args)
+    end
+
+    def decode(*args)
+      Resque.decode(*args)
     end
   end
 end

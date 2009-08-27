@@ -1,6 +1,7 @@
 require 'redis'
 require 'yajl'
 
+require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
 
@@ -126,25 +127,8 @@ module Resque
   # workers
   #
 
-  def add_worker(worker)
-    redis.pipelined do |redis|
-      redis.sadd(:workers, worker.to_s)
-      redis.set("worker:#{worker}:started", Time.now.to_s)
-    end
-  end
-
-  def remove_worker(worker)
-    redis.srem(:workers, worker.to_s)
-    redis.pipelined do |redis|
-      clear_processed_for worker, redis
-      clear_failed_for worker, redis
-      clear_worker_status worker, redis
-      redis.del("worker:#{worker}:started")
-    end
-  end
-
   def workers
-    redis.smembers(:workers)
+    Worker.all
   end
 
   def working
@@ -157,18 +141,6 @@ module Resque
     end
   end
 
-  def set_worker_status(id, job)
-    data = encode \
-      :queue   => job.queue,
-      :run_at  => Time.now.to_s,
-      :payload => job.payload
-    redis.set("worker:#{id}", data)
-  end
-
-  def clear_worker_status(id, redis = redis)
-    redis.del("worker:#{id}")
-  end
-
 
   #
   # stats
@@ -176,46 +148,14 @@ module Resque
 
   def info
     return {
-      :pending   => stat_pending,
-      :processed => stat_processed,
+      :pending   => queues.inject(0) { |m,k| m + size(k) },
+      :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
       :working   => working.size,
-      :failed    => stat_failed,
+      :failed    => Stat[:failed],
       :servers   => [redis.server]
     }
-  end
-
-  def stat_pending
-    queues.inject(0) { |m,k| m + size(k) }
-  end
-
-  # Called by workers when a job has been processed,
-  # regardless of pass or fail.
-  def processed!(worker = nil)
-    redis.incr("stats:processed")
-    redis.incr("stats:processed:#{worker}") if worker
-  end
-
-  def stat_processed(id = nil)
-    target = id ? "stats:processed:#{id}" : "stats:processed"
-    redis.get(target).to_i
-  end
-
-  def clear_processed_for(worker, redis = redis)
-    redis.del "stats:processed:#{worker}"
-  end
-
-  def failed!(worker)
-    redis.incr("stats:failed:#{worker}")
-  end
-
-  def stat_failed(id = nil)
-    id ? redis.get("stats:failed:#{id}").to_i : Job.failed_size
-  end
-
-  def clear_failed_for(id, redis = redis)
-    redis.del "stats:failed:#{id}"
   end
 
   def keys

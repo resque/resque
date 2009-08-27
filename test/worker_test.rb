@@ -2,21 +2,20 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque::Worker" do
   setup do
-    @queue = Resque
-    @queue.redis.flush_all
+    Resque.redis.flush_all
 
     @worker = Resque::Worker.new(:jobs)
-    @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
+    Resque.enqueue(:jobs, SomeJob, 20, '/tmp')
   end
 
   test "can fail jobs" do
-    @queue.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
     @worker.work(0)
     assert_equal 1, Resque::Job.failed_size
   end
 
   test "can peek at failed jobs" do
-    10.times { @queue.enqueue(:jobs, BadJob) }
+    10.times { Resque.enqueue(:jobs, BadJob) }
     @worker.work(0)
     assert_equal 10, Resque::Job.failed_size
 
@@ -24,8 +23,8 @@ context "Resque::Worker" do
   end
 
   test "catches exceptional jobs" do
-    @queue.enqueue(:jobs, BadJob)
-    @queue.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
     @worker.process
     @worker.process
     @worker.process
@@ -33,17 +32,17 @@ context "Resque::Worker" do
   end
 
   test "can work on multiple queues" do
-    @queue.enqueue(:high, GoodJob)
-    @queue.enqueue(:critical, GoodJob)
+    Resque.enqueue(:high, GoodJob)
+    Resque.enqueue(:critical, GoodJob)
 
     worker = Resque::Worker.new(:critical, :high)
 
     worker.process
-    assert_equal 1, @queue.size(:high)
-    assert_equal 0, @queue.size(:critical)
+    assert_equal 1, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
 
     worker.process
-    assert_equal 0, @queue.size(:high)
+    assert_equal 0, Resque.size(:high)
   end
 
   test "has a unique id" do
@@ -58,16 +57,16 @@ context "Resque::Worker" do
 
   test "inserts itself into the 'workers' list on startup" do
     @worker.work(0) do
-      assert_equal @worker.to_s, @queue.workers[0]
+      assert_equal @worker.to_s, Resque.workers[0]
     end
   end
 
   test "removes itself from the 'workers' list on shutdown" do
     @worker.work(0) do
-      assert_equal @worker.to_s, @queue.workers[0]
+      assert_equal @worker.to_s, Resque.workers[0]
     end
 
-    assert_equal [], @queue.workers
+    assert_equal [], Resque.workers
   end
 
   test "records what it is working on" do
@@ -97,13 +96,13 @@ context "Resque::Worker" do
 
   test "knows who is working" do
     @worker.work(0) do
-      assert_equal [@worker.to_s], @queue.working
+      assert_equal [@worker.to_s], Resque.working
     end
   end
 
   test "keeps track of how many jobs it has processed" do
-    @queue.enqueue(:jobs, BadJob)
-    @queue.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
 
     3.times do
       job = @worker.reserve
@@ -113,8 +112,8 @@ context "Resque::Worker" do
   end
 
   test "keeps track of how many failures it has seen" do
-    @queue.enqueue(:jobs, BadJob)
-    @queue.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
+    Resque.enqueue(:jobs, BadJob)
 
     3.times do
       job = @worker.reserve
