@@ -17,7 +17,7 @@ module Resque
       return [] unless names.any?
       names.map! { |name| "worker:#{name}" }
       redis.mapped_mget(*names).keys.map do |key|
-        key.sub("worker:", '')
+        find key.sub("worker:", '')
       end
     end
 

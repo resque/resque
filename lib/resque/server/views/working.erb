@@ -27,8 +27,8 @@
 
 <% else %>
 
-  <% working = resque.working %>
-  <h1>Workers Working (<%= working.size %>)</h1>
+  <% workers = resque.working %>
+  <h1>Workers Working (<%= workers.size %>)</h1>
   <table>
     <tr>
       <th>&nbsp;</th>
@@ -42,9 +42,8 @@
     </tr>
     <% end %>
     
-    <% workers = working.map { |worker_id| Resque::Worker.find(worker_id) } %>
     <% for worker in workers.sort_by { |w| w.job['run_at'] ? w.job['run_at'] : '' } %>
-      <% job = worker.job || {} %>
+      <% job = worker.job %>
       <tr>
         <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>

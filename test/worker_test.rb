@@ -96,7 +96,7 @@ context "Resque::Worker" do
 
   test "knows who is working" do
     @worker.work(0) do
-      assert_equal [@worker.to_s], Resque.working
+      assert_equal [@worker], Resque.working
     end
   end
 
