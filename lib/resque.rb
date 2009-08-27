@@ -234,12 +234,4 @@ module Resque
   def decode(object)
     Yajl::Parser.parse(object) if object
   end
-
-  #
-  # namespacing
-  #
-
-  def key(*queue)
-    queue.join(':')
-  end
 end
