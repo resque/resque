@@ -27,7 +27,7 @@ end
 def list
   if Resque.workers.any?
     Resque.workers.each do |worker|
-      puts "#{worker} (#{Resque::Worker.find(worker).state})"
+      puts "#{worker} (#{worker.state})"
     end
   else
     puts "None"
