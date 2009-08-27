@@ -12,6 +12,15 @@ module Resque
       redis.smembers(:workers)
     end
 
+    def self.working
+      names = all
+      return [] unless names.any?
+      names.map! { |name| "worker:#{name}" }
+      redis.mapped_mget(*names).keys.map do |key|
+        key.sub("worker:", '')
+      end
+    end
+
     def self.find(worker_id)
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')

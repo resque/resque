@@ -80,7 +80,7 @@ module Resque
 
 
   #
-  # jobs
+  # job shortcuts
   #
 
   def enqueue(queue, klass, *args)
@@ -92,7 +92,7 @@ module Resque
   end
 
   #
-  # workers
+  # worker shortcuts
   #
 
   def workers
@@ -100,13 +100,7 @@ module Resque
   end
 
   def working
-    names = workers
-    return [] unless names.any?
-    names = names.map { |name| "worker:#{name}" }
-    redis.mapped_mget(*names).keys.map do |key|
-      # cleanup
-      key.sub("worker:", '')
-    end
+    Worker.working
   end
 
 
