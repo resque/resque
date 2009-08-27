@@ -34,7 +34,7 @@
     </tr>
   </table>
   
-<% elsif worker %>
+<% elsif params[:id] %>
 
 <h1>Worker doesn't exist</h1>
 
@@ -48,14 +48,13 @@
       <th>Queues</th>        
       <th>Processing</th>    
     </tr>
-    <% for worker_id in resque.workers %>
-    <% next unless worker = Resque::Worker.find(worker_id) %>
+    <% for worker in resque.workers %>
     <tr>
       <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
     
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
-      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
+      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">ack' + q + '</a>'}.join(', ') %></td>
       
       <td>      
         <% data = worker.processing || {} %>

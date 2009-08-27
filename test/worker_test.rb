@@ -57,13 +57,13 @@ context "Resque::Worker" do
 
   test "inserts itself into the 'workers' list on startup" do
     @worker.work(0) do
-      assert_equal @worker.to_s, Resque.workers[0]
+      assert_equal @worker, Resque.workers[0]
     end
   end
 
   test "removes itself from the 'workers' list on shutdown" do
     @worker.work(0) do
-      assert_equal @worker.to_s, Resque.workers[0]
+      assert_equal @worker, Resque.workers[0]
     end
 
     assert_equal [], Resque.workers

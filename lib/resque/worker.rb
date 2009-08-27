@@ -9,7 +9,7 @@ module Resque
     #
 
     def self.all
-      redis.smembers(:workers)
+      redis.smembers(:workers).map { |id| find(id) }
     end
 
     def self.working
@@ -39,7 +39,6 @@ module Resque
     def self.exists?(worker_id)
       redis.sismember(:workers, worker_id)
     end
-
 
 
     #
@@ -153,10 +152,10 @@ module Resque
 
     def prune_dead_workers
       Worker.all.each do |worker|
-        host, pid, queues = worker.split(':')
+        host, pid, queues = worker.id.split(':')
         next unless host == hostname
         next if worker_pids.include?(pid)
-        Worker.find(worker).unregister_worker
+        worker.unregister_worker
       end
     end
 
@@ -237,6 +236,10 @@ module Resque
       redis.exists("worker:#{self}") ? :working : :idle
     end
 
+    def ==(other)
+      to_s == other.to_s
+    end
+
     def inspect
       "#<Worker #{to_s}>"
     end
@@ -244,6 +247,7 @@ module Resque
     def to_s
       @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
     end
+    alias_method :id, :to_s
 
     def hostname
       @hostname ||= `hostname`.chomp
