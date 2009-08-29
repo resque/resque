@@ -88,6 +88,14 @@ module Resque
       end
     end
 
+    get "/failed" do
+      if Resque::Failure.url
+        redirect Resque::Failure.url
+      else
+        erb :failed, {}, :resque => Resque
+      end
+    end
+
     get "/stats" do
       redirect "/stats/resque"
     end

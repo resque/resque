@@ -10,18 +10,22 @@ module Resque
         @payload   = payload
       end
 
+      # implement me in your subclass
       def save
-        # implement me in your subclass
       end
 
+      # implement me in your subclass
       def self.count
-        # implement me in your subclass
         0
       end
 
+      # implement me in your subclass
       def self.all(start = 0, count = 1)
-        # implement me in your subclass
         []
+      end
+
+      # return a value if the failures are stored
+      def self.url
       end
 
       def log(message)
