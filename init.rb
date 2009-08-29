@@ -9,8 +9,8 @@ elsif defined? RAILS_ROOT
 
   if toad = config['hoptoad']
     Resque::Failure::Hoptoad.configure do |config|
-      config.api_key = toad['api_key']
-      config.secure = toad['secure']
+      config.api_key   = toad['api_key']
+      config.secure    = toad['secure']
       config.subdomain = toad['subdomain']
     end
   end
