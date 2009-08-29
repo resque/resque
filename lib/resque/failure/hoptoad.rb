@@ -20,15 +20,15 @@ module Resque
       def save
         data = {
           :api_key       => api_key,
-          :error_class   => @exception.class.name,
-          :error_message => "#{@exception.class.name}: #{@exception.message}",
-          :backtrace     => @exception.backtrace,
+          :error_class   => exception.class.name,
+          :error_message => "#{exception.class.name}: #{exception.message}",
+          :backtrace     => exception.backtrace,
           :environment   => {},
           :session       => {},
           :request       => {
-            :worker => @worker.to_s,
-            :queue  => @queue.to_s,
-            :params => @payload
+            :worker => worker.to_s,
+            :queue  => queue.to_s,
+            :params => payload
           }
         }
 
