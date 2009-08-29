@@ -47,11 +47,15 @@ module Resque
     end
 
     def self.failed_size
-      redis.llen(:failed).to_i
+      failed_count
+    end
+
+    def self.failed_count
+      Failure.count
     end
 
     def self.failed(start = 0, count = 1)
-      Resque.list_range(:failed, start, count)
+      Failure.all(start, count)
     end
 
 

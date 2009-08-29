@@ -14,6 +14,16 @@ module Resque
         # implement me in your subclass
       end
 
+      def self.count
+        # implement me in your subclass
+        0
+      end
+
+      def self.all(start = 0, count = 1)
+        # implement me in your subclass
+        []
+      end
+
       def log(message)
         @worker.log(message)
       end

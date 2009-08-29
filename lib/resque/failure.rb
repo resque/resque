@@ -16,5 +16,13 @@ module Resque
       require 'resque/failure/redis'
       @backend = Failure::Redis
     end
+
+    def self.count
+      backend.count
+    end
+
+    def self.all(start = 0, count = 1)
+      backend.all(start, count)
+    end
   end
 end

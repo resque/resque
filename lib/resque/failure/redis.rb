@@ -13,6 +13,14 @@ module Resque
         data = Yajl::Encoder.encode(data)
         Resque.redis.rpush(:failed, data)
       end
+
+      def self.count
+        Resque.redis.llen(:failed).to_i
+      end
+
+      def self.all(start = 0, count = 1)
+        Resque.list_range(:failed, start, count)
+      end
     end
   end
 end
