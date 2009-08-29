@@ -78,7 +78,7 @@ module Resque
       redirect '/overview'
     end
 
-    %w( overview failed queues working workers key ).each do |page|
+    %w( overview queues working workers key ).each do |page|
       get "/#{page}" do
         erb page.to_sym, {}, :resque => Resque
       end
@@ -94,6 +94,10 @@ module Resque
       else
         erb :failed, {}, :resque => Resque
       end
+    end
+
+    get "/failed/:id" do
+      erb :failed, {}, :resque => Resque
     end
 
     get "/stats" do
