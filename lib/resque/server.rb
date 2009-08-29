@@ -104,8 +104,15 @@ module Resque
       redirect "/stats/resque"
     end
 
+    get "/stats/:id" do
+      erb :stats, {}, :resque => Resque
+    end
+
+    get "/stats/keys/:key" do
+      erb :stats, {}, :resque => Resque
+    end
+
     get "/stats.txt" do
-      content_type 'text/plain'
       info = Resque.info
 
       stats = []
@@ -114,15 +121,13 @@ module Resque
       stats << "resque.failed=#{info[:failed]}"
       stats << "resque.workers=#{info[:workers]}"
       stats << "resque.working=#{info[:working]}"
+
+      Resque.queues.each do |queue|
+        stats << "queues.#{queue}=#{Resque.size(queue)}"
+      end
+
+      content_type 'text/plain'
       stats.join "\n"
-    end
-
-    get "/stats/:id" do
-      erb :stats, {}, :resque => Resque
-    end
-
-    get "/stats/keys/:key" do
-      erb :stats, {}, :resque => Resque
     end
 
     def resque
