@@ -104,6 +104,19 @@ module Resque
       redirect "/stats/resque"
     end
 
+    get "/stats.txt" do
+      content_type 'text/plain'
+      info = Resque.info
+
+      stats = []
+      stats << "resque.pending=#{info[:pending]}"
+      stats << "resque.processed=#{info[:processed]}"
+      stats << "resque.failed=#{info[:failed]}"
+      stats << "resque.workers=#{info[:workers]}"
+      stats << "resque.working=#{info[:working]}"
+      stats.join "\n"
+    end
+
     get "/stats/:id" do
       erb :stats, {}, :resque => Resque
     end
