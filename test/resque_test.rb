@@ -76,7 +76,7 @@ context "Resque" do
   end
 
   test "keeps track of resque keys" do
-    assert_equal ["resque:queue:people", "resque:queues"], @queue.keys
+    assert_equal ["queue:people", "queues"], @queue.keys
   end
 
   test "keeps stats" do

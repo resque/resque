@@ -124,7 +124,9 @@ module Resque
   end
 
   def keys
-    redis.keys("*")
+    redis.keys("*").map do |key|
+      key.sub('resque:', '')
+    end
   end
 
 
