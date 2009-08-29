@@ -54,7 +54,7 @@
     
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
-      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">ack' + q + '</a>'}.join(', ') %></td>
+      <td><%= queues.split(',').map { |q| '<a class="queue" href="/queues/' + q + '">' + q + '</a>'}.join(', ') %></td>
       
       <td>      
         <% data = worker.processing || {} %>
