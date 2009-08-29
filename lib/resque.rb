@@ -1,6 +1,9 @@
 require 'redis'
 require 'yajl'
 
+require 'resque/failure'
+require 'resque/failure/base'
+
 require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
