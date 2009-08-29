@@ -1,0 +1,8 @@
+development: localhost:6379
+test: localhost:6379
+staging: localhost:6379
+production: xc88-s00039:6379
+hoptoad:
+  api_key: 123456
+  secure: true
+  subdomain: errfree
