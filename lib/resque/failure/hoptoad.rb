@@ -7,9 +7,14 @@ module Resque
       # Resque::Failure::Hoptoad.configure do |config|
       #   config.api_key = 'blah'
       #   config.secure = true
+      #   config.subdomain = 'your_hoptoad_subdomain'
       # end
       class << self
-        attr_accessor :secure, :api_key
+        attr_accessor :secure, :api_key, :subdomain
+      end
+
+      def self.url
+        "http://#{subdomain}.hoptoadapp.com/" if subdomain
       end
 
       def self.configure
