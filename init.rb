@@ -11,6 +11,7 @@ elsif root
   Resque.redis = config[env]
 
   if toad = config['hoptoad']
+    require 'resque/failure/hoptoad'
     Resque::Failure::Hoptoad.configure do |config|
       config.api_key   = toad['api_key']
       config.secure    = toad['secure']
