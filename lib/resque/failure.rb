@@ -12,7 +12,7 @@ module Resque
     end
 
     def self.backend
-      @backend
+      @backend || Redis
     end
   end
 end
