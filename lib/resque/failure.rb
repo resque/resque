@@ -12,7 +12,9 @@ module Resque
     end
 
     def self.backend
-      @backend || Redis
+      return @backend if @backend
+      require 'resque/failure/redis'
+      @backend = Failure::Redis
     end
   end
 end
