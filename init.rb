@@ -1,11 +1,14 @@
 require 'resque'
 
+root = ENV['RAILS_ROOT'] || (defined?(RAILS_ROOT) && RAILS_ROOT)
+env  = ENV['RAILS_ENV']  || (defined?(RAILS_ENV) && RAILS_ENV)
+
 if $redis
   Resque.redis = $redis
-elsif defined? RAILS_ROOT
+elsif root
   require 'yaml'
-  yaml = YAML.load_file File.join(RAILS_ROOT, 'config', 'resque.yml')
-  Resque.redis = config[RAILS_ENV]
+  config = YAML.load_file File.join(root, 'config', 'resque.yml')
+  Resque.redis = config[env]
 
   if toad = config['hoptoad']
     Resque::Failure::Hoptoad.configure do |config|
