@@ -24,5 +24,9 @@ module Resque
     def self.all(start = 0, count = 1)
       backend.all(start, count)
     end
+
+    def self.url
+      backend.url
+    end
   end
 end
