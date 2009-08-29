@@ -117,8 +117,8 @@ module Resque
 
       stats = []
       stats << "resque.pending=#{info[:pending]}"
-      stats << "resque.processed=#{info[:processed]}"
-      stats << "resque.failed=#{info[:failed]}"
+      stats << "resque.processed+=#{info[:processed]}"
+      stats << "resque.failed+=#{info[:failed]}"
       stats << "resque.workers=#{info[:workers]}"
       stats << "resque.working=#{info[:working]}"
 
