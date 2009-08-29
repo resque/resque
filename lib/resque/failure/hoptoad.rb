@@ -17,6 +17,10 @@ module Resque
         "http://#{subdomain}.hoptoadapp.com/" if subdomain
       end
 
+      def self.count
+        Stat[:failed]
+      end
+
       def self.configure
         yield self
         Resque::Failure.backend = self
