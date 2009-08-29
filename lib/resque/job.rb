@@ -1,3 +1,5 @@
+require 'resque/failure'
+
 module Resque
   class Job
     attr_accessor :worker
@@ -37,14 +39,11 @@ module Resque
     end
 
     def fail(exception)
-      data = encode \
-        :failed_at => Time.now.to_s,
+      Failure.create \
         :payload   => payload,
-        :error     => exception.to_s,
-        :backtrace => exception.backtrace,
+        :exception => exception,
         :worker    => worker,
         :queue     => queue
-      redis.rpush(:failed, data)
     end
 
     def self.failed_size
