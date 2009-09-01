@@ -33,7 +33,7 @@
     <% end %>
     <tr>
       <td><a class="queue" href="/failed">failed</a></td>
-      <td><%= Resque::Job.failed_size %></td>
+      <td><%= Resque::Failure.count %></td>
     </tr>
   </table>
 

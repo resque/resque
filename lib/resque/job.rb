@@ -46,18 +46,6 @@ module Resque
         :queue     => queue
     end
 
-    def self.failed_size
-      failed_count
-    end
-
-    def self.failed_count
-      Failure.count
-    end
-
-    def self.failed(start = 0, count = 1)
-      Failure.all(start, count)
-    end
-
 
     #
     # activesupport

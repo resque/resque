@@ -1,4 +1,4 @@
-<h1><%= size = Resque::Job.failed_size %> Jobs Failed</h1>
+<h1><%= size = Resque::Failure.count %> Jobs Failed</h1>
 <h2>Showing <%= start = params[:start].to_i %> to <%= start + 20 %></h2>
 <table>
   <tr>
@@ -9,7 +9,7 @@
     <th>Args</th>    
     <th>Error</th>
   </tr>
-  <% for job in Resque::Job.failed(start, 20) %>  
+  <% for job in Resque::Failure.all(start, 20) %>  
   <tr>
     <td><%= job['queue'] %></td>
     <td><a href="/workers/<%= job['worker'] %>"><%= job['worker'].split(':')[0...2].join(':') %></a></td>            
