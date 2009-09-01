@@ -3,9 +3,7 @@ require 'resque'
 root = ENV['RAILS_ROOT'] || (defined?(RAILS_ROOT) && RAILS_ROOT)
 env  = ENV['RAILS_ENV']  || (defined?(RAILS_ENV) && RAILS_ENV)
 
-if $redis
-  Resque.redis = $redis
-elsif root
+if root
   require 'yaml'
   config = YAML.load_file File.join(root, 'config', 'resque.yml')
   Resque.redis = config[env]
