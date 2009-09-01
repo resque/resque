@@ -125,11 +125,7 @@ module Resque
 
     # Passing a splat means you want every queue.
     def queues
-      if @queues[0] == "*"
-        Resque.queues
-      else
-        @queues
-      end
+      @queues[0] == "*" ? Resque.queues : @queues
     end
 
 
