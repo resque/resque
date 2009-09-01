@@ -114,13 +114,22 @@ module Resque
     end
 
     def reserve
-      @queues.each do |queue|
+      queues.each do |queue|
         if job = Resque::Job.reserve(queue)
           return job
         end
       end
 
       nil
+    end
+
+    # Passing a splat means you want every queue.
+    def queues
+      if @queues[0] == "*"
+        Resque.queues
+      else
+        @queues
+      end
     end
 
 

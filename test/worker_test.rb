@@ -45,6 +45,19 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
   end
 
+  test "can work on all queues" do
+    Resque.enqueue(:high, GoodJob)
+    Resque.enqueue(:critical, GoodJob)
+    Resque.enqueue(:blahblah, GoodJob)
+
+    worker = Resque::Worker.new("*")
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+  end
+
   test "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end
