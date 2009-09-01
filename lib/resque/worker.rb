@@ -140,9 +140,10 @@ module Resque
     end
 
     def register_signal_handlers
-      trap('TERM') { shutdown  }
-      trap('INT')  { shutdown  }
-      trap('HUP')  { shutdown! }
+      trap('TERM') { shutdown!  }
+      trap('INT')  { shutdown   }
+      trap('HUP')  { shutdown   }
+      trap('USR1') { kill_child }
     end
 
     def shutdown
@@ -152,7 +153,11 @@ module Resque
 
     def shutdown!
       shutdown
-      Process.kill("KILL", @child) if @child
+      kill_child
+    end
+
+    def kill_child
+      Process.kill("KILL", @child) rescue nil if @child
     end
 
     def prune_dead_workers
