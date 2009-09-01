@@ -94,6 +94,7 @@ module Resque
     Job.reserve(queue)
   end
 
+
   #
   # worker shortcuts
   #
