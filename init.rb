@@ -21,7 +21,7 @@ if root
 
   if file
     require 'yaml'
-    config = YAML.file_load(file)
+    config = YAML.load_file(file)
   else
     raise "Can't find resque.yml in #{root}"
   end
