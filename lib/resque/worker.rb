@@ -128,6 +128,18 @@ module Resque
       @queues[0] == "*" ? Resque.queues : @queues
     end
 
+    # Not every platform supports fork
+    def fork
+      return if @cant_fork
+
+      begin
+        Kernel.fork
+      rescue NotImplementedError
+        @cant_fork = true
+        nil
+      end
+    end
+
 
     #
     # startup / teardown
