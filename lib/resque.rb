@@ -1,5 +1,10 @@
 require 'redis'
-require 'yajl'
+
+begin
+  require 'yajl'
+rescue LoadError
+  require 'json'
+end
 
 require 'resque/failure'
 require 'resque/failure/base'
@@ -136,10 +141,20 @@ module Resque
   #
 
   def encode(object)
-    Yajl::Encoder.encode(object)
+    if defined? Yajl
+      Yajl::Encoder.encode(object)
+    else
+      JSON(object)
+    end
   end
 
   def decode(object)
-    Yajl::Parser.parse(object) if object
+    return unless object
+
+    if defined? Yajl
+      Yajl::Parser.parse(object)
+    else
+      JSON(object)
+    end
   end
 end

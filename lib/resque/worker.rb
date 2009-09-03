@@ -79,7 +79,7 @@ module Resque
           else
             $0 = "resque: Processing #{job.queue} since #{Time.now.to_i}"
             process(job, &block)
-            exit!
+            @cant_fork ? next : exit!
           end
 
           @child = nil
@@ -154,8 +154,10 @@ module Resque
     def register_signal_handlers
       trap('TERM') { shutdown!  }
       trap('INT')  { shutdown   }
-      trap('QUIT') { shutdown   }
-      trap('USR1') { kill_child }
+      unless defined? JRUBY_VERSION
+        trap('QUIT') { shutdown   }
+        trap('USR1') { kill_child }
+      end
     end
 
     def shutdown

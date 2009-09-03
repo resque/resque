@@ -10,7 +10,7 @@ module Resque
           :worker    => worker,
           :queue     => queue
         }
-        data = Yajl::Encoder.encode(data)
+        data = Resque.encode(data)
         Resque.redis.rpush(:failed, data)
       end
 

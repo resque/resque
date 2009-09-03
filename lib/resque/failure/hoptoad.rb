@@ -59,7 +59,7 @@ module Resque
         http.use_ssl = use_ssl?
 
         begin
-          response = http.post(url.path, Yajl::Encoder.encode(data), headers)
+          response = http.post(url.path, Resque.encode(data), headers)
         rescue TimeoutError => e
           log "Timeout while contacting the Hoptoad server."
         end
