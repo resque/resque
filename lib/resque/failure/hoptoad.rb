@@ -35,9 +35,7 @@ module Resque
           :environment   => {},
           :session       => {},
           :request       => {
-            :worker => worker.to_s,
-            :queue  => queue.to_s,
-            :params => payload
+            :params => payload.merge(:worker => worker.to_s, :queue => queue.to_s)
           }
         }
 
