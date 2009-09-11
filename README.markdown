@@ -10,7 +10,7 @@ Resque is comprised of three parts:
 2. Workers: Persistent, distributed Ruby processes which do work
 3. Frontend: A Sinatra app for monitoring queues and workers
 
-Resque workers can be distributed between multiple machines, 
+Resque workers can be distributed between multiple machines,
 support priorities, are resililent to memory bloat / "leaks," are
 optimized for REE (but work on MRI and JRuby), tell you what they're
 doing, and expect failure.
@@ -32,7 +32,7 @@ A Brief History of Background Jobs
 ----------------------------------
 
 We've used many different background job systems at GitHub. SQS,
-Starling, ActiveMessaging, BackgroundJob, DelayedJob, and beanstalkd. 
+Starling, ActiveMessaging, BackgroundJob, DelayedJob, and beanstalkd.
 Each change was out of necessity: we were running into a
 limitation of the current system and needed to either fix it or move
 to something designed with that limitation in mind.
@@ -62,7 +62,7 @@ dependencies it requires, and how bogged down your CPU is at that time.
 DelayedJob (dj) fixed this problem: it is similar to bj, with a
 database-backed queue and priorities, but its workers are
 persitent. They only load Rails when started, then process jobs in a
-loop. 
+loop.
 
 Jobs are just YAML-marshalled Ruby objects. With some magic you can
 turn any method call into a job to be processed later.
@@ -112,7 +112,7 @@ But what happens when all the workers are processing stuck or long
 jobs? Your queue quickly backs up.
 
 What you really need is a manager: someone like monit or god who can
-watch workers and kill stale ones. 
+watch workers and kill stale ones.
 
 Also, your workers will probably grow in memory a lot during the
 course of their life. So you need to either make sure you never create
@@ -125,7 +125,7 @@ and killing any that are a) bloated or b) stale.
 But how do we know all this is going on? How do we know what's sitting
 on the queue? As I mentioned earlier, we had a web interface which
 would show us pending items and try to infer how many workers are
-working. But that's not easy - how do you have a worker you just 
+working. But that's not easy - how do you have a worker you just
 `kill -9`'d gracefully manage its own state? We added a process to
 inspect workers and add their info to memcached, which our web
 frontend would then read from.
@@ -149,8 +149,8 @@ they processing, how many jobs have been processed total, how many
 errors have there been, are errors being repeated, did a deploy
 introduce a new one?
 
-We need a background job system as serious as our web framework. 
-I highly recommend DelayedJob to anyone whose site is not 50% 
+We need a background job system as serious as our web framework.
+I highly recommend DelayedJob to anyone whose site is not 50%
 background work.
 
 But GitHub is 50% background work.
@@ -234,11 +234,65 @@ hard worker problems: visibility, reliability, and stats.
 
 And that's Resque.
 
-How It Works
-------------
+Overview
+--------
 
+Resque allows you to create jobs and place them on a queue, then,
+later, pull those jobs off the queue and process them.
 
+Resque supports multiple, arbitrary queues which can be created on the
+fly. 
 
+Here is a Resque job:
+
+    class Archive
+      @queue = :file_serve
+      
+      def self.perform(repo_id, branch = 'master')
+        repo = Repository.find(repo_id)
+        repo.create_archive(branch)
+      end
+    end
+
+And here's some code that might live in our `Repository` class:
+
+    class Repository
+      def async_create_archive(branch)
+        Resque.enqueue(Archive, self.id, branch)
+      end
+    end
+
+Now when we call `repo.async_create_archive('masterbrew')` in our
+application, a job will be created and placed on the `file_serve`
+queue.
+
+The job itself is a JSON encoded payload which will looks like:
+
+    {
+      'class' => 'Archive',
+      'args' => [ 44, 'masterbrew' ]
+    }
+
+Later, a worker will essentially run this code to process the job:
+  
+    payload = Resque.reserve(:file_serve)
+    
+    # klass = Archive
+    klass = payload['class'].to_class
+    
+    # Archive.perform(44, 'masterbrew')
+    klass.perform(*payload['args'])
+
+Let's start a worker to run `file_serve` jobs:
+
+    $ cd app_root
+    $ QUEUE=file_serve rake resque:work
+
+This starts one Resque worker and tells it to work off the
+`file_serve` queue. As soon as it's ready it'll try to run the
+`Resque.reserve` code snippet above and process jobs until it can't
+find any more, at which point it will sleep for a small period and
+repeatedly poll the queue for more jobs.
 
 Signals
 -------
