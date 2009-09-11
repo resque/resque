@@ -283,6 +283,10 @@ Later, a worker will essentially run this code to process the job:
     # Archive.perform(44, 'masterbrew')
     klass.perform(*payload['args'])
 
+That's all there is to it. Your app uses Resque to push a small JSON
+payload onto a list which a worker process pulls off the list and uses
+to execute code.
+
 Let's start a worker to run `file_serve` jobs:
 
     $ cd app_root
