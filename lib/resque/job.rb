@@ -1,5 +1,3 @@
-require 'resque/failure'
-
 module Resque
   class Job
     attr_accessor :worker
