@@ -10,7 +10,23 @@ Resque is comprised of three parts:
 2. Workers: Persistent, distributed Ruby processes which do work
 3. Frontend: A Sinatra app for monitoring queues and workers
 
-We'll talk about each one in a moment.
+Resque workers can be distributed between multiple machines, 
+support priorities, are resililent to memory bloat / "leaks," are
+optimized for REE (but work on MRI and JRuby), tell you what they're
+doing, and expect failure.
+
+Resque queues are persistent, support atomic push and pop, support
+constant time push and pop, provide visibility into their contents,
+and store plain-jane Ruby classes as jobs.
+
+The Resque frontend tells you what workers are doing, what workers are
+not doing, what queues you're using, what's in those queues, provides
+general usage stats, and helps you track failures.
+
+Resque is currently used to process millions of jobs each week by
+GitHub.
+
+We'll expand upon each in a moment. But, first, let me tell you a story.
 
 A Brief History of Background Jobs
 ----------------------------------
@@ -69,6 +85,8 @@ Solution: move to beanstalkd. beanstalkd is great because it's fast,
 supports multiple queues, supports priorities, and speaks YAML
 natively. A huge queue has constant time push and pop operations,
 unlike a database-backed queue.
+
+beanstalkd also has experimental persistence - we need persistence.
 
 However, we quickly missed DJ features: seeing failed jobs, seeing
 pending jobs (beanstalkd only allows you to 'peek' ahead at the next
@@ -131,15 +149,93 @@ they processing, how many jobs have been processed total, how many
 errors have there been, are errors being repeated, did a deploy
 introduce a new one?
 
-We need a background job system as serious as our web
-framework. I highly recommend DelayedJob to anyone whose site is not
-50% background work.
+We need a background job system as serious as our web framework. 
+I highly recommend DelayedJob to anyone whose site is not 50% 
+background work.
 
 But GitHub is 50% background work.
 
-Resque to the Rescue
---------------------
+In Search of a Solution
+-----------------------
 
+In the Old Architecture, GitHub had one slice dedicated to processing
+background jobs. We ran 25 DJ workers on it and all they did was run
+jobs. It was known as our "utility" slice.
+
+In the New Architecture, certain jobs needed to be run on certain
+machines. With our emphasis on sharding data and high availability, a
+single utility slice no longer fit the bill.
+
+Both beanstalkd and bj supported named queues or "tags," but DelayedJob
+did not. Basically we needed a way to say "this job has a tag of X"
+and then, when starting workers, tell them to only be interested in
+jobs with a tag of X.
+
+For example, our "archive" background job creates tarballs and zip
+files for download. It needs to be run on the machine which serves
+tarballs and zip files. We'd tag the archive job with "file-serve" and
+only run it on the file serving slice. We could then re-use this tag
+with other jobs that needed to only be run on the file serving slice.
+
+We added this feature to DelayedJob but then realized it was an
+opportunity to re-evaluate our background job situation. Did someone
+else support this already? Was there a system which met our upcoming
+needs (distributed worker management - god/monit for workers on
+multiple machines along with visibility into the state)? Should we
+continue adding features to DelayedJob? Our fork had deviated from
+master and the merge (plus subsequent testing) was not going to be fun.
+
+We made a list of all the things we needed on paper and started
+re-evaluating a lot of the existing solutions. Kestrel, AMQP,
+beanstalkd (persistence still hadn't been rolled into an official
+release a year after being pushed to master).
+
+Here's that list:
+
+* Persistence
+* See what's pending
+* Modify pending jobs in-place
+* Tags
+* Priorities
+* Fast pushing and popping
+* See what workers are doing
+* See what workers have done
+* See failed jobs
+* Kill fat workers
+* Kill stale workers
+* Kill workers that are running too long
+* Keep Rails loaded / persistent workers
+* Distributed workers (run them on multiple machines)
+* Workers can watch multiple (or all) tags
+* Don't retry failed jobs
+* Don't "release" failed jobs
+
+Redis to the Rescue
+-------------------
+
+Can you name a system with all of these features:
+
+* Atomic, O(1) list push and pop
+* Ability to paginate over lists without mutating them
+* Queryable keyspace
+* Fast
+* Easy to install - no dependencies
+* Reliable Ruby client library
+* Store arbitrary strings
+* Support for integer counters
+* Persistent
+* Master-slave replication
+* Network aware
+
+Redis.
+
+If we let Redis handle the hard queue problems, we can focus on the
+hard worker problems: visibility, reliability, and stats.
+
+And that's Resque.
+
+How It Works
+------------
 
 
 
