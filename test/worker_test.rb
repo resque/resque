@@ -5,17 +5,17 @@ context "Resque::Worker" do
     Resque.redis.flush_all
 
     @worker = Resque::Worker.new(:jobs)
-    Resque.enqueue(:jobs, SomeJob, 20, '/tmp')
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
   test "can fail jobs" do
-    Resque.enqueue(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
     @worker.work(0)
     assert_equal 1, Resque::Failure.count
   end
 
   test "can peek at failed jobs" do
-    10.times { Resque.enqueue(:jobs, BadJob) }
+    10.times { Resque::Job.create(:jobs, BadJob) }
     @worker.work(0)
     assert_equal 10, Resque::Failure.count
 
@@ -23,8 +23,8 @@ context "Resque::Worker" do
   end
 
   test "catches exceptional jobs" do
-    Resque.enqueue(:jobs, BadJob)
-    Resque.enqueue(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
     @worker.process
     @worker.process
     @worker.process
@@ -32,8 +32,8 @@ context "Resque::Worker" do
   end
 
   test "can work on multiple queues" do
-    Resque.enqueue(:high, GoodJob)
-    Resque.enqueue(:critical, GoodJob)
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
 
     worker = Resque::Worker.new(:critical, :high)
 
@@ -46,9 +46,9 @@ context "Resque::Worker" do
   end
 
   test "can work on all queues" do
-    Resque.enqueue(:high, GoodJob)
-    Resque.enqueue(:critical, GoodJob)
-    Resque.enqueue(:blahblah, GoodJob)
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
 
     worker = Resque::Worker.new("*")
 
@@ -114,8 +114,8 @@ context "Resque::Worker" do
   end
 
   test "keeps track of how many jobs it has processed" do
-    Resque.enqueue(:jobs, BadJob)
-    Resque.enqueue(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
 
     3.times do
       job = @worker.reserve
@@ -125,8 +125,8 @@ context "Resque::Worker" do
   end
 
   test "keeps track of how many failures it has seen" do
-    Resque.enqueue(:jobs, BadJob)
-    Resque.enqueue(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
+    Resque::Job.create(:jobs, BadJob)
 
     3.times do
       job = @worker.reserve

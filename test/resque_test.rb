@@ -2,23 +2,22 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque" do
   setup do
-    @queue = Resque
-    @queue.redis.flush_all
+    Resque.redis.flush_all
 
-    @queue.push(:people, { 'name' => 'chris' })
-    @queue.push(:people, { 'name' => 'bob' })
-    @queue.push(:people, { 'name' => 'mark' })
+    Resque.push(:people, { 'name' => 'chris' })
+    Resque.push(:people, { 'name' => 'bob' })
+    Resque.push(:people, { 'name' => 'mark' })
   end
 
   test "can put jobs on a queue" do
-    assert @queue.enqueue(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
   end
 
   test "can grab jobs off a queue" do
-    @queue.enqueue(:jobs, 'some-job', 20, '/tmp')
+    Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
 
-    job = @queue.reserve(:jobs)
+    job = Resque.reserve(:jobs)
 
     assert_kind_of Resque::Job, job
     assert_equal SomeJob, job.object
@@ -26,68 +25,104 @@ context "Resque" do
     assert_equal '/tmp', job.args[1]
   end
 
+  test "can put jobs on a queue by way of an ivar" do
+    assert_equal 0, Resque.size(:ivar)
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+
+    job = Resque.reserve(:ivar)
+
+    assert_kind_of Resque::Job, job
+    assert_equal SomeIvarJob, job.object
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+
+    assert Resque.reserve(:ivar)
+    assert_equal nil, Resque.reserve(:ivar)
+  end
+
+  test "can put jobs on a queue by way of a method" do
+    assert_equal 0, Resque.size(:method)
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+
+    job = Resque.reserve(:method)
+
+    assert_kind_of Resque::Job, job
+    assert_equal SomeMethodJob, job.object
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+
+    assert Resque.reserve(:method)
+    assert_equal nil, Resque.reserve(:method)
+  end
+
+  test "needs to infer a queue with enqueue" do
+    assert_equal false, Resque.enqueue(SomeJob, 20, '/tmp')
+  end
+
   test "can put items on a queue" do
-    assert @queue.push(:people, { 'name' => 'jon' })
+    assert Resque.push(:people, { 'name' => 'jon' })
   end
 
   test "can pull items off a queue" do
-    assert_equal({ 'name' => 'chris' }, @queue.pop(:people))
-    assert_equal({ 'name' => 'bob' }, @queue.pop(:people))
-    assert_equal({ 'name' => 'mark' }, @queue.pop(:people))
-    assert_equal nil, @queue.pop(:people)
+    assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
+    assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
+    assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
+    assert_equal nil, Resque.pop(:people)
   end
 
   test "knows how big a queue is" do
-    assert_equal 3, @queue.size(:people)
+    assert_equal 3, Resque.size(:people)
 
-    assert_equal({ 'name' => 'chris' }, @queue.pop(:people))
-    assert_equal 2, @queue.size(:people)
+    assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
+    assert_equal 2, Resque.size(:people)
 
-    assert_equal({ 'name' => 'bob' }, @queue.pop(:people))
-    assert_equal({ 'name' => 'mark' }, @queue.pop(:people))
-    assert_equal 0, @queue.size(:people)
+    assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
+    assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
+    assert_equal 0, Resque.size(:people)
   end
 
   test "can peek at a queue" do
-    assert_equal({ 'name' => 'chris' }, @queue.peek(:people))
-    assert_equal 3, @queue.size(:people)
+    assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
+    assert_equal 3, Resque.size(:people)
   end
 
   test "can peek multiple items on a queue" do
-    assert_equal({ 'name' => 'bob' }, @queue.peek(:people, 1, 1))
+    assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
 
-    assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], @queue.peek(:people, 1, 2))
-    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], @queue.peek(:people, 0, 2))
-    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], @queue.peek(:people, 0, 3))
-    assert_equal({ 'name' => 'mark' }, @queue.peek(:people, 2, 1))
-    assert_equal nil, @queue.peek(:people, 3)
-    assert_equal [], @queue.peek(:people, 3, 2)
+    assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
+    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
+    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
+    assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
+    assert_equal nil, Resque.peek(:people, 3)
+    assert_equal [], Resque.peek(:people, 3, 2)
   end
 
   test "knows what queues it is managing" do
-    assert_equal %w( people ), @queue.queues
-    @queue.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), @queue.queues
+    assert_equal %w( people ), Resque.queues
+    Resque.push(:cars, { 'make' => 'bmw' })
+    assert_equal %w( cars people ), Resque.queues
   end
 
   test "queues are always a list" do
-    @queue.redis.flush_all
-    assert_equal [], @queue.queues
+    Resque.redis.flush_all
+    assert_equal [], Resque.queues
   end
 
   test "keeps track of resque keys" do
-    assert_equal ["queue:people", "queues"], @queue.keys
+    assert_equal ["queue:people", "queues"], Resque.keys
   end
 
   test "keeps stats" do
-    @queue.enqueue(:jobs, SomeJob, 20, '/tmp')
-    @queue.enqueue(:jobs, BadJob)
-    @queue.enqueue(:jobs, GoodJob)
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    Resque::Job.create(:jobs, BadJob)
+    Resque::Job.create(:jobs, GoodJob)
 
-    @queue.enqueue(:others, GoodJob)
-    @queue.enqueue(:others, GoodJob)
+    Resque::Job.create(:others, GoodJob)
+    Resque::Job.create(:others, GoodJob)
 
-    stats = @queue.info
+    stats = Resque.info
     assert_equal 8, stats[:pending]
 
     @worker = Resque::Worker.new(:jobs)
@@ -96,13 +131,13 @@ context "Resque" do
     job = @worker.reserve
     @worker.working_on job
 
-    stats = @queue.info
+    stats = Resque.info
     assert_equal 1, stats[:working]
     assert_equal 1, stats[:workers]
 
     @worker.done_working
 
-    stats = @queue.info
+    stats = Resque.info
     assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]

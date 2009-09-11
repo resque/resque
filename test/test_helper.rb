@@ -1,6 +1,7 @@
 dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift dir + '/../lib'
 require 'test/unit'
+require 'rubygems'
 require 'resque'
 
 
@@ -62,6 +63,16 @@ end
 
 class SomeJob
   def self.perform(repo_id, path)
+  end
+end
+
+class SomeIvarJob < SomeJob
+  @queue = :ivar
+end
+
+class SomeMethodJob < SomeJob
+  def self.queue
+    :method
   end
 end
 

@@ -91,10 +91,30 @@ module Resque
   # job shortcuts
   #
 
-  def enqueue(queue, klass, *args)
-    Job.create(queue, klass, *args)
+  # This method can be used to conveniently add a job to a queue.
+  # It assumes the class you're passing it is a real Ruby class (not
+  # a string or reference) which either:
+  #
+  #   a) has a @queue ivar set
+  #   b) responds to `queue`
+  #
+  # If either of those conditions are met, it will use the value obtained
+  # from performing one of the above operations to determine the queue.
+  #
+  # If no queue can be inferred this method will return a non-true value.
+  #
+  # This method is considered part of the `stable` API.
+  def enqueue(klass, *args)
+    queue = klass.instance_variable_get(:@queue)
+    queue ||= klass.queue if klass.respond_to?(:queue)
+    queue ? Job.create(queue, klass, *args) : false
   end
 
+  # This method will return a `Resque::Job` object or a non-true value
+  # depending on whether a job can be obtained. You should pass it the
+  # precise name of a queue: case matters.
+  #
+  # This method is considered part of the `stable` API.
   def reserve(queue)
     Job.reserve(queue)
   end
