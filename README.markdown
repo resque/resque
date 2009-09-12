@@ -52,7 +52,8 @@ Here is a complete Resque job:
       end
     end
 
-And here's some code that might live in our `Repository` class:
+And here's some code that might live in our pre-existing `Repository`
+class:
 
     class Repository
       def async_create_archive(branch)
@@ -64,7 +65,7 @@ Now when we call `repo.async_create_archive('masterbrew')` in our
 application, a job will be created and placed on the `file_serve`
 queue.
 
-The job itself is a JSON encoded payload which will looks like:
+The job itself is a JSON encoded payload:
 
     {
       'class' => 'Archive',
