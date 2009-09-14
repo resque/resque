@@ -1,23 +1,29 @@
 Resque
 ======
 
-Resque creates and processes background jobs. It is heavily inspired
-by DelayedJob, which rocks.
+Resque is a Redis-backed library for creating background jobs, placing
+those jobs on multiple queues, and processing them later.
 
-Resque is comprised of three parts:
+Background jobs can be any Ruby class or module that responds to
+`perform`. Your existing classes can easily be converted to background
+jobs or you can create new classes specifically to do work. Or, you
+can do both.
 
-1. Queues: FIFO queues for storing jobs to be processed
-2. Workers: Persistent, distributed Ruby processes which do work
-3. Frontend: A Sinatra app for monitoring queues and workers
+Resque is heavily inspired by DelayedJob (which rocks) and is
+comprised of three parts:
+
+1. A Ruby library for creating jobs
+2. A Rake task for processing jobs
+3. A Sinatra app for monitoring queues, jobs, and workers.
 
 Resque workers can be distributed between multiple machines,
 support priorities, are resililent to memory bloat / "leaks," are
 optimized for REE (but work on MRI and JRuby), tell you what they're
 doing, and expect failure.
 
-Resque queues are persistent, support atomic push and pop, support
-constant time push and pop, provide visibility into their contents,
-and store plain-jane Ruby classes as jobs.
+Resque queues are persistent, support atomic, constant time push and
+pop (thanks to Redis), provide visibility into their contents, and
+store jobs as simple JSON packages.
 
 The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
@@ -41,7 +47,8 @@ later, pull those jobs off the queue and process them.
 Resque supports multiple, arbitrary queues which can be created on the
 fly. 
 
-Here is a complete Resque job:
+Resque jobs are Ruby classes (or modules) which respond to the
+`perform` method. Here's an example:
 
     class Archive
       @queue = :file_serve
@@ -52,8 +59,12 @@ Here is a complete Resque job:
       end
     end
 
-And here's some code that might live in our pre-existing `Repository`
-class:
+The `@queue` class instance variable determines which queue `Archive`
+jobs will be placed in. Queues are arbitrary and created on the fly -
+you can name them whatever you want and have as many as you want.
+
+To place an `Archive` job on the `file_serve` queue, we might add this
+to our application's pre-existing `Repository` class:
 
     class Repository
       def async_create_archive(branch)
@@ -65,26 +76,14 @@ Now when we call `repo.async_create_archive('masterbrew')` in our
 application, a job will be created and placed on the `file_serve`
 queue.
 
-The job itself is a JSON encoded payload:
-
-    {
-      'class' => 'Archive',
-      'args' => [ 44, 'masterbrew' ]
-    }
-
-Later, a worker will essentially run this code to process the job:
+Later, a worker will run something like this code to process the job:
   
-    payload = Resque.reserve(:file_serve)
-    
-    # klass = Archive
-    klass = payload['class'].to_class
-    
-    # Archive.perform(44, 'masterbrew')
-    klass.perform(*payload['args'])
+    klass, args = Resque.reserve(:file_serve)
+    klass.perform(*args) if klass.respond_to? :perform
 
-That's all there is to it. Your app uses Resque to push a small JSON
-payload onto a list which a worker process pulls off the list and uses
-to execute code.
+Which translates to:
+   
+    Archive.perform(44, 'masterbrew')
 
 Let's start a worker to run `file_serve` jobs:
 
@@ -101,12 +100,22 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
+Jobs
+----
+
 Queues
 ------
 
-Signals
+Workers
 -------
+
+### Signals
 
 * `QUIT` - Wait for child to finish processing then exit
 * `TERM` - Immediately kill child then exit
 * `USR1` - Immediately kill child, don't exit
+
+Development
+-----------
+
+
