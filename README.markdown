@@ -12,8 +12,8 @@ can do both.
 Resque is heavily inspired by DelayedJob (which rocks) and is
 comprised of three parts:
 
-1. A Ruby library for creating jobs
-2. A Rake task for processing jobs
+1. A Ruby library for creating, querying, and processing jobs
+2. A Rake task for starting a worker to process jobs
 3. A Sinatra app for monitoring queues, jobs, and workers.
 
 Resque workers can be distributed between multiple machines,
@@ -43,9 +43,6 @@ Overview
 
 Resque allows you to create jobs and place them on a queue, then,
 later, pull those jobs off the queue and process them.
-
-Resque supports multiple, arbitrary queues which can be created on the
-fly. 
 
 Resque jobs are Ruby classes (or modules) which respond to the
 `perform` method. Here's an example:
@@ -100,8 +97,17 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
-Jobs
-----
+Jobs and Queues
+---------------
+
+There's an `examples/` directory included in Resque you should check
+out. It includes a few ways of doing things.
+
+### One Queue
+
+Resque doesn't let you 
+
+### Multiple Queues
 
 Queues
 ------
