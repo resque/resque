@@ -63,7 +63,7 @@ context "Resque::Worker" do
   end
 
   test "complains if no queues are given" do
-    assert_raise Resque::Worker::NoQueueError do
+    assert_raise Resque::NoQueueError do
       Resque::Worker.new
     end
   end

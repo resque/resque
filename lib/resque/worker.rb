@@ -50,8 +50,6 @@ module Resque
       validate_queues
     end
 
-    class NoQueueError < RuntimeError; end
-
     def validate_queues
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
