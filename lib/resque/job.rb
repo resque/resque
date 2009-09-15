@@ -9,6 +9,10 @@ module Resque
     end
 
     def self.create(queue, klass, *args)
+      if !queue || queue.to_s.empty?
+        raise NoQueueError.new("Jobs must be placed onto a queue.")
+      end
+
       Resque.push(queue, :class => klass.to_s, :args => args)
     end
 

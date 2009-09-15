@@ -109,7 +109,7 @@ module Resque
   def enqueue(klass, *args)
     queue = klass.instance_variable_get(:@queue)
     queue ||= klass.queue if klass.respond_to?(:queue)
-    queue ? Job.create(queue, klass, *args) : false
+    Job.create(queue, klass, *args)
   end
 
   # This method will return a `Resque::Job` object or a non-true value

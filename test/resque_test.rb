@@ -58,7 +58,9 @@ context "Resque" do
   end
 
   test "needs to infer a queue with enqueue" do
-    assert_equal false, Resque.enqueue(SomeJob, 20, '/tmp')
+    assert_raises Resque::NoQueueError do
+      Resque.enqueue(SomeJob, 20, '/tmp')
+    end
   end
 
   test "can put items on a queue" do
