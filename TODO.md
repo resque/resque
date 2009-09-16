@@ -48,7 +48,7 @@ Booyah.
 
 ### gem install
 
-`gem install resque` should pull in yajl, redis, sinatra, and rack
+`gem install resque` should pull in yajl, redis, sinatra, rake, and rack
 
 
 ### resque
