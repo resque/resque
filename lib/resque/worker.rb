@@ -302,11 +302,16 @@ module Resque
     #
 
     def log(message)
-      puts "*** #{message}" if verbose || very_verbose
+      if verbose
+        puts "*** #{message}"
+      elsif very_verbose
+        time = Time.now.strftime('%I:%M:%S %Y-%m-%d')
+        puts "** [#{time}] #$$: #{message}"
+      end
     end
 
     def log!(message)
-      puts "*** #{message}" if very_verbose
+      log message if very_verbose
     end
 
     def redis
