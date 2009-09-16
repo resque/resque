@@ -58,6 +58,21 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:blahblah)
   end
 
+  test "processes * queues in alphabetical order" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+
+    worker = Resque::Worker.new("*")
+    processed_queues = []
+
+    worker.work(0) do |job|
+      processed_queues << job.queue
+    end
+
+    assert_equal %w( jobs high critical blahblah ).sort, processed_queues
+  end
+
   test "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end

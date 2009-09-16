@@ -121,9 +121,9 @@ module Resque
       nil
     end
 
-    # Passing a splat means you want every queue.
+    # Passing a splat means you want every queue (in alpha order).
     def queues
-      @queues[0] == "*" ? Resque.queues : @queues
+      @queues[0] == "*" ? Resque.queues.sort : @queues
     end
 
     # Not every platform supports fork
