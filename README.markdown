@@ -380,6 +380,7 @@ Choose Resque if:
 * You want to see what's going on
 * You expect a lot of failure / chaos
 * You can setup Redis
+* You're not running short on RAM
 
 Choose DelayedJob if:
 
