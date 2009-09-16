@@ -46,6 +46,24 @@ Then: `@repo.async(:update_disk_usage)` issues a job equivalent to:
 Booyah.
 
 
+### gem install
+
+`gem install resque` should pull in yajl, redis, sinatra, and rack
+
+
+### resque
+
+`resque -c config.rb queue,list` should start a worker using the config.rb file.
+
+Do it like Unicorn does it.
+
+
+### resque-web
+
+`resque-web -c config.rb` should load a Sinatra app. Alternately,
+config.ru can be used directly (by Passenger or somesuch).
+
+
 ### Parent / Child => Master / Workers
 
 On an ideal setup (REE + Linux) you'll have 2N Resque processes
