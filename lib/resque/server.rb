@@ -83,7 +83,7 @@ module Resque
 
     # to make things easier on ourselves
     get "/" do
-      redirect '/overview'
+      redirect url(:overview)
     end
 
     %w( overview queues working workers key ).each do |page|
@@ -109,7 +109,7 @@ module Resque
     end
 
     get "/stats" do
-      redirect "/stats/resque"
+      redirect url("/stats/resque")
     end
 
     get "/stats/:id" do
