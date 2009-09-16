@@ -18,7 +18,7 @@ class Repository < ActiveRecord::Base
   # We can pass this any Repository instance method that we want to
   # run later.
   def async(method, *args)
-    Resque.enqueue(Repository, method, *args)
+    Resque.enqueue(Repository, id, method, *args)
   end
 end
 
