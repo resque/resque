@@ -28,7 +28,7 @@
     <div class="tabs">
       <ul>
         <% for subtab in @subtabs %>
-          <li <%= class_if_current "#{current_section}/#{subtab}" %>><a href="/<%= current_section %>/<%= subtab %>"><span><%= subtab %></span></a></li>
+          <li <%= class_if_current "#{current_section}/#{subtab}" %>><a href="<%= current_section %>/<%= subtab %>"><span><%= subtab %></span></a></li>
         <% end %>
       </ul>
     </div>
