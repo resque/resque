@@ -78,6 +78,17 @@ Now start a worker with the loaded Rails environment:
 TODO: config.gem?
 
 
+Dependencies
+------------
+
+* ruby
+* redis
+* redis-rb
+* json or yajl-ruby
+* sinatra 
+* rack
+
+
 Overview
 --------
 
