@@ -83,7 +83,7 @@ module Resque
           @child = nil
         else
           break if interval.to_i == 0
-          log "Sleeping"
+          log! "Sleeping"
           $0 = "resque: Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
@@ -113,6 +113,7 @@ module Resque
 
     def reserve
       queues.each do |queue|
+        log! "Checking #{queue}"
         if job = Resque::Job.reserve(queue)
           return job
         end
@@ -291,6 +292,10 @@ module Resque
     #
 
     def log(message)
+      puts "*** #{message}" if logger
+    end
+
+    def log!(message)
       puts "*** #{message}" if logger
     end
 
