@@ -263,7 +263,44 @@ Queues will be processed in alphabetical order.
 
 ### Forking
 
-When a Resque worker g
+On certain platforms, when a Resque worker reserves a job it
+immediately forks a child process. The child processes the job then
+exits. When the child has exited successfully, the worker reserves
+another job and repeats the process.
+
+Why?
+
+Because Resque assumes chaos.
+
+Resque assumes your background workers will lock up, run too long, or
+have unwanted memory growth.
+
+If Resque workers processed jobs themselves, it'd be hard to whip them
+into shape. Let's say one is using too much memory: you send it a
+signal that says "shutdown after you finish processing the current
+job," and it does so. It then starts up again - loading your entire
+application environment. This adds useless CPU cycles and causes a
+delay in queue processing.
+
+Plus, what if it's using too much memory and has stopped responding to
+signals?
+
+Thanks to Resque's parent / child architecture, jobs that use too much memory
+release that memory upon completion. No unwanted growth.
+
+And what if a job is running too long? You'd need to `kill -9` it then
+start the worker again. With Resque's parent / child architecture you
+can tell the parent to forcefully kill the child then immediately
+start processing more jobs. No startup delay or wasted cycles.
+
+The parent / child architecture helps us keep tabs on what workers are
+doing, too. By eliminating the need to `kill -9` workers we can have
+parents remove themselves from the global listing of workers. If we
+just ruthlessly killed workers, we'd need a separate watchdog process
+to add and remove them to the global listing - which becomes
+complicated.
+
+Workers instead handle their own state.
 
 
 ### Signals
