@@ -6,9 +6,8 @@ require 'resque/server'
 
 use Rack::ShowExceptions
 
-map = Rack::URLMap.new({
+map = Rack::URLMap.new \
   "/"       => Demo::App.new,
   "/resque" => Resque::Server.new
-})
 
 run map
