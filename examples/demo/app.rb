@@ -13,6 +13,7 @@ module Demo
       out << "</p>"
       out << '<form method="POST">'
       out << '<input type="submit" value="Create New Job"/>'
+      out << '&nbsp;&nbsp;<a href="/resque/">View Resque</a>'
       out << '</form>'
       out << "</body></html>"
       out
