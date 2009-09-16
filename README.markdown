@@ -380,6 +380,15 @@ In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
 
+Demo
+----
+
+Resque ships with a demo Sinatra app for creating jobs that are later
+processed in the background.
+
+Try it out by looking at the README, found at `examples/demo/README.markdown`.
+
+
 Installation
 ------------
 
