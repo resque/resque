@@ -25,6 +25,7 @@ module Resque
       def url(path)
         [ path_prefix, path ].join("/")
       end
+      alias_method :u, :url
 
       def path_prefix
         request.env['SCRIPT_NAME']
