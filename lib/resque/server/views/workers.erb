@@ -13,7 +13,7 @@
       <th>Processing</th>    
     </tr>
     <tr>
-      <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
+      <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
     
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><%= host %></td>
@@ -50,7 +50,7 @@
     </tr>
     <% for worker in resque.workers %>
     <tr>
-      <td><img src="/<%= state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
+      <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
     
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
