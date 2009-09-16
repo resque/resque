@@ -3,12 +3,19 @@ require 'resque'
 require 'job'
 
 module Demo
-  class App
+  class App < Sinatra::Base
     get '/' do
-      out = "<html>"
-      out << "<h2>There are #{Resque.info[:pending]} pending and"
-      out << "#{Resque.info[:processed]} processed jobs.</h2>"
-      out << '<form method="POST"><input type="submit" value="Create New Job"/></form>'
+      info = Resque.info
+      out = "<html><head><title>Resque Demo</title></head><body>"
+      out << "<p>"
+      out << "There are #{info[:pending]} pending and "
+      out << "#{info[:processed]} processed jobs across #{info[:queues]} queues."
+      out << "</p>"
+      out << '<form method="POST">'
+      out << '<input type="submit" value="Create New Job"/>'
+      out << '</form>'
+      out << "</body></html>"
+      out
     end
 
     post '/' do
