@@ -1,6 +1,6 @@
 module Resque
   class Worker
-    attr_accessor :logger
+    attr_accessor :logger, :cant_fork
     attr_writer   :to_s
 
 
@@ -128,6 +128,8 @@ module Resque
 
     # Not every platform supports fork
     def fork
+      @cant_fork = true if $TESTING
+
       return if @cant_fork
 
       begin
