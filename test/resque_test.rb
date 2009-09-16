@@ -41,6 +41,12 @@ context "Resque" do
     assert_equal nil, Resque.reserve(:ivar)
   end
 
+  test "jobs have a nice #inspect" do
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+    job = Resque.reserve(:jobs)
+    assert_equal '(Job[jobs] | SomeJob | [20, "/tmp"])', job.inspect
+  end
+
   test "can put jobs on a queue by way of a method" do
     assert_equal 0, Resque.size(:method)
     assert Resque.enqueue(SomeMethodJob, 20, '/tmp')

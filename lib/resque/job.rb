@@ -53,6 +53,10 @@ module Resque
     # activesupport
     #
 
+    def inspect
+      "(Job[%s] | %s | %s)" % [ @queue, @payload['class'], @payload['args'].inspect ]
+    end
+
     def classify(dashed_word)
       dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
     end
