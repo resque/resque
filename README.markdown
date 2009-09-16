@@ -216,8 +216,50 @@ we can define a `resque:setup` task with a dependency on the
     task "resque:setup" => :environment
 
 
-### Priorities
+### Priorities and Queue Lists
 
+Resque doesn't support numeric priorities but instead uses the order
+of queues you give it. We call this list of queues the "queue list."
+
+Let's say we add a `warm_cache` queue in addition to our `file_serve`
+queue. We'd now start a worker like so:
+
+    $ QUEUES=file_serve,warm_cache rake resque:work
+
+When the worker looks for new jobs, it will first check
+`file_serve`. If it finds a job, it'll process it then check
+`file_serve` again. It will keep checking `file_serve` until no more
+jobs are available. At that point, it will check `warm_cache`. If it
+finds a job it'll process it then check `file_serve` (repeating the
+whole process).
+
+In this way you can prioritize certain queues. At GitHub we start our
+workers with something like this:
+
+    $ QUEUES=critical,archive,high,low rake resque:work
+
+Notice the `archive` queue - it is specialized and in our future
+architecture will only be run from a single machine.
+
+At that point we'll start workers on our generalized background
+machines with this command:
+
+    $ QUEUES=critical,high,low rake resque:work
+
+And workers on our specialized archive machine with this command:
+
+    $ QUEUE=archive rake resque:work
+
+
+### Running All Queues
+
+If you want your workers to work off of every queue, including new
+queues created on the fly, you can use a splat:
+
+    $ QUEUE=* rake resque:work
+
+Queues will be processed in alphabetical order. 
+    
 
 ### Forking
 
