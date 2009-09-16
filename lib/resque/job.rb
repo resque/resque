@@ -55,7 +55,7 @@ module Resque
 
     def inspect
       obj = @payload
-      "(Job[%s] | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
+      "(Job{%s} | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
     end
 
     def classify(dashed_word)

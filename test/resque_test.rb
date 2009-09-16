@@ -44,7 +44,7 @@ context "Resque" do
   test "jobs have a nice #inspect" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     job = Resque.reserve(:jobs)
-    assert_equal '(Job[jobs] | SomeJob | [20, "/tmp"])', job.inspect
+    assert_equal '(Job{jobs} | SomeJob | [20, "/tmp"])', job.inspect
   end
 
   test "can put jobs on a queue by way of a method" do
