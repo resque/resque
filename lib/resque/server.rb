@@ -15,11 +15,19 @@ module Resque
       alias_method :h, :escape_html
 
       def current_section
-        request.path_info.sub('/','').split('/')[0].downcase
+        url request.path_info.sub('/','').split('/')[0].downcase
       end
 
       def current_page
-        request.path_info.sub('/','').downcase
+        url request.path_info.sub('/','').downcase
+      end
+
+      def url(path)
+        [ path_prefix, path ].join("/")
+      end
+
+      def path_prefix
+        request.env['SCRIPT_NAME']
       end
 
       def class_if_current(page = '')
@@ -28,7 +36,7 @@ module Resque
 
       def tab(name)
         dname = name.to_s.downcase
-        "<li #{class_if_current(dname)}><a href='/#{dname}'>#{name}</a></li>"
+        "<li #{class_if_current(dname)}><a href='#{url dname}'>#{name}</a></li>"
       end
 
       def redis_get_size(key)
