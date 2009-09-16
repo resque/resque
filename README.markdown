@@ -407,53 +407,113 @@ Try it out by looking at the README, found at `examples/demo/README.markdown`.
 Installation
 ------------
 
-    $ gem install resque
-    $ resque config:example > config.rb
-    $ resque -c config.rb file_serve
+The demo is probably the best way to figure out how to put the parts
+together. But, it's not that hard.
 
-This starts a single Resque worker watching the `file_serve` queue.
+### Redis
 
-It assumes you're running Redis. If not install it view Homebrew or
-Resque itself:
+First you must have Redis installed. There are a few ways to do it.
+
+##### Homebrew
+
+Using Homebrew is the simplest:
 
     $ brew install redis
     $ redis-server /usr/local/etc/redis.conf
 
-or
+You now have a Redis daemon running on 6379.
 
-    $ resque redis:install
-    $ resque redis:start
+##### Via Resque
+
+Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
+install and run Redis for you:
+
+    $ git clone git://github.com/defunkt/resque.git
+    $ cd resque
+    $ rake redis:install dtach:install
+    $ rake redis:start
+
+You now have Redis running on 6379. Wait a second then hit ctrl-\ to
+detach and keep it running in the background.
+
+
+### In a Rack app, as a gem
+
+First install the gem.
+
+    $ gem install resque
+
+Next include it in your application.
+
+    require 'resque'    
+
+Now start your application:
+
+    rackup config.ru
+
+That's it! You can now create Resque jobs from within your app.
+
+To start a worker, create a Rakefile in your app's root (or add this
+to an existing Rakefile):
+
+    require 'your/app'
+    require 'resque/tasks'
+
+Now:
+
+    $ QUEUE=* rake resque:work
     
-You can now start the Resque web frontend, as well:
-
-    $ resque-web -c config.rb
-
-Resque can be used from within Rails in two ways.
+Alternately you can define a `resque:setup` hook in your Rakefile if you
+don't want to load your app every time rake runs.
 
 
-### As a Rails plugin
-  
-    $ cd RAILS_ROOT
-    $ ./script/plugin install git://github.com/defunkt/resque.git
+### In a Rails app, as a gem
 
-Now start a worker with the loaded Rails environment:
+First install the gem.
 
-    $ QUEUE=file_serve rake environment resque:work
+    $ gem install resque
 
-### As a gem
+TODO: `config.gem`?
+TODO: dependencies?
 
-TODO: config.gem?
+Next include it in your application.
+
+    $ cat config/initializers/load_resque.rb
+    require 'resque'    
+
+Now start your application:
+
+    $ ./script/server
+
+That's it! You can now create Resque jobs from within your app.
+
+To start a worker, add this to your Rakefile in RAILS_ROOT:
+
+    require 'resque/tasks'
+
+Now:
+
+    $ QUEUE=* rake environment resque:work
+    
+Don't forget you can define a `resque:setup` hook in
+`lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
-Dependencies
-------------
+### In a Rails app, as a plugin
 
-* ruby 1.8.x (mri, ree, or jruby)
-* redis
-* redis-rb
-* json or yajl-ruby
-* sinatra 
-* rack
+    $ ./script/plugin install git://github.com/defunkt/resque
+
+That's it! Resque will automatically be available when your Rails app
+loads.
+
+To start a worker:
+
+    $ QUEUE=* rake environment resque:work
+    
+Don't forget you can define a `resque:setup` hook in
+`lib/tasks/whatever.rake` that loads the `environment` task every time.
+
+
 
 
 Development
