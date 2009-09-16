@@ -312,6 +312,13 @@ complicated.
 Workers instead handle their own state.
 
 
+### Parents and Children
+
+Here's a parent / child pair doing some work:
+
+
+
+
 ### Signals
 
 Resque workers respond to a few different signals:
