@@ -13,7 +13,7 @@ Resque is heavily inspired by DelayedJob (which rocks) and is
 comprised of three parts:
 
 1. A Ruby library for creating, querying, and processing jobs
-2. A Rake task for starting a worker to process jobs
+2. A Rake task for starting a worker which processes jobs
 3. A Sinatra app for monitoring queues, jobs, and workers.
 
 Resque workers can be distributed between multiple machines,
@@ -21,22 +21,21 @@ support priorities, are resililent to memory bloat / "leaks," are
 optimized for REE (but work on MRI and JRuby), tell you what they're
 doing, and expect failure.
 
-Resque queues are persistent, support atomic, constant time push and
-pop (thanks to Redis), provide visibility into their contents, and
+Resque queues are persistent; support constant time, atomic push and
+pop (thanks to Redis); provide visibility into their contents; and
 store jobs as simple JSON packages.
 
 The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
-Resque is currently used to process millions of jobs each week by
-GitHub.
 
 The Blog Post
 -------------
 
 For the backstory, philosophy, and history of Resque's beginnings,
 please see [the blog post][0].
+
 
 Overview
 --------
@@ -97,29 +96,149 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
-Jobs and Queues
----------------
 
-There's an `examples/` directory included in Resque you should check
-out. It includes a few ways of doing things.
+Jobs
+----
 
-### One Queue
+What should you run in the background? Anything that takes any time at
+all. Slow INSERT statements, disk manipulating, data processing, etc.
 
-Resque doesn't let you 
+At GitHub we use Resque to process the following types of jobs:
 
-### Multiple Queues
+* Warming caches
+* Counting disk usage
+* Building tarballs
+* Building Rubygems
+* Firing off web hooks
+* Creating events in the db and pre-caching them
+* Building graphs
+* Deleting users
+* Updating our search index
 
-Queues
-------
+As of writing we have about 35 different types of background jobs.
+
+Keep in mind that you don't need a web app to use Resque - we just
+mention "foreground" and "background" because they make conceptual
+sense. You could easily be spidering sites and sticking data which
+needs to be crunched later into a queue.
+
+
+### Persistence
+
+Jobs are persisted to queues as JSON objects. Let's take our `Archive`
+example from above. We'll run the following code to create a job:
+
+    repo = Repository.find(44)
+    repo.async_create_archive('masterbrew')
+
+The following JSON will be stored in the `file_serve` queue:
+
+    {
+        'class': 'Archive',
+        'args': [ 44, 'masterbrew' ]
+    }
+
+Because of this your jobs must only accept arguments that can be JSON encoded.
+
+So instead of doing this:
+
+    Resque.enqueue(Archive, self, branch)  
+
+do this:
+
+    Resque.enqueue(Archive, self.id, branch)
+    
+This is why our above example (and all the examples in `examples/`)
+uses object IDs instead of passing around the objects.
+
+While this is less convenient than just sticking a marshalled object
+in the database, it gives you a slight advantage: your jobs will be
+run against the most recent version of an object because they need to
+pull from the DB or cache.
+
+If your jobs were run against marshalled objects, they could
+potentially be operating on a stale record with out-of-date information.
+
+
+### send_later / async
+
+Want something like DelayedJob's `send_later` or the ability to use
+instance methods instead of just methods for jobs? See the `examples/`
+directory for goodies.
+
+We plan to provide first class `async` support in a future release.
+
+
+### Failure
+
+If a job raises an exception, it is logged and handed off to the
+`Resque::Failure` module. Failures are logged either locally in Redis
+or using some different backend.
+
+For example, Resque ships with Hoptoad and GetException support.
+
+Keep this in mind when writing your jobs: you may want to throw
+exceptions you would not normally throw in order to assist debugging.
+
 
 Workers
 -------
 
+Resque workers are rake tasks the run forever. They basically do this:
+
+    start
+    loop do
+      if job = reserve
+        job.process
+      else
+        sleep 5
+      end
+    end
+    shutdown
+
+Starting a worker is simple. Here's our example from earlier:
+
+    $ QUEUE=file_serve rake resque:work
+
+By default Resque won't know about your application's
+environment. That is, it won't be able to find and run your jobs - it
+needs to load your application into memory.
+
+If we've installed Resque as a Rails plugin, we might run this command
+from our RAILS_ROOT:
+
+    $ QUEUE=file_serve rake environment resque:work
+
+This will load the environment before starting a worker. Alternately
+we can define a `resque:setup` task with a dependency on the
+`environment` rake task:
+
+    task "resque:setup" => :environment
+
+
+### Priorities
+
+
+### Forking
+
+When a Resque worker g
+
+
 ### Signals
+
+Resque workers respond to a few different signals:
 
 * `QUIT` - Wait for child to finish processing then exit
 * `TERM` - Immediately kill child then exit
-* `USR1` - Immediately kill child, don't exit
+* `USR1` - Immediately kill child but don't exit
+
+If you want to gracefully shutdown a Resque worker, use `QUIT`.
+
+If you want to kill a stale or stuck child, use `USR1`. Processing
+will continue as normal.
+
+If you want to kill a stale or stuck child and shutdown, use `TERM`
+
 
 Resque vs DelayedJob
 --------------------
