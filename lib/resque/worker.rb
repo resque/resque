@@ -69,13 +69,17 @@ module Resque
         break if @shutdown
 
         if job = reserve
-          log "Got #{job.inspect}"
+          log "got: #{job.inspect}"
 
           if @child = fork
-            $0 = "resque: Forked #{@child} at #{Time.now.to_i}"
+            procline = "resque: Forked #{@child} at #{Time.now.to_i}"
+            $0 = procline
+            log! procline
             Process.wait
           else
-            $0 = "resque: Processing #{job.queue} since #{Time.now.to_i}"
+            procline = "resque: Processing #{job.queue} since #{Time.now.to_i}"
+            $0 = procline
+            log! procline
             process(job, &block)
             @cant_fork ? next : exit!
           end
@@ -83,7 +87,7 @@ module Resque
           @child = nil
         else
           break if interval.to_i == 0
-          log! "Sleeping"
+          log! "Sleeping for #{interval.to_i}"
           $0 = "resque: Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
@@ -104,7 +108,7 @@ module Resque
         job.fail(e)
         failed!
       else
-        log "#{job.inspect} done processing"
+        log "done: #{job.inspect}"
       ensure
         yield job if block_given?
         done_working
@@ -115,6 +119,7 @@ module Resque
       queues.each do |queue|
         log! "Checking #{queue}"
         if job = Resque::Job.reserve(queue)
+          log! "Found job on #{queue}"
           return job
         end
       end
@@ -159,6 +164,7 @@ module Resque
         trap('QUIT') { shutdown   }
         trap('USR1') { kill_child }
       end
+      log! "Registered signals"
     end
 
     def shutdown
@@ -172,7 +178,10 @@ module Resque
     end
 
     def kill_child
-      Process.kill("KILL", @child) rescue nil if @child
+      if @child
+        log! "Killing child at #{@child}"
+        Process.kill("KILL", @child) rescue nil
+      end
     end
 
     def prune_dead_workers
@@ -180,6 +189,7 @@ module Resque
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
         next if worker_pids.include?(pid)
+        log! "Pruning dead worker: #{worker}"
         worker.unregister_worker
       end
     end
