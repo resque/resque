@@ -316,7 +316,21 @@ Workers instead handle their own state.
 
 Here's a parent / child pair doing some work:
 
+    $ ps -e -o pid,command | grep [r]esque
+    92099 resque: Forked 92102 at 1253142769    
+    92102 resque: Processing file_serve since 1253142769 
 
+You can clearly see that process 92099 forked 92102, which has been
+working since 1253142769.
+
+(By advertising the time they began processing you can easily use monit
+or god to kill stale workers.)
+
+When a parent process is idle, it lets you know what queues it is
+waiting for work on:
+
+    $ ps -e -o pid,command | grep [r]esque
+    92099 resque: Waiting for file_serve,warm_cache
 
 
 ### Signals
