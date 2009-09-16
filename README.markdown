@@ -354,7 +354,7 @@ Choose Resque if:
 
 * You need multiple queues
 * You don't care / dislike numeric priorities
-* You don't need to persist any Ruby object ever
+* You don't need to persist every Ruby object ever
 * You have potentially huge queues
 * You want to see what's going on
 * You expect a lot of failure / chaos
@@ -417,7 +417,7 @@ TODO: config.gem?
 Dependencies
 ------------
 
-* ruby
+* ruby 1.8.x (mri, ree, or jruby)
 * redis
 * redis-rb
 * json or yajl-ruby
@@ -428,4 +428,14 @@ Dependencies
 Development
 -----------
 
+Issues:        http://github.com/defunkt/resque/issues
+Git:           git://github.com/defunkt/resque.git
+Source:        http://github.com/defunkt/resque
+Google Group:  http://blah
+Documentation: http://github.com/defunkt/resque#readme
 
+
+Author
+------
+
+Chris Wanstrath :: chris@ozmm.org
