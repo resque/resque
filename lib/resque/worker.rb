@@ -1,6 +1,6 @@
 module Resque
   class Worker
-    attr_accessor :logger, :cant_fork
+    attr_accessor :verbose, :very_verbose, :cant_fork
     attr_writer   :to_s
 
 
@@ -292,11 +292,11 @@ module Resque
     #
 
     def log(message)
-      puts "*** #{message}" if logger
+      puts "*** #{message}" if verbose || very_verbose
     end
 
     def log!(message)
-      puts "*** #{message}" if logger
+      puts "*** #{message}" if very_verbose
     end
 
     def redis
