@@ -44,6 +44,9 @@ You can also use `VVERBOSE` (very verbose) if you want to see more:
     Processed a job!
     ** [05:55:10 2009-09-16] 90401: done: (Job{default} | Demo::Job | [{}])
 
+Notice that our workers `require 'job'` in our `Rakefile`. This
+ensures they have our app loaded and can access the job classes.
+
 
 ### Starting the Resque frontend
 
