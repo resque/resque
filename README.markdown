@@ -37,6 +37,47 @@ For the backstory, philosophy, and history of Resque's beginnings,
 please see [the blog post][0].
 
 
+Installation
+------------
+
+    $ gem install resque
+    $ resque config:example > config.rb
+    $ resque -c config.rb file_serve
+
+This starts a single Resque worker watching the `file_serve` queue.
+
+It assumes you're running Redis. If not install it view Homebrew or
+Resque itself:
+
+    $ brew install redis
+    $ redis-server /usr/local/etc/redis.conf
+
+or
+
+    $ resque redis:install
+    $ resque redis:start
+    
+You can now start the Resque web frontend, as well:
+
+    $ resque-web -c config.rb
+
+Resque can be used from within Rails in two ways.
+
+
+### As a Rails plugin
+  
+    $ cd RAILS_ROOT
+    $ ./script/plugin install git://github.com/defunkt/resque.git
+
+Now start a worker with the loaded Rails environment:
+
+    $ QUEUE=file_serve rake environment resque:work
+
+### As a gem
+
+TODO: config.gem?
+
+
 Overview
 --------
 
@@ -214,6 +255,15 @@ we can define a `resque:setup` task with a dependency on the
 `environment` rake task:
 
     task "resque:setup" => :environment
+
+GitHub's setup task looks like this:
+
+    task "resque:setup" => :environment do
+      Grit::Git.git_timeout = 10.minutes
+    end
+
+We don't want the `git_timeout` as high as 10 minutes in our web app,
+but in the Resque workers it's fine.
 
 
 ### Priorities and Queue Lists
