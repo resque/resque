@@ -404,17 +404,10 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
-Installation
-------------
+Installing Redis
+----------------
 
-The demo is probably the best way to figure out how to put the parts
-together. But, it's not that hard.
-
-### Redis
-
-First you must have Redis installed. There are a few ways to do it.
-
-##### Homebrew
+#### Homebrew
 
 Using Homebrew is the simplest:
 
@@ -423,7 +416,7 @@ Using Homebrew is the simplest:
 
 You now have a Redis daemon running on 6379.
 
-##### Via Resque
+#### Via Resque
 
 Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
 install and run Redis for you:
@@ -435,6 +428,14 @@ install and run Redis for you:
 
 You now have Redis running on 6379. Wait a second then hit ctrl-\ to
 detach and keep it running in the background.
+
+The demo is probably the best way to figure out how to put the parts
+together. But, it's not that hard.
+
+### Redis
+
+First you must have Redis installed. There are a few ways to do it.
+
 
 
 ### In a Rack app, as a gem
