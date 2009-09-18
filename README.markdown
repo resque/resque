@@ -175,7 +175,7 @@ If a job raises an exception, it is logged and handed off to the
 `Resque::Failure` module. Failures are logged either locally in Redis
 or using some different backend.
 
-For example, Resque ships with Hoptoad and GetException support.
+For example, Resque ships with Hoptoad and GetExceptional support.
 
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
@@ -395,21 +395,15 @@ In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
 
-Demo
-----
-
-Resque ships with a demo Sinatra app for creating jobs that are later
-processed in the background.
-
-Try it out by looking at the README, found at `examples/demo/README.markdown`.
-
-
 Installing Redis
 ----------------
 
+Resque uses Redis' lists for its queues. It also stores worker state
+data in Redis.
+
 #### Homebrew
 
-Using Homebrew is the simplest:
+If you're on OS X, Homebrew is the simplest way to install Redis:
 
     $ brew install redis
     $ redis-server /usr/local/etc/redis.conf
@@ -432,11 +426,9 @@ detach and keep it running in the background.
 The demo is probably the best way to figure out how to put the parts
 together. But, it's not that hard.
 
-### Redis
 
-First you must have Redis installed. There are a few ways to do it.
-
-
+Installing Resque
+-----------------
 
 ### In a Rack app, as a gem
 
@@ -515,14 +507,21 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+Demo
+----
+
+Resque ships with a demo Sinatra app for creating jobs that are later
+processed in the background.
+
+Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
 Development
 -----------
 
-Issues:        http://github.com/defunkt/resque/issues
 Git:           git://github.com/defunkt/resque.git
 Source:        http://github.com/defunkt/resque
+Issues:        http://github.com/defunkt/resque/issues
 Google Group:  http://blah
 Documentation: http://github.com/defunkt/resque#readme
 
@@ -530,4 +529,4 @@ Documentation: http://github.com/defunkt/resque#readme
 Author
 ------
 
-Chris Wanstrath :: chris@ozmm.org
+Chris Wanstrath :: chris@ozmm.org :: @defunkt
