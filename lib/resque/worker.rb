@@ -152,9 +152,17 @@ module Resque
     #
 
     def startup
+      enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
       register_worker
+    end
+
+    def enable_gc_optimizations
+      # http://www.rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
+      if GC.respond_to?(:copy_on_write_friendly=)
+        GC.copy_on_write_friendly = true
+      end
     end
 
     def register_signal_handlers
