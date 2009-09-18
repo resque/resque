@@ -81,7 +81,7 @@ module Resque
             $0 = procline
             log! procline
             process(job, &block)
-            @cant_fork ? next : exit!
+            exit! unless @cant_fork
           end
 
           @child = nil
