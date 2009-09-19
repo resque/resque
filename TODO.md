@@ -22,7 +22,7 @@ This adds an `async` instance method and a `perform` class method.
 The `async` method looks like this:
 
     def async(method, *args)
-      Resque.enqueue(self.class.to_s, id, method, *args)
+      Resque.enqueue(self.class, id, method, *args)
     end
 
 The `perform` method looks like this:
