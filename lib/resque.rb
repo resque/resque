@@ -1,4 +1,4 @@
-require 'redis'
+require 'redis/namespace'
 
 begin
   require 'yajl'
@@ -19,23 +19,25 @@ module Resque
   extend self
 
   #
-  # We need a Redis server to connect to
+  # We need a Redis server!
   #
 
   def redis=(server)
     case server
     when String
       host, port = server.split(':')
-      @redis = Redis.new(:host => host, :port => port, :namespace => :resque)
+      redis = Redis.new(:host => host, :port => port)
+      @redis = Redis::Namespace.new(:resque, :redis => redis)
     when Redis
-      @redis = server
+      @redis = Redis::Namespace.new(:resque, :redis => server)
     else
       raise "I don't know what to do with #{server.inspect}"
     end
   end
 
   def redis
-    @redis ||= Redis.new(:host => 'localhost', :port => 6379, :namespace => :resque)
+    return @redis if @redis
+    self.redis = 'localhost:6379'
   end
 
   def to_s
