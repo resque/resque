@@ -349,6 +349,49 @@ will continue as normal.
 If you want to kill a stale or stuck child and shutdown, use `TERM`
 
 
+The Front End
+-------------
+
+Resque comes with a Sinatra-based front end for seeing what's up with
+your queue. 
+
+## Standalone
+
+If you've installed Resque as a gem running the front end standalone is easy:
+
+    $ resque-web
+
+It's a thin layer around `rackup` so it's configurable as well:
+
+    $ resque-web -p 8282
+
+If you have a Resque config file you want evaluated just pass it to
+the script as the final argument:
+
+    $ resque-web -p 8282 rails_root/config/initializers/resque.rb
+    
+### Passenger
+
+Using Passenger? Resque ships with a `config.ru` you can use. See
+Phusion's guide:
+
+http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application
+
+### Rack::URLMap
+
+If you want to load Resque on a subpath, possibly alongside other
+apps, it's easy to do with Rack's `URLMap`:
+
+    require 'resque/server'
+
+    run Rack::URLMap.new \
+      "/"       => Your::App.new,
+      "/resque" => Resque::Server.new
+
+Check `examples/demo/config.ru` for a functional example (including
+HTTP basic auth).
+
+
 Resque vs DelayedJob
 --------------------
 
