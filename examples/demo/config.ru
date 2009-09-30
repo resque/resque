@@ -6,7 +6,6 @@ require 'resque/server'
 
 use Rack::ShowExceptions
 
-
 # Set the AUTH env variable to your basic auth password to protect Resque.
 AUTH_PASSWORD = ENV['AUTH']
 if AUTH_PASSWORD
@@ -15,8 +14,6 @@ if AUTH_PASSWORD
   end
 end
 
-map = Rack::URLMap.new \
+run Rack::URLMap.new \
   "/"       => Demo::App.new,
   "/resque" => Resque::Server.new
-
-run map
