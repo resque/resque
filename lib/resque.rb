@@ -38,6 +38,7 @@ module Resque
   def redis
     return @redis if @redis
     self.redis = 'localhost:6379'
+    self.redis
   end
 
   def to_s
