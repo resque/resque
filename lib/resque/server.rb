@@ -82,6 +82,14 @@ module Resque
       end
     end
 
+    def show(page)
+      begin
+        erb page.to_sym, {}, :resque => Resque
+      rescue Errno::ECONNREFUSED
+        erb :error, {}, :error => "Can't connect to Redis! (#{Resque.redis.server})"
+      end
+    end
+
     # to make things easier on ourselves
     get "/" do
       redirect url(:overview)
@@ -89,11 +97,11 @@ module Resque
 
     %w( overview queues working workers key ).each do |page|
       get "/#{page}" do
-        erb page.to_sym, {}, :resque => Resque
+        show page
       end
 
       get "/#{page}/:id" do
-        erb page.to_sym, {}, :resque => Resque
+        show page
       end
     end
 
@@ -101,12 +109,12 @@ module Resque
       if Resque::Failure.url
         redirect Resque::Failure.url
       else
-        erb :failed, {}, :resque => Resque
+        show :failed
       end
     end
 
     get "/failed/:id" do
-      erb :failed, {}, :resque => Resque
+      show :failed
     end
 
     get "/stats" do
@@ -114,11 +122,11 @@ module Resque
     end
 
     get "/stats/:id" do
-      erb :stats, {}, :resque => Resque
+      show :stats
     end
 
     get "/stats/keys/:key" do
-      erb :stats, {}, :resque => Resque
+      show :stats
     end
 
     get "/stats.txt" do
