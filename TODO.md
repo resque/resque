@@ -3,7 +3,6 @@ Little Stuff
 
 [ ] Show stale workers in red with a warning icon in the Sinatra app
 [ ] GetException Failure support
-[ ] Move to a pure Ruby config file (no more YAML business)
 
 
 Big Stuff
@@ -56,12 +55,6 @@ Booyah.
 `resque -c config.rb queue,list` should start a worker using the config.rb file.
 
 Do it like Unicorn does it.
-
-
-### resque-web
-
-`resque-web -c config.rb` should load a Sinatra app. Alternately,
-config.ru can be used directly (by Passenger or somesuch).
 
 
 ### Parent / Child => Master / Workers
