@@ -375,7 +375,7 @@ the script as the final argument:
 Using Passenger? Resque ships with a `config.ru` you can use. See
 Phusion's guide:
 
-http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application
+<http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application>
 
 ### Rack::URLMap
 
@@ -605,14 +605,16 @@ Try it out by looking at the README, found at `examples/demo/README.markdown`.
 Development
 -----------
 
-Git:           git://github.com/defunkt/resque.git
-Source:        http://github.com/defunkt/resque
-Issues:        http://github.com/defunkt/resque/issues
-Google Group:  http://blah
-Documentation: http://github.com/defunkt/resque#readme
+* Git:           git://github.com/defunkt/resque.git
+* Source:        <http://github.com/defunkt/resque>
+* Issues:        <http://github.com/defunkt/resque/issues>
+* Google Group:  <http://blah>
+* Documentation: <http://github.com/defunkt/resque#readme>
 
 
 Author
 ------
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
+
+[0]: http://github.com/blog
