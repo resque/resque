@@ -507,6 +507,49 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+Configuration
+-------------
+
+You may want to change the Redis host and port Resque connects to, or
+set various other options at startup.
+
+Resque has a `redis` setter which can be given a string or a Redis
+object. This means if you're already using Redis in your app, Resque
+can re-use the existing connection.
+
+String: `Resque.redis = 'localhost:6379'
+
+Redis: `Redus.redis = $redis`
+
+For our rails app we have a `config/initializers/resque.rb` file where
+we load `config/resque.yml` by hand and set the Redis information
+appropriately.
+
+Here's our `config/resque.yml`:
+
+    development: localhost:6379
+    test: localhost:6379
+    staging: redis1.se.github.com:6379
+    fi: localhost:6379
+    production: redis1.ae.github.com:6379
+
+And our initializer:
+
+    rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
+    rails_env = ENV['RAILS_ENV'] || 'development'
+
+    resque_config = YAML.load_file(rails_root + '/config/resque.yml')
+    Resque.redis = resque_config[rails_env]
+
+Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
+this way we can tell our Sinatra app about the config file:
+
+TODO: implement resque-web standalone runner
+    $ RAILS_ENV=production resque-web -c /rails_root/config/initializers/resque.rb
+
+Now everyone is on the same page.
+
+
 Demo
 ----
 
