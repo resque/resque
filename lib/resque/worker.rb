@@ -167,7 +167,7 @@ module Resque
 
     def register_signal_handlers
       trap('TERM') { shutdown!  }
-      trap('INT')  { shutdown   }
+      trap('INT')  { shutdown!  }
       unless defined? JRUBY_VERSION
         trap('QUIT') { shutdown   }
         trap('USR1') { kill_child }
