@@ -338,7 +338,7 @@ waiting for work on:
 Resque workers respond to a few different signals:
 
 * `QUIT` - Wait for child to finish processing then exit
-* `TERM`/`INT/ - Immediately kill child then exit
+* `TERM` / `INT` - Immediately kill child then exit
 * `USR1` - Immediately kill child but don't exit
 
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
