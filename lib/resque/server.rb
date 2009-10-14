@@ -23,7 +23,7 @@ module Resque
       end
 
       def url(path)
-        [ path_prefix, path ].join("/")
+        [ path_prefix, path ].join("/").squeeze('/')
       end
       alias_method :u, :url
 
