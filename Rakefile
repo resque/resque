@@ -14,6 +14,9 @@ end
 
 task :install => [ 'redis:install', 'dtach:install' ]
 
+desc "Build a gem"
+task :gem => [ :gemspec, :build ]
+
 begin
   require 'jeweler'
   $LOAD_PATH.unshift 'lib'
@@ -29,7 +32,8 @@ begin
     gemspec.version = Resque::Version + ".#{Time.to_i}"
   end
 rescue LoadError
-  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
+  puts "Jeweler not available. Install it with: "
+  puts "gem install jeweler"
 end
 
 begin
