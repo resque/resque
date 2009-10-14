@@ -13,10 +13,10 @@
       <tr>
         <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
         <% host, pid, _ = worker.to_s.split(':') %>
-        <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
+        <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
         <% data = worker.job %>
         <% queue = data['queue'] %>
-        <td><a class="queue" href="/queues/<%= queue %>"><%= queue %></a></td>
+        <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>        
         <td>      
           <code><%= data['payload']['class'] %></code>
@@ -47,14 +47,14 @@
       <tr>
         <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>
-        <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
+        <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
         <td>
-          <a class="queue" href="/queues/<%= job['queue'] %>"><%= job['queue'] %></a>
+          <a class="queue" href="<%=u "/queues/#{job['queue']}" %>"><%= job['queue'] %></a>
         </td>
         <td>      
           <% if job['queue'] %>
             <code><%= job['payload']['class'] %></code>
-            <small><a class="queue time" href="/working/<%= worker %>"><%= job['run_at'] %></a></small>
+            <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
           <% else %>
             Waiting for more
           <% end %>
