@@ -26,7 +26,7 @@ begin
     gemspec.email = "chris@ozmm.org"
     gemspec.homepage = "http://github.com/defunkt/resque"
     gemspec.authors = ["Chris Wanstrath"]
-    gemspec.version = Resque::Version
+    gemspec.version = Resque::Version + ".#{Time.to_i}"
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
