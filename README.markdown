@@ -48,7 +48,7 @@ Resque jobs are Ruby classes (or modules) which respond to the
 
     class Archive
       @queue = :file_serve
-      
+
       def self.perform(repo_id, branch = 'master')
         repo = Repository.find(repo_id)
         repo.create_archive(branch)
@@ -73,12 +73,12 @@ application, a job will be created and placed on the `file_serve`
 queue.
 
 Later, a worker will run something like this code to process the job:
-  
+
     klass, args = Resque.reserve(:file_serve)
     klass.perform(*args) if klass.respond_to? :perform
 
 Which translates to:
-   
+
     Archive.perform(44, 'masterbrew')
 
 Let's start a worker to run `file_serve` jobs:
@@ -142,12 +142,12 @@ Because of this your jobs must only accept arguments that can be JSON encoded.
 
 So instead of doing this:
 
-    Resque.enqueue(Archive, self, branch)  
+    Resque.enqueue(Archive, self, branch)
 
 do this:
 
     Resque.enqueue(Archive, self.id, branch)
-    
+
 This is why our above example (and all the examples in `examples/`)
 uses object IDs instead of passing around the objects.
 
@@ -267,8 +267,8 @@ queues created on the fly, you can use a splat:
 
     $ QUEUE=* rake resque:work
 
-Queues will be processed in alphabetical order. 
-    
+Queues will be processed in alphabetical order.
+
 
 ### Forking
 
@@ -317,8 +317,8 @@ Workers instead handle their own state.
 Here's a parent / child pair doing some work:
 
     $ ps -e -o pid,command | grep [r]esque
-    92099 resque: Forked 92102 at 1253142769    
-    92102 resque: Processing file_serve since 1253142769 
+    92099 resque: Forked 92102 at 1253142769
+    92102 resque: Processing file_serve since 1253142769
 
 You can clearly see that process 92099 forked 92102, which has been
 working since 1253142769.
@@ -353,7 +353,7 @@ The Front End
 -------------
 
 Resque comes with a Sinatra-based front end for seeing what's up with
-your queue. 
+your queue.
 
 ## Standalone
 
@@ -369,7 +369,7 @@ If you have a Resque config file you want evaluated just pass it to
 the script as the final argument:
 
     $ resque-web -p 8282 rails_root/config/initializers/resque.rb
-    
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
@@ -481,7 +481,7 @@ First install the gem.
 
 Next include it in your application.
 
-    require 'resque'    
+    require 'resque'
 
 Now start your application:
 
@@ -498,7 +498,7 @@ to an existing Rakefile):
 Now:
 
     $ QUEUE=* rake resque:work
-    
+
 Alternately you can define a `resque:setup` hook in your Rakefile if you
 don't want to load your app every time rake runs.
 
@@ -515,7 +515,7 @@ TODO: dependencies?
 Next include it in your application.
 
     $ cat config/initializers/load_resque.rb
-    require 'resque'    
+    require 'resque'
 
 Now start your application:
 
@@ -530,7 +530,7 @@ To start a worker, add this to your Rakefile in RAILS_ROOT:
 Now:
 
     $ QUEUE=* rake environment resque:work
-    
+
 Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
@@ -545,7 +545,7 @@ loads.
 To start a worker:
 
     $ QUEUE=* rake environment resque:work
-    
+
 Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
