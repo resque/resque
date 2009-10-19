@@ -225,6 +225,16 @@ We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
 
+## Logging
+
+Workers support basic logging to STDOUT. If you start them with the
+`VERBOSE` env variable set, they will print basic debugging
+information. You can also set the `VVERBOSE` (very verbose) env
+variable.
+
+    $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
+
+
 ### Priorities and Queue Lists
 
 Resque doesn't support numeric priorities but instead uses the order
