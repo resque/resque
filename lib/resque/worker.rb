@@ -1,5 +1,8 @@
 module Resque
   class Worker
+    include Resque::Helpers
+    extend Resque::Helpers
+
     attr_accessor :verbose, :very_verbose, :cant_fork
     attr_writer   :to_s
 
@@ -320,22 +323,6 @@ module Resque
 
     def log!(message)
       log message if very_verbose
-    end
-
-    def redis
-      Resque.redis
-    end
-
-    def self.redis
-      Resque.redis
-    end
-
-    def encode(*args)
-      Resque.encode(*args)
-    end
-
-    def decode(*args)
-      Resque.decode(*args)
     end
   end
 end

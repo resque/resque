@@ -11,11 +11,13 @@ require 'resque/errors'
 require 'resque/failure'
 require 'resque/failure/base'
 
+require 'resque/helpers'
 require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
 
 module Resque
+  include Helpers
   extend self
 
   #
@@ -157,29 +159,6 @@ module Resque
   def keys
     redis.keys("*").map do |key|
       key.sub('resque:', '')
-    end
-  end
-
-
-  #
-  # encoding / decoding
-  #
-
-  def encode(object)
-    if defined? Yajl
-      Yajl::Encoder.encode(object)
-    else
-      JSON(object)
-    end
-  end
-
-  def decode(object)
-    return unless object
-
-    if defined? Yajl
-      Yajl::Parser.parse(object)
-    else
-      JSON(object)
     end
   end
 end
