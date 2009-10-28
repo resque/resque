@@ -18,7 +18,7 @@ end
 task :install => [ 'redis:install', 'dtach:install' ]
 
 desc "Build a gem"
-task :gem => [ :gemspec, :build ]
+task :gem => [ :test, :gemspec, :build ]
 
 begin
   require 'jeweler'
