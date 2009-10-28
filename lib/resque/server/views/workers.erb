@@ -1,39 +1,39 @@
 <% if params[:id] && worker = Resque::Worker.find(params[:id]) %>
-  
+
   <h1>Worker <%= worker %></h1>
   <table>
     <tr>
       <th>&nbsp;</th>
       <th>Host</th>
       <th>Pid</th>
-      <th>Started</th>      
+      <th>Started</th>
       <th>Queues</th>
       <th>Processed</th>
-      <th>Failed</th>              
-      <th>Processing</th>    
+      <th>Failed</th>
+      <th>Processing</th>
     </tr>
     <tr>
       <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
-    
+
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><%= host %></td>
       <td><%= pid %></td>
-      <td><span class="time"><%= worker.started %></a></td>      
+      <td><span class="time"><%= worker.started %></a></td>
       <td><%= queues.split(',').map { |q| '<a class="queue" href="' + u("/queues/#{q}") + '">' + q + '</a>'}.join(', ') %></td>
       <td><%= worker.processed %></td>
-      <td><%= worker.failed %></td>      
-      <td>      
+      <td><%= worker.failed %></td>
+      <td>
         <% data = worker.processing || {} %>
         <% if data['queue'] %>
           <code><%= data['payload']['class'] %></code>
-          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>      
+          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
         <% else %>
           Waiting for more
         <% end %>
       </td>
     </tr>
   </table>
-  
+
 <% elsif params[:id] %>
 
 <h1>Worker doesn't exist</h1>
@@ -45,22 +45,22 @@
     <tr>
       <th>&nbsp;</th>
       <th>Where</th>
-      <th>Queues</th>        
-      <th>Processing</th>    
+      <th>Queues</th>
+      <th>Processing</th>
     </tr>
     <% for worker in resque.workers %>
     <tr>
       <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
-    
+
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><a href="/workers/<%= worker %>"><%= host %>:<%= pid %></a></td>
       <td><%= queues.split(',').map { |q| '<a class="queue" href="' + u("/queues/#{q}") + '">' + q + '</a>'}.join(', ') %></td>
-      
-      <td>      
+
+      <td>
         <% data = worker.processing || {} %>
         <% if data['queue'] %>
           <code><%= data['payload']['class'] %></code>
-          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>      
+          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
         <% else %>
           Waiting for more
         <% end %>
