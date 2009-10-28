@@ -1,12 +1,12 @@
 <% if params[:id] && worker = Resque::Worker.find(params[:id]) %>
   <h1><%= worker %>'s job</h1>
-  
+
   <table>
     <tr>
       <th>&nbsp;</th>
       <th>Where</th>
       <th>Queue</th>
-      <th>Started</th>      
+      <th>Started</th>
       <th>Class</th>
       <th>Args</th>
     </tr>
@@ -17,8 +17,8 @@
         <% data = worker.job %>
         <% queue = data['queue'] %>
         <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
-        <td><span class="time"><%= data['run_at'] %></span></td>        
-        <td>      
+        <td><span class="time"><%= data['run_at'] %></span></td>
+        <td>
           <code><%= data['payload']['class'] %></code>
         </td>
         <td><%=h data['payload']['args'].inspect %></td>
@@ -33,15 +33,15 @@
     <tr>
       <th>&nbsp;</th>
       <th>Where</th>
-      <th>Queue</th>        
-      <th>Processing</th>    
+      <th>Queue</th>
+      <th>Processing</th>
     </tr>
     <% if workers.empty? %>
     <tr>
       <td colspan="4">Not a one.</td>
     </tr>
     <% end %>
-    
+
     <% for worker in workers.sort_by { |w| w.job['run_at'] ? w.job['run_at'] : '' } %>
       <% job = worker.job %>
       <tr>
@@ -51,7 +51,7 @@
         <td>
           <a class="queue" href="<%=u "/queues/#{job['queue']}" %>"><%= job['queue'] %></a>
         </td>
-        <td>      
+        <td>
           <% if job['queue'] %>
             <code><%= job['payload']['class'] %></code>
             <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
