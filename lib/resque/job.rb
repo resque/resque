@@ -1,7 +1,5 @@
 module Resque
   class Job
-    include Resque::Helpers
-
     attr_accessor :worker
     attr_reader   :queue, :payload
 
