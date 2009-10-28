@@ -1,4 +1,3 @@
-require 'rake/testtask'
 eval File.read('tasks/redis.rake')
 
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/lib'
