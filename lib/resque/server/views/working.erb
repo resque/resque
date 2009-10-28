@@ -1,4 +1,4 @@
-<% if params[:id] && worker = Resque::Worker.find(params[:id]) %>
+<% if params[:id] && (worker = Resque::Worker.find(params[:id])) && worker.job %>
   <h1><%= worker %>'s job</h1>
 
   <table>
