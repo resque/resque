@@ -28,7 +28,7 @@
 <% else %>
 
   <% workers = resque.working %>
-  <h1>Workers Working (<%= workers.size %>)</h1>
+  <h1><%= workers.size %> of <%= resque.workers.size %> Workers Working</h1>
   <table>
     <tr>
       <th>&nbsp;</th>
