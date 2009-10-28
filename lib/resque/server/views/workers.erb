@@ -48,7 +48,7 @@
       <th>Queues</th>
       <th>Processing</th>
     </tr>
-    <% for worker in resque.workers %>
+    <% for worker in resque.workers.sort_by { |w| w.to_s } %>
     <tr>
       <td><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
 
