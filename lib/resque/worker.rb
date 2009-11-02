@@ -195,11 +195,7 @@ module Resque
       end
     end
 
-
-    #
-    # startup / teardown
-    #
-
+    # Runs all the methods needed when a worker begins its lifecycle.
     def startup
       enable_gc_optimizations
       register_signal_handlers
@@ -207,13 +203,20 @@ module Resque
       register_worker
     end
 
+    # Enables GC Optimizations if you're running REE.
+    # http://www.rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
     def enable_gc_optimizations
-      # http://www.rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
       if GC.respond_to?(:copy_on_write_friendly=)
         GC.copy_on_write_friendly = true
       end
     end
 
+    # Registers the various signal handlers a worker responds to.
+    #
+    # TERM: Shutdown immediately, stop processing jobs.
+    #  INT: Shutdown immediately, stop processing jobs.
+    # QUIT: Shutdown after the current job has finished processing.
+    # USR1: Kill the forked child immediately, continue processing jobs.
     def register_signal_handlers
       trap('TERM') { shutdown!  }
       trap('INT')  { shutdown!  }
@@ -224,16 +227,21 @@ module Resque
       log! "Registered signals"
     end
 
+    # Schedule this worker for shutdown. Will finish processing the
+    # current job.
     def shutdown
       log 'Exiting...'
       @shutdown = true
     end
 
+    # Kill the child and shutdown immediately.
     def shutdown!
       shutdown
       kill_child
     end
 
+    # Kills the forked child immediately, without remorse. The job it
+    # is processing will not be completed.
     def kill_child
       if @child
         log! "Killing child at #{@child}"
@@ -241,6 +249,16 @@ module Resque
       end
     end
 
+    # Looks for any workers which should be running on this server
+    # and, if they're not, removes them from Redis.
+    #
+    # This is a form of garbage collection. If a server is killed by a
+    # hard shutdown, power failure, or something else beyond our
+    # control, the Resque workers will not die gracefully and therefor
+    # will leave stale state information in Redis.
+    #
+    # By checking the current Redis state against the actual
+    # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
       Worker.all.each do |worker|
         host, pid, queues = worker.id.split(':')
@@ -251,11 +269,14 @@ module Resque
       end
     end
 
+    # Registers ourself as a worker. Useful when entering the worker
+    # lifecycle on startup.
     def register_worker
       redis.sadd(:workers, self)
       started!
     end
 
+    # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
       done_working
 
@@ -266,6 +287,8 @@ module Resque
       Stat.clear("failed:#{self}")
     end
 
+    # Given a job, tells Redis we're working on it. Useful for seeing
+    # what workers are doing and when.
     def working_on(job)
       job.worker = self
       data = encode \
@@ -275,6 +298,8 @@ module Resque
       redis.set("worker:#{self}", data)
     end
 
+    # Called when we are done working - clears our `working_on` state
+    # and tells Redis we processed a job.
     def done_working
       processed!
       redis.del("worker:#{self}")
