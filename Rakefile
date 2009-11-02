@@ -5,6 +5,7 @@ require 'resque/tasks'
 
 task :default => :test
 
+desc "Run tests"
 task :test do
   # Don't use the rake/testtask because it loads a new
   # Ruby interpreter - we want to run tests with the current
@@ -14,6 +15,7 @@ task :test do
   end
 end
 
+desc "Activate kicker - gem install kicker"
 task :kick do
   exec "kicker -e rake lib test"
 end
