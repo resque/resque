@@ -608,14 +608,15 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
-Development
------------
+Meta
+----
 
-* Git:           git://github.com/defunkt/resque.git
-* Source:        <http://github.com/defunkt/resque>
-* Issues:        <http://github.com/defunkt/resque/issues>
-* Google Group:  <http://blah>
-* Documentation: <http://github.com/defunkt/resque#readme>
+* Code: `git clone git://github.com/defunkt/resque.git`
+* Home: <http://github.com/defunkt/resque>
+* Docs: <http://github.com/defunkt/resque#readme>
+* Bugs: <http://github.com/defunkt/resque/issues>
+* List: <resque@librelist.com>
+* Gems: <http://gemcutter.org/gems/resque>
 
 
 Author
