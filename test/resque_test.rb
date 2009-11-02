@@ -122,6 +122,12 @@ context "Resque" do
     assert_equal ["queue:people", "queues"], Resque.keys
   end
 
+  test "badly wants a class name, too" do
+    assert_raises Resque::NoClassError do
+      Resque::Job.create(:jobs, nil)
+    end
+  end
+
   test "keeps stats" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Job.create(:jobs, BadJob)

@@ -40,6 +40,10 @@ module Resque
         raise NoQueueError.new("Jobs must be placed onto a queue.")
       end
 
+      if klass.to_s.empty?
+        raise NoClassError.new("Jobs must be given a class.")
+      end
+
       Resque.push(queue, :class => klass.to_s, :args => args)
     end
 
