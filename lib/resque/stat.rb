@@ -27,12 +27,22 @@ module Resque
       redis.incr("stat:#{stat}", by)
     end
 
+    # Increments a stat by one.
+    def <<(stat)
+      incr stat
+    end
+
     # For a string stat name, decrements the stat by one.
     #
     # Can optionally accept a second int parameter. The stat is then
     # decremented by that amount.
     def decr(stat, by = 1)
       redis.decr("stat:#{stat}", by)
+    end
+
+    # Decrements a stat by one.
+    def >>(stat)
+      decr stat
     end
 
     # Removes a stat from Redis, effectively setting it to 0.

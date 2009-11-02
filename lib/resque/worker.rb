@@ -244,8 +244,8 @@ module Resque
     end
 
     def processed!
-      Stat.incr("processed")
-      Stat.incr("processed:#{self}")
+      Stat << "processed"
+      Stat << "processed:#{self}"
     end
 
     def failed
@@ -253,8 +253,8 @@ module Resque
     end
 
     def failed!
-      Stat.incr("failed")
-      Stat.incr("failed:#{self}")
+      Stat << "failed"
+      Stat << "failed:#{self}"
     end
 
     def started
