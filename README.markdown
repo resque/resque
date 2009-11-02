@@ -496,7 +496,7 @@ Installing Resque
 
 First install the gem.
 
-    $ gem install resque
+    $ gem install resque --source=http://gemcutter.org
 
 Next include it in your application.
 
@@ -526,7 +526,7 @@ don't want to load your app every time rake runs.
 
 First install the gem.
 
-    $ gem install resque
+   $ gem install resque --source=http://gemcutter.org
 
 Next include it in your application.
 
