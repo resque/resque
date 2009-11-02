@@ -20,10 +20,7 @@ module Resque
   include Helpers
   extend self
 
-  #
-  # We need a Redis server!
-  #
-
+  # Accepts a 'hostname:port' string or a Redis server.
   def redis=(server)
     case server
     when String
@@ -37,6 +34,8 @@ module Resque
     end
   end
 
+  # Returns the current Redis connection. If none has been created, will
+  # create a new one.
   def redis
     return @redis if @redis
     self.redis = 'localhost:6379'
@@ -52,25 +51,40 @@ module Resque
   # queue manipulation
   #
 
+  # Pushes a job onto a queue. Queue name should be a string and the
+  # item should be any JSON-able Ruby object.
   def push(queue, item)
     watch_queue(queue)
     redis.rpush "queue:#{queue}", encode(item)
   end
 
+  # Pops a job off a queue. Queue name should be a string.
+  #
+  # Returns a Ruby object.
   def pop(queue)
     decode redis.lpop("queue:#{queue}")
   end
 
+  # Returns an int representing the size of a queue.
+  # Queue name should be a string.
   def size(queue)
     redis.llen("queue:#{queue}").to_i
   end
 
+  # Returns an array of items currently queued. Queue name should be
+  # a string.
+  #
+  # start and count should be integer and can be used for pagination.
+  # start is the item to begin, count is how many items to return.
+  #
+  # To get the 3rd page of a 30 item, paginatied list one would use:
+  #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
     list_range("queue:#{queue}", start, count)
   end
 
-  # Also used by Resque::Job for access to the `failed` faux-queue
-  # (for now)
+  # Does the dirty work of fetching a range of items from a Redis list
+  # and converting them into Ruby objects.
   def list_range(key, start = 0, count = 1)
     if count == 1
       decode redis.lindex(key, start)
@@ -81,12 +95,13 @@ module Resque
     end
   end
 
+  # Returns an array of all known Resque queues as strings.
   def queues
     redis.smembers(:queues)
   end
 
-  # Used internally to keep track of which queues
-  # we've created.
+  # Used internally to keep track of which queues we've created.
+  # Don't call this directly.
   def watch_queue(queue)
     @watched_queues ||= {}
     return if @watched_queues[queue]
@@ -131,10 +146,12 @@ module Resque
   # worker shortcuts
   #
 
+  # A shortcut to Worker.all
   def workers
     Worker.all
   end
 
+  # A shortcut to Worker.working
   def working
     Worker.working
   end
@@ -144,6 +161,7 @@ module Resque
   # stats
   #
 
+  # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
       :pending   => queues.inject(0) { |m,k| m + size(k) },
@@ -156,6 +174,8 @@ module Resque
     }
   end
 
+  # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
+  # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
     redis.keys("*").map do |key|
       key.sub('resque:', '')
