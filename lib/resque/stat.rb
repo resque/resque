@@ -1,10 +1,10 @@
 module Resque
   # The stat subsystem. Used to keep track of integer counts.
   #
-  # Get a stat:  Stat[name]
-  # Incr a stat: Stat.incr(name)
-  # Decr a stat: Stat.decr(name)
-  # Kill a stat: Stat.clear(name)
+  #   Get a stat:  Stat[name]
+  #   Incr a stat: Stat.incr(name)
+  #   Decr a stat: Stat.decr(name)
+  #   Kill a stat: Stat.clear(name)
   module Stat
     extend self
     extend Helpers
