@@ -62,18 +62,14 @@ module Resque
       args ? payload_class.perform(*args) : payload_class.perform
     end
 
+    # Returns the actual class constant represented in this job's payload.
     def payload_class
-      @payload_class ||= objectify(@payload)
+      @payload_class ||= constantize(@payload['class'])
     end
 
+    # Returns an array of args represented in this job's payload.
     def args
       @payload['args']
-    end
-
-    def objectify(payload)
-      if payload.is_a?(Hash) && payload['class']
-        constantize(payload['class'])
-      end
     end
 
     def fail(exception)
