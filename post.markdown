@@ -31,7 +31,7 @@ dependencies it requires, and how bogged down your CPU is at that time.
 
 DelayedJob (dj) fixed this problem: it is similar to bj, with a
 database-backed queue and priorities, but its workers are
-persitent. They only load Rails when started, then process jobs in a
+persistent. They only load Rails when started, then process jobs in a
 loop.
 
 Jobs are just YAML-marshalled Ruby objects. With some magic you can
