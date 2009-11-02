@@ -213,7 +213,7 @@ Can you name a system with all of these features:
 * Master-slave replication
 * Network aware
 
-[Redis](redis).
+I can. [Redis](redis).
 
 If we let Redis handle the hard queue problems, we can focus on the
 hard worker problems: visibility, reliability, and stats.
