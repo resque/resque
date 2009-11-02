@@ -368,6 +368,8 @@ module Resque
       "#<Worker #{to_s}>"
     end
 
+    # The string representation is the same as the id for this worker
+    # instance. Can be used with `Worker.find`.
     def to_s
       @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
     end
