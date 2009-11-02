@@ -519,9 +519,6 @@ First install the gem.
 
     $ gem install resque
 
-TODO: `config.gem`?
-TODO: dependencies?
-
 Next include it in your application.
 
     $ cat config/initializers/load_resque.rb
@@ -597,8 +594,7 @@ And our initializer:
 Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
 this way we can tell our Sinatra app about the config file:
 
-TODO: implement resque-web standalone runner
-    $ RAILS_ENV=production resque-web -c /rails_root/config/initializers/resque.rb
+   $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
 
 Now everyone is on the same page.
 
