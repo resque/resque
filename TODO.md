@@ -2,7 +2,6 @@ Little Stuff
 -----------
 
 [ ] Show stale workers in red with a warning icon in the Sinatra app
-[ ] GetException Failure support
 
 
 Big Stuff
@@ -49,13 +48,7 @@ Booyah.
 
 `gem install resque` should pull in yajl, redis, sinatra, rake, and rack
 
-
-### resque
-
-`resque -c config.rb queue,list` should start a worker using the config.rb file.
-
 Do it like Unicorn does it.
-
 
 ### Parent / Child => Master / Workers
 
