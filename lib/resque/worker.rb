@@ -1,20 +1,34 @@
 module Resque
+  # A Resque Worker processes jobs. On platforms that support fork(2),
+  # the worker will fork off a child to process each job. This ensures
+  # a clean slate when beginning the next job and cuts down on gradual
+  # memory growth as well as low level failures.
+  #
+  # It also ensures workers are always listening to signals from you,
+  # their master, and can react accordingly.
   class Worker
     include Resque::Helpers
     extend Resque::Helpers
 
-    attr_accessor :verbose, :very_verbose, :cant_fork
-    attr_writer   :to_s
+    # Whether the worker should log basic info to STDOUT
+    attr_accessor :verbose
 
+    # Whether the worker should log lots of info to STDOUT
+    attr_accessor  :very_verbose
 
-    #
-    # worker class methods
-    #
+    # Boolean indicating whether this worker can or can not fork.
+    # Automatically set if a fork(2) fails.
+    attr_accessor :cant_fork
 
+    attr_writer :to_s
+
+    # Returns an array of all worker objects.
     def self.all
       redis.smembers(:workers).map { |id| find(id) }
     end
 
+    # Returns an array of all worker objects currently processing
+    # jobs.
     def self.working
       names = all
       return [] unless names.any?
@@ -24,6 +38,7 @@ module Resque
       end
     end
 
+    # Returns a single worker object. Accepts a string id.
     def self.find(worker_id)
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
@@ -35,35 +50,59 @@ module Resque
       end
     end
 
+    # Alias of `find`
     def self.attach(worker_id)
       find(worker_id)
     end
 
+    # Given a string worker id, return a boolean indicating whether the
+    # worker exists
     def self.exists?(worker_id)
       redis.sismember(:workers, worker_id)
     end
 
-
+    # Workers should be initialized with an array of string queue
+    # names. The order is important: a Worker will check the first
+    # queue given for a job. If none is found, it will check the
+    # second queue name given. If a job is found, it will be
+    # processed. Upon completion, the Worker will again check the
+    # first queue given, and so forth. In this way the queue list
+    # passed to a Worker on startup defines the priorities of queues.
     #
-    # setup
-    #
-
+    # If passed a single "*", this Worker will operate on all queues
+    # in alphabetical order. Queues can be dynamically added or
+    # removed without needing to restart workers using this method.
     def initialize(*queues)
       @queues = queues
       validate_queues
     end
 
+    # A worker must be given a queue, otherwise it won't know what to
+    # do with itself.
+    #
+    # You probably never need to call this.
     def validate_queues
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
     end
 
-
+    # This is the main workhorse method. Called on a Worker instance,
+    # it begins the worker life cycle.
     #
-    # main loop / processing
+    # The following events occur during a worker's life cycle:
     #
-
+    # 1. startup: Signals are registered, dead workers are pruned,
+    #             and this worker is registered.
+    # 2. work loop: Jobs are pulled from a queue and processed
+    # 3. teardown: This worker is unregistered.
+    #
+    # Can be passed an integered representing the polling
+    # frequency. The default is 5 seconds, but for a semi-active site
+    # you may want to use a smaller value.
+    #
+    # Also accepts a block which will be passed the job as soon as it
+    # has completed processing. Useful for testing.
     def work(interval = 5, &block)
       $0 = "resque: Starting"
       startup
@@ -100,6 +139,8 @@ module Resque
       unregister_worker
     end
 
+    # Processes a single job. If none is given, it will try to produce
+    # one.
     def process(job = nil)
       return unless job ||= reserve
 
@@ -118,6 +159,8 @@ module Resque
       end
     end
 
+    # Attempts to grab a job off one of the provided queues. Returns
+    # nil if no job can be found.
     def reserve
       queues.each do |queue|
         log! "Checking #{queue}"
@@ -130,12 +173,15 @@ module Resque
       nil
     end
 
-    # Passing a splat means you want every queue (in alpha order).
+    # Returns a list of queues to use when searching for a job.
+    # A splat ("*") means you want every queue (in alpha order) - this
+    # can be useful for dynamically adding new queues.
     def queues
       @queues[0] == "*" ? Resque.queues.sort : @queues
     end
 
-    # Not every platform supports fork
+    # Not every platform supports fork. Here we do our magic to
+    # determine if yours does.
     def fork
       @cant_fork = true if $TESTING
 
