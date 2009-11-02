@@ -1,5 +1,7 @@
 module Resque
   module Failure
+    # A Failure backend that stores exceptions in Redis. Very simple but
+    # works out of the box, along with support in the Resque web app.
     class Redis < Base
       def save
         data = {
