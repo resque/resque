@@ -635,4 +635,4 @@ Author
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
-[0]: http://github.com/blog
+[0]: http://github.com/blog/539-introducing-resque
