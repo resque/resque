@@ -2,13 +2,16 @@ require 'net/http'
 
 module Resque
   module Failure
+    # A Failure backend that sends exceptions raised by jobs to Hoptoad.
+    #
+    # To use it, put this code in an initializer, Rake task, or wherever:
+    #
+    #   Resque::Failure::Hoptoad.configure do |config|
+    #     config.api_key = 'blah'
+    #     config.secure = true
+    #     config.subdomain = 'your_hoptoad_subdomain'
+    #   end
     class Hoptoad < Base
-      ##
-      # Resque::Failure::Hoptoad.configure do |config|
-      #   config.api_key = 'blah'
-      #   config.secure = true
-      #   config.subdomain = 'your_hoptoad_subdomain'
-      # end
       class << self
         attr_accessor :secure, :api_key, :subdomain
       end
@@ -18,6 +21,8 @@ module Resque
       end
 
       def self.count
+        # We can't get the total # of errors from Hoptoad so we fake it
+        # by asking Resque how many errors it has seen.
         Stat[:failed]
       end
 
