@@ -20,7 +20,7 @@ context "Resque" do
     job = Resque.reserve(:jobs)
 
     assert_kind_of Resque::Job, job
-    assert_equal SomeJob, job.object
+    assert_equal SomeJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
   end
@@ -33,7 +33,7 @@ context "Resque" do
     job = Resque.reserve(:ivar)
 
     assert_kind_of Resque::Job, job
-    assert_equal SomeIvarJob, job.object
+    assert_equal SomeIvarJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
 
@@ -55,7 +55,7 @@ context "Resque" do
     job = Resque.reserve(:method)
 
     assert_kind_of Resque::Job, job
-    assert_equal SomeMethodJob, job.object
+    assert_equal SomeMethodJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
 

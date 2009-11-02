@@ -47,18 +47,23 @@ module Resque
       Resque.push(queue, :class => klass.to_s, :args => args)
     end
 
+    # Given a string queue name, returns an instance of Resque::Job
+    # if any jobs are available. If not, returns nil.
     def self.reserve(queue)
       return unless payload = Resque.pop(queue)
       new(queue, payload)
     end
 
+    # Attempts to perform the work represented by this job instance.
+    # Calls #perform on the class given in the payload with the
+    # arguments given in the payload.
     def perform
-      return unless object && object.respond_to?(:perform)
-      args ? object.perform(*args) : object.perform
+      return unless payload_class && payload_class.respond_to?(:perform)
+      args ? payload_class.perform(*args) : payload_class.perform
     end
 
-    def object
-      @object ||= objectify(@payload)
+    def payload_class
+      @payload_class ||= objectify(@payload)
     end
 
     def args
