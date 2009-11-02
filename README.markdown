@@ -622,7 +622,7 @@ Meta
 
 * Code: `git clone git://github.com/defunkt/resque.git`
 * Home: <http://github.com/defunkt/resque>
-* Docs: <http://github.com/defunkt/resque#readme>
+* Docs: <http://defunkt.github.com/resque/>
 * Bugs: <http://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
 * Gems: <http://gemcutter.org/gems/resque>
