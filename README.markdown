@@ -480,6 +480,15 @@ The demo is probably the best way to figure out how to put the parts
 together. But, it's not that hard.
 
 
+Resque Dependencies
+-------------------
+
+    gem install redis redis-namespace yajl-ruby --source=http://gemcutter.org
+
+If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
+gem and Resque will use it instead.
+
+
 Installing Resque
 -----------------
 
