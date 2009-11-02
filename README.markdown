@@ -365,6 +365,8 @@ The Front End
 Resque comes with a Sinatra-based front end for seeing what's up with
 your queue.
 
+![The Front End](http://img.skitch.com/20091102-rpekt191w28xfhwyussru44nsw.png)
+
 ## Standalone
 
 If you've installed Resque as a gem running the front end standalone is easy:
