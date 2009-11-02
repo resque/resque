@@ -1,3 +1,5 @@
+<!-- -*-Markdown-*- -->
+
 Resque is our Redis-backed library for creating background jobs, placing
 those jobs on multiple queues, and processing them later.
 
