@@ -125,6 +125,7 @@ background work.
 
 But GitHub is 50% background work.
 
+
 In Search of a Solution
 -----------------------
 
@@ -180,6 +181,7 @@ Here's that list:
 * Don't retry failed jobs
 * Don't "release" failed jobs
 
+
 Redis to the Rescue
 -------------------
 
@@ -187,7 +189,7 @@ Can you name a system with all of these features:
 
 * Atomic, O(1) list push and pop
 * Ability to paginate over lists without mutating them
-* Queryable keyspace
+* Queryable keyspace, high visibility
 * Fast
 * Easy to install - no dependencies
 * Reliable Ruby client library
@@ -197,9 +199,29 @@ Can you name a system with all of these features:
 * Master-slave replication
 * Network aware
 
-Redis.
+[Redis](redis).
 
 If we let Redis handle the hard queue problems, we can focus on the
 hard worker problems: visibility, reliability, and stats.
 
-And that's Resque.
+And that's [Resque](resque).
+
+
+Resque to the Rescue
+--------------------
+
+Resque is a Redis-backed library for creating background jobs, placing
+those jobs on multiple queues, and processing them later.
+
+Background jobs can be any Ruby class or module that responds to
+`perform`. Your existing classes can easily be converted to background
+jobs or you can create new classes specifically to do work. Or, you
+can do both.
+
+All the details are in the [readme](resque). We've used it to process
+over 10m jobs since our move to Rackspace and are extremely happy with it.
+
+We hope you enjoy it.
+
+[redis]: http://github.com/antirez/redis
+[resque]: https://github.com/defunkt/resque#readme
