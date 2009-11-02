@@ -6,10 +6,6 @@ module Resque
       Resque.redis
     end
 
-    #
-    # encoding / decoding
-    #
-
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
@@ -31,10 +27,16 @@ module Resque
       end
     end
 
+    # Given a word with dashes, returns a camel cased version of it.
+    #
+    # classify('job-name') # => 'JobName'
     def classify(dashed_word)
       dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
     end
 
+    # Given a camel cased word, returns the constant it represents
+    #
+    # constantize('JobName') # => JobName
     def constantize(camel_cased_word)
       camel_cased_word = camel_cased_word.to_s
 
