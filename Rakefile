@@ -14,6 +14,10 @@ task :test do
   end
 end
 
+task :kick do
+  exec "kicker -e rake lib test"
+end
+
 task :install => [ 'redis:install', 'dtach:install' ]
 
 desc "Build a gem"
