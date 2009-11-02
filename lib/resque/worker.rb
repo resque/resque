@@ -305,54 +305,61 @@ module Resque
       redis.del("worker:#{self}")
     end
 
-
-    #
-    # query the worker
-    #
-
+    # How many jobs has this worker processed? Returns an int.
     def processed
       Stat["processed:#{self}"]
     end
 
+    # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
       Stat << "processed:#{self}"
     end
 
+    # How many failed jobs has this worker seen? Returns an int.
     def failed
       Stat["failed:#{self}"]
     end
 
+    # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
       Stat << "failed:#{self}"
     end
 
+    # What time did this worker start? Returns an instance of `Time`
     def started
       redis.get "worker:#{self}:started"
     end
 
+    # Tell Redis we've started
     def started!
       redis.set("worker:#{self}:started", Time.now.to_s)
     end
 
+    # Returns a hash explaining the Job we're currently processing, if any.
     def job
       decode(redis.get("worker:#{self}")) || {}
     end
     alias_method :processing, :job
 
+    # Boolean - true if working, false if not
     def working?
       state == :working
     end
 
+    # Boolean - true if idle, false if not
     def idle?
       state == :idle
     end
 
+    # Returns a symbol representing the current worker state,
+    # which can be either :working or :idle
     def state
       redis.exists("worker:#{self}") ? :working : :idle
     end
 
+    # Is this worker the same as another worker?
     def ==(other)
       to_s == other.to_s
     end
@@ -366,11 +373,12 @@ module Resque
     end
     alias_method :id, :to_s
 
+    # chomp'd hostname of this machine
     def hostname
       @hostname ||= `hostname`.chomp
     end
 
-    # Finds pids of all the other workers.
+    # Finds pids of all the other workers on this machine.
     # Used when pruning dead workers on startup.
     def worker_pids
       `ps -e -o pid,command | grep [r]esque`.split("\n").map do |line|
@@ -378,11 +386,7 @@ module Resque
       end
     end
 
-
-    #
-    # randomness
-    #
-
+    # Log a message to STDOUT if we are verbose or very_verbose.
     def log(message)
       if verbose
         puts "*** #{message}"
@@ -392,6 +396,7 @@ module Resque
       end
     end
 
+    # Logs a very verbose message to STDOUT.
     def log!(message)
       log message if very_verbose
     end
