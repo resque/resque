@@ -1,13 +1,40 @@
 module Resque
+  # A Resque::Job represents a unit of work. Each job lives on a
+  # single queue and has an associated payload object. The payload
+  # is a hash with two attributes: `class` and `args`. The `class` is
+  # the name of the Ruby class which should be used to run the
+  # job. The `args` are an array of arguments which should be passed
+  # to the Ruby class's `perform` class-level method.
+  #
+  # You can manually run a job using this code:
+  #
+  #   job = Resque::Job.reserve(:high)
+  #   klass = Resque::Job.constantize(job.payload['class'])
+  #   klass.perform(*job.payload['args'])
   class Job
+    include Helpers
+    extend Helpers
+
+    # The worker object which is currently processing this job.
     attr_accessor :worker
-    attr_reader   :queue, :payload
+
+    # The name of the queue from which this job was pulled (or is to be
+    # placed)
+    attr_reader :queue
+
+    # This job's associated payload object.
+    attr_reader :payload
 
     def initialize(queue, payload)
       @queue = queue
       @payload = payload
     end
 
+    # Creates a job by placing it on a queue. Expects a string queue
+    # name, a string class name, and an optional array of arguments to
+    # pass to the class' `perform` method.
+    #
+    # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
       if !queue || queue.to_s.empty?
         raise NoQueueError.new("Jobs must be placed onto a queue.")
@@ -48,36 +75,9 @@ module Resque
         :queue     => queue
     end
 
-
-    #
-    # activesupport
-    #
-
     def inspect
       obj = @payload
       "(Job{%s} | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
     end
-
-    def classify(dashed_word)
-      dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
-    end
-
-    def constantize(camel_cased_word)
-      camel_cased_word = camel_cased_word.to_s
-
-      if camel_cased_word.include?('-')
-        camel_cased_word = classify(camel_cased_word)
-      end
-
-      names = camel_cased_word.split('::')
-      names.shift if names.empty? || names.first.empty?
-
-      constant = Object
-      names.each do |name|
-        constant = constant.const_get(name) || constant.const_missing(name)
-      end
-      constant
-    end
-
   end
 end
