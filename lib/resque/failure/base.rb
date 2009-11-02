@@ -1,7 +1,21 @@
 module Resque
   module Failure
+    # All Failure classes are expected to subclass Base.
+    #
+    # When a job fails, a new instance of your Failure backend is created
+    # and #save is called.
     class Base
-      attr_accessor :exception, :worker, :queue, :payload
+      # The exception object raised by the failed job
+      attr_accessor :exception
+
+      # The worker object who detected the failure
+      attr_accessor :worker
+
+      # The string name of the queue from which the failed job was pulled
+      attr_accessor :queue
+
+      # The payload object associated with the failed job
+      attr_accessor :payload
 
       def initialize(exception, worker, queue, payload)
         @exception = exception
@@ -10,24 +24,28 @@ module Resque
         @payload   = payload
       end
 
-      # implement me in your subclass
+      # When a job fails, a new instance of your Failure backend is created
+      # and #save is called.
+      #
+      # This is where you POST or PUT or whatever to your Failure service.
       def save
       end
 
-      # implement me in your subclass
+      # The number of failures.
       def self.count
         0
       end
 
-      # implement me in your subclass
+      # Returns a paginated array of failure objects.
       def self.all(start = 0, count = 1)
         []
       end
 
-      # return a value if the failures are stored
+      # A URL where someone can go to view failures.
       def self.url
       end
 
+      # Logging!
       def log(message)
         @worker.log(message)
       end
