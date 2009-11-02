@@ -72,6 +72,8 @@ module Resque
       @payload['args']
     end
 
+    # Given an exception object, hands off the needed parameters to
+    # the Failure module.
     def fail(exception)
       Failure.create \
         :payload   => payload,
@@ -80,6 +82,7 @@ module Resque
         :queue     => queue
     end
 
+    # String representation
     def inspect
       obj = @payload
       "(Job{%s} | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
