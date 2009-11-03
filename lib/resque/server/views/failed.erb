@@ -12,7 +12,7 @@
   <% for job in Resque::Failure.all(start, 20) %>
   <tr>
     <td><%= job['queue'] %></td>
-    <td><a href="<%= url(:workers, job['worker']) %>"><%= job['worker']['to_s'].split(':')[0...2].join(':') %></a></td>
+    <td><a href="<= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a></td>
     <td><span class="time"><%= job['failed_at'] %></span></td>
     <td><%= job['payload']['class'] %></td>
     <td>
