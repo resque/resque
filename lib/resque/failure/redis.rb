@@ -9,7 +9,7 @@ module Resque
           :payload   => payload,
           :error     => exception.to_s,
           :backtrace => exception.backtrace,
-          :worker    => worker,
+          :worker    => worker.to_s,
           :queue     => queue
         }
         data = Resque.encode(data)
