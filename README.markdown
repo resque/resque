@@ -619,6 +619,14 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
+Monitoring
+----------
+
+If you're using god to monitor Resque, we have provided example
+configs in `examples/god/`. One is for starting / stopping workers,
+the other is for killing workers that have been running too long.
+
+
 Development
 -----------
 
