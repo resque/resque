@@ -619,6 +619,61 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
+Development
+-----------
+
+Want to hack on Resque?
+
+First clone the repo and run the tests:
+
+    git clone git://github.com/defunkt/resque.git
+    cd resque
+    rake test
+
+If the tests do not pass make sure you have Redis installed
+correctly (though we make an effort to tell you if we feel this is the
+case). The tests attempt to start an isolated instance of Redis to
+run against.
+
+Also make sure you've installed all the depenedencies correctly. For
+example, try loading the `redis-namespace` gem after you've installed
+it:
+
+    $ irb
+    >> require 'rubygems'
+    => true
+    >> require 'redis/namespace'
+    => true
+
+If you get an error requiring any of the dependencies, you may have
+failed to install them or be seeing load path issues.
+
+Feel free to ping the mailing list with your problem and we'll try to
+sort it out.
+
+
+Contributing
+------------
+
+Once you've made your great commits:
+
+1. [Fork](fk) Resque
+2. Create a topic branch - `git checkout -b my_branch`
+3. Push to your branch - `git push origin my_branch`
+4. Create an [Issue](is) with a link to your branch
+5. That's it!
+
+
+Mailing List
+------------
+
+To join the list simply send an email to <resque@librelist.com>. This
+will subscribe you and send you information about your subscription,
+include unsubscribe information.
+
+The archive can be found at <http://librelist.com/browser/>.
+
+
 Meta
 ----
 
@@ -636,3 +691,5 @@ Author
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
 [0]: http://github.com/blog/542-introducing-resque
+[fk]: http://help.github.com/forking/
+[is]: http://github.com/defunkt/resque/issues
