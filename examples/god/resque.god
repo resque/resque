@@ -7,7 +7,7 @@ num_workers.times do |num|
     w.name     = "resque-#{num}"
     w.group    = 'resque'
     w.interval = 30.seconds
-    w.start    = "env QUEUE=critical,high,low /usr/bin/rake -f #{rails_root}/Rakefile #{rails_env} jobs:work"
+    w.start    = "env QUEUE=critical,high,low /usr/bin/rake -f #{rails_root}/Rakefile #{rails_env} resque:work"
 
     w.uid = 'git'
     w.gid = 'git'
