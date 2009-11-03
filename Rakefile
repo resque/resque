@@ -37,7 +37,7 @@ begin
     gemspec.email = "chris@ozmm.org"
     gemspec.homepage = "http://github.com/defunkt/resque"
     gemspec.authors = ["Chris Wanstrath"]
-    gemspec.version = Resque::Version + ".#{Time.now.to_i}"
+    gemspec.version = Resque::Version 
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: "
