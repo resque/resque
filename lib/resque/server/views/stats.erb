@@ -7,12 +7,12 @@
 <% elsif params[:id] == "resque" %>
 
   <h1><%= resque %></h1>
-  <table>
+  <table class='stats'>
   <% for key, value in resque.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
-      <td>
+      <th>
         <%= key %>
-      </td>
+      </th>
       <td>
         <%= value %>
       </td>
@@ -22,13 +22,13 @@
 
 <% elsif params[:id] == 'redis' %>
 
-  <h1><%= resque.redis %></h1>
-  <table>
+  <h1><%= resque.redis.server %></h1>
+  <table class='stats'>
   <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
-      <td>
+      <th>
         <%= key %>
-      </td>
+      </th>
       <td>
         <%= value %>
       </td>
@@ -39,8 +39,8 @@
 <% elsif params[:id] == 'keys' %>
 
   <h1>Keys owned by <%= resque %></h1>
-  <h2>(All keys are actually prefixed with "resque:")</h2>
-  <table>
+  <p class='sub'>(All keys are actually prefixed with "resque:")</p>
+  <table class='stats'>
     <tr>
       <th>key</th>
       <th>type</th>
@@ -48,9 +48,9 @@
     </tr>
   <% for key in resque.keys.sort %>
     <tr>
-      <td>
+      <th>
         <a href="/stats/keys/<%= key %>"><%= key %></a>
-      </td>
+      </th>
       <td><%= resque.redis.type key %></td>
       <td><%= redis_get_size key %></td>
     </tr>

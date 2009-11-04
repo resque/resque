@@ -53,5 +53,11 @@ module Resque
     def self.url
       backend.url
     end
+    
+    # Clear all failure jobs
+    def self.clear
+      backend.clear
+    end
+    
   end
 end

@@ -1,6 +1,7 @@
 require 'sinatra/base'
 require 'erb'
 require 'resque'
+require 'resque/version'
 
 module Resque
   class Server < Sinatra::Base
@@ -80,13 +81,23 @@ module Resque
       ensure
         @partial = false
       end
+      
+      def poll
+        if @polling
+          text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
+        else
+          text = "<a href='#{url(request.path_info)}.poll' rel='poll'>Live Poll</a>"
+        end
+        "<p class='poll'>#{text}</p>"
+      end
+      
     end
 
-    def show(page)
+    def show(page, layout = true)
       begin
-        erb page.to_sym, {}, :resque => Resque
+        erb page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
-        erb :error, {}, :error => "Can't connect to Redis! (#{Resque.redis.server})"
+        erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis.server})"
       end
     end
 
@@ -104,6 +115,14 @@ module Resque
         show page
       end
     end
+    
+    %w( overview workers ).each do |page|
+      get "/#{page}.poll" do
+        content_type "text/plain"
+        @polling = true
+        show(page.to_sym, false).gsub(/\s{1,}/, ' ')
+      end
+    end
 
     get "/failed" do
       if Resque::Failure.url
@@ -112,9 +131,10 @@ module Resque
         show :failed
       end
     end
-
-    get "/failed/:id" do
-      show :failed
+    
+    post "/failed/clear" do
+      Resque::Failure.clear
+      redirect u('failed')
     end
 
     get "/stats" do

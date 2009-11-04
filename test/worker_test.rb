@@ -22,6 +22,14 @@ context "Resque::Worker" do
     assert_equal 10, Resque::Failure.all(0, 20).size
   end
 
+  test "can clear failed jobs" do
+    Resque::Job.create(:jobs, BadJob)
+    @worker.work(0)
+    assert_equal 1, Resque::Failure.count
+    Resque::Failure.clear
+    assert_equal 0, Resque::Failure.count
+  end
+
   test "catches exceptional jobs" do
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)

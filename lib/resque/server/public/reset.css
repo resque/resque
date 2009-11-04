@@ -14,7 +14,6 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 	font-style: normal;
 	font-size: 100%;
 	font-family: inherit;
-	vertical-align: baseline;
 }
 
 :focus {
@@ -23,8 +22,6 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 
 body {
 	line-height: 1;
-	color: black;
-	background: white;
 }
 
 ul {
