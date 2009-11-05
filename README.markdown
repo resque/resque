@@ -690,6 +690,7 @@ Meta
 * Docs: <http://defunkt.github.com/resque/>
 * Bugs: <http://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
+* Chat: <irc://irc.freenode.net/resque>
 * Gems: <http://gemcutter.org/gems/resque>
 
 
