@@ -184,7 +184,7 @@ exceptions you would not normally throw in order to assist debugging.
 Workers
 -------
 
-Resque workers are rake tasks the run forever. They basically do this:
+Resque workers are rake tasks that run forever. They basically do this:
 
     start
     loop do
