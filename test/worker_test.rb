@@ -91,6 +91,15 @@ context "Resque::Worker" do
     end
   end
 
+  test "fails if a job class has no `perform` method" do
+    worker = Resque::Worker.new(:perform_less)
+    Resque::Job.create(:perform_less, Object)
+
+    assert_equal 0, Resque::Failure.count
+    worker.work(0)
+    assert_equal 1, Resque::Failure.count
+  end
+
   test "inserts itself into the 'workers' list on startup" do
     @worker.work(0) do
       assert_equal @worker, Resque.workers[0]

@@ -58,7 +58,6 @@ module Resque
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.
     def perform
-      return unless payload_class && payload_class.respond_to?(:perform)
       args ? payload_class.perform(*args) : payload_class.perform
     end
 
