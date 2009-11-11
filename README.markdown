@@ -17,7 +17,7 @@ comprised of three parts:
 3. A Sinatra app for monitoring queues, jobs, and workers.
 
 Resque workers can be distributed between multiple machines,
-support priorities, are resililent to memory bloat / "leaks," are
+support priorities, are resilient to memory bloat / "leaks," are
 optimized for REE (but work on MRI and JRuby), tell you what they're
 doing, and expect failure.
 
@@ -151,12 +151,12 @@ do this:
 This is why our above example (and all the examples in `examples/`)
 uses object IDs instead of passing around the objects.
 
-While this is less convenient than just sticking a marshalled object
+While this is less convenient than just sticking a marshaled object
 in the database, it gives you a slight advantage: your jobs will be
 run against the most recent version of an object because they need to
 pull from the DB or cache.
 
-If your jobs were run against marshalled objects, they could
+If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
 
@@ -184,7 +184,7 @@ exceptions you would not normally throw in order to assist debugging.
 Workers
 -------
 
-Resque workers are rake tasks the run forever. They basically do this:
+Resque workers are rake tasks that run forever. They basically do this:
 
     start
     loop do
@@ -419,7 +419,7 @@ over the other?
 * Resque can only place JSONable Ruby objects on a queue as arguments
 * DelayedJob can place _any_ Ruby object on its queue as arguments
 * Resque includes a Sinatra app for monitoring what's going on
-* DelayedJob can be queryed from within your Rails app if you want to
+* DelayedJob can be queried from within your Rails app if you want to
   add an interface
 
 If you're doing Rails development, you already have a database and
@@ -643,7 +643,7 @@ correctly (though we make an effort to tell you if we feel this is the
 case). The tests attempt to start an isolated instance of Redis to
 run against.
 
-Also make sure you've installed all the depenedencies correctly. For
+Also make sure you've installed all the dependencies correctly. For
 example, try loading the `redis-namespace` gem after you've installed
 it:
 
@@ -665,10 +665,10 @@ Contributing
 
 Once you've made your great commits:
 
-1. [Fork](fk) Resque
+1. [Fork][1] Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
-4. Create an [Issue](is) with a link to your branch
+4. Create an [Issue][2] with a link to your branch
 5. That's it!
 
 
@@ -700,5 +700,5 @@ Author
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
 [0]: http://github.com/blog/542-introducing-resque
-[fk]: http://help.github.com/forking/
-[is]: http://github.com/defunkt/resque/issues
+[1]: http://help.github.com/forking/
+[2]: http://github.com/defunkt/resque/issues
