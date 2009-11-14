@@ -1,6 +1,7 @@
 ## 1.2.0 (2009-??-??)
 
 * Raise when a job class does not respond to `perform`.
+* Added `Resque.remove_queue` for deleting a queue
 
 ## 1.1.0 (2009-11-04)
 

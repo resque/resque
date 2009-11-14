@@ -100,6 +100,14 @@ module Resque
     redis.smembers(:queues)
   end
 
+  # Given a queue name, completely deletes the queue.
+  def remove_queue(queue)
+    @watched_queues ||= {}
+    @watched_queues.delete(queue.to_s)
+    redis.srem(:queues, queue.to_s)
+    redis.del("queue:#{queue}")
+  end
+
   # Used internally to keep track of which queues we've created.
   # Don't call this directly.
   def watch_queue(queue)

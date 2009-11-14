@@ -118,6 +118,14 @@ context "Resque" do
     assert_equal [], Resque.queues
   end
 
+  test "can delete a queue" do
+    Resque.push(:cars, { 'make' => 'bmw' })
+    assert_equal %w( cars people ), Resque.queues
+    Resque.remove_queue(:people)
+    assert_equal %w( cars ), Resque.queues
+    assert_equal nil, Resque.pop(:people)
+  end
+
   test "keeps track of resque keys" do
     assert_equal ["queue:people", "queues"], Resque.keys
   end
