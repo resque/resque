@@ -37,6 +37,10 @@ begin
     gemspec.homepage = "http://github.com/defunkt/resque"
     gemspec.authors = ["Chris Wanstrath"]
     gemspec.version = Resque::Version
+
+    gemspec.add_dependency "redis"
+    gemspec.add_dependency "redis-namespace"
+    gemspec.add_development_dependency "jeweler"
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: "
