@@ -1,3 +1,5 @@
+require 'resque'
+
 # require 'resque/tasks'
 # will give you the resque tasks
 
