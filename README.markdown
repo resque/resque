@@ -225,7 +225,7 @@ We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
 
-## Logging
+### Logging
 
 Workers support basic logging to STDOUT. If you start them with the
 `VERBOSE` env variable set, they will print basic debugging
@@ -358,6 +358,12 @@ will continue as normal.
 
 If you want to kill a stale or stuck child and shutdown, use `TERM`
 
+### Mysql::Error: MySQL server has gone away
+
+If your workers remain idle for too long they may lose their MySQL
+connection. If that happens we recommend using [this
+Gist](http://gist.github.com/238999).
+
 
 The Front End
 -------------
@@ -367,7 +373,7 @@ your queue.
 
 ![The Front End](http://img.skitch.com/20091104-tqh5pgkwgbskjbk7qbtmpesnyw.jpg)
 
-## Standalone
+### Standalone
 
 If you've installed Resque as a gem running the front end standalone is easy:
 
