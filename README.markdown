@@ -354,7 +354,8 @@ Resque workers respond to a few different signals:
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
 
 If you want to kill a stale or stuck child, use `USR1`. Processing
-will continue as normal.
+will continue as normal unless the child was not found. In that case
+Resque assumes the parent process is in a bad state and shuts down.
 
 If you want to kill a stale or stuck child and shutdown, use `TERM`
 

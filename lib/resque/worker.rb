@@ -245,7 +245,12 @@ module Resque
     def kill_child
       if @child
         log! "Killing child at #{@child}"
-        Process.kill("KILL", @child) rescue nil
+        if system("ps -ho pid,state -p #{@child}")
+          Process.kill("KILL", @child) rescue nil
+        else
+          log! "Child #{@child} not found, restarting."
+          shutdown
+        end
       end
     end
 
