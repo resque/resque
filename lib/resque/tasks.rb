@@ -1,5 +1,3 @@
-require 'resque'
-
 # require 'resque/tasks'
 # will give you the resque tasks
 
@@ -8,6 +6,8 @@ namespace :resque do
 
   desc "Start a Resque Ranger"
   task :work => :setup do
+    require 'resque'
+
     worker = nil
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
 
