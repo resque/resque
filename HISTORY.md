@@ -1,4 +1,4 @@
-## 1.2.0 (2009-??-??)
+## 1.2.0 (2009-11-25)
 
 * If USR1 is sent and no child is found, shutdown.
 * Raise when a job class does not respond to `perform`.
