@@ -21,7 +21,7 @@ module Resque
       return unless object
 
       if defined? Yajl
-        Yajl::Parser.parse(object)
+        Yajl::Parser.parse(object, :check_utf8 => false)
       else
         JSON(object)
       end
