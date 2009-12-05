@@ -23,4 +23,17 @@ namespace :resque do
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
+
+  desc "Start multiple Resque workers"
+  task :workers do
+    threads = []
+
+    ENV['COUNT'].to_i.times do
+      threads << Thread.new do
+        system "rake resque:work"
+      end
+    end
+
+    threads.each { |thread| thread.join }
+  end
 end

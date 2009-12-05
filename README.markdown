@@ -280,6 +280,21 @@ queues created on the fly, you can use a splat:
 Queues will be processed in alphabetical order.
 
 
+### Running Multiple Workers
+
+At GitHub we use god to start and stop multiple workers. A sample god
+configuration file is included under `examples/god`. We recommend this
+method.
+
+If you'd like to run multiple workers in development mode, you can do
+so using the `resque:workers` rake task:
+
+    $ COUNT=5 QUEUE=* rake resque:workers
+
+This will spawn five Resque workers, each in its own thread. Hitting
+ctrl-c should be sufficient to stop them all.
+
+
 ### Forking
 
 On certain platforms, when a Resque worker reserves a job it
