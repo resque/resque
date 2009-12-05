@@ -23,14 +23,19 @@ end
 #
 
 at_exit do
-  unless $! || Test::Unit.run?
-    status = Test::Unit::AutoRunner.run
-    pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
-    puts "Killing test redis server..."
-    `rm -f #{dir}/dump.rdb`
-    Process.kill("KILL", pid.to_i)
-    exit status
+  next if $!
+
+  if defined?(MiniTest)
+    exit_code = MiniTest::Unit.new.run(ARGV)
+  else
+    exit_code = Test::Unit::AutoRunner.run
   end
+
+  pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
+  puts "Killing test redis server..."
+  `rm -f #{dir}/dump.rdb`
+  Process.kill("KILL", pid.to_i)
+  exit exit_code
 end
 
 puts "Starting redis for testing at localhost:9736..."
@@ -39,7 +44,7 @@ Resque.redis = 'localhost:9736'
 
 
 ##
-# test/spec/mini 2
+# test/spec/mini 3
 # http://gist.github.com/25455
 # chris@ozmm.org
 #
@@ -54,6 +59,7 @@ def context(*args, &block)
     def self.setup(&block) define_method(:setup, &block) end
     def self.teardown(&block) define_method(:teardown, &block) end
   end
+  (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
   klass.class_eval &block
 end
 

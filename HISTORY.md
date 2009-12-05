@@ -1,6 +1,7 @@
 ## 1.3.0 (2009-??-??)
 
 * Added `rake resque:workers` task for starting multiple workers.
+* 1.9.x compatibility
 
 ## 1.2.0 (2009-11-25)
 
