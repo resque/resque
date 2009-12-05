@@ -4,7 +4,7 @@
 namespace :resque do
   task :setup
 
-  desc "Start a Resque Ranger"
+  desc "Start a Resque worker"
   task :work => :setup do
     require 'resque'
 
