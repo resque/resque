@@ -96,7 +96,7 @@ module Resque
     # Equality
     def ==(other)
       queue == other.queue &&
-        payload_class = other.payload_class &&
+        payload_class == other.payload_class &&
         args == other.args
     end
   end

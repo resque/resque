@@ -1,3 +1,7 @@
+## 1.2.2 (2009-12-08)
+
+* Bugfix: Job equality was not properly implemented.
+
 ## 1.2.1 (2009-12-07)
 
 * Added `rake resque:workers` task for starting multiple workers.
