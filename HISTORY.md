@@ -1,7 +1,8 @@
-## 1.3.0 (2009-??-??)
+## 1.2.1 (2009-??-??)
 
 * Added `rake resque:workers` task for starting multiple workers.
 * 1.9.x compatibility
+* Bugfix: Yajl decoder doesn't care about valid UTF-8
 
 ## 1.2.0 (2009-11-25)
 
