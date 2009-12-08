@@ -6,6 +6,7 @@
 * config.ru loads RESQUECONFIG if the ENV variable is set.
 * `resque-web` now sets RESQUECONFIG
 * Job objects know if they are equal.
+* Jobs can be re-queued using `Job#recreate`
 
 ## 1.2.0 (2009-11-25)
 

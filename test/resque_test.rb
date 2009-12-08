@@ -25,6 +25,15 @@ context "Resque" do
     assert_equal '/tmp', job.args[1]
   end
 
+  test "can re-queue jobs" do
+    Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
+
+    job = Resque.reserve(:jobs)
+    job.recreate
+
+    assert_equal job, Resque.reserve(:jobs)
+  end
+
   test "can put jobs on a queue by way of an ivar" do
     assert_equal 0, Resque.size(:ivar)
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')

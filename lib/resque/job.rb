@@ -81,6 +81,12 @@ module Resque
         :queue     => queue
     end
 
+    # Creates an identical job, essentially placing this job back on
+    # the queue.
+    def recreate
+      self.class.create(queue, payload_class, *args)
+    end
+
     # String representation
     def inspect
       obj = @payload
