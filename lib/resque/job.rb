@@ -86,5 +86,12 @@ module Resque
       obj = @payload
       "(Job{%s} | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
     end
+
+    # Equality
+    def ==(other)
+      queue == other.queue &&
+        payload_class = other.payload_class &&
+        args == other.args
+    end
   end
 end

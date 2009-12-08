@@ -5,6 +5,7 @@
 * Bugfix: Yajl decoder doesn't care about valid UTF-8
 * config.ru loads RESQUECONFIG if the ENV variable is set.
 * `resque-web` now sets RESQUECONFIG
+* Job objects know if they are equal.
 
 ## 1.2.0 (2009-11-25)
 
