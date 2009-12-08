@@ -30,18 +30,15 @@ Common options:
       --version            Show version
 usage
 else
-  if !ENV['CONFIG']&&ARGV[-1]&&ARGV[-1][0]!=?-&&(ARGV[-2]?ARGV[-2][0]!=?-:true)
+  if !ENV['RESQUECONFIG']&&ARGV[-1]&&ARGV[-1][0]!=?-&&(ARGV[-2]?ARGV[-2][0]!=?-:true)
     if File.file?(file = File.expand_path(ARGV[-1]))
       ARGV.delete_at(-1)
-      ENV['CONFIG'] = file
+      ENV['RESQUECONFIG'] = file
     else
       abort "** Can't find #{file}"
     end
   end
 
-  args = ARGV
-  ENV['RUBYLIB'] = ENV['RUBYLIB'].to_s + ':' + __DIR__ + '/../lib'
-  args.unshift '-e', 'require "resque";load ENV["CONFIG"] if ENV["CONFIG"]'
-  args.push File.expand_path(File.dirname(__FILE__) + "/../config.ru")
-  exec "rackup", *args
+  ARGV.push File.expand_path(File.dirname(__FILE__) + "/../config.ru")
+  exec "rackup", *ARGV
 end

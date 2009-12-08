@@ -3,6 +3,8 @@
 * Added `rake resque:workers` task for starting multiple workers.
 * 1.9.x compatibility
 * Bugfix: Yajl decoder doesn't care about valid UTF-8
+* config.ru loads RESQUECONFIG if the ENV variable is set.
+* `resque-web` now sets RESQUECONFIG
 
 ## 1.2.0 (2009-11-25)
 
