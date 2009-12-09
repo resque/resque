@@ -1,3 +1,7 @@
+## 1.2.3 (2009-??-??)
+
+* Bugfix: Fixed `rand` seeding in child processes.
+
 ## 1.2.2 (2009-12-08)
 
 * Bugfix: Job equality was not properly implemented.
