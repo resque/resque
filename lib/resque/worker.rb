@@ -114,6 +114,7 @@ module Resque
           log "got: #{job.inspect}"
 
           if @child = fork
+            rand # Reseeding
             procline = "resque: Forked #{@child} at #{Time.now.to_i}"
             $0 = procline
             log! procline
