@@ -1,6 +1,7 @@
 ## 1.2.3 (2009-??-??)
 
 * Bugfix: Fixed `rand` seeding in child processes.
+* Bugfix: Better JSON encoding/decoding without Yajl.
 
 ## 1.2.2 (2009-12-08)
 
