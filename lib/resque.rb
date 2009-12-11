@@ -111,6 +111,8 @@ module Resque
   # Used internally to keep track of which queues we've created.
   # Don't call this directly.
   def watch_queue(queue)
+    # In order to avoid hitting Redis every time a job is queued we
+    # cache the list of known queues.
     @watched_queues ||= {}
     return if @watched_queues[queue]
     redis.sadd(:queues, queue.to_s)
