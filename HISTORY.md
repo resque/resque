@@ -2,6 +2,7 @@
 
 * Bugfix: Fixed `rand` seeding in child processes.
 * Bugfix: Better JSON encoding/decoding without Yajl.
+* Bugfix: Avoid `ps` flag error on Linux
 
 ## 1.2.2 (2009-12-08)
 
