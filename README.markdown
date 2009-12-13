@@ -507,7 +507,7 @@ together. But, it's not that hard.
 Resque Dependencies
 -------------------
 
-    gem install redis redis-namespace yajl-ruby --source=http://gemcutter.org
+    gem install redis redis-namespace yajl-ruby
 
 If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
 gem and Resque will use it instead.
@@ -520,7 +520,7 @@ Installing Resque
 
 First install the gem.
 
-    $ gem install resque --source=http://gemcutter.org
+    $ gem install resque
 
 Next include it in your application.
 
@@ -550,7 +550,7 @@ don't want to load your app every time rake runs.
 
 First install the gem.
 
-   $ gem install resque --source=http://gemcutter.org
+    $ gem install resque
 
 Next include it in your application.
 
