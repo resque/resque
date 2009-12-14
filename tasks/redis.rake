@@ -10,9 +10,9 @@ class RedisRunner
 
   def self.redisconfdir
     server_dir = File.dirname(`which redis-server`)
-    conf_file = "#{redis_server_dir}/../etc/redis.conf"
+    conf_file = "#{server_dir}/../etc/redis.conf"
     unless File.exists? conf_file
-      conf_file = "#{redis_server_dir}/../../etc/redis.conf"
+      conf_file = "#{server_dir}/../../etc/redis.conf"
     end
     conf_file
   end
