@@ -77,7 +77,7 @@ namespace :redis do
       sh "cp /tmp/redis/#{bin} #{bin_dir}"
     end
 
-    puts "Installed redis-benchmark, redis-cli and redis-server to /usr/bin/"
+    puts "Installed redis-benchmark, redis-cli and redis-server to #{bin_dir}"
 
     ENV['PREFIX'] and conf_dir = "#{ENV['PREFIX']}/etc" or conf_dir = '/etc'
     unless File.exists?("#{conf_dir}")
