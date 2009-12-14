@@ -501,7 +501,7 @@ Or, if you don't have admin access on your machine:
 
     $ git clone git://github.com/defunkt/resque.git
     $ cd resque
-    $ PREFIX=<your_prefix> redis:install dtach:install
+    $ PREFIX=<your_prefix> rake redis:install dtach:install
     $ rake redis:start
 
 You now have Redis running on 6379. Wait a second then hit ctrl-\ to
