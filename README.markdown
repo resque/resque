@@ -497,6 +497,13 @@ install and run Redis for you:
     $ rake redis:install dtach:install
     $ rake redis:start
 
+Or, if you don't have admin access on your machine:
+
+    $ git clone git://github.com/defunkt/resque.git
+    $ cd resque
+    $ PREFIX=<your_prefix> redis:install dtach:install
+    $ rake redis:start
+
 You now have Redis running on 6379. Wait a second then hit ctrl-\ to
 detach and keep it running in the background.
 
