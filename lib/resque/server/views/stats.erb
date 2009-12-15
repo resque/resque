@@ -35,7 +35,7 @@
     </tr>
   <% end %>
   </table>
-  
+
 <% elsif params[:id] == 'keys' %>
 
   <h1>Keys owned by <%= resque %></h1>
@@ -49,7 +49,7 @@
   <% for key in resque.keys.sort %>
     <tr>
       <th>
-        <a href="/stats/keys/<%= key %>"><%= key %></a>
+        <a href="<%=u "/stats/keys/#{key}" %>"><%= key %></a>
       </th>
       <td><%= resque.redis.type key %></td>
       <td><%= redis_get_size key %></td>

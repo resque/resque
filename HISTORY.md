@@ -1,3 +1,7 @@
+## 1.2.4 (2009-12-15)
+
+* Web Bugfix: fix key links on stat page
+
 ## 1.2.3 (2009-12-15)
 
 * Bugfix: Fixed `rand` seeding in child processes.
