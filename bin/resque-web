@@ -1,44 +1,20 @@
 #!/usr/bin/env ruby
 
-__DIR__ = File.expand_path(File.dirname(__FILE__))
+$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+require 'vegas'
+require 'resque/server'
 
-if `which rackup`.empty?
-  abort "** Can't find `rackup` in PATH."
-end
 
-if ARGV.include?('-h')
-  puts <<-usage
-Usage: resque-web [ruby options] [rack options] [resque config]
-
-Starts a Resque front-end by way of `rackup`.
-
-Ruby options:
-  -e, --eval LINE          evaluate a LINE of code
-  -d, --debug              set debugging flags (set $DEBUG to true)
-  -w, --warn               turn warnings on for your script
-  -I, --include PATH       specify $LOAD_PATH (may be used more than once)
-  -r, --require LIBRARY    require the library, before executing your script
-Rack options:
-  -s, --server SERVER      serve using SERVER (webrick/mongrel)
-  -o, --host HOST          listen on HOST (default: 0.0.0.0)
-  -p, --port PORT          use PORT (default: 9292)
-  -E, --env ENVIRONMENT    use ENVIRONMENT for defaults (default: development)
-  -D, --daemonize          run daemonized in the background
-  -P, --pid FILE           file to store PID (default: rack.pid)
-Common options:
-  -h, --help               Show this message
-      --version            Show version
-usage
-else
-  if !ENV['RESQUECONFIG']&&ARGV[-1]&&ARGV[-1][0]!=?-&&(ARGV[-2]?ARGV[-2][0]!=?-:true)
-    if File.file?(file = File.expand_path(ARGV[-1]))
-      ARGV.delete_at(-1)
-      ENV['RESQUECONFIG'] = file
-    else
-      abort "** Can't find #{file}"
+Vegas::Runner.new(Resque::Server, 'resque-web', {
+  :resque_config => lambda {|v| 
+    path = (ENV['RESQUECONFIG'] || v.args.first).strip
+    if path && path != '' && path = File.expand_path(path)
+      if File.file?(path)
+        load path
+      else 
+        abort "** Can't find #{path}"
+      end
     end
-  end
-
-  ARGV.push File.expand_path(File.dirname(__FILE__) + "/../config.ru")
-  exec "rackup", *ARGV
-end
+    path
+  }
+})
