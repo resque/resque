@@ -1,3 +1,7 @@
+## 1.3.0 (2010-??-??)
+
+* Use Vegas for resque-web
+
 ## 1.2.4 (2009-12-15)
 
 * Web Bugfix: fix key links on stat page
