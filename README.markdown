@@ -722,6 +722,8 @@ Meta
 * Chat: <irc://irc.freenode.net/resque>
 * Gems: <http://gemcutter.org/gems/resque>
 
+This project uses [Semantic Versioning][sv].
+
 
 Author
 ------
@@ -731,3 +733,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [0]: http://github.com/blog/542-introducing-resque
 [1]: http://help.github.com/forking/
 [2]: http://github.com/defunkt/resque/issues
+[sv]: http://semver.org/
