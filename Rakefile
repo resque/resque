@@ -40,6 +40,8 @@ begin
 
     gemspec.add_dependency "redis"
     gemspec.add_dependency "redis-namespace"
+    gemspec.add_dependency "vegas", ">=0.1.1"
+    gemspec.add_dependency "sinatra", ">=0.9.2"
     gemspec.add_development_dependency "jeweler"
   end
 rescue LoadError
