@@ -11,12 +11,9 @@
 <body>
   <div class="header">
     <ul class='nav'>
-      <%= tab "Overview" %>
-      <%= tab "Working" %>
-      <%= tab "Failed" %>
-      <%= tab "Queues" %>
-      <%= tab "Workers" %>
-      <%= tab "Stats" %>
+      <% tabs.each do |tab_name| %>
+        <%= tab tab_name %>
+      <% end %>
     </ul>
   </div>
   

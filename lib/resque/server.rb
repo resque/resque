@@ -41,6 +41,10 @@ module Resque
         "<li #{class_if_current(dname)}><a href='#{url dname}'>#{name}</a></li>"
       end
 
+      def tabs
+        Resque::Server.tabs
+      end
+
       def redis_get_size(key)
         case Resque.redis.type(key)
         when 'none'
@@ -169,6 +173,14 @@ module Resque
 
     def resque
       Resque
+    end
+
+    class << self
+
+      def tabs
+        @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
+      end
+
     end
   end
 end
