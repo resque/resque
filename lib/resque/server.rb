@@ -175,12 +175,8 @@ module Resque
       Resque
     end
 
-    class << self
-
-      def tabs
-        @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
-      end
-
+    def self.tabs
+      @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
     end
   end
 end
