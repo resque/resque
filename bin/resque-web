@@ -1,20 +1,14 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+require 'rubygems'
 require 'vegas'
 require 'resque/server'
 
 
 Vegas::Runner.new(Resque::Server, 'resque-web', {
-  :resque_config => lambda {|v| 
+  :before_run => lambda {|v|
     path = (ENV['RESQUECONFIG'] || v.args.first).strip
-    if path && path != '' && path = File.expand_path(path)
-      if File.file?(path)
-        load path
-      else 
-        abort "** Can't find #{path}"
-      end
-    end
-    path
+    v.load_config_file(path) if path
   }
 })

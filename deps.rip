@@ -2,5 +2,5 @@ git://github.com/ezmobius/redis-rb.git eed200ad
 git://github.com/brianmario/yajl-ruby.git 0.6.3
 git://github.com/sinatra/sinatra.git 0.9.4
 git://github.com/rack/rack.git 1.0
-git://github.com/quirkey/vegas.git v0.1.1
+git://github.com/quirkey/vegas.git v0.1.2
 rake
