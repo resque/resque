@@ -13,6 +13,6 @@ require 'resque/server'
 Vegas::Runner.new(Resque::Server, 'resque-web', {
   :before_run => lambda {|v|
     path = (ENV['RESQUECONFIG'] || v.args.first).strip
-    v.load_config_file(path) if path
+    load path if path
   }
 })
