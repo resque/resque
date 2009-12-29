@@ -1,8 +1,12 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
-require 'rubygems'
-require 'vegas'
+begin
+  require 'vegas'
+rescue LoadError
+  require 'rubygems'
+  require 'vegas'
+end  
 require 'resque/server'
 
 
