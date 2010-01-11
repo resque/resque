@@ -1,3 +1,7 @@
+## 1.3.1 (2010-01-11)
+
+* Vegas bugfix: Don't error without a config
+
 ## 1.3.0 (2010-01-11)
 
 * Use Vegas for resque-web
