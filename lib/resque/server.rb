@@ -106,7 +106,7 @@ module Resque
     end
 
     # to make things easier on ourselves
-    get "/" do
+    get "/?" do
       redirect url(:overview)
     end
 
