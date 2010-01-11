@@ -2,7 +2,9 @@
 
 * Use Vegas for resque-web
 * Web Bugfix: Show proper date/time value for failed_at on Failures
+* Web Bugfix: Make the / route more flexible
 * Add Resque::Server.tabs array (so plugins can add their own tabs)
+* Start using [Semantic Versioning](http://semver.org/)
 
 ## 1.2.4 (2009-12-15)
 
