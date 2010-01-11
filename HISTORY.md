@@ -1,4 +1,4 @@
-## 1.3.0 (2010-??-??)
+## 1.3.0 (2010-01-11)
 
 * Use Vegas for resque-web
 * Web Bugfix: Show proper date/time value for failed_at on Failures
