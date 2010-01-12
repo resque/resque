@@ -570,7 +570,7 @@ Now start your application:
 
 That's it! You can now create Resque jobs from within your app.
 
-To start a worker, add this to your Rakefile in RAILS_ROOT:
+To start a worker, add this to your Rakefile in `RAILS_ROOT`:
 
     require 'resque/tasks'
 
@@ -607,7 +607,7 @@ Resque has a `redis` setter which can be given a string or a Redis
 object. This means if you're already using Redis in your app, Resque
 can re-use the existing connection.
 
-String: `Resque.redis = 'localhost:6379'
+String: `Resque.redis = 'localhost:6379'`
 
 Redis: `Redus.redis = $redis`
 
@@ -634,7 +634,7 @@ And our initializer:
 Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
 this way we can tell our Sinatra app about the config file:
 
-   $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
+    $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
 
 Now everyone is on the same page.
 
