@@ -189,7 +189,12 @@ module Resque
       return if @cant_fork
 
       begin
-        Kernel.fork
+        # IronRuby doesn't support `Kernel.fork` yet
+        if Kernel.respond_to?(:fork)
+          Kernel.fork
+        else
+          raise NotImplementedError
+        end
       rescue NotImplementedError
         @cant_fork = true
         nil

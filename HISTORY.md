@@ -1,6 +1,7 @@
 ## 1.4.0 (2010-??-??)
 
 * Fallback when unable to bind QUIT and USR1 for Windows and JRuby.
+* Fallback when no `Kernel.fork` is provided (for IronRuby).
 
 ## 1.3.1 (2010-01-11)
 
