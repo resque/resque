@@ -609,7 +609,7 @@ can re-use the existing connection.
 
 String: `Resque.redis = 'localhost:6379'`
 
-Redis: `Redus.redis = $redis`
+Redis: `Resque.redis = $redis`
 
 For our rails app we have a `config/initializers/resque.rb` file where
 we load `config/resque.yml` by hand and set the Redis information
@@ -637,6 +637,25 @@ this way we can tell our Sinatra app about the config file:
     $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
 
 Now everyone is on the same page.
+
+
+Namespaces
+----------
+
+If you're running multiple, separate instances of Resque you may want
+to namespace the keyspaces so they do not overlap. This is not unlike
+the approach taken by many memcached clients.
+
+This feature is provided by the [redis-namespace][rs] library, which
+Resque uses by default to separate the keys it manages from other keys
+in your Redis server.
+
+Simply use the `Resque.redis.namespace` accessor:
+
+    Resque.redis.namespace = "resque:GitHub"
+
+We recommend sticking this in your initializer somewhere after Redis
+is configured.
 
 
 Demo
@@ -734,3 +753,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [1]: http://help.github.com/forking/
 [2]: http://github.com/defunkt/resque/issues
 [sv]: http://semver.org/
+[rs]: http://github.com/defunkt/redis-namespace
