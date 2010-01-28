@@ -17,7 +17,7 @@ module Demo
       out << '</form>'
       
        out << "<form action='/failing' method='POST''>"
-       out << '<input type="submit" value="Create New Job"/>'
+       out << '<input type="submit" value="Create Failing New Job"/>'
        out << '&nbsp;&nbsp;<a href="/resque/">View Resque</a>'
        out << '</form>'
       
