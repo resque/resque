@@ -29,7 +29,8 @@ class RedisRunner
   def self.start
     puts 'Detach with Ctrl+\  Re-attach with rake redis:attach'
     sleep 1
-    exec "dtach -A #{dtach_socket} redis-server #{redisconfdir}"
+    command = "dtach -A #{dtach_socket} redis-server #{redisconfdir}"
+    sh command
   end
 
   def self.attach
@@ -80,8 +81,9 @@ namespace :redis do
     puts "Installed redis-benchmark, redis-cli and redis-server to #{bin_dir}"
 
     ENV['PREFIX'] and conf_dir = "#{ENV['PREFIX']}/etc" or conf_dir = '/etc'
-    unless File.exists?("#{conf_dir}")
-      sh "cp /tmp/redis/redis.conf #{conf_dir}"
+    unless File.exists?("#{conf_dir}/redis.conf")
+      sh "mkdir #{conf_dir}" unless File.exists?("#{conf_dir}")
+      sh "cp /tmp/redis/redis.conf #{conf_dir}/redis.conf"
       puts "Installed redis.conf to #{conf_dir} \n You should look at this file!"
     end
   end
