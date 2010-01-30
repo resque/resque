@@ -275,10 +275,12 @@ module Resque
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
-      Worker.all.each do |worker|
+      all_workers = Worker.all
+      known_workers = worker_pids unless all_workers.empty?
+      all_workers.each do |worker|
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
-        next if worker_pids.include?(pid)
+        next if known_workers.include?(pid)
         log! "Pruning dead worker: #{worker}"
         worker.unregister_worker
       end
