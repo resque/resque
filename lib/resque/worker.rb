@@ -92,14 +92,14 @@ module Resque
     #
     # The following events occur during a worker's life cycle:
     #
-    # 1. startup: Signals are registered, dead workers are pruned,
-    #             and this worker is registered.
-    # 2. work loop: Jobs are pulled from a queue and processed
-    # 3. teardown: This worker is unregistered.
+    # 1. Startup:   Signals are registered, dead workers are pruned,
+    #               and this worker is registered.
+    # 2. Work loop: Jobs are pulled from a queue and processed.
+    # 3. Teardown:  This worker is unregistered.
     #
-    # Can be passed an integered representing the polling
-    # frequency. The default is 5 seconds, but for a semi-active site
-    # you may want to use a smaller value.
+    # Can be passed an integer representing the polling frequency.
+    # The default is 5 seconds, but for a semi-active site you may
+    # want to use a smaller value.
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
