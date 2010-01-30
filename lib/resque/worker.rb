@@ -269,7 +269,7 @@ module Resque
     #
     # This is a form of garbage collection. If a server is killed by a
     # hard shutdown, power failure, or something else beyond our
-    # control, the Resque workers will not die gracefully and therefor
+    # control, the Resque workers will not die gracefully and therefore
     # will leave stale state information in Redis.
     #
     # By checking the current Redis state against the actual
