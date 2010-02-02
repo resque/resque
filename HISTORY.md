@@ -2,6 +2,7 @@
 
 * Fallback when unable to bind QUIT and USR1 for Windows and JRuby.
 * Fallback when no `Kernel.fork` is provided (for IronRuby).
+* Support USR2 and CONT to stop and start job processing.
 
 ## 1.3.1 (2010-01-11)
 
