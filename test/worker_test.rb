@@ -226,4 +226,9 @@ context "Resque::Worker" do
       assert_equal 1, Resque.workers.size
     end
   end
+
+  test "Processed jobs count" do
+    @worker.work(0)
+    assert_equal 1, Resque.info[:processed]
+  end
 end
