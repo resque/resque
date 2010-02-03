@@ -163,7 +163,7 @@ module Resque
   # A shortcut to unregister_worker
   # useful for command line tool
   def remove_worker(worker_id)
-    worker = Resque::Worker.find(worker_id)
+    worker = Worker.find(worker_id)
     worker.unregister_worker
   end
 
