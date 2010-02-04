@@ -4,7 +4,7 @@ body { padding:0; margin:0; }
 .header { background:#000; padding:8px 5% 0 5%; border-bottom:1px solid #444;border-bottom:5px solid #ce1212;}
 .header h1 { color:#333; font-size:90%; font-weight:bold; margin-bottom:6px;}
 .header ul li { display:inline;}
-.header ul li a { color:#fff; text-decoration:none; margin-right:10px; display:inline-block;  padding:8px; -webkit-border-top-right-radius:6px; -webkit-border-top-left-radius:6px; }
+.header ul li a { color:#fff; text-decoration:none; margin-right:10px; display:inline-block;  padding:8px; -webkit-border-top-right-radius:6px; -webkit-border-top-left-radius:6px; -moz-border-radius-topleft:6px; -moz-border-radius-topright:6px; }
 .header ul li a:hover { background:#333;}
 .header ul li.current a { background:#ce1212; font-weight:bold; color:#fff;}
 
