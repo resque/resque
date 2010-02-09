@@ -114,6 +114,14 @@ context "Resque::Worker" do
     assert_equal [], Resque.workers
   end
 
+  test "removes worker with stringified id" do
+    @worker.work(0) do
+      worker_id = Resque.workers[0].to_s
+      Resque.remove_worker(worker_id)
+      assert_equal [], Resque.workers
+   end
+  end
+
   test "records what it is working on" do
     @worker.work(0) do
       task = @worker.job
