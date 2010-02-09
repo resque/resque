@@ -2,6 +2,9 @@
 
 * Fallback when unable to bind QUIT and USR1 for Windows and JRuby.
 * Fallback when no `Kernel.fork` is provided (for IronRuby).
+* Web: Rounded corners in Firefox
+* Cut down system calls in `Worker#prune_dead_workers`
+* Enable switching DB in a Redis server from config
 
 ## 1.3.1 (2010-01-11)
 
