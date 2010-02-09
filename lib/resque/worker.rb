@@ -110,7 +110,7 @@ module Resque
       loop do
         break if @shutdown
 
-        if job = reserve
+        if not @paused and job = reserve
           log "got: #{job.inspect}"
 
           if @child = fork
@@ -131,7 +131,7 @@ module Resque
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
-          $0 = "resque: Waiting for #{@queues.join(',')}"
+          $0 = @paused ? "resque: Paused" : "resque: Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
@@ -223,6 +223,8 @@ module Resque
     #  INT: Shutdown immediately, stop processing jobs.
     # QUIT: Shutdown after the current job has finished processing.
     # USR1: Kill the forked child immediately, continue processing jobs.
+    # USR2: Don't process any new jobs
+    # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
       trap('TERM') { shutdown!  }
       trap('INT')  { shutdown!  }
@@ -230,8 +232,10 @@ module Resque
       begin
         trap('QUIT') { shutdown   }
         trap('USR1') { kill_child }
+        trap('USR2') { pause_processing }
+        trap('CONT') { unpause_processing }
       rescue ArgumentError
-        warn "Signals QUIT and USR1 not supported."
+        warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
       log! "Registered signals"
@@ -262,6 +266,19 @@ module Resque
           shutdown
         end
       end
+    end
+
+    # Stop processing jobs after the current one has completed (if we're
+    # currently running one).
+    def pause_processing
+        log "USR2 received; pausing job processing"
+        @paused = true
+    end
+    
+    # Start processing jobs again after a pause
+    def unpause_processing
+        log "CONT received; resuming job processing"
+        @paused = false
     end
 
     # Looks for any workers which should be running on this server
