@@ -25,7 +25,7 @@ module Resque
     case server
     when String
       host, port, dbid = server.split(':')
-      redis = Redis.new(:host => host, :port => port, :thread_safe => true, :db=>dbid || 0)
+      redis = Redis.new(:host => host, :port => port, :thread_safe => true, :db=>dbid)
       @redis = Redis::Namespace.new(:resque, :redis => redis)
     when Redis
       @redis = Redis::Namespace.new(:resque, :redis => server)
