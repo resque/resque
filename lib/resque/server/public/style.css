@@ -31,8 +31,9 @@ body { padding:0; margin:0; }
 
 #main table.queues { width:40%;}
 #main table.queues td.queue { font-weight:bold; width:50%;}
-#main table.queues tr.failed td { background:#ffecec; border-top:2px solid #d37474; font-size:90%; color:#d37474;}
-#main table.queues tr.failed td a{  color:#d37474;}
+#main table.queues tr.failed td { border-top:2px solid; font-size:90%; }
+#main table.queues tr.failure td { background:#ffecec; border-top:2px solid #d37474; font-size:90%; color:#d37474;}
+#main table.queues tr.failure td a{ color:#d37474;}
 
 #main table.jobs td.class { font-family:Monaco, "Courier New", monospace; font-size:90%; width:50%;}
 #main table.jobs td.args{ width:50%;}

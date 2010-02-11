@@ -37,7 +37,7 @@
       <td class='size'><%= resque.size queue %></td>
     </tr>
     <% end %>
-    <tr class='failed'>
+    <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
       <td class='queue failed'><a class="queue" href="<%= url :failed %>">failed</a></td>
       <td class='size'><%= Resque::Failure.count %></td>
     </tr>
