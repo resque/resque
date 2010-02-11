@@ -8,6 +8,9 @@
 * Support USR2 and CONT to stop and start job processing.
 * Web: Add example failing job
 * Bugfix: `Worker#unregister_worker` shouldn't call `done_working`
+* Bugfix: Example god config now restarts Resque properly.
+* Multiple failure backends now permitted.
+* Hoptoad failure backend updated to new API
 
 ## 1.3.1 (2010-01-11)
 
