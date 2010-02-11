@@ -20,12 +20,16 @@ module Resque
   include Helpers
   extend self
 
-  # Accepts a 'hostname:port' string or a Redis server.
+  # Accepts:
+  #   1. A 'hostname:port' string
+  #   2. A 'hostname:port:db' string (to select the Redis db)
+  #   3. An instance of `Redis`
   def redis=(server)
     case server
     when String
-      host, port, dbid = server.split(':')
-      redis = Redis.new(:host => host, :port => port, :thread_safe => true, :db=>dbid)
+      host, port, db = server.split(':')
+      redis = Redis.new(:host => host, :port => port,
+        :thread_safe => true, :db => db)
       @redis = Redis::Namespace.new(:resque, :redis => redis)
     when Redis
       @redis = Redis::Namespace.new(:resque, :redis => server)
