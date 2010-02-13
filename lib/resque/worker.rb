@@ -416,6 +416,9 @@ module Resque
       end
     end
 
+    # Given a string, sets the procline ($0) and logs.
+    # Procline is always in the format of:
+    #   resque-VERSION: STRING
     def procline(string)
       $0 = "resque-#{Resque::Version}: #{string}"
       log! $0
