@@ -1,3 +1,7 @@
+## 1.4.1 (2010-??-??)
+
+* Web bugfix: Ignore idle works in the "working" page
+
 ## 1.4.0 (2010-02-11)
 
 * Fallback when unable to bind QUIT and USR1 for Windows and JRuby.

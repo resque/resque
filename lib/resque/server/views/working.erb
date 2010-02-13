@@ -45,6 +45,8 @@
 
     <% for worker in workers.sort_by { |w| w.job['run_at'] ? w.job['run_at'] : '' } %>
       <% job = worker.job %>
+      <% next if worker.idle? %>
+
       <tr>
         <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>
