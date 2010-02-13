@@ -115,14 +115,10 @@ module Resque
 
           if @child = fork
             rand # Reseeding
-            procline = "resque: Forked #{@child} at #{Time.now.to_i}"
-            $0 = procline
-            log! procline
+            procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait
           else
-            procline = "resque: Processing #{job.queue} since #{Time.now.to_i}"
-            $0 = procline
-            log! procline
+            procline "Processing #{job.queue} since #{Time.now.to_i}"
             process(job, &block)
             exit! unless @cant_fork
           end
@@ -131,7 +127,7 @@ module Resque
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
-          $0 = @paused ? "resque: Paused" : "resque: Waiting for #{@queues.join(',')}"
+          procline @paused ? "Paused" : "Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
@@ -418,6 +414,11 @@ module Resque
       `ps -A -o pid,command | grep [r]esque`.split("\n").map do |line|
         line.split(' ')[0]
       end
+    end
+
+    def procline(string)
+      $0 = "resque-#{Resque::Version}: #{string}"
+      log! $0
     end
 
     # Log a message to STDOUT if we are verbose or very_verbose.

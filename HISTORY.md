@@ -1,5 +1,6 @@
-## 1.4.1 (2010-??-??)
+## 1.5.0 (2010-??-??)
 
+* Version now included in procline, e.g. `resque-1.5: Message`
 * Web bugfix: Ignore idle works in the "working" page
 
 ## 1.4.0 (2010-02-11)
