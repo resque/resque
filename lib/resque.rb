@@ -6,6 +6,8 @@ rescue LoadError
   require 'json'
 end
 
+require 'resque/version'
+
 require 'resque/errors'
 
 require 'resque/failure'
