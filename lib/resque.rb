@@ -133,13 +133,38 @@ module Resque
   # If either of those conditions are met, it will use the value obtained
   # from performing one of the above operations to determine the queue.
   #
-  # If no queue can be inferred this method will return a non-true value.
+  # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
-    queue = klass.instance_variable_get(:@queue)
-    queue ||= klass.queue if klass.respond_to?(:queue)
-    Job.create(queue, klass, *args)
+    Job.create(queue_from_class(klass), klass, *args)
+  end
+
+  # This method can be used to conveniently remove a job from a queue.
+  # It assumes the class you're passing it is a real Ruby class (not
+  # a string or reference) which either:
+  #
+  #   a) has a @queue ivar set
+  #   b) responds to `queue`
+  #
+  # If either of those conditions are met, it will use the value obtained
+  # from performing one of the above operations to determine the queue.
+  #
+  # If no queue can be inferred this method will raise a `Resque::NoQueueError`
+  #
+  # If no args are given, this method will dequeue *all* jobs matching
+  # the provided class. See `Resque::Job.destroy` for more information.
+  #
+  # This method is considered part of the `stable` API.
+  def dequeue(klass, *args)
+    Job.destroy(queue_from_class(klass), klass, *args)
+  end
+
+  # Given a class, try to extrapolate an appropriate queue based on a
+  # class instance variable or `queue` method.
+  def queue_from_class(klass)
+    klass.instance_variable_get(:@queue) ||
+      (klass.respond_to?(:queue) and klass.queue)
   end
 
   # This method will return a `Resque::Job` object or a non-true value

@@ -50,13 +50,28 @@ context "Resque" do
     assert_equal nil, Resque.reserve(:ivar)
   end
 
+  test "can remove jobs from a queue by way of an ivar" do
+    assert_equal 0, Resque.size(:ivar)
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 30, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert Resque::Job.create(:ivar, 'blah-job', 20, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert_equal 5, Resque.size(:ivar)
+
+    assert Resque.dequeue(SomeIvarJob, 30, '/tmp')
+    assert_equal 4, Resque.size(:ivar)
+    assert Resque.dequeue(SomeIvarJob)
+    assert_equal 1, Resque.size(:ivar)
+  end
+
   test "jobs have a nice #inspect" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     job = Resque.reserve(:jobs)
     assert_equal '(Job{jobs} | SomeJob | [20, "/tmp"])', job.inspect
   end
 
-  test "jobs can be dropped from a queue" do
+  test "jobs can be destroyed" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'BadJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')

@@ -36,7 +36,7 @@ module Resque
     #
     # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
-      if queue.to_s.empty?
+      if !queue
         raise NoQueueError.new("Jobs must be placed onto a queue.")
       end
 

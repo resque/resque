@@ -2,6 +2,8 @@
 
 * Version now included in procline, e.g. `resque-1.5.0: Message`
 * Web bugfix: Ignore idle works in the "working" page
+* Added `Resque::Job.destroy(queue, klass, *args)`
+* Added `Resque.dequeue(klass, *args)`
 
 ## 1.4.0 (2010-02-11)
 
