@@ -1,3 +1,7 @@
+## 1.5.1 (2010-??-??)
+
+* `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
+
 ## 1.5.0 (2010-02-17)
 
 * Version now included in procline, e.g. `resque-1.5.0: Message`

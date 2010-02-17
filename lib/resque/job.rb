@@ -50,6 +50,8 @@ module Resque
     # Removes a job from a queue. Expects a string queue name, a
     # string class name, and, optionally, args.
     #
+    # Returns the number of jobs destroyed.
+    #
     # If no args are provided, it will remove all jobs of the class
     # provided.
     #
@@ -72,6 +74,7 @@ module Resque
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
       queue = "queue:#{queue}"
+      destroyed = 0
 
       redis.lrange(queue, 0, -1).each do |string|
         json   = decode(string)
@@ -80,9 +83,11 @@ module Resque
         match &= json['args'] == args unless args.empty?
 
         if match
-          redis.lrem(queue, 0, string)
+          destroyed += redis.lrem(queue, 0, string).to_i
         end
       end
+
+      destroyed
     end
 
     # Given a string queue name, returns an instance of Resque::Job

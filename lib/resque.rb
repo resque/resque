@@ -156,6 +156,8 @@ module Resque
   # the provided class. See `Resque::Job.destroy` for more
   # information.
   #
+  # Returns the number of jobs destroyed.
+  #
   # Example:
   #
   #   # Removes all jobs of class `UpdateNetworkGraph`
