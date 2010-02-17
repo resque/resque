@@ -47,6 +47,44 @@ module Resque
       Resque.push(queue, :class => klass.to_s, :args => args)
     end
 
+    # Removes a job from a queue. Expects a string queue name, a
+    # string class name, and, optionally, args.
+    #
+    # If no args are provided, it will remove all jobs of the class
+    # provided.
+    #
+    # That is, for these two jobs:
+    #
+    # { 'class' => 'UpdateGraph', 'args' => ['defunkt'] }
+    # { 'class' => 'UpdateGraph', 'args' => ['mojombo'] }
+    #
+    # The following call will remove both:
+    #
+    #   Resque::Job.destroy(queue, 'UpdateGraph')
+    #
+    # Whereas specifying args will only remove the 2nd job:
+    #
+    #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
+    #
+    # This method can be potentially very slow and memory intensive,
+    # depending on the size of your queue, as it loads all jobs into
+    # a Ruby array before processing.
+    def self.destroy(queue, klass, *args)
+      klass = klass.to_s
+      queue = "queue:#{queue}"
+
+      redis.lrange(queue, 0, -1).each do |string|
+        json   = decode(string)
+
+        match  = json['class'] == klass
+        match &= json['args'] == args unless args.empty?
+
+        if match
+          redis.lrem(queue, 0, string)
+        end
+      end
+    end
+
     # Given a string queue name, returns an instance of Resque::Job
     # if any jobs are available. If not, returns nil.
     def self.reserve(queue)

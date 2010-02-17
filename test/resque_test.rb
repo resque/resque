@@ -56,6 +56,20 @@ context "Resque" do
     assert_equal '(Job{jobs} | SomeJob | [20, "/tmp"])', job.inspect
   end
 
+  test "jobs can be dropped from a queue" do
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 30, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 20, '/tmp')
+
+    assert_equal 5, Resque.size(:jobs)
+    Resque::Job.destroy(:jobs, 'SomeJob')
+    assert_equal 3, Resque.size(:jobs)
+    Resque::Job.destroy(:jobs, 'BadJob', 30, '/tmp')
+    assert_equal 2, Resque.size(:jobs)
+  end
+
   test "jobs can test for equality" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
