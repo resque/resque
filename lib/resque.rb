@@ -153,7 +153,16 @@ module Resque
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
   # If no args are given, this method will dequeue *all* jobs matching
-  # the provided class. See `Resque::Job.destroy` for more information.
+  # the provided class. See `Resque::Job.destroy` for more
+  # information.
+  #
+  # Example:
+  #
+  #   # Removes all jobs of class `UpdateNetworkGraph`
+  #   Resque.dequeue(GitHub::Jobs::UpdateNetworkGraph)
+  #
+  #   # Removes all jobs of class `UpdateNetworkGraph` with matching args.
+  #   Resque.dequeue(GitHub::Jobs::UpdateNetworkGraph, 'repo:135325')
   #
   # This method is considered part of the `stable` API.
   def dequeue(klass, *args)
