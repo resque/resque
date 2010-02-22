@@ -34,8 +34,7 @@ module Resque
       redis = Redis.new(:host => host, :port => port,
         :thread_safe => true, :db => db)
       @redis = Redis::Namespace.new(:resque, :redis => redis)
-    when Redis
-    when DistRedis
+    when Redis, DistRedis
       @redis = Redis::Namespace.new(:resque, :redis => server)
     else
       raise "I don't know what to do with #{server.inspect}"
