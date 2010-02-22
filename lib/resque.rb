@@ -26,6 +26,7 @@ module Resque
   #   1. A 'hostname:port' string
   #   2. A 'hostname:port:db' string (to select the Redis db)
   #   3. An instance of `Redis`
+  #   4. An instance of `DistRedis`
   def redis=(server)
     case server
     when String
@@ -33,7 +34,7 @@ module Resque
       redis = Redis.new(:host => host, :port => port,
         :thread_safe => true, :db => db)
       @redis = Redis::Namespace.new(:resque, :redis => redis)
-    when Redis
+    when Redis, DistRedis
       @redis = Redis::Namespace.new(:resque, :redis => server)
     else
       raise "I don't know what to do with #{server.inspect}"
@@ -229,7 +230,8 @@ module Resque
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
-    redis.keys("*").map do |key|
+    redis_keys = redis.keys("*").flatten
+    redis_keys.map do |key|
       key.sub('resque:', '')
     end
   end

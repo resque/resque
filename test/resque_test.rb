@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/test_helper'
+# require 'dist_redis'
 
 context "Resque" do
   setup do
@@ -8,6 +9,10 @@ context "Resque" do
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
   end
+
+  # test "can use DistRedis" do
+  #   assert Resque.redis = DistRedis.new({:hosts => ['localhost:9736', 'localhost:9736']})
+  # end
 
   test "can put jobs on a queue" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
