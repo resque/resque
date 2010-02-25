@@ -15,4 +15,9 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
     path = (ENV['RESQUECONFIG'] || v.args.first)
     load path.to_s.strip if path
   }
-})
+}) do |runner, opts, app|
+  opts.on('-N NAMESPACE', "--namespace NAMESPACE", "set the Redis namespace") {|namespace|
+    runner.logger.info "Using Redis namespace '#{namespace}'"
+    Resque.redis.namespace = namespace
+  }
+end
