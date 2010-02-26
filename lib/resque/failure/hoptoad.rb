@@ -11,18 +11,13 @@ module Resque
     #   Resque::Failure::Hoptoad.configure do |config|
     #     config.api_key = 'blah'
     #     config.secure = true
-    #     config.subdomain = 'your_hoptoad_subdomain'
     #   end
     class Hoptoad < Base
       #from the hoptoad plugin
       INPUT_FORMAT = %r{^([^:]+):(\d+)(?::in `([^']+)')?$}.freeze
       
       class << self
-        attr_accessor :secure, :api_key, :subdomain
-      end
-
-      def self.url
-        "http://#{subdomain}.hoptoadapp.com/" if subdomain
+        attr_accessor :secure, :api_key
       end
 
       def self.count
