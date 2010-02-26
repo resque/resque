@@ -23,7 +23,11 @@ module Resque
       if defined? Yajl
         Yajl::Parser.parse(object, :check_utf8 => false)
       else
-        JSON.parse(object)
+        begin
+          JSON.parse(object)
+        rescue JSON::ParserError
+          logger.error "#{$!}"
+        end
       end
     end
 
