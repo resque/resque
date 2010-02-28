@@ -24,7 +24,7 @@ namespace :resque do
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
 
-  desc "Start multiple Resque workers"
+  desc "Start multiple Resque workers. Should only be used in dev mode."
   task :workers do
     threads = []
 
