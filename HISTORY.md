@@ -1,6 +1,7 @@
 ## 1.5.1 (2010-??-??)
 
 * `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
+* Hoptoad notifier improvements
 
 ## 1.5.0 (2010-02-17)
 
