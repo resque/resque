@@ -32,13 +32,14 @@ module Resque
         request.env['SCRIPT_NAME']
       end
 
-      def class_if_current(page = '')
-        'class="current"' if current_page.include? page.to_s
+      def class_if_current(path = '')
+        'class="current"' if current_page.include?(path.to_s)
       end
 
       def tab(name)
         dname = name.to_s.downcase
-        "<li #{class_if_current(dname)}><a href='#{url dname}'>#{name}</a></li>"
+        path = url(dname)
+        "<li #{class_if_current(path)}><a href='#{path}'>#{name}</a></li>"
       end
 
       def tabs

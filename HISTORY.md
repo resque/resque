@@ -2,6 +2,7 @@
 
 * `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
 * Hoptoad notifier improvements
+* Web bugfix: Tabs highlight properly now
 
 ## 1.5.0 (2010-02-17)
 
