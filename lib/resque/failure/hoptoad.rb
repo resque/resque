@@ -1,4 +1,3 @@
-require 'net/http'
 require 'net/https'
 require 'builder'
 require 'uri'
@@ -12,15 +11,15 @@ module Resque
     #   Resque::Failure::Hoptoad.configure do |config|
     #     config.api_key = 'blah'
     #     config.secure = true
-    #     
+    #
     #     # optional proxy support
     #     config.proxy_host = 'x.y.z.t'
     #     config.proxy_port = 8080
     #   end
     class Hoptoad < Base
-      #from the hoptoad plugin
-      INPUT_FORMAT = %r{^([^:]+):(\d+)(?::in `([^']+)')?$}.freeze
-      
+      # From the hoptoad plugin
+      INPUT_FORMAT = /^([^:]+):(\d+)(?::in `([^']+)')?$/
+
       class << self
         attr_accessor :secure, :api_key, :proxy_host, :proxy_port
       end
@@ -36,14 +35,11 @@ module Resque
         Resque::Failure.backend = self
       end
 
-      def request
-        use_proxy? ? Net::HTTP::Proxy(self.class.proxy_host, self.class.proxy_port) : Net::HTTP
-      end
-
       def save
         http = use_ssl? ? :https : :http
         url = URI.parse("#{http}://hoptoadapp.com/notifier_api/v2/notices")
 
+        request = Net::HTTP::Proxy(self.class.proxy_host, self.class.proxy_port)
         http = request.new(url.host, url.port)
         headers = {
           'Content-type' => 'text/xml',
@@ -52,9 +48,9 @@ module Resque
 
         http.read_timeout = 5 # seconds
         http.open_timeout = 2 # seconds
-        
+
         http.use_ssl = use_ssl?
-        
+
         begin
           response = http.post(url.path, xml, headers)
         rescue TimeoutError => e
@@ -69,7 +65,7 @@ module Resque
           log "Hoptoad Failure: #{response.class}\n#{body}"
         end
       end
-      
+
       def xml
         x = Builder::XmlMarkup.new
         x.instruct!
@@ -102,10 +98,10 @@ module Resque
           x.tag!("server-environment") do
             x.tag!("environment-name",RAILS_ENV)
           end
-          
+
         end
       end
-      
+
       def fill_in_backtrace_lines(x)
         exception.backtrace.each do |unparsed_line|
           _, file, number, method = unparsed_line.match(INPUT_FORMAT).to_a
@@ -113,10 +109,6 @@ module Resque
         end
       end
 
-      def use_proxy?
-        self.class.proxy_host
-      end
-      
       def use_ssl?
         self.class.secure
       end
