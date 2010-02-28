@@ -86,7 +86,7 @@ module Resque
       ensure
         @partial = false
       end
-      
+
       def poll
         if @polling
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
@@ -95,7 +95,7 @@ module Resque
         end
         "<p class='poll'>#{text}</p>"
       end
-      
+
     end
 
     def show(page, layout = true)
@@ -120,7 +120,7 @@ module Resque
         show page
       end
     end
-    
+
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
         content_type "text/plain"
@@ -136,7 +136,7 @@ module Resque
         show :failed
       end
     end
-    
+
     post "/failed/clear" do
       Resque::Failure.clear
       redirect u('failed')
