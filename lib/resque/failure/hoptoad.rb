@@ -1,5 +1,7 @@
 require 'net/http'
+require 'net/https'
 require 'builder'
+require 'uri'
 
 module Resque
   module Failure
@@ -10,18 +12,17 @@ module Resque
     #   Resque::Failure::Hoptoad.configure do |config|
     #     config.api_key = 'blah'
     #     config.secure = true
-    #     config.subdomain = 'your_hoptoad_subdomain'
+    #     
+    #     # optional proxy support
+    #     config.proxy_host = 'x.y.z.t'
+    #     config.proxy_port = 8080
     #   end
     class Hoptoad < Base
       #from the hoptoad plugin
       INPUT_FORMAT = %r{^([^:]+):(\d+)(?::in `([^']+)')?$}.freeze
       
       class << self
-        attr_accessor :secure, :api_key, :subdomain
-      end
-
-      def self.url
-        "http://#{subdomain}.hoptoadapp.com/" if subdomain
+        attr_accessor :secure, :api_key, :proxy_host, :proxy_port
       end
 
       def self.count
@@ -35,13 +36,15 @@ module Resque
         Resque::Failure.backend = self
       end
 
-      
+      def request
+        use_proxy? ? Net::HTTP::Proxy(self.class.proxy_host, self.class.proxy_port) : Net::HTTP
+      end
 
       def save
         http = use_ssl? ? :https : :http
         url = URI.parse("#{http}://hoptoadapp.com/notifier_api/v2/notices")
 
-        http = Net::HTTP.new(url.host, url.port)
+        http = request.new(url.host, url.port)
         headers = {
           'Content-type' => 'text/xml',
           'Accept' => 'text/xml, application/xml'
@@ -51,7 +54,7 @@ module Resque
         http.open_timeout = 2 # seconds
         
         http.use_ssl = use_ssl?
-
+        
         begin
           response = http.post(url.path, xml, headers)
         rescue TimeoutError => e
@@ -110,6 +113,10 @@ module Resque
         end
       end
 
+      def use_proxy?
+        self.class.proxy_host
+      end
+      
       def use_ssl?
         self.class.secure
       end
