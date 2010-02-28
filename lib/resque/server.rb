@@ -56,19 +56,23 @@ module Resque
           Resque.redis.scard(key)
         when 'string'
           Resque.redis.get(key).length
+        when 'zset'
+          Resque.redis.zcard(key)
         end
       end
 
-      def redis_get_value_as_array(key)
+      def redis_get_value_as_array(key, start=0)
         case Resque.redis.type(key)
         when 'none'
           []
         when 'list'
-          Resque.redis.lrange(key, 0, 20)
+          Resque.redis.lrange(key, start, start + 20)
         when 'set'
-          Resque.redis.smembers(key)
+          Resque.redis.smembers(key)[start..(start + 20)]
         when 'string'
           [Resque.redis.get(key)]
+        when 'zset'
+          Resque.redis.zrange(key, start, start + 20)
         end
       end
 
