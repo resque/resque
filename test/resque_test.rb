@@ -217,4 +217,8 @@ context "Resque" do
     assert_equal 1, stats[:failed]
     assert_equal ['localhost:9736'], stats[:servers]
   end
+  
+  test "decode bad json" do
+    assert_nil Resque.decode("{\"error\":\"Module not found \\u002\"}")
+  end
 end
