@@ -25,7 +25,7 @@ module Resque
       end
       
       def self.clear
-        Resque.redis.delete('resque:failed')
+        Resque.redis.del(:failed)
       end
       
     end
