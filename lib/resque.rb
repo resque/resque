@@ -48,6 +48,16 @@ module Resque
     self.redis
   end
 
+  #Set a proc that will be called once before the worker forks
+  def before_fork=(before_fork)
+    @before_fork = before_fork
+  end
+
+  #Returns the before_fork proc
+  def before_fork
+    @before_fork
+  end
+
   def to_s
     "Resque Client connected to #{redis.server}"
   end

@@ -240,4 +240,21 @@ context "Resque::Worker" do
     @worker.work(0)
     assert_equal 1, Resque.info[:processed]
   end
+
+  test "Will call a pre-fork proc when the worker starts if set in the initializer only once" do
+    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    Resque::Worker.before_fork = Resque.before_fork
+    workerA = Resque::Worker.new(:jobs)
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    
+    assert !$BEFORE_FORK_CALLED
+    workerA.work(0)
+    assert $BEFORE_FORK_CALLED
+    
+    $BEFORE_FORK_CALLED = false
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    assert !$BEFORE_FORK_CALLED
+    Resque::Worker.send(:remove_class_variable, :@@before_fork)
+  end
 end
