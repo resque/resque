@@ -310,12 +310,16 @@ module Resque
 
     #Call any before_fork procs, if any
     def call_before_fork
-      before_fork.call if before_fork
+      return unless before_fork
+      log "Calling before_fork"
+      before_fork.call
     end
 
     #Call any before_fork procs, if any
     def call_after_fork
-      after_fork.call if after_fork
+      return unless after_fork
+      log "Calling after_fork"
+      after_fork.call
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
