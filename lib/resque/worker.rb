@@ -207,7 +207,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
-      before_fork
+      call_before_fork
       register_worker
     end
 
@@ -313,8 +313,8 @@ module Resque
     end
 
     #Call any before_fork procs, if any
-    def before_fork
-      @@before_fork.call if Worker.class_variable_defined?(:@@before_fork)
+    def call_before_fork
+      before_fork.call if before_fork
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.

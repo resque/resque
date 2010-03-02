@@ -6,6 +6,11 @@ module Resque
       Resque.redis
     end
 
+    #Direct access to the before_fork proc
+    def before_fork
+      Resque.before_fork  
+    end
+ 
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
