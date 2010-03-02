@@ -28,7 +28,7 @@ task :gem => [ :test, :gemspec, :build ]
 begin
   require 'jeweler'
   require 'resque/version'
-
+ 
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "scotttam-resque"
     gemspec.summary = %Q{scotttam-resque is an extension to the resque queue system that has pre-fork hooks and ability to turn off forking.}
@@ -37,7 +37,7 @@ begin
     gemspec.homepage = "http://github.com/scotttam/resque"
     gemspec.authors = ["Chris Wanstrath, Scott Tamosunas"]
     gemspec.version = Resque::Version
-
+ 
     gemspec.add_dependency "redis"
     gemspec.add_dependency "redis-namespace"
     gemspec.add_dependency "vegas", ">=0.1.2"
@@ -62,5 +62,5 @@ task :publish => [ :test, :gemspec, :build ] do
   system "git push origin master"
   system "gem push pkg/scotttam-resque-#{Resque::Version}.gem"
   system "git clean -fd"
-  exec "rake pages"
+  # exec "rake pages"
 end
