@@ -648,6 +648,11 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
+If you wish to have a Proc called before the worker forks for the first time, you
+can add it in the initializer like so:
+
+    Resque.before_fork = Proc.new { puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME" }
+
 
 Namespaces
 ----------
