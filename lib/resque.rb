@@ -58,6 +58,16 @@ module Resque
     @before_fork
   end
 
+  #Set a proc that will be called after the worker forks
+  def after_fork=(after_fork)
+    @after_fork = after_fork
+  end
+
+  #Returns the after_fork proc
+  def after_fork
+    @after_fork
+  end
+
   def to_s
     "Resque Client connected to #{redis.server}"
   end

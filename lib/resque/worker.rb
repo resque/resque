@@ -61,11 +61,6 @@ module Resque
       redis.sismember(:workers, worker_id)
     end
 
-    #Sets the before_hook proc
-    def self.before_fork=(before_fork)
-      @@before_fork = before_fork
-    end
-
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
     # queue given for a job. If none is found, it will check the
@@ -147,6 +142,7 @@ module Resque
       return unless job ||= reserve
 
       begin
+        call_after_fork
         working_on job
         job.perform
       rescue Object => e
@@ -315,6 +311,11 @@ module Resque
     #Call any before_fork procs, if any
     def call_before_fork
       before_fork.call if before_fork
+    end
+
+    #Call any before_fork procs, if any
+    def call_after_fork
+      after_fork.call if after_fork
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
