@@ -30,12 +30,12 @@ begin
   require 'resque/version'
 
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "resque"
-    gemspec.summary = ""
-    gemspec.description = ""
-    gemspec.email = "chris@ozmm.org"
-    gemspec.homepage = "http://github.com/defunkt/resque"
-    gemspec.authors = ["Chris Wanstrath"]
+    gemspec.name = "scotttam-resque"
+    gemspec.summary = %Q{scotttam-resque is an extension to the resque queue system that has pre-fork hooks and ability to turn off forking.}
+    gemspec.description = %Q{scotttam-resque is an extension to the resque queue system that has pre-fork hooks and ability to turn off forking. Add more description here.}
+    gemspec.email = "tamosunas@gmail.com"
+    gemspec.homepage = "http://github.com/scotttam/resque"
+    gemspec.authors = ["Chris Wanstrath, Scott Tamosunas"]
     gemspec.version = Resque::Version
 
     gemspec.add_dependency "redis"
