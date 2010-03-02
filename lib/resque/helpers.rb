@@ -10,6 +10,11 @@ module Resque
     def before_fork
       Resque.before_fork  
     end
+
+    #Direct access to the after_fork proc
+    def after_fork
+      Resque.after_fork  
+    end
  
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.

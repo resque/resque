@@ -119,7 +119,7 @@ context "Resque::Worker" do
       worker_id = Resque.workers[0].to_s
       Resque.remove_worker(worker_id)
       assert_equal [], Resque.workers
-   end
+    end
   end
 
   test "records what it is working on" do
@@ -241,20 +241,29 @@ context "Resque::Worker" do
     assert_equal 1, Resque.info[:processed]
   end
 
-  test "Will call a pre-fork proc when the worker starts if set in the initializer only once" do
+  test "Will call a before_fork proc when the worker starts if set in the initializer only once" do
+    Resque.redis.flush_all
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    Resque::Worker.before_fork = Resque.before_fork
     workerA = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    
+
     assert !$BEFORE_FORK_CALLED
     workerA.work(0)
     assert $BEFORE_FORK_CALLED
-    
-    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = nil
+  end
+
+  test "Will call a after_fork proc after the worker has successfully forked" do
+    Resque.redis.flush_all
+    $AFTER_FORK_CALLED = false
+    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    assert !$BEFORE_FORK_CALLED
-    Resque::Worker.send(:remove_class_variable, :@@before_fork)
+    workerA.work(0)
+    assert $AFTER_FORK_CALLED
+    Resque.after_fork = nil
   end
 end
