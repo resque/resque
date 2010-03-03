@@ -1,3 +1,7 @@
+## 1.5.2 (2010-03-03)
+
+* Bugfix: JSON check was crazy.
+
 ## 1.5.1 (2010-03-03)
 
 * `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
