@@ -1,8 +1,15 @@
-## 1.5.1 (2010-??-??)
+## 1.5.1 (2010-03-03)
 
 * `Job.destroy` and `Resque.dequeue` return the # of destroyed jobs.
 * Hoptoad notifier improvements
+* Specify the namespace with `resque-web` by passing `-N namespace`
+* Bugfix: Don't crash when trying to parse invalid JSON.
+* Bugfix: Non-standard namespace support
+* Web: Red backgound for queue "failed" only shown if there are failed jobs.
 * Web bugfix: Tabs highlight properly now
+* Web bugfix: ZSET partial support in stats
+* Web bugfix: Deleting failed jobs works again
+* Web bugfix: Sets (or zsets, lists, etc) now paginate.
 
 ## 1.5.0 (2010-02-17)
 
