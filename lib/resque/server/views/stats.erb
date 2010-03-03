@@ -2,7 +2,6 @@
 
 <% if params[:key] %>
 
-<%#= partial resque.redis.type :key %>
 <%= partial resque.redis.type(params[:key]).eql?("string") ? :key_string : :key_sets %>
 
 <% elsif params[:id] == "resque" %>
