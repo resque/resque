@@ -675,6 +675,10 @@ The `after_fork` hook will be run in the child process and is passed
 the current job. Any changes you make, therefor, will only live as
 long as the job currently being processes.
 
+All hooks can also be set using a setter, e.g.
+
+    Resque.after_fork = proc { puts "called" }
+
 Namespaces
 ----------
 

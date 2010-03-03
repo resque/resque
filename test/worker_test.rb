@@ -241,7 +241,7 @@ context "Resque::Worker" do
     assert_equal 1, Resque.info[:processed]
   end
 
-  test "Will call a before_fork proc when the worker starts if set in the initializer only once" do
+  test "Will call a before_first_fork hook only once" do
     Resque.redis.flush_all
     $BEFORE_FORK_CALLED = false
     Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -254,7 +254,7 @@ context "Resque::Worker" do
     Resque.before_first_fork = nil
   end
 
-  test "Will call a after_fork proc after the worker has successfully forked" do
+  test "Will call an after_fork hook after forking" do
     Resque.redis.flush_all
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
