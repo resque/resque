@@ -4,6 +4,10 @@ context "Resque::Worker" do
   setup do
     Resque.redis.flush_all
 
+    Resque.before_first_fork = nil
+    Resque.before_fork = nil
+    Resque.after_fork = nil
+
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
@@ -243,15 +247,31 @@ context "Resque::Worker" do
 
   test "Will call a before_first_fork hook only once" do
     Resque.redis.flush_all
-    $BEFORE_FORK_CALLED = false
-    Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    $BEFORE_FORK_CALLED = 0
+    Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
     workerA = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
 
+    assert_equal 0, $BEFORE_FORK_CALLED
+
+    workerA.work(0)
+    assert_equal 1, $BEFORE_FORK_CALLED
+
+    # TODO: Verify it's only run once. Not easy.
+#     workerA.work(0)
+#     assert_equal 1, $BEFORE_FORK_CALLED
+  end
+
+  test "Will call a before_fork hook before forking" do
+    Resque.redis.flush_all
+    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+
     assert !$BEFORE_FORK_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $BEFORE_FORK_CALLED
-    Resque.before_first_fork = nil
   end
 
   test "Will call an after_fork hook after forking" do
@@ -264,6 +284,5 @@ context "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $AFTER_FORK_CALLED
-    Resque.after_fork = nil
   end
 end
