@@ -1,3 +1,7 @@
+## 1.6.0 (2010-??-??)
+
+* Added `before_first_fork`, `before_fork`, and `after_fork` hooks.
+
 ## 1.5.2 (2010-03-03)
 
 * Bugfix: JSON check was crazy.
