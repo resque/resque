@@ -410,6 +410,10 @@ the script as the final argument:
 
     $ resque-web -p 8282 rails_root/config/initializers/resque.rb
 
+You can also set the namespace directly using `resque-web`:
+
+    $ resque-web -p 8282 -N myapp
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
