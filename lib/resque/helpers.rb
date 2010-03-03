@@ -6,9 +6,9 @@ module Resque
       Resque.redis
     end
 
-    #Direct access to the before_fork proc
-    def before_fork
-      Resque.before_fork  
+    #Direct access to the before_first_fork proc
+    def before_first_fork
+      Resque.before_first_fork  
     end
 
     #Direct access to the after_fork proc

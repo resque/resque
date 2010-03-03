@@ -49,13 +49,13 @@ module Resque
   end
 
   #Set a proc that will be called once before the worker forks
-  def before_fork=(before_fork)
-    @before_fork = before_fork
+  def before_first_fork=(before_first_fork)
+    @before_first_fork = before_first_fork
   end
 
-  #Returns the before_fork proc
-  def before_fork
-    @before_fork
+  #Returns the before_first_fork proc
+  def before_first_fork
+    @before_first_fork
   end
 
   #Set a proc that will be called after the worker forks

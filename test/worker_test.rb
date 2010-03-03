@@ -244,14 +244,14 @@ context "Resque::Worker" do
   test "Will call a before_fork proc when the worker starts if set in the initializer only once" do
     Resque.redis.flush_all
     $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
 
     assert !$BEFORE_FORK_CALLED
     workerA.work(0)
     assert $BEFORE_FORK_CALLED
-    Resque.before_fork = nil
+    Resque.before_first_fork = nil
   end
 
   test "Will call a after_fork proc after the worker has successfully forked" do

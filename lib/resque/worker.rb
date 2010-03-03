@@ -203,7 +203,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
-      call_before_fork
+      call_before_first_fork
       register_worker
     end
 
@@ -308,14 +308,14 @@ module Resque
       started!
     end
 
-    #Call any before_fork procs, if any
-    def call_before_fork
-      return unless before_fork
-      log "Calling before_fork"
-      before_fork.call
+    #Call any before_first_fork procs, if any
+    def call_before_first_fork
+      return unless before_first_fork
+      log "Calling before_first_fork"
+      before_first_fork.call
     end
 
-    #Call any before_fork procs, if any
+    #Call any before_first_fork procs, if any
     def call_after_fork
       return unless after_fork
       log "Calling after_fork"
