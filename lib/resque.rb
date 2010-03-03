@@ -230,7 +230,7 @@ module Resque
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
     redis.keys("*").map do |key|
-      key.sub('resque:', '')
+      key.sub("#{redis.namespace}:", '')
     end
   end
 end
