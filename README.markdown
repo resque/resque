@@ -648,11 +648,32 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
-If you wish to have a Proc called before the worker forks for the first time, you
-can add it in the initializer like so:
+If you wish to have a Proc called before the worker forks for the
+first time, you can add it in the initializer like so:
 
-    Resque.before_fork = Proc.new { puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME" }
+    Resque.before_first_fork do
+      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+    end
 
+You can also run a hook before _every_ fork:
+
+    Resque.before_fork do |job|
+      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+    end
+
+The `before_fork` hook will be run in the **parent** process. So, be
+careful - any changes you make will be permanent for the lifespan of
+the worker.
+
+And after forking:
+
+    Resque.after_fork do |job|
+      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+    end
+
+The `after_fork` hook will be run in the child process and is passed
+the current job. Any changes you make, therefor, will only live as
+long as the job currently being processes.
 
 Namespaces
 ----------
