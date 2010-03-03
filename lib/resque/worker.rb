@@ -322,11 +322,6 @@ module Resque
       after_fork.call
     end
 
-    #Call any before_fork procs, if any
-    def call_after_fork
-      after_fork.call if after_fork
-    end
-
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
       redis.srem(:workers, self)
