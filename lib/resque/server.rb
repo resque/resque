@@ -33,7 +33,7 @@ module Resque
       end
 
       def class_if_current(path = '')
-        'class="current"' if current_page.start_with?(path.to_s)
+        'class="current"' if current_page[0, path.size] == path
       end
 
       def tab(name)
