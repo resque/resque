@@ -759,6 +759,9 @@ Once you've made your great commits:
 4. Create an [Issue][2] with a link to your branch
 5. That's it!
 
+You might want to checkout our [Contributing][cb] wiki page for information
+on coding standards, new features, etc.
+
 
 Mailing List
 ------------
@@ -794,3 +797,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [2]: http://github.com/defunkt/resque/issues
 [sv]: http://semver.org/
 [rs]: http://github.com/defunkt/redis-namespace
+[cb]: http://wiki.github.com/defunkt/resque/contributing
