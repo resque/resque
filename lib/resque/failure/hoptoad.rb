@@ -96,7 +96,7 @@ module Resque
             end
           end
           x.tag!("server-environment") do
-            x.tag!("environment-name",RAILS_ENV)
+            x.tag!("environment-name",server_environment)
           end
 
         end
@@ -116,6 +116,11 @@ module Resque
       def api_key
         self.class.api_key
       end
+
+      def server_environment
+        defined?(RAILS_ENV) ? RAILS_ENV : (ENV['RACK_ENV'] || 'development')
+      end
+
     end
   end
 end
