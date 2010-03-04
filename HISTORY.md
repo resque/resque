@@ -1,6 +1,9 @@
 ## 1.6.0 (2010-??-??)
 
 * Added `before_first_fork`, `before_fork`, and `after_fork` hooks.
+* Hoptoad: Added server_environment config setting
+* Hoptoad bugfix: Don't depend on RAILS_ROOT
+* 1.8.6 compat fixes
 
 ## 1.5.2 (2010-03-03)
 
