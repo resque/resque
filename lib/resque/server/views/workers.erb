@@ -18,7 +18,7 @@
       <% host, pid, queues = worker.to_s.split(':') %>
       <td><%= host %></td>
       <td><%= pid %></td>
-      <td><span class="time"><%= worker.started %></a></td>
+      <td><span class="time"><%= worker.started %></span></td>
       <td class='queues'><%= queues.split(',').map { |q| '<a class="queue-tag" href="' + u("/queues/#{q}") + '">' + q + '</a>'}.join('') %></td>
       <td><%= worker.processed %></td>
       <td><%= worker.failed %></td>
