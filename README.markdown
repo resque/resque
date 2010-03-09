@@ -648,6 +648,9 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
+Worker Hooks
+------------
+
 If you wish to have a Proc called before the worker forks for the
 first time, you can add it in the initializer like so:
 
@@ -678,6 +681,7 @@ long as the job currently being processes.
 All hooks can also be set using a setter, e.g.
 
     Resque.after_fork = proc { puts "called" }
+
 
 Namespaces
 ----------
