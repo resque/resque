@@ -7,6 +7,7 @@ module Resque
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S"),
           :payload   => payload,
+          :exception => exception.class.to_s,
           :error     => exception.to_s,
           :backtrace => exception.backtrace,
           :worker    => worker.to_s,

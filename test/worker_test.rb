@@ -17,6 +17,13 @@ context "Resque::Worker" do
     @worker.work(0)
     assert_equal 1, Resque::Failure.count
   end
+  
+  test "failed jobs report excpetion and message" do
+    Resque::Job.create(:jobs, BadJobWithSyntaxError)
+    @worker.work(0)
+    assert_equal('SyntaxError', Resque::Failure.all['exception'])
+    assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+  end
 
   test "can peek at failed jobs" do
     10.times { Resque::Job.create(:jobs, BadJob) }

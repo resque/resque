@@ -94,3 +94,9 @@ class GoodJob
     "Good job, #{name}"
   end
 end
+
+class BadJobWithSyntaxError
+  def self.perform
+    raise SyntaxError, "Extra Bad job!"
+  end
+end

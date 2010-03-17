@@ -20,6 +20,8 @@
         <dd><code><%= job['payload']['class'] %></code></dd>
         <dt>Arguments</dt>
         <dd><pre><%=h show_args(job['payload']['args']) %></pre></dd>
+        <dt>Exception</td>
+        <dd><code><%= job['exception'] %></code></dd>
         <dt>Error</dt>
         <dd class='error'>
           <a href="#" class="backtrace"><%= h(job['error']) %></a>
