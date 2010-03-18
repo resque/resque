@@ -1,3 +1,9 @@
+## 1.6.1 (2010-??-??)
+
+* Bugfix: Workers may not be clearing their state correctly on
+  shutdown
+* Added example monit config.
+
 ## 1.6.0 (2010-03-09)
 
 * Added `before_first_fork`, `before_fork`, and `after_fork` hooks.
