@@ -3,6 +3,9 @@
 * Bugfix: Workers may not be clearing their state correctly on
   shutdown
 * Added example monit config.
+* Exception class is now recorded when an error is raised in a
+  worker.
+* resque-web: Unit tests
 
 ## 1.6.0 (2010-03-09)
 
