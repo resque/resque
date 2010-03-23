@@ -305,3 +305,39 @@ context "Resque::Job all hooks" do
     ]
   end
 end
+
+context "Resque::Job chaning callbacks from multiple sources" do
+  include PerformJob
+
+  module BeforeOne
+    def before_perform(history)
+      super rescue NoMethodError
+      history << :before_one
+    end
+  end
+
+  module BeforeTwo
+    def before_perform(history)
+      super rescue NoMethodError
+      history << :before_two
+    end
+  end
+
+  class ManyBeforesJob
+    extend BeforeOne
+    extend BeforeTwo
+    def self.perform(history)
+      history << :perform
+    end
+  end
+
+  test "extensions can call super" do
+    result = perform_job(ManyBeforesJob, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [
+      :before_one,
+      :before_two,
+      :perform
+    ]
+  end
+end
