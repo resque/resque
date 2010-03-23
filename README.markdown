@@ -661,7 +661,7 @@ first time, you can add it in the initializer like so:
 You can also run a hook before _every_ fork:
 
     Resque.before_fork do |job|
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "CALL ME BEFORE THE WORKER FORKS"
     end
 
 The `before_fork` hook will be run in the **parent** process. So, be
@@ -671,7 +671,7 @@ the worker.
 And after forking:
 
     Resque.after_fork do |job|
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "CALL ME AFTER THE WORKER FORKS"
     end
 
 The `after_fork` hook will be run in the child process and is passed
