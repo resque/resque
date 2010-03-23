@@ -233,3 +233,75 @@ context "Resque::Job on_failure" do
     assert_equal history, [:perform, "oh no"]
   end
 end
+
+context "Resque::Job all hooks" do
+  include PerformJob
+
+  class VeryHookyJob
+    def self.before_perform(history)
+      history << :before_perform
+    end
+    def self.around_perform(history)
+      history << :start_around_perform
+      yield
+      history << :finish_around_perform
+    end
+    def self.perform(history)
+      history << :perform
+    end
+    def self.after_perform(history)
+      history << :after_perform
+    end
+    def self.on_failure(exception, history)
+      history << exception.message
+    end
+  end
+
+  test "the complete hook order" do
+    result = perform_job(VeryHookyJob, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [
+      :before_perform,
+      :start_around_perform,
+      :perform,
+      :finish_around_perform,
+      :after_perform
+    ]
+  end
+
+  class VeryHookyJobThatFails
+    def self.before_perform(history)
+      history << :before_perform
+    end
+    def self.around_perform(history)
+      history << :start_around_perform
+      yield
+      history << :finish_around_perform
+    end
+    def self.perform(history)
+      history << :perform
+    end
+    def self.after_perform(history)
+      history << :after_perform
+      raise StandardError, "oh no"
+    end
+    def self.on_failure(exception, history)
+      history << exception.message
+    end
+  end
+
+  test "the complete hook order with a failure at the last minute" do
+    history = []
+    assert_raises StandardError do
+      perform_job(VeryHookyJobThatFails, history)
+    end
+    assert_equal history, [
+      :before_perform,
+      :start_around_perform,
+      :perform,
+      :finish_around_perform,
+      :after_perform,
+      "oh no"
+    ]
+  end
+end
