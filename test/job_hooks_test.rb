@@ -10,10 +10,6 @@ end
 context "Resque::Job before_perform" do
   include PerformJob
 
-  setup do
-    Resque.redis.flush_all
-  end
-
   class BeforePerformJob
     def self.before_perform(history)
       history << :before_perform
@@ -42,8 +38,7 @@ context "Resque::Job before_perform" do
   test "raises an error and does not perform if before_perform fails" do
     history = []
     assert_raises StandardError do
-      result = perform_job(BeforePerformJobFails, history)
-      assert_equal false, result, "perform returned false"
+      perform_job(BeforePerformJobFails, history)
     end
     assert_equal history, [:before_perform], "Only before_perform was run"
   end
@@ -63,5 +58,41 @@ context "Resque::Job before_perform" do
     assert_equal false, result, "perform returned false"
     assert_equal history, [:before_perform], "Only before_perform was run"
   end
+end
 
+context "Resque::Job after_perform" do
+  include PerformJob
+
+  class AfterPerformJob
+    def self.perform(history)
+      history << :perform
+    end
+    def self.after_perform(history)
+      history << :after_perform
+    end
+  end
+
+  test "it runs after_perform after perform" do
+    result = perform_job(AfterPerformJob, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [:perform, :after_perform]
+  end
+
+  class AfterPerformJobFails
+    def self.perform(history)
+      history << :perform
+    end
+    def self.after_perform(history)
+      history << :after_perform
+      raise SyntaxError
+    end
+  end
+
+  test "raises an error but has already performed if after_perform fails" do
+    history = []
+    assert_raises SyntaxError do
+      perform_job(AfterPerformJobFails, history)
+    end
+    assert_equal history, [:perform, :after_perform], "Only after_perform was run"
+  end
 end
