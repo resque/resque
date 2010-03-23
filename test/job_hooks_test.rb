@@ -178,3 +178,58 @@ context "Resque::Job around_perform" do
     assert_equal history, [:start_around_perform, :finish_around_perform], "perform was not run"
   end
 end
+
+context "Resque::Job on_failure" do
+  include PerformJob
+
+  class FailureJobThatDoesNotFail
+    def self.perform(history)
+      history << :perform
+    end
+    def self.on_failure(exception, history)
+      history << exception.message
+    end
+  end
+
+  test "it does not call on_failure if no failures occur" do
+    result = perform_job(FailureJobThatDoesNotFail, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [:perform]
+  end
+
+  class FailureJobThatFails
+    def self.perform(history)
+      history << :perform
+      raise StandardError, "oh no"
+    end
+    def self.on_failure(exception, history)
+      history << exception.message
+    end
+  end
+
+  test "it calls on_failure with the exception and then re-raises the exception" do
+    history = []
+    assert_raises StandardError do
+      perform_job(FailureJobThatFails, history)
+    end
+    assert_equal history, [:perform, "oh no"]
+  end
+
+  class FailureJobThatFailsBadly
+    def self.perform(history)
+      history << :perform
+      raise SyntaxError, "oh no"
+    end
+    def self.on_failure(exception, history)
+      history << exception.message
+    end
+  end
+
+  test "it calls on_failure even with bad exceptions" do
+    history = []
+    assert_raises SyntaxError do
+      perform_job(FailureJobThatFailsBadly, history)
+    end
+    assert_equal history, [:perform, "oh no"]
+  end
+end
