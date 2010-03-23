@@ -124,6 +124,12 @@ module Resque
         show page
       end
     end
+    
+    post "/queues/:id/remove" do
+      Resque.remove_queue(params[:id])
+      redirect u('queues')
+    end
+    
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do

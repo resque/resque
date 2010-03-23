@@ -75,4 +75,4 @@ body { padding:0; margin:0; }
 #main p.pagination a.less { float:left;}
 #main p.pagination a.more { float:right;}
 
-#main form.clear-failed {float:right; margin-top:-10px;}
+#main form {float:right; margin-top:-10px;}
