@@ -8,6 +8,8 @@ body { padding:0; margin:0; }
 .header ul li a:hover { background:#333;}
 .header ul li.current a { background:#ce1212; font-weight:bold; color:#fff;}
 
+.header .namespace { position: absolute; right: 75px; top: 10px; color: #7A7A7A; }
+
 .subnav { padding:2px 5% 7px 5%; background:#ce1212; font-size:90%;}
 .subnav li { display:inline;}
 .subnav li a { color:#fff; text-decoration:none; margin-right:10px; display:inline-block; background:#dd5b5b; padding:5px; -webkit-border-radius:3px; -moz-border-radius:3px;}
