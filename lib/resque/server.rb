@@ -129,7 +129,6 @@ module Resque
       Resque.remove_queue(params[:id])
       redirect u('queues')
     end
-    
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
@@ -149,6 +148,11 @@ module Resque
 
     post "/failed/clear" do
       Resque::Failure.clear
+      redirect u('failed')
+    end
+    
+    get "/failed/requeue/:index" do
+      Resque::Failure.requeue(params[:index])
       redirect u('failed')
     end
 

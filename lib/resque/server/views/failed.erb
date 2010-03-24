@@ -1,5 +1,6 @@
 <%start = params[:start].to_i %>
 <%failed = Resque::Failure.all(start, 20)%>
+<% index = 0 %>
 
 <h1>Failed Jobs</h1>
 <%unless failed.empty?%>
@@ -12,10 +13,20 @@
 
 <ul class='failed'>
   <%for job in failed%>
+    <% index += 1 %>
     <li>
       <dl>
         <dt>Worker</dt>
-        <dd><a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b></dd>
+        <dd>
+          <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
+          <div class='retry'>
+            <% if job['retried_at'] %>
+              Retried <b><span class="time"><%= job['retried_at'] %></span></b>
+            <% else %>
+              <a href="<%= u "failed/requeue/#{start + index - 1}" %>">Retry</a>
+            <% end %>
+          </div>
+        </dd>
         <dt>Class</dt>
         <dd><code><%= job['payload']['class'] %></code></dd>
         <dt>Arguments</dt>
@@ -25,7 +36,7 @@
         <dt>Error</dt>
         <dd class='error'>
           <a href="#" class="backtrace"><%= h(job['error']) %></a>
-          <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>          
+          <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>
         </dd>
       </dl>
       <div class='r'>
