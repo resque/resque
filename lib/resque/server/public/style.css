@@ -77,3 +77,5 @@ body { padding:0; margin:0; }
 #main p.pagination a.more { float:right;}
 
 #main form {float:right; margin-top:-10px;}
+
+#main .time a.toggle_format {text-decoration:none;}
