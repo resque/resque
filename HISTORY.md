@@ -1,4 +1,4 @@
-## 1.6.1 (2010-??-??)
+## 1.6.1 (2010-03-25)
 
 * Bugfix: Workers may not be clearing their state correctly on
   shutdown
