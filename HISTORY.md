@@ -5,7 +5,10 @@
 * Added example monit config.
 * Exception class is now recorded when an error is raised in a
   worker.
-* resque-web: Unit tests
+* web: Unit tests
+* web: Show namespace in header and footer
+* web: Remove a queue
+* web: Retry failed jobs
 
 ## 1.6.0 (2010-03-09)
 
