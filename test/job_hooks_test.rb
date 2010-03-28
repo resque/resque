@@ -1,12 +1,5 @@
 require File.dirname(__FILE__) + '/test_helper'
 
-module PerformJob
-  def perform_job(klass, *args)
-    resque_job = Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
-    resque_job.perform
-  end
-end
-
 context "Resque::Job before_perform" do
   include PerformJob
 
@@ -306,38 +299,3 @@ context "Resque::Job all hooks" do
   end
 end
 
-context "Resque::Job chaning callbacks from multiple sources" do
-  include PerformJob
-
-  module BeforeOne
-    extend Resque::Plugin
-    def before_perform(history)
-      history << :before_one
-    end
-  end
-
-  module BeforeTwo
-    extend Resque::Plugin
-    def before_perform(history)
-      history << :before_two
-    end
-  end
-
-  class ManyBeforesJob
-    extend BeforeOne
-    extend BeforeTwo
-    def self.perform(history)
-      history << :perform
-    end
-  end
-
-  test "extensions can call super" do
-    result = perform_job(ManyBeforesJob, history=[])
-    assert_equal true, result, "perform returned true"
-    assert_equal history, [
-      :before_one,
-      :before_two,
-      :perform
-    ]
-  end
-end

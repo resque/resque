@@ -63,6 +63,15 @@ def context(*args, &block)
   klass.class_eval &block
 end
 
+##
+# Helper to perform job classes
+#
+module PerformJob
+  def perform_job(klass, *args)
+    resque_job = Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
+    resque_job.perform
+  end
+end
 
 #
 # fixture classes
