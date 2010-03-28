@@ -485,6 +485,8 @@ tool that's best for your app.
 Installing Redis
 ----------------
 
+Resque requires Redis 0.900 or higher.
+
 Resque uses Redis' lists for its queues. It also stores worker state
 data in Redis.
 
@@ -528,6 +530,9 @@ Resque Dependencies
 
 If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
 gem and Resque will use it instead.
+
+When problems arise, make sure you have the newest versions of the
+`redis` and `redis-namespace` gems.
 
 
 Installing Resque
