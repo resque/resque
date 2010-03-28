@@ -108,13 +108,14 @@ module Resque
       job_args = args || []
       job_was_performed = false
 
+      plugins = payload_class.instance_variable_get(:@plugins) || []
+      plugins << payload_class
+
       begin
         # Execute before_perform hook. Abort the job gracefully if
         # Resque::DontPerform is raised.
         begin
-          if payload_class.respond_to?(:before_perform)
-            payload_class.before_perform(*job_args)
-          end
+          plugins.each { |p| p.before_perform(*job_args) if p.respond_to?(:before_perform) }
         rescue DontPerform
           return false
         end

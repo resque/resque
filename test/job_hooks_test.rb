@@ -310,15 +310,15 @@ context "Resque::Job chaning callbacks from multiple sources" do
   include PerformJob
 
   module BeforeOne
+    extend Resque::Plugin
     def before_perform(history)
-      super rescue NoMethodError
       history << :before_one
     end
   end
 
   module BeforeTwo
+    extend Resque::Plugin
     def before_perform(history)
-      super rescue NoMethodError
       history << :before_two
     end
   end
