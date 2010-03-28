@@ -22,7 +22,8 @@ module Resque
   module Plugin
 
     # `extend_object` is like `extended` except that we now override
-    # everything that happens when this module is extended.
+    # everything that happens when this module is extended. Meaning,
+    # the module doesn't really become part of the caller.
     # http://ruby-doc.org/core/classes/Module.html#M001637
     def extend_object(obj)
       var = :@plugins
