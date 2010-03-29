@@ -153,7 +153,11 @@ module Resque
     
     get "/failed/requeue/:index" do
       Resque::Failure.requeue(params[:index])
-      redirect u('failed')
+      if request.xhr?
+        return Resque::Failure.all(params[:index])['retried_at']
+      else
+        redirect u('failed')
+      end
     end
 
     get "/stats" do
