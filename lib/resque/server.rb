@@ -20,7 +20,7 @@ module Resque
       end
 
       def current_page
-        url request.path_info.sub('/','').downcase
+        url request.path_info.sub('/','')
       end
 
       def url(*path_parts)
