@@ -23,7 +23,7 @@
             <% if job['retried_at'] %>
               Retried <b><span class="time"><%= job['retried_at'] %></span></b>
             <% else %>
-              <a href="<%= u "failed/requeue/#{start + index - 1}" %>">Retry</a>
+              <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
             <% end %>
           </div>
         </dd>
@@ -46,3 +46,4 @@
 </ul>
 
 <%= partial :next_more, :start => start, :size => size %>
+
