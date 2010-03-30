@@ -3,6 +3,9 @@
 <% if queue = params[:id] %>
 
   <h1>Pending jobs on <span class='hl'><%= queue %></span></h1>
+  <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
+    <input type='submit' name='' value='Remove Queue' />
+  </form>
   <p class='sub'>Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.size(queue)%></b> jobs</p>
   <table class='jobs'>
     <tr>

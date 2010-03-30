@@ -29,6 +29,12 @@ module Resque
         Resque.redis.del(:failed)
       end
       
+      def self.requeue(index)
+        item = all(index)
+        item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+        Resque.redis.lset(:failed, index, Resque.encode(item))
+        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+      end
     end
   end
 end

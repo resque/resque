@@ -20,7 +20,7 @@ module Resque
       end
 
       def current_page
-        url request.path_info.sub('/','').downcase
+        url request.path_info.sub('/','')
       end
 
       def url(*path_parts)
@@ -124,6 +124,11 @@ module Resque
         show page
       end
     end
+    
+    post "/queues/:id/remove" do
+      Resque.remove_queue(params[:id])
+      redirect u('queues')
+    end
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
@@ -144,6 +149,15 @@ module Resque
     post "/failed/clear" do
       Resque::Failure.clear
       redirect u('failed')
+    end
+    
+    get "/failed/requeue/:index" do
+      Resque::Failure.requeue(params[:index])
+      if request.xhr?
+        return Resque::Failure.all(params[:index])['retried_at']
+      else
+        redirect u('failed')
+      end
     end
 
     get "/stats" do

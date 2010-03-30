@@ -1,11 +1,14 @@
-## 1.6.1 (2010-??-??)
+## 1.6.1 (2010-03-25)
 
 * Bugfix: Workers may not be clearing their state correctly on
   shutdown
 * Added example monit config.
 * Exception class is now recorded when an error is raised in a
   worker.
-* resque-web: Unit tests
+* web: Unit tests
+* web: Show namespace in header and footer
+* web: Remove a queue
+* web: Retry failed jobs
 
 ## 1.6.0 (2010-03-09)
 

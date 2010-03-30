@@ -485,6 +485,8 @@ tool that's best for your app.
 Installing Redis
 ----------------
 
+Resque requires Redis 0.900 or higher.
+
 Resque uses Redis' lists for its queues. It also stores worker state
 data in Redis.
 
@@ -528,6 +530,9 @@ Resque Dependencies
 
 If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
 gem and Resque will use it instead.
+
+When problems arise, make sure you have the newest versions of the
+`redis` and `redis-namespace` gems.
 
 
 Installing Resque
@@ -655,13 +660,13 @@ If you wish to have a Proc called before the worker forks for the
 first time, you can add it in the initializer like so:
 
     Resque.before_first_fork do
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "Call me once before the worker forks the first time"
     end
 
 You can also run a hook before _every_ fork:
 
     Resque.before_fork do |job|
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "Call me before the worker forks"
     end
 
 The `before_fork` hook will be run in the **parent** process. So, be
@@ -671,7 +676,7 @@ the worker.
 And after forking:
 
     Resque.after_fork do |job|
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "Call me after the worker forks"
     end
 
 The `after_fork` hook will be run in the child process and is passed
@@ -714,9 +719,17 @@ Try it out by looking at the README, found at `examples/demo/README.markdown`.
 Monitoring
 ----------
 
+### god
+
 If you're using god to monitor Resque, we have provided example
 configs in `examples/god/`. One is for starting / stopping workers,
 the other is for killing workers that have been running too long.
+
+### monit
+
+If you're using monit, `examples/monit/resque.monit` is provided free
+of charge. This is **not** used by GitHub in production, so please
+send patches for any tweaks or improvements you can make to it.
 
 
 Development

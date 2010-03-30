@@ -59,5 +59,8 @@ module Resque
       backend.clear
     end
     
+    def self.requeue(index)
+      backend.requeue(index)
+    end
   end
 end

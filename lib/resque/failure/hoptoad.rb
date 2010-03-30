@@ -8,6 +8,8 @@ module Resque
     #
     # To use it, put this code in an initializer, Rake task, or wherever:
     #
+    #   require 'resque/failure/hoptoad'
+    #
     #   Resque::Failure::Hoptoad.configure do |config|
     #     config.api_key = 'blah'
     #     config.secure = true
