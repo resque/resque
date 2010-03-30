@@ -4,21 +4,19 @@ context "Multiple plugins with multiple callbacks" do
   include PerformJob
 
   module Plugin1
-    extend Resque::Plugin
-    def before_perform(history)
+    def before_perform_record_history(history)
       history << :before_one
     end
-    def after_perform(history)
+    def after_perform_record_history(history)
       history << :after_one
     end
   end
 
   module Plugin2
-    extend Resque::Plugin
-    def before_perform(history)
+    def before_perform_record_history2(history)
       history << :before_two
     end
-    def after_perform(history)
+    def after_perform_record_history2(history)
       history << :after_two
     end
   end
@@ -42,8 +40,7 @@ context "Resque::Plugin before_perform" do
   include PerformJob
 
   module BeforePerform
-    extend Resque::Plugin
-    def before_perform(history)
+    def before_perform_record_history(history)
       history << :before_perform_plugin
     end
   end
@@ -69,18 +66,16 @@ context "Resque::Plugin after_perform" do
   include PerformJob
 
   module AfterPerform
-    extend Resque::Plugin
-    def after_perform(history)
+    def after_perform_record_history(history)
       history << :after_perform_plugin
     end
   end
 
   class AfterPerformJob
-    extend AfterPerform
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
+    def self.after_perform_record_history2(history)
       history << :after_perform
     end
   end
@@ -96,8 +91,7 @@ context "Resque::Plugin around_perform" do
   include PerformJob
 
   module AroundPerform
-    extend Resque::Plugin
-    def around_perform(history)
+    def around_perform_record_history(history)
       history << :around_perform_plugin
       yield
     end
@@ -134,8 +128,7 @@ context "Resque::Plugin around_perform" do
   end
 
   module AroundPerform2
-    extend Resque::Plugin
-    def around_perform(history)
+    def around_perform_record_history2(history)
       history << :around_perform_plugin2
       yield
     end
@@ -160,8 +153,7 @@ context "Resque::Plugin around_perform" do
   end
 
   module AroundPerformDoesNotYield
-    extend Resque::Plugin
-    def around_perform(history)
+    def around_perform_without_yield(history)
       history << :around_perform_plugin_no_yield
     end
   end
@@ -190,8 +182,7 @@ context "Resque::Plugin on_failure" do
   include PerformJob
 
   module OnFailure
-    extend Resque::Plugin
-    def on_failure(exception, history)
+    def on_failure_record_history(exception, history)
       history << "#{exception.message} plugin"
     end
   end

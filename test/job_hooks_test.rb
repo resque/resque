@@ -4,9 +4,10 @@ context "Resque::Job before_perform" do
   include PerformJob
 
   class BeforePerformJob
-    def self.before_perform(history)
+    def self.before_perform_record_history(history)
       history << :before_perform
     end
+
     def self.perform(history)
       history << :perform
     end
@@ -19,7 +20,7 @@ context "Resque::Job before_perform" do
   end
 
   class BeforePerformJobFails
-    def self.before_perform(history)
+    def self.before_perform_fail_job(history)
       history << :before_perform
       raise StandardError
     end
@@ -37,7 +38,7 @@ context "Resque::Job before_perform" do
   end
 
   class BeforePerformJobAborts
-    def self.before_perform(history)
+    def self.before_perform_abort(history)
       history << :before_perform
       raise Resque::Job::DontPerform
     end
@@ -60,7 +61,7 @@ context "Resque::Job after_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
+    def self.after_perform_record_history(history)
       history << :after_perform
     end
   end
@@ -75,7 +76,7 @@ context "Resque::Job after_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
+    def self.after_perform_fail_job(history)
       history << :after_perform
       raise StandardError
     end
@@ -97,7 +98,7 @@ context "Resque::Job around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
+    def self.around_perform_record_history(history)
       history << :start_around_perform
       yield
       history << :finish_around_perform
@@ -114,7 +115,7 @@ context "Resque::Job around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
+    def self.around_perform_fail(history)
       history << :start_around_perform
       raise StandardError
       yield
@@ -135,7 +136,7 @@ context "Resque::Job around_perform" do
       history << :perform
       raise StandardError
     end
-    def self.around_perform(history)
+    def self.around_perform_fail_in_yield(history)
       history << :start_around_perform
       begin
         yield
@@ -158,7 +159,7 @@ context "Resque::Job around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
+    def self.around_perform_dont_yield(history)
       history << :start_around_perform
       history << :finish_around_perform
     end
@@ -179,7 +180,7 @@ context "Resque::Job on_failure" do
     def self.perform(history)
       history << :perform
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_record_failure(exception, history)
       history << exception.message
     end
   end
@@ -195,7 +196,7 @@ context "Resque::Job on_failure" do
       history << :perform
       raise StandardError, "oh no"
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_record_failure(exception, history)
       history << exception.message
     end
   end
@@ -213,7 +214,7 @@ context "Resque::Job on_failure" do
       history << :perform
       raise SyntaxError, "oh no"
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_record_failure(exception, history)
       history << exception.message
     end
   end
@@ -231,10 +232,10 @@ context "Resque::Job all hooks" do
   include PerformJob
 
   class VeryHookyJob
-    def self.before_perform(history)
+    def self.before_perform_record_history(history)
       history << :before_perform
     end
-    def self.around_perform(history)
+    def self.around_perform_record_history(history)
       history << :start_around_perform
       yield
       history << :finish_around_perform
@@ -242,10 +243,10 @@ context "Resque::Job all hooks" do
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
+    def self.after_perform_record_history(history)
       history << :after_perform
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_record_history(exception, history)
       history << exception.message
     end
   end
@@ -263,10 +264,10 @@ context "Resque::Job all hooks" do
   end
 
   class VeryHookyJobThatFails
-    def self.before_perform(history)
+    def self.before_perform_record_history(history)
       history << :before_perform
     end
-    def self.around_perform(history)
+    def self.around_perform_record_history(history)
       history << :start_around_perform
       yield
       history << :finish_around_perform
@@ -274,11 +275,11 @@ context "Resque::Job all hooks" do
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
+    def self.after_perform_record_history(history)
       history << :after_perform
       raise StandardError, "oh no"
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_record_history(exception, history)
       history << exception.message
     end
   end

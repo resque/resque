@@ -105,41 +105,42 @@ module Resque
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.
     def perform
+      job = payload_class
       job_args = args || []
       job_was_performed = false
 
-      # Plugins may come via modules extended which implement Resque::Plugin.
-      # We also treat the payload_class itself like the last plugin.
-      plugins = payload_class.instance_variable_get(:@plugins) || []
-      plugins << payload_class
+      before_hooks  = job.methods.grep(/^before_perform/)
+      around_hooks  = job.methods.grep(/^around_perform/)
+      after_hooks   = job.methods.grep(/^after_perform/)
+      failure_hooks = job.methods.grep(/^on_failure/)
 
       begin
         # Execute before_perform hook. Abort the job gracefully if
         # Resque::DontPerform is raised.
         begin
-          plugins.each { |p| p.before_perform(*job_args) if p.respond_to?(:before_perform) }
+          before_hooks.each do |hook|
+            job.send(hook, *job_args)
+          end
         rescue DontPerform
           return false
         end
 
         # Execute the job. Do it in an around_perform hook if available.
-        around_plugins = plugins.select { |p| p.respond_to?(:around_perform) }.reverse
-
-        if around_plugins.empty?
-          payload_class.perform(*job_args)
+        if around_hooks.empty?
+          job.perform(*job_args)
           job_was_performed = true
         else
           # We want to nest all around_perform plugins, with the last one
           # finally calling perform
-          stack = around_plugins.inject(nil) do |last_plugin, plugin|
-            if last_plugin
+          stack = around_hooks.inject(nil) do |last_hook, hook|
+            if last_hook
               lambda do
-                plugin.around_perform(*job_args) { last_plugin.call }
+                job.send(hook, *job_args) { last_hook.call }
               end
             else
               lambda do
-                plugin.around_perform(*job_args) do
-                  payload_class.perform(*job_args)
+                job.send(hook, *job_args) do
+                  job.perform(*job_args)
                   job_was_performed = true
                 end
               end
@@ -149,7 +150,9 @@ module Resque
         end
 
         # Execute after_perform hook
-        plugins.each { |p| p.after_perform(*job_args) if p.respond_to?(:after_perform) }
+        after_hooks.each do |hook|
+          job.send(hook, *job_args)
+        end
 
         # Return true if the job was performed
         return job_was_performed
@@ -157,8 +160,8 @@ module Resque
       # If an exception occurs during the job execution, look for an
       # on_failure hook then re-raise.
       rescue Object => e
-        plugins.each { |p| p.on_failure(e, *job_args) if p.respond_to?(:on_failure) }
-        raise
+        failure_hooks.each { |hook| job.send(hook, *job_args) }
+        raise e
       end
     end
 
