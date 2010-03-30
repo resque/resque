@@ -660,13 +660,13 @@ If you wish to have a Proc called before the worker forks for the
 first time, you can add it in the initializer like so:
 
     Resque.before_first_fork do
-      puts "CALL ME ONCE BEFORE THE WORKER FORKS THE FIRST TIME"
+      puts "Call me once before the worker forks the first time"
     end
 
 You can also run a hook before _every_ fork:
 
     Resque.before_fork do |job|
-      puts "CALL ME BEFORE THE WORKER FORKS"
+      puts "Call me before the worker forks"
     end
 
 The `before_fork` hook will be run in the **parent** process. So, be
@@ -676,7 +676,7 @@ the worker.
 And after forking:
 
     Resque.after_fork do |job|
-      puts "CALL ME AFTER THE WORKER FORKS"
+      puts "Call me after the worker forks"
     end
 
 The `after_fork` hook will be run in the child process and is passed
