@@ -143,6 +143,7 @@ module Resque
       return unless job ||= reserve
 
       begin
+        job.worker = self
         run_hook :after_fork, job
         working_on job
         job.perform
@@ -332,7 +333,6 @@ module Resque
     # Given a job, tells Redis we're working on it. Useful for seeing
     # what workers are doing and when.
     def working_on(job)
-      job.worker = self
       data = encode \
         :queue   => job.queue,
         :run_at  => Time.now.to_s,
