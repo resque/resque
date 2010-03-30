@@ -719,9 +719,17 @@ Try it out by looking at the README, found at `examples/demo/README.markdown`.
 Monitoring
 ----------
 
+### god
+
 If you're using god to monitor Resque, we have provided example
 configs in `examples/god/`. One is for starting / stopping workers,
 the other is for killing workers that have been running too long.
+
+### monit
+
+If you're using monit, `examples/monit/resque.monit` is provided free
+of charge. This is **not** used by GitHub in production, so please
+send patches for any tweaks or improvements you can make to it.
 
 
 Development
