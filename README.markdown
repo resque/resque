@@ -653,39 +653,16 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
-Worker Hooks
-------------
 
-If you wish to have a Proc called before the worker forks for the
-first time, you can add it in the initializer like so:
+Plugins
+-------
 
-    Resque.before_first_fork do
-      puts "Call me once before the worker forks the first time"
-    end
+For a list of available plugins see
+<http://wiki.github.com/defunkt/resque/plugins>.
 
-You can also run a hook before _every_ fork:
-
-    Resque.before_fork do |job|
-      puts "Call me before the worker forks"
-    end
-
-The `before_fork` hook will be run in the **parent** process. So, be
-careful - any changes you make will be permanent for the lifespan of
-the worker.
-
-And after forking:
-
-    Resque.after_fork do |job|
-      puts "Call me after the worker forks"
-    end
-
-The `after_fork` hook will be run in the child process and is passed
-the current job. Any changes you make, therefor, will only live as
-long as the job currently being processes.
-
-All hooks can also be set using a setter, e.g.
-
-    Resque.after_fork = proc { puts "called" }
+If you'd like to write your own plugin, or want to see what hooks are
+available (such as `Resque.after_fork`), see
+[PLUGINS.md](http://github.com/defunkt/resque/blob/master/PLUGINS.md).
 
 
 Namespaces

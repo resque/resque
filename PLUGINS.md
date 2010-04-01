@@ -1,8 +1,47 @@
 Resque Plugins
 ==============
 
-Resque encourages plugin development. In most cases, customize your
-environment with a plugin rather than adding to the core.
+Resque encourages plugin development. For a list of available plugins
+see <http://wiki.github.com/defunkt/resque/plugins>
+
+In most cases you can customize your environment with a plugin rather
+than adding to Resque itself.
+
+
+Worker Hooks
+------------
+
+If you wish to have a Proc called before the worker forks for the
+first time, you can add it in the initializer like so:
+
+    Resque.before_first_fork do
+      puts "Call me once before the worker forks the first time"
+    end
+
+You can also run a hook before _every_ fork:
+
+    Resque.before_fork do |job|
+      puts "Call me before the worker forks"
+    end
+
+The `before_fork` hook will be run in the **parent** process. So, be
+careful - any changes you make will be permanent for the lifespan of
+the worker.
+
+And after forking:
+
+    Resque.after_fork do |job|
+      puts "Call me after the worker forks"
+    end
+
+The `after_fork` hook will be run in the child process and is passed
+the current job. Any changes you make, therefor, will only live as
+long as the job currently being processes.
+
+All hooks can also be set using a setter, e.g.
+
+    Resque.after_fork = proc { puts "called" }
+
 
 Job Hooks
 ---------
@@ -10,7 +49,7 @@ Job Hooks
 Plugins can utilize job hooks to provide additional behavior. A job
 hook is a method name in the following format:
 
-    HOOK_IDENTIFIER
+    HOOKNAME_IDENTIFIER
 
 For example, a `before_perform` hook which adds locking may be defined
 like this:
@@ -26,8 +65,9 @@ method is called.
 The available hooks are:
 
 * `before_perform`: Called with the job args before perform. If it raises
-  Resque::Job::DontPerform, the job is aborted. If other exceptions are
-  raised, they will be propagated up the the `Resque::Failure` backend.
+  `Resque::Job::DontPerform`, the job is aborted. If other exceptions
+  are raised, they will be propagated up the the `Resque::Failure`
+  backend.
 
 * `after_perform`: Called with the job args after it performs. Uncaught
   exceptions will propagate up to the `Resque::Failure` backend.
