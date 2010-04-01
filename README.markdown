@@ -654,15 +654,15 @@ this way we can tell our Sinatra app about the config file:
 Now everyone is on the same page.
 
 
-Plugins
--------
+Plugins and Hooks
+-----------------
 
 For a list of available plugins see
 <http://wiki.github.com/defunkt/resque/plugins>.
 
-If you'd like to write your own plugin, or want to see what hooks are
-available (such as `Resque.after_fork`), see
-[PLUGINS.md](http://github.com/defunkt/resque/blob/master/PLUGINS.md).
+If you'd like to write your own plugin, or want to customize Resque
+using hooks (such as `Resque.after_fork`), see
+[HOOKS.md](http://github.com/defunkt/resque/blob/master/HOOKS.md).
 
 
 Namespaces

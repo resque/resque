@@ -1,11 +1,11 @@
-Resque Plugins
-==============
+Resque Hooks
+============
 
-Resque encourages plugin development. For a list of available plugins
-see <http://wiki.github.com/defunkt/resque/plugins>
+You can customize Resque or write plugins using its hook API. In many
+cases you can use a hook rather than mess with Resque's internals.
 
-In most cases you can customize your environment with a plugin rather
-than adding to Resque itself.
+For a list of available plugins see
+<http://wiki.github.com/defunkt/resque/plugins>.
 
 
 Worker Hooks
@@ -38,7 +38,7 @@ The `after_fork` hook will be run in the child process and is passed
 the current job. Any changes you make, therefor, will only live as
 long as the job currently being processes.
 
-All hooks can also be set using a setter, e.g.
+All worker hooks can also be set using a setter, e.g.
 
     Resque.after_fork = proc { puts "called" }
 
