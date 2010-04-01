@@ -109,10 +109,10 @@ module Resque
       job_args = args || []
       job_was_performed = false
 
-      before_hooks  = job.methods.grep(/^before_perform/)
-      around_hooks  = job.methods.grep(/^around_perform/)
-      after_hooks   = job.methods.grep(/^after_perform/)
-      failure_hooks = job.methods.grep(/^on_failure/)
+      before_hooks  = job.methods.grep(/^before_perform/).sort
+      around_hooks  = job.methods.grep(/^around_perform/).sort
+      after_hooks   = job.methods.grep(/^after_perform/).sort
+      failure_hooks = job.methods.grep(/^on_failure/).sort
 
       begin
         # Execute before_perform hook. Abort the job gracefully if
@@ -132,7 +132,7 @@ module Resque
         else
           # We want to nest all around_perform plugins, with the last one
           # finally calling perform
-          stack = around_hooks.inject(nil) do |last_hook, hook|
+          stack = around_hooks.reverse.inject(nil) do |last_hook, hook|
             if last_hook
               lambda do
                 job.send(hook, *job_args) { last_hook.call }
