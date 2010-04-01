@@ -17,7 +17,6 @@ require 'resque/helpers'
 require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
-require 'resque/plugin'
 
 module Resque
   include Helpers
