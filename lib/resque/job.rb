@@ -160,7 +160,7 @@ module Resque
       # If an exception occurs during the job execution, look for an
       # on_failure hook then re-raise.
       rescue Object => e
-        failure_hooks.each { |hook| job.send(hook, *job_args) }
+        failure_hooks.each { |hook| job.send(hook, e, *job_args) }
         raise e
       end
     end
