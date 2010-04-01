@@ -762,7 +762,7 @@ Mailing List
 
 To join the list simply send an email to <resque@librelist.com>. This
 will subscribe you and send you information about your subscription,
-include unsubscribe information.
+including unsubscribe information.
 
 The archive can be found at <http://librelist.com/browser/>.
 
