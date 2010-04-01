@@ -109,10 +109,10 @@ module Resque
       job_args = args || []
       job_was_performed = false
 
-      before_hooks  = job.methods.grep(/^before_perform/).sort
-      around_hooks  = job.methods.grep(/^around_perform/).sort
-      after_hooks   = job.methods.grep(/^after_perform/).sort
-      failure_hooks = job.methods.grep(/^on_failure/).sort
+      before_hooks  = Plugin.before_hooks(job)
+      around_hooks  = Plugin.around_hooks(job)
+      after_hooks   = Plugin.after_hooks(job)
+      failure_hooks = Plugin.failure_hooks(job)
 
       begin
         # Execute before_perform hook. Abort the job gracefully if
