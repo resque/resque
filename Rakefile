@@ -7,6 +7,11 @@ task :default => :test
 
 desc "Run tests"
 task :test do
+  begin
+    require 'redgreen'
+  rescue LoadError
+  end
+
   # Don't use the rake/testtask because it loads a new
   # Ruby interpreter - we want to run tests with the current
   # `rake` so our library manager still works
