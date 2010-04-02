@@ -86,8 +86,8 @@ Plugins should test compliance to this document using the
 
 For example:
 
-    def test_lint
-      assert Resque::Plugin.lint(Resque::Plugins::Lock)
+    assert_nothing_raised do
+      Resque::Plugin.lint(Resque::Plugins::Lock)
     end
 
 [sv]: http://semver.org/
