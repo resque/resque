@@ -119,4 +119,3 @@ Modules are even better because jobs can use many of them.
         ...
       end
     end
-
