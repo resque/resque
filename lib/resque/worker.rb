@@ -207,6 +207,10 @@ module Resque
       prune_dead_workers
       run_hook :before_first_fork
       register_worker
+
+      # Fix buffering so we can `rake resque:work > resque.log` and
+      # get output from the child in there.
+      $stdout.sync = true
     end
 
     # Enables GC Optimizations if you're running REE.
