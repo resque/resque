@@ -1,6 +1,6 @@
 ## 1.7.0 (2010-03-31)
 
-* Job hooks API. See HOOKS.md.
+* Job hooks API. See docs/HOOKS.md.
 * web: Hovering over dates shows a timestamp
 * web: AJAXify retry action for failed jobs
 * web bugfix: Fix pagination bug

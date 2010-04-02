@@ -4,7 +4,7 @@ Resque Plugins
 Resque encourages plugin development. For a list of available plugins,
 please see <http://wiki.github.com/defunkt/resque/plugins>.
 
-The `HOOKS.md` file included with Resque documents the available
+The `docs/HOOKS.md` file included with Resque documents the available
 hooks you can use to add or change Resque functionality. This document
 describes best practice for plugins themselves.
 
