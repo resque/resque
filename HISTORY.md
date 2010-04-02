@@ -1,3 +1,8 @@
+## 1.7.1 (2010-04-02)
+
+* Bugfix: Make job hook execution order consistent
+* Bugfix: stdout buffering in child process
+
 ## 1.7.0 (2010-03-31)
 
 * Job hooks API. See docs/HOOKS.md.
