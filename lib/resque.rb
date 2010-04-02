@@ -26,7 +26,7 @@ module Resque
   # Accepts:
   #   1. A 'hostname:port' string
   #   2. A 'hostname:port:db' string (to select the Redis db)
-  #   3. An instance of `Redis`
+  #   3. An instance of `Redis`, `Redis::Client`, or `Redis::Namespace`.
   def redis=(server)
     case server
     when String
