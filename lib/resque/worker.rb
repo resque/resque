@@ -326,6 +326,15 @@ module Resque
 
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
+      # If we're still processing a job, make sure it gets logged as a
+      # failure.
+      if job
+        # Ensure the proper worker is attached to this job, even if
+        # it's not the precise instance that died.
+        job.worker = self
+        job.fail(DirtyExit.new)
+      end
+
       redis.srem(:workers, self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
