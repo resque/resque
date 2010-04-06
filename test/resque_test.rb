@@ -202,6 +202,7 @@ context "Resque" do
     @worker = Resque::Worker.new(:jobs)
     @worker.register_worker
     2.times { @worker.process }
+
     job = @worker.reserve
     @worker.working_on job
 

@@ -113,6 +113,7 @@ module Resque
         if not @paused and job = reserve
           log "got: #{job.inspect}"
           run_hook :before_fork
+          working_on job
 
           if @child = fork
             rand # Reseeding
@@ -120,10 +121,11 @@ module Resque
             Process.wait
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
-            process(job, &block)
+            perform(job, &block)
             exit! unless @cant_fork
           end
 
+          done_working
           @child = nil
         else
           break if interval.to_i == 0
@@ -137,15 +139,21 @@ module Resque
       unregister_worker
     end
 
-    # Processes a single job. If none is given, it will try to produce
-    # one.
-    def process(job = nil)
+    # DEPRECATED. Processes a single job. If none is given, it will
+    # try to produce one. Usually run in the child.
+    def process(job = nil, &block)
       return unless job ||= reserve
 
+      working_on job
+      perform(job, &block)
+    ensure
+      done_working
+    end
+
+    # Processes a given job in the child.
+    def perform(job)
       begin
-        job.worker = self
         run_hook :after_fork, job
-        working_on job
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
@@ -155,7 +163,6 @@ module Resque
         log "done: #{job.inspect}"
       ensure
         yield job if block_given?
-        done_working
       end
     end
 
@@ -347,6 +354,7 @@ module Resque
     # Given a job, tells Redis we're working on it. Useful for seeing
     # what workers are doing and when.
     def working_on(job)
+      job.worker = self
       data = encode \
         :queue   => job.queue,
         :run_at  => Time.now.to_s,
