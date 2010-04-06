@@ -328,7 +328,8 @@ module Resque
     def unregister_worker
       # If we're still processing a job, make sure it gets logged as a
       # failure.
-      if job
+      if (hash = processing) && !hash.empty?
+        job = Job.new(hash['queue'], hash['payload'])
         # Ensure the proper worker is attached to this job, even if
         # it's not the precise instance that died.
         job.worker = self

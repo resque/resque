@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque::Worker" do
   setup do
-    Resque.redis.flush_all
+    Resque.redis.flushall
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
@@ -18,11 +18,18 @@ context "Resque::Worker" do
     assert_equal 1, Resque::Failure.count
   end
 
-  test "failed jobs report excpetion and message" do
+  test "failed jobs report exception and message" do
     Resque::Job.create(:jobs, BadJobWithSyntaxError)
     @worker.work(0)
     assert_equal('SyntaxError', Resque::Failure.all['exception'])
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+  end
+
+  test "fails uncompleted jobs on exit" do
+    job = Resque::Job.new(:jobs, [GoodJob, "blah"])
+    @worker.working_on(job)
+    @worker.unregister_worker
+    assert_equal 1, Resque::Failure.count
   end
 
   test "can peek at failed jobs" do
@@ -253,7 +260,7 @@ context "Resque::Worker" do
   end
 
   test "Will call a before_first_fork hook only once" do
-    Resque.redis.flush_all
+    Resque.redis.flushall
     $BEFORE_FORK_CALLED = 0
     Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
     workerA = Resque::Worker.new(:jobs)
@@ -270,7 +277,7 @@ context "Resque::Worker" do
   end
 
   test "Will call a before_fork hook before forking" do
-    Resque.redis.flush_all
+    Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
@@ -282,7 +289,7 @@ context "Resque::Worker" do
   end
 
   test "Will call an after_fork hook after forking" do
-    Resque.redis.flush_all
+    Resque.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)

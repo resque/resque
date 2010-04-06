@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/test_helper'
 
 context "Resque" do
   setup do
-    Resque.redis.flush_all
+    Resque.redis.flushall
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
@@ -166,7 +166,7 @@ context "Resque" do
   end
 
   test "queues are always a list" do
-    Resque.redis.flush_all
+    Resque.redis.flushall
     assert_equal [], Resque.queues
   end
 
@@ -217,7 +217,7 @@ context "Resque" do
     assert_equal 1, stats[:failed]
     assert_equal ['localhost:9736'], stats[:servers]
   end
-  
+
   test "decode bad json" do
     assert_nil Resque.decode("{\"error\":\"Module not found \\u002\"}")
   end

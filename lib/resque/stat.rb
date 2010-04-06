@@ -24,7 +24,7 @@ module Resque
     # Can optionally accept a second int parameter. The stat is then
     # incremented by that amount.
     def incr(stat, by = 1)
-      redis.incr("stat:#{stat}", by)
+      redis.incrby("stat:#{stat}", by)
     end
 
     # Increments a stat by one.
@@ -37,7 +37,7 @@ module Resque
     # Can optionally accept a second int parameter. The stat is then
     # decremented by that amount.
     def decr(stat, by = 1)
-      redis.decr("stat:#{stat}", by)
+      redis.decrby("stat:#{stat}", by)
     end
 
     # Decrements a stat by one.
