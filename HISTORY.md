@@ -1,3 +1,13 @@
+## 1.8.0 (2010-04-07)
+
+* Jobs that never complete due to killed worker are now failed.
+* Worker "working" state is now maintained by the parent, not the child.
+* Stopped using deprecated redis.rb methods
+* `Worker.working` race condition fixed
+* `Worker#process` has been deprecated.
+* Monit example fixed
+* Redis::Client and Redis::Namespace can be passed to `Resque.redis=`
+
 ## 1.7.1 (2010-04-02)
 
 * Bugfix: Make job hook execution order consistent
