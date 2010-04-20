@@ -35,8 +35,12 @@
         <dd><code><%= job['exception'] %></code></dd>
         <dt>Error</dt>
         <dd class='error'>
-          <a href="#" class="backtrace"><%= h(job['error']) %></a>
-          <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>
+          <% if job['backtrace'] %>
+            <a href="#" class="backtrace"><%= h(job['error']) %></a>
+            <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>
+          <% else %>
+            <%=h job['error'] %>
+          <% end %>
         </dd>
       </dl>
       <div class='r'>
