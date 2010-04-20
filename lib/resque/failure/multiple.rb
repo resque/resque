@@ -3,23 +3,23 @@ module Resque
     # A Failure backend that uses multiple backends
     # delegates all queries to the first backend
     class Multiple < Base
-      
+
       class << self
         attr_accessor :classes
       end
-      
+
       def self.configure
         yield self
         Resque::Failure.backend = self
       end
-      
+
       def initialize(*args)
         @backends = self.class.classes.map {|klass| klass.new(*args)}
       end
       def save
         @backends.each(&:save)
       end
-      
+
       # The number of failures.
       def self.count
         classes.first.count
@@ -34,10 +34,14 @@ module Resque
       def self.url
         classes.first.url
       end
-      
+
       # Clear all failure objects
       def self.clear
         classes.first.clear
+      end
+
+      def self.requeue(*args)
+        classes.first.requeue(*args)
       end
     end
   end
