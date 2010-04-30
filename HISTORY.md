@@ -1,3 +1,9 @@
+## 1.8.1 (2010-04-29)
+
+* Bugfix: Multiple failure backend did not support requeue-ing failed jobs
+* Bugfix: Fix /failed when error has no backtrace
+* Bugfix: Add `Redis::DistRedis` as a valid client
+
 ## 1.8.0 (2010-04-07)
 
 * Jobs that never complete due to killed worker are now failed.
