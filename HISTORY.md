@@ -1,3 +1,7 @@
+## 1.8.2 (2010-05-03)
+
+* Bugfix: Include "tasks/" dir in RubyGem
+
 ## 1.8.1 (2010-04-29)
 
 * Bugfix: Multiple failure backend did not support requeue-ing failed jobs
