@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
   s.files            += Dir.glob("test/**/*")
+  s.files            += Dir.glob("tasks/**/*")
   s.executables       = [ "resque", "resque-web" ]
 
   s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
