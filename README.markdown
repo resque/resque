@@ -662,7 +662,7 @@ For a list of available plugins see
 
 If you'd like to write your own plugin, or want to customize Resque
 using hooks (such as `Resque.after_fork`), see
-[docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/HOOKS.md).
+[docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
 
 
 Namespaces
