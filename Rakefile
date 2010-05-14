@@ -37,18 +37,10 @@ end
 
 
 #
-# Gem
+# Install
 #
 
 task :install => [ 'redis:install', 'dtach:install' ]
-
-begin
-  require 'mg'
-  MG.new("resque.gemspec")
-rescue LoadError
-  warn "mg not available."
-  warn "Install it with: gem i mg"
-end
 
 
 #
@@ -67,9 +59,11 @@ end
 #
 
 desc "Push a new version to Gemcutter"
-task :publish => "gem:publish" do
+task :publish do
   require 'resque/version'
 
+  sh "gem build resque.gemspec"
+  sh "gem push resque-#{Resque::Version}.gem"
   sh "git tag v#{Resque::Version}"
   sh "git push origin v#{Resque::Version}"
   sh "git push origin master"
