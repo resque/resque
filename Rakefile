@@ -9,7 +9,7 @@ $LOAD_PATH.unshift 'lib'
 require 'resque/tasks'
 
 def command?(command)
-  system("type #{command} > /dev/null")
+  system("type #{command} > /dev/null 2>&1")
 end
 
 
@@ -50,7 +50,6 @@ task :install => [ 'redis:install', 'dtach:install' ]
 begin
   require 'sdoc_helpers'
 rescue LoadError
-  puts "sdoc support not enabled. Please gem install sdoc-helpers."
 end
 
 
