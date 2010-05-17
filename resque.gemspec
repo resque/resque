@@ -1,3 +1,4 @@
+$LOAD_PATH.unshift 'lib'
 require 'resque/version'
 
 Gem::Specification.new do |s|
@@ -20,10 +21,10 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
-  s.add_dependency "redis"
-  s.add_dependency "redis-namespace"
-  s.add_dependency "vegas",   ">= 0.1.2"
-  s.add_dependency "sinatra", ">= 0.9.2"
+  s.add_dependency "redis",           "~> 1.0.0"
+  s.add_dependency "redis-namespace", "~> 0.1.0"
+  s.add_dependency "vegas",           "~> 0.1.2"
+  s.add_dependency "sinatra",         ">= 0.9.2"
 
   s.description = <<description
     Resque is a Redis-backed Ruby library for creating background jobs,

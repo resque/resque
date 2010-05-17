@@ -1,3 +1,7 @@
+## 1.8.3 (2010-05-17)
+
+* Depend on redis-rb ~> 1.0.7
+
 ## 1.8.2 (2010-05-03)
 
 * Bugfix: Include "tasks/" dir in RubyGem
