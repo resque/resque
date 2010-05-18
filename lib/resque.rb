@@ -29,18 +29,15 @@ module Resque
   #   3. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
-    case server
-    when String
+    if server.respond_to? :split
       host, port, db = server.split(':')
       redis = Redis.new(:host => host, :port => port,
         :thread_safe => true, :db => db)
       @redis = Redis::Namespace.new(:resque, :redis => redis)
-    when Redis, Redis::Client, Redis::DistRedis
-      @redis = Redis::Namespace.new(:resque, :redis => server)
-    when Redis::Namespace
-      @redis = server
+    elsif server.respond_to? :namespace=
+        @redis = server
     else
-      raise "I don't know what to do with #{server.inspect}"
+      @redis = Redis::Namespace.new(:resque, :redis => server)
     end
   end
 
