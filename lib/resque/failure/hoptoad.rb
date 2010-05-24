@@ -83,7 +83,7 @@ module Resque
             x.url "http://github.com/defunkt/resque"
           end
           x.error do
-            x.class exception.class.name
+            x.tag! "class", exception.class.name
             x.message "#{exception.class.name}: #{exception.message}"
             x.backtrace do
               fill_in_backtrace_lines(x)
