@@ -109,7 +109,7 @@ module Resque
       end
 
       def fill_in_backtrace_lines(x)
-        exception.backtrace.each do |unparsed_line|
+        Array(exception.backtrace).each do |unparsed_line|
           _, file, number, method = unparsed_line.match(INPUT_FORMAT).to_a
           x.line :file => file,:number => number
         end
