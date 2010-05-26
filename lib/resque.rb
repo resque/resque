@@ -82,8 +82,8 @@ module Resque
   end
 
   # The `after_fork` hook will be run in the child process and is passed
-  # the current job. Any changes you make, therefor, will only live as
-  # long as the job currently being processes.
+  # the current job. Any changes you make, therefore, will only live as
+  # long as the job currently being processed.
   #
   # Call with a block to set the hook.
   # Call with no arguments to return the hook.
@@ -119,7 +119,7 @@ module Resque
     decode redis.lpop("queue:#{queue}")
   end
 
-  # Returns an int representing the size of a queue.
+  # Returns an integer representing the size of a queue.
   # Queue name should be a string.
   def size(queue)
     redis.llen("queue:#{queue}").to_i
