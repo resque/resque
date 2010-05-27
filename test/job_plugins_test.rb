@@ -177,6 +177,27 @@ context "Resque::Plugin ordering around_perform" do
     assert_equal false, result, "perform returned false"
     assert_equal [:around_perform, :around_perform0], history
   end
+
+  module AroundPerformGetsJobResult
+    @@result = nil
+    def last_job_result
+      @@result
+    end
+
+    def around_perform_gets_job_result(*args)
+      @@result = yield
+    end
+  end
+
+  class AroundPerformJobWithReturnValue < GoodJob
+    extend AroundPerformGetsJobResult
+  end
+
+  test "the job is aborted if an around_perform hook does not yield" do
+    result = perform_job(AroundPerformJobWithReturnValue, 'Bob')
+    assert_equal true, result, "perform returned true"
+    assert_equal 'Good job, Bob', AroundPerformJobWithReturnValue.last_job_result
+  end
 end
 
 context "Resque::Plugin ordering on_failure" do
