@@ -11,7 +11,7 @@ module Resque
 
       def self.should_respond_with_success
         test "should respond with success" do
-          assert last_response.ok?
+          assert last_response.ok?, last_response.errors
         end 
       end 
     end
