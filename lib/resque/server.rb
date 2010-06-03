@@ -106,7 +106,7 @@ module Resque
       begin
         erb page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
-        erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis.server})"
+        erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis_id})"
       end
     end
 
@@ -124,7 +124,7 @@ module Resque
         show page
       end
     end
-    
+
     post "/queues/:id/remove" do
       Resque.remove_queue(params[:id])
       redirect u('queues')
@@ -150,7 +150,7 @@ module Resque
       Resque::Failure.clear
       redirect u('failed')
     end
-    
+
     get "/failed/requeue/:index" do
       Resque::Failure.requeue(params[:index])
       if request.xhr?

@@ -49,6 +49,15 @@ module Resque
     self.redis
   end
 
+  def redis_id
+    # support 1.x versions of redis-rb
+    if redis.respond_to?(:server)
+      redis.server
+    else
+      redis.client.id
+    end
+  end
+
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
   # changes you make will be permanent for the lifespan of the
@@ -97,7 +106,7 @@ module Resque
   end
 
   def to_s
-    "Resque Client connected to #{redis.server}"
+    "Resque Client connected to #{redis_id}"
   end
 
 
@@ -270,7 +279,7 @@ module Resque
       :workers   => workers.size.to_i,
       :working   => working.size,
       :failed    => Stat[:failed],
-      :servers   => [redis.server],
+      :servers   => [redis_id],
       :environment  => defined?(RAILS_ENV) ? RAILS_ENV : (ENV['RACK_ENV'] || 'development')
     }
   end
