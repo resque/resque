@@ -216,7 +216,7 @@ context "Resque" do
     assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
-    assert_equal ['localhost:9736'], stats[:servers]
+    assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
   end
 
   test "decode bad json" do
