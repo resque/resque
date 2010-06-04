@@ -1,3 +1,18 @@
+## 1.8.6 (2010-06-02)
+
+* Redis 2 support
+* Depend on redis-namespace 0.5.0
+* Bugfix: Specify JSON dependency
+* Bugfix: Hoptoad plugin now works on 1.9
+
+## 1.8.5 (2010-05-18)
+
+* Bugfix: Be more liberal in which Redis clients we accept.
+
+## 1.8.4 (2010-05-18)
+
+* Try to resolve redis-namespace dependency issue
+
 ## 1.8.3 (2010-05-17)
 
 * Depend on redis-rb ~> 1.0.7
