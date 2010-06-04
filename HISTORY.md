@@ -1,3 +1,8 @@
+## 1.9.1 (2010-06-04)
+
+* Less strict JSON dependency
+* Included HISTORY.md in gem
+
 ## 1.9.0 (2010-06-04)
 
 * Redis 2 support
