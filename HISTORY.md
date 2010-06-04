@@ -1,7 +1,8 @@
-## 1.8.6 (2010-06-02)
+## 1.9.0 (2010-06-04)
 
 * Redis 2 support
 * Depend on redis-namespace 0.5.0
+* Added Resque::VERSION constant (alias of Resque::Version)
 * Bugfix: Specify JSON dependency
 * Bugfix: Hoptoad plugin now works on 1.9
 
