@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath" ]
 
-  s.files             = %w( README.markdown Rakefile LICENSE )
+  s.files             = %w( README.markdown Rakefile LICENSE HISTORY.md )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
