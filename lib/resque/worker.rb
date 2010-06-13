@@ -447,7 +447,7 @@ module Resque
     # Returns an array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def worker_pids
-      `ps -A -o pid,command | grep [r]esque`.split("\n").map do |line|
+      `ps -A -o pid,comm | grep [r]esque`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end
