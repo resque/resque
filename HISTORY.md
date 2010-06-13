@@ -1,3 +1,8 @@
+## 1.9.2 (2010-06-13)
+
+* Bugfix: Worker.all returning nil fix
+* Bugfix: Make ps -o more cross platform friendly
+
 ## 1.9.1 (2010-06-04)
 
 * Less strict JSON dependency
