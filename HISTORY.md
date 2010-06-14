@@ -1,3 +1,7 @@
+## 1.9.3 (2010-06-14)
+
+* Bugfix: Resque#queues always returns an array
+
 ## 1.9.2 (2010-06-13)
 
 * Bugfix: Worker.all returning nil fix
