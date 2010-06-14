@@ -160,7 +160,7 @@ module Resque
 
   # Returns an array of all known Resque queues as strings.
   def queues
-    redis.smembers(:queues)
+    Array(redis.smembers(:queues))
   end
 
   # Given a queue name, completely deletes the queue.
