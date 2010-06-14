@@ -1,3 +1,7 @@
+## 1.9.4 (2010-06-14)
+
+* Bugfix: Multiple failure backend gets exception information when created
+
 ## 1.9.3 (2010-06-14)
 
 * Bugfix: Resque#queues always returns an array
