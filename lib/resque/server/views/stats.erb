@@ -39,7 +39,7 @@
 <% elsif params[:id] == 'keys' %>
 
   <h1>Keys owned by <%= resque %></h1>
-  <p class='sub'>(All keys are actually prefixed with "resque:")</p>
+  <p class='sub'>(All keys are actually prefixed with "<%= Resque.redis.namespace %>:")</p>
   <table class='stats'>
     <tr>
       <th>key</th>
