@@ -1,3 +1,8 @@
+## 1.9.5 (2010-06-16)
+
+* Web Bugfix: Display the configured namespace on the stats page
+* Revert Bugfix: Make ps -o more cross platform friendly
+
 ## 1.9.4 (2010-06-14)
 
 * Bugfix: Multiple failure backend gets exception information when created
