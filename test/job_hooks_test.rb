@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/test_helper'
 context "Resque::Job before_perform" do
   include PerformJob
 
-  class BeforePerformJob
+  class ::BeforePerformJob
     def self.before_perform_record_history(history)
       history << :before_perform
     end
@@ -19,7 +19,7 @@ context "Resque::Job before_perform" do
     assert_equal history, [:before_perform, :perform]
   end
 
-  class BeforePerformJobFails
+  class ::BeforePerformJobFails
     def self.before_perform_fail_job(history)
       history << :before_perform
       raise StandardError
@@ -37,7 +37,7 @@ context "Resque::Job before_perform" do
     assert_equal history, [:before_perform], "Only before_perform was run"
   end
 
-  class BeforePerformJobAborts
+  class ::BeforePerformJobAborts
     def self.before_perform_abort(history)
       history << :before_perform
       raise Resque::Job::DontPerform
@@ -57,7 +57,7 @@ end
 context "Resque::Job after_perform" do
   include PerformJob
 
-  class AfterPerformJob
+  class ::AfterPerformJob
     def self.perform(history)
       history << :perform
     end
@@ -72,7 +72,7 @@ context "Resque::Job after_perform" do
     assert_equal history, [:perform, :after_perform]
   end
 
-  class AfterPerformJobFails
+  class ::AfterPerformJobFails
     def self.perform(history)
       history << :perform
     end
@@ -94,7 +94,7 @@ end
 context "Resque::Job around_perform" do
   include PerformJob
 
-  class AroundPerformJob
+  class ::AroundPerformJob
     def self.perform(history)
       history << :perform
     end
@@ -111,7 +111,7 @@ context "Resque::Job around_perform" do
     assert_equal history, [:start_around_perform, :perform, :finish_around_perform]
   end
 
-  class AroundPerformJobFailsBeforePerforming
+  class ::AroundPerformJobFailsBeforePerforming
     def self.perform(history)
       history << :perform
     end
@@ -131,7 +131,7 @@ context "Resque::Job around_perform" do
     assert_equal history, [:start_around_perform], "Only part of around_perform was run"
   end
 
-  class AroundPerformJobFailsWhilePerforming
+  class ::AroundPerformJobFailsWhilePerforming
     def self.perform(history)
       history << :perform
       raise StandardError
@@ -155,7 +155,7 @@ context "Resque::Job around_perform" do
     assert_equal history, [:start_around_perform, :perform, :ensure_around_perform], "Only part of around_perform was run"
   end
 
-  class AroundPerformJobDoesNotHaveToYield
+  class ::AroundPerformJobDoesNotHaveToYield
     def self.perform(history)
       history << :perform
     end
@@ -176,7 +176,7 @@ end
 context "Resque::Job on_failure" do
   include PerformJob
 
-  class FailureJobThatDoesNotFail
+  class ::FailureJobThatDoesNotFail
     def self.perform(history)
       history << :perform
     end
@@ -191,7 +191,7 @@ context "Resque::Job on_failure" do
     assert_equal history, [:perform]
   end
 
-  class FailureJobThatFails
+  class ::FailureJobThatFails
     def self.perform(history)
       history << :perform
       raise StandardError, "oh no"
@@ -209,7 +209,7 @@ context "Resque::Job on_failure" do
     assert_equal history, [:perform, "oh no"]
   end
 
-  class FailureJobThatFailsBadly
+  class ::FailureJobThatFailsBadly
     def self.perform(history)
       history << :perform
       raise SyntaxError, "oh no"
@@ -231,7 +231,7 @@ end
 context "Resque::Job all hooks" do
   include PerformJob
 
-  class VeryHookyJob
+  class ::VeryHookyJob
     def self.before_perform_record_history(history)
       history << :before_perform
     end
@@ -263,7 +263,7 @@ context "Resque::Job all hooks" do
     ]
   end
 
-  class VeryHookyJobThatFails
+  class ::VeryHookyJobThatFails
     def self.before_perform_record_history(history)
       history << :before_perform
     end

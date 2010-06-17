@@ -21,7 +21,7 @@ context "Multiple plugins with multiple hooks" do
     end
   end
 
-  class ManyBeforesJob
+  class ::ManyBeforesJob
     extend Plugin1
     extend Plugin2
     def self.perform(history)
@@ -45,7 +45,7 @@ context "Resque::Plugin ordering before_perform" do
     end
   end
 
-  class BeforePerformJob
+  class ::BeforePerformJob
     extend BeforePerformPlugin
     def self.perform(history)
       history << :perform
@@ -71,7 +71,7 @@ context "Resque::Plugin ordering after_perform" do
     end
   end
 
-  class AfterPerformJob
+  class ::AfterPerformJob
     extend AfterPerformPlugin
     def self.perform(history)
       history << :perform
@@ -98,7 +98,7 @@ context "Resque::Plugin ordering around_perform" do
     end
   end
 
-  class AroundPerformJustPerformsJob
+  class ::AroundPerformJustPerformsJob
     extend AroundPerformPlugin1
     def self.perform(history)
       history << :perform
@@ -111,7 +111,7 @@ context "Resque::Plugin ordering around_perform" do
     assert_equal [:around_perform_plugin1, :perform], history
   end
 
-  class AroundPerformJob
+  class ::AroundPerformJob
     extend AroundPerformPlugin1
     def self.perform(history)
       history << :perform
@@ -135,7 +135,7 @@ context "Resque::Plugin ordering around_perform" do
     end
   end
 
-  class AroundPerformJob2
+  class ::AroundPerformJob2
     extend AroundPerformPlugin1
     extend AroundPerformPlugin2
     def self.perform(history)
@@ -159,7 +159,7 @@ context "Resque::Plugin ordering around_perform" do
     end
   end
 
-  class AroundPerformJob3
+  class ::AroundPerformJob3
     extend AroundPerformPlugin1
     extend AroundPerformPlugin2
     extend AroundPerformDoesNotYield
@@ -189,7 +189,7 @@ context "Resque::Plugin ordering around_perform" do
     end
   end
 
-  class AroundPerformJobWithReturnValue < GoodJob
+  class ::AroundPerformJobWithReturnValue < GoodJob
     extend AroundPerformGetsJobResult
   end
 
@@ -209,7 +209,7 @@ context "Resque::Plugin ordering on_failure" do
     end
   end
 
-  class FailureJob
+  class ::FailureJob
     extend OnFailurePlugin
     def self.perform(history)
       history << :perform

@@ -36,16 +36,16 @@ context "Resque::Plugin finding hooks" do
 end
 
 context "Resque::Plugin linting" do
-  module BadBefore
+  module ::BadBefore
     def self.before_perform; end
   end
-  module BadAfter
+  module ::BadAfter
     def self.after_perform; end
   end
-  module BadAround
+  module ::BadAround
     def self.around_perform; end
   end
-  module BadFailure
+  module ::BadFailure
     def self.on_failure; end
   end
 
