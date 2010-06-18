@@ -456,6 +456,13 @@ module Resque
     # Procline is always in the format of:
     #   resque-VERSION: STRING
     def procline(string)
+      # Get around frozen $0
+      # Thanks to: http://www.ruby-forum.com/topic/187083#817010
+      $procline = $0
+      alias $PROC_LINE $0
+      alias $0 $procline
+      trace_var(:$0) {|val| $PROC_LINE = val}
+
       $0 = "resque-#{Resque::Version}: #{string}"
       log! $0
     end
