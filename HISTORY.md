@@ -1,3 +1,7 @@
+## 1.9.6 (2010-06-22)
+
+* Bugfix: Rakefile logging works the same as all the other logging
+
 ## 1.9.5 (2010-06-16)
 
 * Web Bugfix: Display the configured namespace on the stats page
