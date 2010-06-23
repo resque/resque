@@ -80,15 +80,14 @@ module Resque
       queue = "queue:#{queue}"
       destroyed = 0
 
-      redis.lrange(queue, 0, -1).each do |string|
-        json   = decode(string)
-
-        match  = json['class'] == klass
-        match &= json['args'] == args unless args.empty?
-
-        if match
-          destroyed += redis.lrem(queue, 0, string).to_i
+      if args.empty?
+        redis.lrange(queue, 0, -1).each do |string|
+          if decode(string)['class'] == klass
+            destroyed += redis.lrem(queue, 0, string).to_i
+          end
         end
+      else
+        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
       end
 
       destroyed
