@@ -1,3 +1,10 @@
+## 1.9.7 (2010-07-09)
+
+* Improved memory usage in Job.destroy
+* redis-namespace 0.7.0 now required
+* Bugfix: Reverted $0 changes
+* Web Bugfix: Payload-less failures in the web ui work
+
 ## 1.9.6 (2010-06-22)
 
 * Bugfix: Rakefile logging works the same as all the other logging
