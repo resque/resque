@@ -1,3 +1,9 @@
+## 1.9.8 (2010-07-20)
+
+* Bugfix: Worker.all should never return nil
+* monit example: Fixed Syntax Error and adding environment to the rake task
+* redis rake task: Fixed typo in copy command
+
 ## 1.9.7 (2010-07-09)
 
 * Improved memory usage in Job.destroy
