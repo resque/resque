@@ -280,7 +280,7 @@ module Resque
       :working   => working.size,
       :failed    => Stat[:failed],
       :servers   => [redis_id],
-      :environment  => defined?(RAILS_ENV) ? RAILS_ENV : (ENV['RACK_ENV'] || 'development')
+      :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     }
   end
 
