@@ -1,3 +1,9 @@
+## 1.9.9 (2010-07-26)
+
+* Depend on redis-namespace 0.8.0
+* Depend on json_pure instead of json (for JRuby compat)
+* Bugfix: rails_env display in stats view
+
 ## 1.9.8 (2010-07-20)
 
 * Bugfix: Worker.all should never return nil
