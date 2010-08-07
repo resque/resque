@@ -1,3 +1,7 @@
+## 1.9.10 (2010-08-06)
+
+* Bugfix: before_fork should get passed the job
+
 ## 1.9.9 (2010-07-26)
 
 * Depend on redis-namespace 0.8.0
