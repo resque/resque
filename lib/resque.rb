@@ -30,9 +30,14 @@ module Resque
   #      or `Redis::Namespace`.
   def redis=(server)
     if server.respond_to? :split
-      host, port, db = server.split(':')
-      redis = Redis.new(:host => host, :port => port,
-        :thread_safe => true, :db => db)
+      if server =~ /redis\:\/\//
+        redis = Redis.connect(:url => server)
+      else
+        host, port, db = server.split(':')
+        redis = Redis.new(:host => host, :port => port,
+          :thread_safe => true, :db => db)
+      end
+
       @redis = Redis::Namespace.new(:resque, :redis => redis)
     elsif server.respond_to? :namespace=
         @redis = server
