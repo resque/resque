@@ -8,6 +8,13 @@ context "Resque" do
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
   end
+  
+  test "can set a namespace through a url-like string" do
+    assert Resque.redis
+    assert_equal :resque, Resque.redis.namespace
+    Resque.redis = 'localhost:9736/namespace'
+    assert_equal 'namespace', Resque.redis.namespace
+  end
 
   test "can put jobs on a queue" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
