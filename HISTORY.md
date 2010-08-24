@@ -1,3 +1,12 @@
+## 1.10.0 (2010-08-23)
+
+* Support redis:// string format in `Resque.redis=`
+* Using new cross-platform JSON gem.
+* Added `after_enqueue` plugin hook.
+* Added `shutdown?` method which can be overridden.
+* Added support for the "leftright" gem when running tests.
+* Grammarfix: In the README
+
 ## 1.9.10 (2010-08-06)
 
 * Bugfix: before_fork should get passed the job
