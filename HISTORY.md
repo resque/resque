@@ -1,3 +1,7 @@
+## 1.11.0 (2010-08-23)
+
+* Web UI: Group /workers page by hostnames
+
 ## 1.10.0 (2010-08-23)
 
 * Support redis:// string format in `Resque.redis=`
