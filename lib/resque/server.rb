@@ -80,6 +80,21 @@ module Resque
         Array(args).map { |a| a.inspect }.join("\n")
       end
 
+      def worker_hosts
+        @worker_hosts ||= worker_hosts!
+      end
+
+      def worker_hosts!
+        hosts = Hash.new { [] }
+
+        Resque.workers.each do |worker|
+          host, _ = worker.to_s.split(':')
+          hosts[host] += [worker.to_s]
+        end
+
+        hosts
+      end
+
       def partial?
         @partial
       end
