@@ -85,7 +85,7 @@
   <%=poll%>
 
 <% else %>
-
+  <% @subtabs = [] %>
   <h1 class='wi'>Workers</h1>
   <p class='intro'>The hostnames below all have registered workers. Select a hostname to view its workers, or "all" to see all workers.</p>
   <table class='queues'>
@@ -93,7 +93,7 @@
       <th>Hostname</th>
       <th>Workers</th>
     </tr>
-    <% for hostname, workers in worker_hosts %>
+    <% for hostname, workers in worker_hosts.sort_by { |h,w| h } %>
     <tr>
       <td class='queue'><a class="queue" href="<%= url "workers/#{hostname}" %>"><%= hostname %></a></td>
       <td class='size'><%= workers.size %></td>

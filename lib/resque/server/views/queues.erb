@@ -1,4 +1,4 @@
-<% @subtabs = resque.queues unless partial? %>
+<% @subtabs = resque.queues unless partial? || params[:id].nil? %>
 
 <% if queue = params[:id] %>
 
