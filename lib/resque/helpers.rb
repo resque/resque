@@ -12,7 +12,7 @@ module Resque
       if defined? Yajl
         Yajl::Encoder.encode(object)
       else
-        object.to_json
+        MultiJson.encode(object)
       end
     end
 
@@ -27,8 +27,8 @@ module Resque
         end
       else
         begin
-          JSON.parse(object)
-        rescue JSON::ParserError
+          MultiJson.decode(object)
+        rescue Exception
         end
       end
     end

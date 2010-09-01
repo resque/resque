@@ -3,7 +3,7 @@ require 'redis/namespace'
 begin
   require 'yajl'
 rescue LoadError
-  require 'json'
+  require 'multi_json'
 end
 
 require 'resque/version'
