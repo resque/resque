@@ -764,7 +764,7 @@ To join the list simply send an email to <resque@librelist.com>. This
 will subscribe you and send you information about your subscription,
 including unsubscribe information.
 
-The archive can be found at <http://librelist.com/browser/>.
+The archive can be found at <http://librelist.com/browser/resque/>.
 
 
 Meta
