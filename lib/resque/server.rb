@@ -147,7 +147,7 @@ module Resque
 
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
-        content_type "text/plain"
+        content_type "text/html"
         @polling = true
         show(page.to_sym, false).gsub(/\s{1,}/, ' ')
       end
@@ -201,7 +201,7 @@ module Resque
         stats << "queues.#{queue}=#{Resque.size(queue)}"
       end
 
-      content_type 'text/plain'
+      content_type 'text/html'
       stats.join "\n"
     end
 
