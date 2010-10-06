@@ -461,7 +461,7 @@ module Resque
     # Procline is always in the format of:
     #   resque-VERSION: STRING
     def procline(string)
-      $0 = "resque-#{Resque::Version}: #{string}"
+      $0 = "resque-#{Resque::Version} [#{Resque.info[:environment]}]: #{string}"
       log! $0
     end
 
