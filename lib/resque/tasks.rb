@@ -8,7 +8,6 @@ namespace :resque do
   task :work => :setup do
     require 'resque'
 
-    worker = nil
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
 
     begin
@@ -18,6 +17,8 @@ namespace :resque do
     rescue Resque::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
+
+    File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s } if ENV['PIDFILE'] 
 
     worker.log "Starting worker #{worker}"
 
