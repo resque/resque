@@ -235,6 +235,13 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
+### Process IDs (PIDs)
+
+There are scenarios where it's helpful to record the PID of a resque
+worker process.  Use the PIDFILE option for easy access to the PID:
+
+    $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
+
 
 ### Priorities and Queue Lists
 
