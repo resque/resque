@@ -129,6 +129,14 @@ module Resque
     watch_queue(queue)
     redis.rpush "queue:#{queue}", encode(item)
   end
+  
+  
+  # Pushes a job onto the front of a queue. Queue name should be a string and the
+  # item should be any JSON-able Ruby object.
+  def lpush(queue, item)
+    watch_queue(queue)
+    redis.lpush "queue:#{queue}", encode(item)
+  end
 
   # Pops a job off a queue. Queue name should be a string.
   #
@@ -204,6 +212,11 @@ module Resque
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
     Job.create(queue_from_class(klass), klass, *args)
+  end
+  
+  # same as enqueue, except the job is placed at the front of the queue. 
+  def lpush_enqueue(klass, *args)
+    Job.lpush_create(queue_from_class(klass), klass, *args)
   end
 
   # This method can be used to conveniently remove a job from a queue.

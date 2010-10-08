@@ -87,6 +87,12 @@ class SomeJob
   end
 end
 
+class SomeOtherJob
+  @queue = :jobs
+  def self.perform(repo_id, path)
+  end
+end
+
 class SomeIvarJob < SomeJob
   @queue = :ivar
 end

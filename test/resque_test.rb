@@ -20,6 +20,11 @@ context "Resque" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
   end
+  
+  test "can lpush jobs onto the front of a queue" do
+    assert Resque::Job.lpush_create(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque.lpush_enqueue(SomeOtherJob, 20, '/tmp')
+  end
 
   test "can grab jobs off a queue" do
     Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
@@ -30,6 +35,20 @@ context "Resque" do
     assert_equal SomeJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
+  end
+  
+  test "can grab jobs off the front of a queue" do
+    Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
+    Resque.lpush_enqueue(SomeOtherJob, 20, '/tmp')
+
+    job = Resque.reserve(:jobs)
+
+    assert_kind_of Resque::Job, job
+    assert_equal SomeOtherJob, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+
+    assert_equal SomeJob, Resque.reserve(:jobs).payload_class
   end
 
   test "can re-queue jobs" do
@@ -131,8 +150,21 @@ context "Resque" do
   test "can put items on a queue" do
     assert Resque.push(:people, { 'name' => 'jon' })
   end
+  
+  test "can put items onto front of a queue" do
+    assert Resque.lpush(:people, { 'name' => 'elise' })
+  end
 
   test "can pull items off a queue" do
+    assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
+    assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
+    assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
+    assert_equal nil, Resque.pop(:people)
+  end
+  
+  test "can pull items off front of a queue" do
+    Resque.lpush(:people, { 'name' => 'elise' })
+    assert_equal({ 'name' => 'elise' }, Resque.pop(:people))
     assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
     assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
     assert_equal({ 'name' => 'mark' }, Resque.pop(:people))

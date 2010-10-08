@@ -54,6 +54,27 @@ module Resque
       end
       ret
     end
+    
+    # Creates a job by placing it on the front of a queue. Expects a string queue
+    # name, a string class name, and an optional array of arguments to
+    # pass to the class' `perform` method.
+    #
+    # Raises an exception if no queue or class is given.
+    def self.lpush_create(queue, klass, *args)
+      if !queue
+        raise NoQueueError.new("Jobs must be placed onto a queue.")
+      end
+
+      if klass.to_s.empty?
+        raise NoClassError.new("Jobs must be given a class.")
+      end
+
+      ret = Resque.lpush(queue, :class => klass.to_s, :args => args)
+      Plugin.after_enqueue_hooks(klass).each do |hook|
+        klass.send(hook, *args)
+      end
+      ret
+    end
 
     # Removes a job from a queue. Expects a string queue name, a
     # string class name, and, optionally, args.
