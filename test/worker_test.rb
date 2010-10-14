@@ -71,6 +71,20 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
   end
 
+  test "can work on multiple queues and take a name" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+
+    worker = Resque::Worker.new(:critical, :high, :name => "bob")
+    assert worker.name == "bob"
+    worker.process
+    assert_equal 1, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+
+    worker.process
+    assert_equal 0, Resque.size(:high)
+  end
+
   test "can work on all queues" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)

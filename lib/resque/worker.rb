@@ -20,6 +20,9 @@ module Resque
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
 
+    # the custom name of this worker - can be used to
+    attr_accessor :name
+
     attr_writer :to_s
 
     # Returns an array of all worker objects.
@@ -72,8 +75,11 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues
+    def initialize(*queues_and_optional_name)
+      if queues_and_optional_name.last.respond_to?(:[]) and queues_and_optional_name.last[:name]
+        @name = queues_and_optional_name.pop[:name]
+      end
+      @queues = queues_and_optional_name
       validate_queues
     end
 

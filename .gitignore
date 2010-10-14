@@ -1,2 +1,4 @@
 pkg
 nbproject
+.DS_store
+.idea/*
