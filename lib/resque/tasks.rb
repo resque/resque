@@ -10,9 +10,10 @@ namespace :resque do
 
     worker = nil
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    backup_queue = ENV['BACKUP_QUEUE']
 
     begin
-      worker = Resque::Worker.new(*queues)
+      worker = Resque::Worker.new(*queues, :backup_queue => backup_queue)
       worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
       worker.very_verbose = ENV['VVERBOSE']
     rescue Resque::NoQueueError
@@ -20,6 +21,7 @@ namespace :resque do
     end
 
     worker.log "Starting worker #{worker}"
+    worker.log "Worker has backup_queue name: #{backup_queue}" if backup_queue
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end

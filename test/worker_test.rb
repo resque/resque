@@ -71,12 +71,12 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
   end
 
-  test "can work on multiple queues and take a name" do
+  test "can work on multiple queues and take a backup_queue" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high, :name => "bob")
-    assert worker.name == "bob"
+    worker = Resque::Worker.new(:critical, :high, :backup_queue => "bob")
+    assert worker.backup_queue == "bob"
     worker.process
     assert_equal 1, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
@@ -313,4 +313,34 @@ context "Resque::Worker" do
     workerA.work(0)
     assert $AFTER_FORK_CALLED
   end
+
+  test "will properly empty the backup queue after a job is complete" do
+    Resque.redis.flushall
+    Resque::Job.create(:backup_queue_test, GoodJob)
+
+    workerA = Resque::Worker.new(:backup_queue_test, :backup_queue => "workerA")
+    workerA.work(0)
+    assert_equal 0, Resque.size(workerA.backup_queue_for(:backup_queue_test))
+  end
+
+  test "will resume failed jobs on startup" do
+    Resque.redis.flushall
+    job = Resque::Job.create(:backup_queue_test, GoodJob)
+    workerA = Resque::Worker.new(:backup_queue_test, :backup_queue => "workerA")
+    # simulate a job that never completed or failed
+    Resque::Job.reliable_reserve(:backup_queue_test, workerA.backup_queue_for(:backup_queue_test))
+    workerA.work(0)
+    assert_equal 1, Resque.info[:processed]
+  end
+
+  test "failed jobs come back out of the backup queue also" do
+    Resque.redis.flushall
+    Resque::Job.create(:backup_queue_test, BadJob)
+
+    workerA = Resque::Worker.new(:backup_queue_test, :backup_queue => "workerA")
+    workerA.work(0)
+    assert_equal 0, Resque.size(workerA.backup_queue_for(:backup_queue_test))
+    assert_equal 1, Resque::Failure.count
+  end
+
 end

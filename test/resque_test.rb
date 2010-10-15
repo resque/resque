@@ -139,6 +139,14 @@ context "Resque" do
     assert_equal nil, Resque.pop(:people)
   end
 
+  test "can pop items off a queue and put then in a backup queue" do
+    Resque.redis.flushall
+
+    assert Resque.push(:backup_test, {'name' => 'jon'})
+    assert_equal({'name' => 'jon'}, Resque.rpoplpush(:backup_test, :backup_test_backup))
+    assert_equal({'name' => 'jon'}, Resque.decode(Resque.redis.lpop("bqueue:backup_test_backup")))
+  end
+
   test "knows how big a queue is" do
     assert_equal 3, Resque.size(:people)
 
@@ -217,7 +225,7 @@ context "Resque" do
     assert_equal 1, stats[:working]
     assert_equal 1, stats[:workers]
 
-    @worker.done_working
+    @worker.done_working(job)
 
     stats = Resque.info
     assert_equal 3, stats[:queues]

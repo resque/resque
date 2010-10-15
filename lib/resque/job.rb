@@ -104,6 +104,13 @@ module Resque
       new(queue, payload)
     end
 
+    # given a string queue name and a string backup_queue returns and instance of Resque::Job
+    # jobs are atomically popped off the main queue and added to the backup_queue
+    def self.reliable_reserve(queue, backup_queue)
+      return unless payload = Resque.rpoplpush(queue, backup_queue)
+      new(queue, payload)
+    end
+
     # Attempts to perform the work represented by this job instance.
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.

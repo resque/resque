@@ -21,7 +21,7 @@ module Resque
     attr_accessor :cant_fork
 
     # the custom name of this worker - can be used to
-    attr_accessor :name
+    attr_accessor :backup_queue
 
     attr_writer :to_s
 
@@ -75,11 +75,11 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues_and_optional_name)
-      if queues_and_optional_name.last.respond_to?(:[]) and queues_and_optional_name.last[:name]
-        @name = queues_and_optional_name.pop[:name]
+    def initialize(*queues_and_optional_backup_queue)
+      if queues_and_optional_backup_queue.last.respond_to?(:[]) and queues_and_optional_backup_queue.last[:backup_queue]
+        @backup_queue = queues_and_optional_backup_queue.pop[:backup_queue]
       end
-      @queues = queues_and_optional_name
+      @queues = queues_and_optional_backup_queue
       validate_queues
     end
 
@@ -115,7 +115,6 @@ module Resque
 
       loop do
         break if shutdown?
-
         if not @paused and job = reserve
           log "got: #{job.inspect}"
           run_hook :before_fork, job
@@ -130,9 +129,9 @@ module Resque
             perform(job, &block)
             exit! unless @cant_fork
           end
-
-          done_working
+          done_working(job)
           @child = nil
+          restore_unprocessed_messages if @backup_queue
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
@@ -153,7 +152,7 @@ module Resque
       working_on job
       perform(job, &block)
     ensure
-      done_working
+      done_working(job)
     end
 
     # Processes a given job in the child.
@@ -173,17 +172,31 @@ module Resque
     end
 
     # Attempts to grab a job off one of the provided queues. Returns
-    # nil if no job can be found.
+    # nil if no job can be found. If there is a backup queue specified
+    # then use the reliable_reserve method which will put the taken job
+    # into a backup queue so that even if this process dies
+    # the job will still be processed.
     def reserve
       queues.each do |queue|
         log! "Checking #{queue}"
-        if job = Resque::Job.reserve(queue)
-          log! "Found job on #{queue}"
-          return job
+        if @backup_queue
+          if job = Resque::Job.reliable_reserve(queue, backup_queue_for(queue))
+            log! "Found job on #{queue}"
+            return job
+          end
+        else
+          if job = Resque::Job.reserve(queue)
+            log! "Found job on #{queue}"
+            return job
+          end
         end
-      end
 
+      end
       nil
+    end
+
+    def backup_queue_for(queue)
+      "#{@backup_queue}:#{queue}"
     end
 
     # Returns a list of queues to use when searching for a job.
@@ -218,12 +231,23 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
+      restore_unprocessed_messages if @backup_queue
       run_hook :before_first_fork
       register_worker
 
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
       $stdout.sync = true
+    end
+
+    # go through each queue's backup queue for this worker and move the unprocessed
+    # jobs back into the main queue
+    def restore_unprocessed_messages
+      @queues.each do |queue|
+        while redis.rpoplpush("bqueue:#{backup_queue_for(queue)}", "queue:#{queue}")
+          #just moving the backup queue stuff onto the queue again
+        end
+      end
     end
 
     # Enables GC Optimizations if you're running REE.
@@ -375,9 +399,21 @@ module Resque
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
-    def done_working
+    def done_working(job)
       processed!
+      remove_queued_backup_job_for(job) if job && @backup_queue
       redis.del("worker:#{self}")
+    end
+
+    # lpop off the the backup queue (the one we rpoplpushed to when starting the job)
+    # we can toss that as the job's already been completed
+    # if there is more than one job in this queue - something fishy must have happened.
+    def remove_queued_backup_job_for(job)
+      backup_queue = backup_queue_for(job.queue)
+      if redis.llen("bqueue:#{backup_queue}") > 1
+        raise "There is more than one backup job in the queue, please check on the health of this worker"
+      end
+      redis.lpop("bqueue:#{backup_queue}")
     end
 
     # How many jobs has this worker processed? Returns an int.

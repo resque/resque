@@ -137,6 +137,10 @@ module Resque
     decode redis.lpop("queue:#{queue}")
   end
 
+  def rpoplpush(queue, backup_queue)
+    decode redis.rpoplpush("queue:#{queue}", "bqueue:#{backup_queue}")
+  end
+
   # Returns an integer representing the size of a queue.
   # Queue name should be a string.
   def size(queue)

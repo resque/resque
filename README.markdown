@@ -224,6 +224,15 @@ GitHub's setup task looks like this:
 We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
+Starting the worker with a backup queue will ensure that no jobs are lost
+even if you kill -9 the worker before a job has completed. Backup queues
+must be unique to *each* worker. If a worker dies, restarting it with the
+same backup queue name will move all incomplete jobs back onto the main queue.
+
+    $ QUEUE=file_serve BACKUP_QUEUE=worker123 rake environment resque:work
+
+
+
 
 ### Logging
 
