@@ -11,9 +11,9 @@ namespace :resque do
     worker = nil
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
     backup_queue = ENV['BACKUP_QUEUE']
-
+    queues << {:backup_queue => backup_queue} if backup_queue
     begin
-      worker = Resque::Worker.new(*queues, :backup_queue => backup_queue)
+      worker = Resque::Worker.new(*queues)
       worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
       worker.very_verbose = ENV['VVERBOSE']
     rescue Resque::NoQueueError
