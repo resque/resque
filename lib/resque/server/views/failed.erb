@@ -19,19 +19,24 @@
         <dt>Worker</dt>
         <dd>
           <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
-          <div class='retry'>
-            <% if job['retried_at'] %>
+          <% if job['retried_at'] %>
+            <div class='retried'>
               Retried <b><span class="time"><%= job['retried_at'] %></span></b>
-            <% else %>
+              <a href="<%= u "failed/remove/#{start + index - 1}" %>" class="remove" rel="remove">Remove</a>
+            </div>
+          <% else %>
+            <div class='controls'>
               <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
-            <% end %>
-          </div>
+              or
+              <a href="<%= u "failed/remove/#{start + index - 1}" %>" rel="remove">Remove</a>
+            </div>
+          <% end %>
         </dd>
         <dt>Class</dt>
         <dd><code><%= job['payload'] ? job['payload']['class'] : 'nil' %></code></dd>
         <dt>Arguments</dt>
         <dd><pre><%=h job['payload'] ? show_args(job['payload']['args']) : 'nil' %></pre></dd>
-        <dt>Exception</td>
+        <dt>Exception</dt>
         <dd><code><%= job['exception'] %></code></dd>
         <dt>Error</dt>
         <dd class='error'>

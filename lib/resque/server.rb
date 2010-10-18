@@ -175,6 +175,11 @@ module Resque
       end
     end
 
+    get "/failed/remove/:index" do
+      Resque::Failure.remove(params[:index])
+      redirect u('failed')
+    end
+
     get "/stats" do
       redirect url("/stats/resque")
     end
