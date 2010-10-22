@@ -171,7 +171,9 @@ module Resque
 
     # Returns the actual class constant represented in this job's payload.
     def payload_class
-      @payload_class ||= constantize(@payload['class'])
+      @payload_class ||= @payload['class'].respond_to?(:constantize) ?
+                          @payload['class'].constantize :
+                          constantize(@payload['class'])
     end
 
     # Returns an array of args represented in this job's payload.
