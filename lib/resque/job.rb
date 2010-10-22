@@ -48,7 +48,11 @@ module Resque
         raise NoClassError.new("Jobs must be given a class.")
       end
 
-      Resque.push(queue, :class => klass.to_s, :args => args)
+      ret = Resque.push(queue, :class => klass.to_s, :args => args)
+      Plugin.after_enqueue_hooks(klass).each do |hook|
+        klass.send(hook, *args)
+      end
+      ret
     end
 
     # Removes a job from a queue. Expects a string queue name, a
@@ -80,15 +84,14 @@ module Resque
       queue = "queue:#{queue}"
       destroyed = 0
 
-      redis.lrange(queue, 0, -1).each do |string|
-        json   = decode(string)
-
-        match  = json['class'] == klass
-        match &= json['args'] == args unless args.empty?
-
-        if match
-          destroyed += redis.lrem(queue, 0, string).to_i
+      if args.empty?
+        redis.lrange(queue, 0, -1).each do |string|
+          if decode(string)['class'] == klass
+            destroyed += redis.lrem(queue, 0, string).to_i
+          end
         end
+      else
+        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
       end
 
       destroyed
@@ -140,8 +143,9 @@ module Resque
             else
               lambda do
                 job.send(hook, *job_args) do
-                  job.perform(*job_args)
+                  result = job.perform(*job_args)
                   job_was_performed = true
+                  result
                 end
               end
             end
@@ -167,7 +171,9 @@ module Resque
 
     # Returns the actual class constant represented in this job's payload.
     def payload_class
-      @payload_class ||= constantize(@payload['class'])
+      @payload_class ||= @payload['class'].respond_to?(:constantize) ?
+                          @payload['class'].constantize :
+                          constantize(@payload['class'])
     end
 
     # Returns an array of args represented in this job's payload.

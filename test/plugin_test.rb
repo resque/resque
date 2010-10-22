@@ -19,33 +19,33 @@ context "Resque::Plugin finding hooks" do
   end
 
   test "before_perform hooks are found and sorted" do
-    assert_equal ["before_perform", "before_perform1", "before_perform2"], Resque::Plugin.before_hooks(SimplePlugin)
+    assert_equal ["before_perform", "before_perform1", "before_perform2"], Resque::Plugin.before_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   test "after_perform hooks are found and sorted" do
-    assert_equal ["after_perform", "after_perform1", "after_perform2"], Resque::Plugin.after_hooks(SimplePlugin)
+    assert_equal ["after_perform", "after_perform1", "after_perform2"], Resque::Plugin.after_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   test "around_perform hooks are found and sorted" do
-    assert_equal ["around_perform", "around_perform1", "around_perform2"], Resque::Plugin.around_hooks(SimplePlugin)
+    assert_equal ["around_perform", "around_perform1", "around_perform2"], Resque::Plugin.around_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   test "on_failure hooks are found and sorted" do
-    assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin)
+    assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
   end
 end
 
 context "Resque::Plugin linting" do
-  module BadBefore
+  module ::BadBefore
     def self.before_perform; end
   end
-  module BadAfter
+  module ::BadAfter
     def self.after_perform; end
   end
-  module BadAround
+  module ::BadAround
     def self.around_perform; end
   end
-  module BadFailure
+  module ::BadFailure
     def self.on_failure; end
   end
 

@@ -93,7 +93,7 @@ namespace :redis do
     end
 
     %w(redis-benchmark redis-cli redis-server).each do |bin|
-      sh "cp /tmp/redis/#{bin} #{bin_dir}"
+      sh "cp /tmp/redis/src/#{bin} #{bin_dir}"
     end
 
     puts "Installed redis-benchmark, redis-cli and redis-server to #{bin_dir}"
@@ -105,8 +105,8 @@ namespace :redis do
   end
 
   task :make do
-    sh "cd /tmp/redis && make clean"
-    sh "cd /tmp/redis && make"
+    sh "cd /tmp/redis/src && make clean"
+    sh "cd /tmp/redis/src && make"
   end
 
   desc "Download package"

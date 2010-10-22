@@ -5,6 +5,11 @@ require 'test/unit'
 require 'rubygems'
 require 'resque'
 
+begin
+  require 'leftright'
+rescue LoadError
+end
+
 
 #
 # make sure we can run redis
@@ -31,7 +36,7 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  pid = `ps -e -o pid,command | grep [r]edis-test`.split(" ")[0]
+  pid = `ps -A -o pid,command | grep [r]edis-test`.split(" ")[0]
   puts "Killing test redis server..."
   `rm -f #{dir}/dump.rdb`
   Process.kill("KILL", pid.to_i)

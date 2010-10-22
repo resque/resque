@@ -28,9 +28,9 @@
           </div>
         </dd>
         <dt>Class</dt>
-        <dd><code><%= job['payload']['class'] %></code></dd>
+        <dd><code><%= job['payload'] ? job['payload']['class'] : 'nil' %></code></dd>
         <dt>Arguments</dt>
-        <dd><pre><%=h show_args(job['payload']['args']) %></pre></dd>
+        <dd><pre><%=h job['payload'] ? show_args(job['payload']['args']) : 'nil' %></pre></dd>
         <dt>Exception</td>
         <dd><code><%= job['exception'] %></code></dd>
         <dt>Error</dt>

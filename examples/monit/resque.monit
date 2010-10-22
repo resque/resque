@@ -1,6 +1,6 @@
 check process resque_worker_QUEUE
   with pidfile /data/APP_NAME/current/tmp/pids/resque_worker_QUEUE.pid
-  start program = "/bin/sh -c 'cd /data/APP_NAME/current; RAILS_ENV=production QUEUE=queue_name VERBOSE=1 nohup rake resque:work& &> log/resque_worker_QUEUE.log && echo $! > tmp/pids/resque_worker_QUEUE.pid'" as uid deploy and gid deploy
+  start program = "/bin/sh -c 'cd /data/APP_NAME/current; RAILS_ENV=production QUEUE=queue_name VERBOSE=1 nohup rake environment resque:work& > log/resque_worker_QUEUE.log && echo $! > tmp/pids/resque_worker_QUEUE.pid'" as uid deploy and gid deploy
   stop program = "/bin/sh -c 'cd /data/APP_NAME/current && kill -s QUIT `cat tmp/pids/resque_worker_QUEUE.pid` && rm -f tmp/pids/resque_worker_QUEUE.pid; exit 0;'"
   if totalmem is greater than 300 MB for 10 cycles then restart  # eating up memory?
   group resque_workers

@@ -9,7 +9,7 @@ module Resque
           :payload   => payload,
           :exception => exception.class.to_s,
           :error     => exception.to_s,
-          :backtrace => exception.backtrace,
+          :backtrace => Array(exception.backtrace),
           :worker    => worker.to_s,
           :queue     => queue
         }
@@ -24,11 +24,11 @@ module Resque
       def self.all(start = 0, count = 1)
         Resque.list_range(:failed, start, count)
       end
-      
+
       def self.clear
         Resque.redis.del(:failed)
       end
-      
+
       def self.requeue(index)
         item = all(index)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")

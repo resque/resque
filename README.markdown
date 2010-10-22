@@ -9,8 +9,8 @@ Background jobs can be any Ruby class or module that responds to
 jobs or you can create new classes specifically to do work. Or, you
 can do both.
 
-Resque is heavily inspired by DelayedJob (which rocks) and is
-comprised of three parts:
+Resque is heavily inspired by DelayedJob (which rocks) and comprises
+three parts:
 
 1. A Ruby library for creating, querying, and processing jobs
 2. A Rake task for starting a worker which processes jobs
@@ -764,7 +764,7 @@ To join the list simply send an email to <resque@librelist.com>. This
 will subscribe you and send you information about your subscription,
 including unsubscribe information.
 
-The archive can be found at <http://librelist.com/browser/>.
+The archive can be found at <http://librelist.com/browser/resque/>.
 
 
 Meta

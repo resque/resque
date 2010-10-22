@@ -24,7 +24,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      redis.smembers(:workers).map { |id| find(id) }
+      Array(redis.smembers(:workers)).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -108,11 +108,11 @@ module Resque
       startup
 
       loop do
-        break if @shutdown
+        break if shutdown?
 
         if not @paused and job = reserve
           log "got: #{job.inspect}"
-          run_hook :before_fork
+          run_hook :before_fork, job
           working_on job
 
           if @child = fork
@@ -263,6 +263,11 @@ module Resque
     def shutdown!
       shutdown
       kill_child
+    end
+
+    # Should this worker shutdown as soon as current job is finished?
+    def shutdown?
+      @shutdown
     end
 
     # Kills the forked child immediately, without remorse. The job it

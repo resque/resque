@@ -22,7 +22,7 @@
 
 <% elsif params[:id] == 'redis' %>
 
-  <h1><%= resque.redis.server %></h1>
+  <h1><%= resque.redis_id %></h1>
   <table class='stats'>
   <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
@@ -39,7 +39,7 @@
 <% elsif params[:id] == 'keys' %>
 
   <h1>Keys owned by <%= resque %></h1>
-  <p class='sub'>(All keys are actually prefixed with "resque:")</p>
+  <p class='sub'>(All keys are actually prefixed with "<%= Resque.redis.namespace %>:")</p>
   <table class='stats'>
     <tr>
       <th>key</th>
