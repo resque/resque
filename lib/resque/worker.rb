@@ -32,8 +32,13 @@ module Resque
     def self.working
       names = all
       return [] unless names.any?
+
       names.map! { |name| "worker:#{name}" }
-      redis.mapped_mget(*names).keys.map do |key|
+
+      reportedly_working = redis.mapped_mget(*names).reject do |key, value|
+        value.nil?
+      end
+      reportedly_working.keys.map do |key|
         find key.sub("worker:", '')
       end.compact
     end
