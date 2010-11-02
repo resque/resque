@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 context "Multiple plugins with multiple hooks" do
   include PerformJob
@@ -45,7 +45,7 @@ context "Resque::Plugin ordering before_perform" do
     end
   end
 
-  class ::BeforePerformJob
+  class ::JobPluginsTestBeforePerformJob
     extend BeforePerformPlugin
     def self.perform(history)
       history << :perform
@@ -56,7 +56,7 @@ context "Resque::Plugin ordering before_perform" do
   end
 
   test "before_perform hooks are executed in order" do
-    result = perform_job(BeforePerformJob, history=[])
+    result = perform_job(JobPluginsTestBeforePerformJob, history=[])
     assert_equal true, result, "perform returned true"
     assert_equal [:before_perform, :before_perform1, :perform], history
   end
@@ -71,7 +71,7 @@ context "Resque::Plugin ordering after_perform" do
     end
   end
 
-  class ::AfterPerformJob
+  class ::JobPluginsTestAfterPerformJob
     extend AfterPerformPlugin
     def self.perform(history)
       history << :perform
@@ -82,7 +82,7 @@ context "Resque::Plugin ordering after_perform" do
   end
 
   test "after_perform hooks are executed in order" do
-    result = perform_job(AfterPerformJob, history=[])
+    result = perform_job(JobPluginsTestAfterPerformJob, history=[])
     assert_equal true, result, "perform returned true"
     assert_equal [:perform, :after_perform, :after_perform1], history
   end
@@ -111,7 +111,7 @@ context "Resque::Plugin ordering around_perform" do
     assert_equal [:around_perform_plugin1, :perform], history
   end
 
-  class ::AroundPerformJob
+  class ::JobPluginsTestAroundPerformJob
     extend AroundPerformPlugin1
     def self.perform(history)
       history << :perform
@@ -123,7 +123,7 @@ context "Resque::Plugin ordering around_perform" do
   end
 
   test "around_perform hooks are executed in order" do
-    result = perform_job(AroundPerformJob, history=[])
+    result = perform_job(JobPluginsTestAroundPerformJob, history=[])
     assert_equal true, result, "perform returned true"
     assert_equal [:around_perform, :around_perform_plugin1, :perform], history
   end

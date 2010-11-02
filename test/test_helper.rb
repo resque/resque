@@ -66,6 +66,8 @@ def context(*args, &block)
   end
   (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
   klass.class_eval &block
+  # XXX: In 1.8.x, not all tests will run unless anonymous classes are kept in scope.
+  ($test_classes ||= []) << klass
 end
 
 ##

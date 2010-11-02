@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 require 'resque/server/test_helper'
  
 # Root path test
