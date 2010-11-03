@@ -405,7 +405,7 @@ module Resque
       redis.del("worker:#{self}")
     end
 
-    # lpop off the the backup queue (the one we rpoplpushed to when starting the job)
+    # rpop off the the backup queue (the one we rpoplpushed to when starting the job)
     # we can toss that as the job's already been completed
     # if there is more than one job in this queue - something fishy must have happened.
     def remove_queued_backup_job_for(job)
@@ -413,7 +413,7 @@ module Resque
       if redis.llen("bqueue:#{backup_queue}") > 1
         raise "There is more than one backup job in the queue, please check on the health of this worker"
       end
-      redis.lpop("bqueue:#{backup_queue}")
+      redis.rpop("bqueue:#{backup_queue}")
     end
 
     # How many jobs has this worker processed? Returns an int.

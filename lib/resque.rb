@@ -127,14 +127,14 @@ module Resque
   # item should be any JSON-able Ruby object.
   def push(queue, item)
     watch_queue(queue)
-    redis.rpush "queue:#{queue}", encode(item)
+    redis.lpush "queue:#{queue}", encode(item)
   end
 
   # Pops a job off a queue. Queue name should be a string.
   #
   # Returns a Ruby object.
   def pop(queue)
-    decode redis.lpop("queue:#{queue}")
+    decode redis.rpop("queue:#{queue}")
   end
 
   def rpoplpush(queue, backup_queue)
@@ -161,11 +161,16 @@ module Resque
 
   # Does the dirty work of fetching a range of items from a Redis list
   # and converting them into Ruby objects.
+  # the negatives here are to maintain backwards compatability with the
+  # old API... giving you the first OUT of the queue
+  # the rpoplpush change necesitated changing the flow of messages from
+  # right-in left-out to left-in right-out
   def list_range(key, start = 0, count = 1)
+    start = -1 * (start+1)
     if count == 1
       decode redis.lindex(key, start)
     else
-      Array(redis.lrange(key, start, start+count-1)).map do |item|
+      Array(redis.lrange(key, (start-count)+1, start)).reverse.map do |item|
         decode item
       end
     end
