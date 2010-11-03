@@ -30,12 +30,7 @@ module Resque
     # Returns an array of all worker objects currently processing
     # jobs.
     def self.working
-      names = all
-      return [] unless names.any?
-      names.map! { |name| "worker:#{name}" }
-      redis.mapped_mget(*names).keys.map do |key|
-        find key.sub("worker:", '')
-      end.compact
+      all.map {|name| find name.to_s }.compact
     end
 
     # Returns a single worker object. Accepts a string id.
