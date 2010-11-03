@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require File.expand_path(File.dirname(__FILE__)) + '/test_helper'
 
 context "Multiple plugins with multiple hooks" do
   include PerformJob

@@ -61,6 +61,12 @@ module Resque
       # NameError is raised when the name is not in CamelCase or the constant is
       # unknown.
       def constantize(camel_cased_word)
+        camel_cased_word = camel_cased_word.to_s
+
+        if camel_cased_word.include?('-')
+          camel_cased_word = classify(camel_cased_word)
+        end
+
         names = camel_cased_word.split('::')
         names.shift if names.empty? || names.first.empty?
 
@@ -72,6 +78,12 @@ module Resque
       end
     else
       def constantize(camel_cased_word) #:nodoc:
+        camel_cased_word = camel_cased_word.to_s
+
+        if camel_cased_word.include?('-')
+          camel_cased_word = classify(camel_cased_word)
+        end
+
         names = camel_cased_word.split('::')
         names.shift if names.empty? || names.first.empty?
 

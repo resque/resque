@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require File.expand_path(File.dirname(__FILE__)) + '/test_helper'
 
 context "Resque" do
   setup do
@@ -228,5 +228,36 @@ context "Resque" do
 
   test "decode bad json" do
     assert_nil Resque.decode("{\"error\":\"Module not found \\u002\"}")
+  end
+
+  test "use objects own constantize implementation if it exists" do
+
+    # make sure classes nested in multiple modules are resolved correctly
+    module SomeModule
+      module SomeOtherModule
+        class SomeClass; end
+      end
+    end
+
+    module SomeOtherModule; end
+
+
+    class Object
+      # for testing, we'll assert that calling constantize on an Object returns
+      # Hash no matter what string its passed, just to ensure the correct method is being
+      # called
+      def constantize
+        return Hash
+      end
+
+    end
+
+    assert_equal Hash, Resque::Job.new(:some_queue, { 'class' => 'SomeClass'} ).payload_class
+
+    # cleanup
+    Object.send :remove_method, :constantize
+
+    # now, assert that we call the helper method's implementation otherwise
+    assert_equal SomeModule::SomeOtherModule::SomeClass, Resque::Job.new(:some_other_queue, { 'class' => 'SomeModule::SomeOtherModule::SomeClass'} ).payload_class
   end
 end

@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require File.expand_path(File.dirname(__FILE__)) + '/test_helper'
 
 context "Resque::Job before_perform" do
   include PerformJob
