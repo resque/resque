@@ -26,8 +26,11 @@ module Resque
       INPUT_FORMAT = /^([^:]+):(\d+)(?::in `([^']+)')?$/
 
       class << self
-        attr_accessor :secure, :api_key, :proxy_host, :proxy_port
+        attr_accessor :secure, :api_key
+        attr_accessor :proxy_host, :proxy_port, :proxy_user, :proxy_pass
         attr_accessor :server_environment
+        attr_accessor :host, :port
+        attr_accessor :http_read_timeout, :http_open_timeout
       end
 
       def self.count
@@ -43,17 +46,20 @@ module Resque
 
       def save
         http = use_ssl? ? :https : :http
-        url = URI.parse("#{http}://hoptoadapp.com/notifier_api/v2/notices")
+        host = self.class.host || 'hoptoadapp.com'
+        port = self.class.port
+        url = URI.parse("#{http}://#{host}:#{port}/notifier_api/v2/notices/")
 
-        request = Net::HTTP::Proxy(self.class.proxy_host, self.class.proxy_port)
+        request = Net::HTTP::Proxy self.class.proxy_host, self.class.proxy_port,
+                                   self.class.proxy_user, self.class.proxy_pass
         http = request.new(url.host, url.port)
         headers = {
           'Content-type' => 'text/xml',
           'Accept' => 'text/xml, application/xml'
         }
 
-        http.read_timeout = 5 # seconds
-        http.open_timeout = 2 # seconds
+        http.read_timeout = self.class.http_read_timeout || 5 # seconds
+        http.open_timeout = self.class.http_open_timeout || 2 # seconds
 
         http.use_ssl = use_ssl?
 
