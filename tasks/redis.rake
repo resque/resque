@@ -82,7 +82,12 @@ namespace :redis do
     RedisRunner.attach
   end
 
-  desc 'Install the latest verison of Redis from Github (requires git, duh)'
+  desc <<-DOC 
+  Install the latest verison of Redis from Github (requires git, duh).
+    Use INSTALL_DIR env var like "rake redis:install INSTALL_DIR=~/tmp"
+    in order to get an alternate location for your install files.
+  DOC
+  
   task :install => [:about, :download, :make] do
     bin_dir = '/usr/bin'
     conf_dir = '/etc'
