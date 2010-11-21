@@ -112,6 +112,49 @@ context "Resque::Worker" do
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
+  test "can include queues with pattern" do
+    Resque::Job.create(:high_x, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:high_y, GoodJob)
+    Resque::Job.create(:superhigh_z, GoodJob)
+
+    worker = Resque::Worker.new("*high*")
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high_x)
+    assert_equal 1, Resque.size(:blahblah)
+    assert_equal 0, Resque.size(:high_y)
+    assert_equal 0, Resque.size(:superhigh_z)
+  end
+
+  test "can blacklist queues" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+
+    worker = Resque::Worker.new("*", "!high")
+
+    worker.work(0)
+    assert_equal 1, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+  end
+
+  test "can blacklist queues with pattern" do
+    Resque::Job.create(:high_x, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:high_y, GoodJob)
+    Resque::Job.create(:superhigh_z, GoodJob)
+
+    worker = Resque::Worker.new("*", "!*high*")
+
+    worker.work(0)
+    assert_equal 1, Resque.size(:high_x)
+    assert_equal 0, Resque.size(:blahblah)
+    assert_equal 1, Resque.size(:high_y)
+    assert_equal 1, Resque.size(:superhigh_z)
+  end
+
   test "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end
