@@ -25,6 +25,13 @@ context "Resque::Worker" do
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
   end
 
+  test "does not allow exceptions from failure backend to escape" do
+    job = Resque::Job.new(:jobs, {})
+    with_failure_backend BadFailureBackend do
+      @worker.perform job
+    end
+  end
+
   test "fails uncompleted jobs on exit" do
     job = Resque::Job.new(:jobs, [GoodJob, "blah"])
     @worker.working_on(job)
