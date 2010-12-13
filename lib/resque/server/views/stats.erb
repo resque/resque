@@ -1,11 +1,6 @@
-<% @subtabs = %w( resque redis keys ) %>
-
 <% if params[:key] %>
-
-<%= partial resque.redis.type(params[:key]).eql?("string") ? :key_string : :key_sets %>
-
+	<%= partial resque.redis.type(params[:key]).eql?("string") ? :key_string : :key_sets %>
 <% elsif params[:id] == "resque" %>
-
   <h1><%= resque %></h1>
   <table class='stats'>
   <% for key, value in resque.info.to_a.sort_by { |i| i[0].to_s } %>
@@ -19,9 +14,7 @@
     </tr>
   <% end %>
   </table>
-
 <% elsif params[:id] == 'redis' %>
-
   <h1><%= resque.redis_id %></h1>
   <table class='stats'>
   <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
@@ -35,9 +28,7 @@
     </tr>
   <% end %>
   </table>
-
 <% elsif params[:id] == 'keys' %>
-
   <h1>Keys owned by <%= resque %></h1>
   <p class='sub'>(All keys are actually prefixed with "<%= Resque.redis.namespace %>:")</p>
   <table class='stats'>
@@ -56,7 +47,5 @@
     </tr>
   <% end %>
   </table>
-
 <% else %>
-
 <% end %>

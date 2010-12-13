@@ -130,7 +130,7 @@ module Resque
       redirect url(:overview)
     end
 
-    %w( overview queues working workers key ).each do |page|
+    %w( key ).each do |page|
       get "/#{page}" do
         show page
       end
@@ -139,6 +139,56 @@ module Resque
         show page
       end
     end
+    get "/working" do
+      @workers = resque.working.reject { |w| w.idle? }
+      show :working
+    end
+    
+    get "/working/:id" do
+      @workers = resque.working.reject { |w| w.idle? }
+      @worker = Resque::Worker.find(params[:id])
+      @host, @pid  = @worker.to_s.split(':') 
+      show :working
+    end
+    
+    
+    get "/workers" do 
+      @subtabs = worker_hosts.keys.sort unless worker_hosts.size == 1
+      if worker_hosts.size == 1 || params[:id] == 'all'
+        @workers = Resque.workers.sort_by { |w| w.to_s }
+  	  else
+  	    @workers = worker_hosts[params[:id]].map { |id| Resque::Worker.find(id) }.sort_by { |w| w.to_s }
+  	  end 
+      show :workers
+    end
+    
+    get "/workers/:id" do
+      @worker = Resque::Worker.find(params[:id])
+      @host, @pid, @queues = @worker.to_s.split(':')
+      show :worker
+    end
+    
+    
+    %w( queues overview ).each do |page|
+      get "/#{page}" do
+        @subtabs = resque.queues
+        show :"#{page}"
+      end
+    
+      get "/#{page}/:id" do
+        @resolution = params[:resolution].to_i || 20
+        @start = params[:start].to_i
+        @size = resque.size(params[:id])
+        @jobs = resque.peek(params[:id], @start, @resolution)
+        show :"#{page}"
+      end
+    end
+    
+    # get "/overview/:id" do
+    #   @start = params[:start].to_i
+    #   @resolution = 20
+    #   show :overview
+    # end
 
     post "/queues/:id/remove" do
       Resque.remove_queue(params[:id])
@@ -157,6 +207,16 @@ module Resque
       if Resque::Failure.url
         redirect Resque::Failure.url
       else
+        @start = params[:start].to_i
+        @size = Resque::Failure.count
+        @resolution = (params[:maxres].to_i <= 0) ? 20 : params[:resolution].to_i
+        @descending = (params[:descending] || false)
+        if @descending
+          @failed = Resque::Failure.all(Resque::Failure.count - @start - @resolution, @resolution)
+          @failed.send(:reverse) if @failed.respond_to?(:reverse)
+        else 
+          @failed = Resque::Failure.all(@start, @resolution)
+        end
         show :failed
       end
     end
@@ -180,10 +240,14 @@ module Resque
     end
 
     get "/stats/:id" do
+      @subtabs = %w( resque redis keys )
       show :stats
     end
 
     get "/stats/keys/:key" do
+      @resolution = params[:resolution].to_i || 20
+      @start =  params[:start].to_i
+      @size = redis_get_size(params[:key])
       show :stats
     end
 
