@@ -1,0 +1,36 @@
+
+<% if params[:id] && @worker %>
+	<h1>Worker <%= @worker %></h1>
+	<table class='workers'>
+	  <tr>
+	    <th>&nbsp;</th>
+	    <th>Host</th>
+	    <th>Pid</th>
+	    <th>Started</th>
+	    <th>Queues</th>
+	    <th>Processed</th>
+	    <th>Failed</th>
+	    <th>Processing</th>
+	  </tr>
+	  <tr>
+	    <td class='icon'><img src="<%=u @worker.state %>.png" alt="<%= @worker.state %>" title="<%= @worker.state %>"></td>
+
+	    
+	    <td><%= @host %></td>
+	    <td><%= @pid %></td>
+	    <td><span class="time"><%= @worker.started %></span></td>
+	    <td class='queues'><%= @queues.split(',').map { |q| '<a class="queue-tag" href="' + u("/queues/#{q}") + '">' + q + '</a>'}.join('') %></td>
+	    <td><%= @worker.processed %></td>
+	    <td><%= @worker.failed %></td>
+	    <td class='process'>
+	      <% if @worker.processing.is_a?(Hash) && @worker.processing['queue'] %>
+	        <code><%= @worker.processing['payload']['class'] %></code>
+	        <small><a class="queue time" href="<%=u "/working/#{@worker}" %>"><%= @worker.processing['run_at'] %></a></small>
+	      <% else %>
+	        <span class='waiting'>Waiting for a job...</span>
+	      <% end %>
+	    </td>
+	  </tr>
+	</table>
+<% end %>
+
