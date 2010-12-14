@@ -9,7 +9,7 @@ namespace :resque do
     require 'resque'
 
     worker = nil
-    queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',').map(&:strip)
 
     begin
       worker = Resque::Worker.new(*queues)
