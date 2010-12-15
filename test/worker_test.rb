@@ -312,4 +312,8 @@ context "Resque::Worker" do
     workerA.work(0)
     assert $AFTER_FORK_CALLED
   end
+
+  test "returns PID of running process" do
+    assert_equal Process.pid, @worker.pid
+  end
 end
