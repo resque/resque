@@ -1,8 +1,8 @@
 Resque
 ======
 
-Resque (pronounced like "rescue") is a Redis-backed library for creating 
-background jobs, placing those jobs on multiple queues, and processing 
+Resque (pronounced like "rescue") is a Redis-backed library for creating
+background jobs, placing those jobs on multiple queues, and processing
 them later.
 
 Background jobs can be any Ruby class or module that responds to
