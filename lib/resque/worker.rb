@@ -130,7 +130,7 @@ module Resque
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
-          procline @paused ? "Paused" : "Waiting for #{@queues.join(',')}"
+          procline @paused ? "Paused" : "Waiting"
           sleep interval.to_i
         end
       end
@@ -461,7 +461,7 @@ module Resque
     # Procline is always in the format of:
     #   resque-VERSION: STRING
     def procline(string)
-      $0 = "resque-#{Resque::Version}: #{string}"
+      $0 = "resque-#{Resque::Version}: #{string} (queues: #{queues.join(', ')})"
       log! $0
     end
 
