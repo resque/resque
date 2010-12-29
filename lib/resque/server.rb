@@ -161,14 +161,16 @@ module Resque
       end
     end
 
-    post "/failed/remove" do
-      failure = CGI.unescape(params[:failure])
-      Resque.redis.lrem(:failed, 0, failure)
+    post "/failed/clear" do
+      Resque::Failure.clear
       redirect u('failed')
     end
 
-    post "/failed/clear" do
-      Resque::Failure.clear
+    get "/failed/ignore/:index" do
+      index = params[:index]
+      item = Resque.list_range(:failed, index, 1)
+      item['ignored_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+      Resque.redis.lset(:failed, index, Resque.encode(item))
       redirect u('failed')
     end
 

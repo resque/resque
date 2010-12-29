@@ -20,14 +20,13 @@
         <dd>
           <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
           <div class='retry'>
-            <% if job['retried_at'] %>
+            <% if job['ignored_at'] %>
+              Ignored <b><span class="time"><%= job['ignored_at'] %></span></b>
+            <% elsif job['retried_at'] %>
               Retried <b><span class="time"><%= job['retried_at'] %></span></b>
             <% else %>
               <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
-              <form action="<%= url "failed/remove" %>" method="post">
-                 <input type="hidden" name="failure" value="<%= CGI.escape(Resque.encode(job)) %>">
-                 <input type="submit" value="Remove">
-              </form>
+              <a href="<%= u "failed/ignore/#{start + index - 1}" %>" rel="ignore">Ignore</a>
             <% end %>
           </div>
         </dd>
