@@ -24,6 +24,10 @@
               Retried <b><span class="time"><%= job['retried_at'] %></span></b>
             <% else %>
               <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
+              <form action="<%= url "failed/remove" %>" method="post">
+                 <input type="hidden" name="failure" value="<%= CGI.escape(Resque.encode(job)) %>">
+                 <input type="submit" value="Remove">
+              </form>
             <% end %>
           </div>
         </dd>

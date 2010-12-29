@@ -161,6 +161,12 @@ module Resque
       end
     end
 
+    post "/failed/remove" do
+      failure = CGI.unescape(params[:failure])
+      Resque.redis.lrem(:failed, 0, failure)
+      redirect u('failed')
+    end
+
     post "/failed/clear" do
       Resque::Failure.clear
       redirect u('failed')
