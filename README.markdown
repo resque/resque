@@ -420,7 +420,8 @@ You can also set the namespace directly using `resque-web`:
 Using Passenger? Resque ships with a `config.ru` you can use. See
 Phusion's guide:
 
-<http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application>
+Apache: <http://www.modrails.com/documentation/Users%20guide%20Apache.html#_deploying_a_rack_based_ruby_application>
+Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deploying_a_rack_app>
 
 ### Rack::URLMap
 
