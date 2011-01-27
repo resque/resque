@@ -102,13 +102,14 @@ module Resque
     # 2. Work loop: Jobs are pulled from a queue and processed.
     # 3. Teardown:  This worker is unregistered.
     #
-    # Can be passed an integer representing the polling frequency.
+    # Can be passed a float representing the polling frequency.
     # The default is 5 seconds, but for a semi-active site you may
     # want to use a smaller value.
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
-    def work(interval = 5, &block)
+    def work(interval = 5.0, &block)
+      interval = interval.to_f
       $0 = "resque: Starting"
       startup
 
@@ -133,10 +134,10 @@ module Resque
           done_working
           @child = nil
         else
-          break if interval.to_i == 0
-          log! "Sleeping for #{interval.to_i}"
+          break if interval.zero?
+          log! "Sleeping for #{interval} seconds"
           procline @paused ? "Paused" : "Waiting for #{@queues.join(',')}"
-          sleep interval.to_i
+          sleep interval
         end
       end
 
