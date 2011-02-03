@@ -4,7 +4,6 @@ require 'open-uri'
 require 'pathname'
 
 class RedisRunner
-
   def self.redis_dir
     @redis_dir ||= if ENV['PREFIX']
                      Pathname.new(ENV['PREFIX'])
@@ -48,14 +47,11 @@ class RedisRunner
   def self.stop
     sh 'echo "SHUTDOWN" | nc localhost 6379'
   end
-
 end
 
 INSTALL_DIR = ENV['INSTALL_DIR'] || '/tmp/redis'
 
-
 namespace :redis do
-
   desc 'About redis'
   task :about do
     puts "\nSee http://code.google.com/p/redis/ for information about redis.\n\n"
@@ -82,12 +78,12 @@ namespace :redis do
     RedisRunner.attach
   end
 
-  desc <<-DOC 
+  desc <<-DOC
   Install the latest verison of Redis from Github (requires git, duh).
     Use INSTALL_DIR env var like "rake redis:install INSTALL_DIR=~/tmp"
     in order to get an alternate location for your install files.
   DOC
-  
+
   task :install => [:about, :download, :make] do
     bin_dir = '/usr/bin'
     conf_dir = '/etc'
@@ -123,11 +119,9 @@ namespace :redis do
     sh "git clone git://github.com/antirez/redis.git #{INSTALL_DIR}" unless File.exists?(INSTALL_DIR)
     sh "cd #{INSTALL_DIR} && git pull" if File.exists?("#{INSTALL_DIR}/.git")
   end
-
 end
 
 namespace :dtach do
-
   desc 'About dtach'
   task :about do
     puts "\nSee http://dtach.sourceforge.net/ for information about dtach.\n\n"
@@ -137,7 +131,7 @@ namespace :dtach do
   task :install => [:about, :download, :make] do
 
     bin_dir = "/usr/bin"
-    
+
 
     if ENV['PREFIX']
       bin_dir = "#{ENV['PREFIX']}/bin"
@@ -165,4 +159,3 @@ namespace :dtach do
     end
   end
 end
-
