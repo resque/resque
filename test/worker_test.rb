@@ -57,6 +57,12 @@ context "Resque::Worker" do
     assert_equal 2, Resque::Failure.count
   end
 
+  test "strips whitespace from queue names" do
+    queues = "critical, high, low".split(',')
+    worker = Resque::Worker.new(*queues)
+    assert_equal %w( critical high low ), worker.queues
+  end
+
   test "can work on multiple queues" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
