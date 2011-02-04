@@ -33,7 +33,7 @@ module Resque
   def redis=(server)
     if server.respond_to? :split
       if server =~ /redis\:\/\//
-        redis = Redis.connect(:url => server)
+        redis = Redis.connect(:url => server, :thread_safe => true)
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
