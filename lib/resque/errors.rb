@@ -4,7 +4,7 @@ module Resque
 
   # Raised when trying to create a job without a class
   class NoClassError < RuntimeError; end
-  
+
   # Raised when a worker was killed while processing a job.
   class DirtyExit < RuntimeError; end
 end
