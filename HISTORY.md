@@ -1,3 +1,12 @@
+## 1.12.0 (2011-02-03)
+
+* Added pidfile writing from `rake resque:work`
+* Added Worker#pid method
+* Added configurable location for `rake install`
+* Bugfix: Errors in failure backend are rescue'd
+* Bugfix: Non-working workers no longer counted in "working" count
+* Bugfix: Don't think resque-web is a worker
+
 ## 1.11.0 (2010-08-23)
 
 * Web UI: Group /workers page by hostnames
