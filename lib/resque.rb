@@ -178,12 +178,6 @@ module Resque
     redis.del("queue:#{queue}")
   end
 
-  # Used internally to keep track of which queues we've created.
-  # Don't call this directly.
-  def watch_queue(queue)
-    redis.sadd(:queues, queue.to_s)
-  end
-
 
   #
   # job shortcuts
@@ -300,4 +294,10 @@ module Resque
       key.sub("#{redis.namespace}:", '')
     end
   end
+
+  private
+    # Used internally to keep track of which queues we've created.
+    def watch_queue(queue)
+      redis.sadd(:queues, queue.to_s)
+    end
 end
