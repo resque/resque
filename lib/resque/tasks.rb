@@ -19,7 +19,7 @@ namespace :resque do
     end
 
     if ENV['PIDFILE']
-      File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid.to_s }
+      File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
 
     worker.log "Starting worker #{worker}"
