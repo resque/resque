@@ -128,6 +128,12 @@ context "Resque" do
     end
   end
 
+  test "validates job for queue presence" do
+    assert_raises Resque::NoQueueError do
+      Resque.validate!(SomeJob)
+    end
+  end
+
   test "can put items on a queue" do
     assert Resque.push(:people, { 'name' => 'jon' })
   end
