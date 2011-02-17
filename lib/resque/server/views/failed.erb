@@ -16,6 +16,10 @@
     <% index += 1 %>
     <li>
       <dl>
+        <% if job.nil? %>
+        <dt>Error</dt>
+        <dd>Job <%= index%> could not be parsed; perhaps it contains invalid JSON?</dd>
+        <% else %>
         <dt>Worker</dt>
         <dd>
           <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
@@ -47,6 +51,7 @@
             <%=h job['error'] %>
           <% end %>
         </dd>
+        <% end %>
       </dl>
       <div class='r'>
       </div>
