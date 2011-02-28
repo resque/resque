@@ -326,7 +326,7 @@ module Resque
       all_workers.each do |worker|
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
-        next if known_workers.include?(pid)
+        next if known_workers.include?(pid) && !worker.shutdown?
         log! "Pruning dead worker: #{worker}"
         worker.unregister_worker
       end
@@ -361,6 +361,8 @@ module Resque
         job.fail(DirtyExit.new)
       end
 
+      system("kill -9 #{self.pid}")
+      
       redis.srem(:workers, self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
