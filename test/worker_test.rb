@@ -301,6 +301,19 @@ context "Resque::Worker" do
     assert $BEFORE_FORK_CALLED
   end
 
+  test "very verbose works in the afternoon" do
+    require 'time'
+    $last_puts = ""
+    $fake_time = Time.parse("15:44:33 2011-03-02")
+    singleton = class << @worker; self end
+    singleton.send :define_method, :puts, lambda { |thing| $last_puts = thing }
+
+    @worker.very_verbose = true
+    @worker.log("some log text")
+
+    assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, $last_puts
+  end
+
   test "Will call an after_fork hook after forking" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false

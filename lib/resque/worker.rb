@@ -489,7 +489,7 @@ module Resque
       if verbose
         puts "*** #{message}"
       elsif very_verbose
-        time = Time.now.strftime('%I:%M:%S %Y-%m-%d')
+        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
         puts "** [#{time}] #$$: #{message}"
       end
     end

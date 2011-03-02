@@ -130,3 +130,16 @@ def with_failure_backend(failure_backend, &block)
 ensure
   Resque::Failure.backend = previous_backend
 end
+
+class Time
+  # Thanks, Timecop
+  class << self
+    alias_method :now_without_mock_time, :now
+
+    def now_with_mock_time
+      $fake_time || now_without_mock_time
+    end
+
+    alias_method :now, :now_with_mock_time
+  end
+end
