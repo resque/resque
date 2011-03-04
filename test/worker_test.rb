@@ -314,6 +314,6 @@ context "Resque::Worker" do
   end
 
   test "returns PID of running process" do
-    assert_equal Process.pid, @worker.pid
+    assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
 end
