@@ -462,7 +462,7 @@ module Resque
       @hostname ||= `hostname`.chomp
     end
 
-    # Returns PID of running worker
+    # Returns Integer PID of running worker
     def pid
       @pid ||= to_s.split(":")[1].to_i
     end
