@@ -42,10 +42,16 @@ module Resque
     def self.create(queue, klass, *args)
       validate!(klass, queue)
 
-      ret = Resque.push(queue, :class => klass.to_s, :args => args)
+      if Resque.inline?
+        ret = constantize(klass).perform(*decode(encode(args)))
+      else
+        ret = Resque.push(queue, :class => klass.to_s, :args => args)
+      end
+
       Plugin.after_enqueue_hooks(klass).each do |hook|
         klass.send(hook, *args)
       end
+
       ret
     end
 

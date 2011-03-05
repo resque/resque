@@ -662,6 +662,11 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
+Also, you could disable jobs queueing by setting 'inline' attribute.
+For example, if you want to run all jobs in the same process for cucumber, try:
+
+    Resque.inline = ENV['RAILS_ENV'] == "cucumber"
+
 
 Plugins and Hooks
 -----------------
