@@ -662,6 +662,11 @@ this way we can tell our Sinatra app about the config file:
 
 Now everyone is on the same page.
 
+Also, you could disable jobs queueing by setting 'foreground' attribute.
+For example, if you want to run all jobs in foreground for cucumber, try:
+
+    Resque.foreground = ENV['RAILS_ENV'] == "cucumber"
+
 
 Plugins and Hooks
 -----------------

@@ -235,4 +235,14 @@ context "Resque" do
   test "decode bad json" do
     assert_nil Resque.decode("{\"error\":\"Module not found \\u002\"}")
   end
+
+  test "foregrounding jobs" do
+    begin
+      Resque.foreground = true
+      Resque.enqueue(SomeIvarJob, 20, '/tmp')
+      assert_equal 0, Resque.size(:ivar)
+    ensure
+      Resque.foreground = false
+    end
+  end
 end

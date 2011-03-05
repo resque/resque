@@ -118,6 +118,16 @@ module Resque
     "Resque Client connected to #{redis_id}"
   end
 
+  # If 'foreground' is true Resque will call #perform method inline 
+  # without queuing it into Redis.
+  # The 'foreground' is false Resque jobs will be put in queue regularly.
+  def foreground
+    @foreground
+  end
+
+  def foreground=(foreground)
+    @foreground = foreground
+  end
 
   #
   # queue manipulation
@@ -203,7 +213,11 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
-    Job.create(queue_from_class(klass), klass, *args)
+    unless self.foreground
+      Job.create(queue_from_class(klass), klass, *args)
+    else
+      klass.perform(*decode(encode(args)))
+    end
   end
 
   # This method can be used to conveniently remove a job from a queue.
