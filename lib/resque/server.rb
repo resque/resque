@@ -16,17 +16,17 @@ module Resque
       alias_method :h, :escape_html
 
       def current_section
-        url request.path_info.sub('/','').split('/')[0].downcase
+        url_path request.path_info.sub('/','').split('/')[0].downcase
       end
 
       def current_page
-        url request.path_info.sub('/','')
+        url_path request.path_info.sub('/','')
       end
 
-      def url(*path_parts)
+      def url_path(*path_parts)
         [ path_prefix, path_parts ].join("/").squeeze('/')
       end
-      alias_method :u, :url
+      alias_method :u, :url_path
 
       def path_prefix
         request.env['SCRIPT_NAME']
@@ -38,7 +38,7 @@ module Resque
 
       def tab(name)
         dname = name.to_s.downcase
-        path = url(dname)
+        path = url_path(dname)
         "<li #{class_if_current(path)}><a href='#{path}'>#{name}</a></li>"
       end
 
@@ -127,7 +127,7 @@ module Resque
 
     # to make things easier on ourselves
     get "/?" do
-      redirect url(:overview)
+      redirect url_path(:overview)
     end
 
     %w( overview queues working workers key ).each do |page|
@@ -181,7 +181,7 @@ module Resque
     end
 
     get "/stats" do
-      redirect url("/stats/resque")
+      redirect url_path("/stats/resque")
     end
 
     get "/stats/:id" do
