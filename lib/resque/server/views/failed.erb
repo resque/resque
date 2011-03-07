@@ -18,7 +18,7 @@
       <dl>
         <dt>Worker</dt>
         <dd>
-          <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
+          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
           <div class='retry'>
             <% if job['retried_at'] %>
               Retried <b><span class="time"><%= job['retried_at'] %></span></b>

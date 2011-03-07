@@ -36,12 +36,12 @@
     </tr>
     <% for queue in resque.queues.sort_by { |q| q.to_s } %>
     <tr>
-      <td class='queue'><a class="queue" href="<%= url "queues/#{queue}" %>"><%= queue %></a></td>
+      <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
       <td class='size'><%= resque.size queue %></td>
     </tr>
     <% end %>
     <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
-      <td class='queue failed'><a class="queue" href="<%= url :failed %>">failed</a></td>
+      <td class='queue failed'><a class="queue" href="<%= u :failed %>">failed</a></td>
       <td class='size'><%= Resque::Failure.count %></td>
     </tr>
   </table>
