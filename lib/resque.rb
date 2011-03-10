@@ -119,7 +119,7 @@ module Resque
   end
 
   # If 'foreground' is true Resque will call #perform method inline 
-  # without queuing it into Redis.
+  # without queuing it into Redis and without any Resque callbacks.
   # The 'foreground' is false Resque jobs will be put in queue regularly.
   def foreground
     @foreground
