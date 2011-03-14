@@ -33,7 +33,7 @@ namespace :resque do
 
     ENV['COUNT'].to_i.times do
       threads << Thread.new do
-        system "rake resque:work"
+        system "rake environment resque:work"
       end
     end
 
