@@ -1,7 +1,40 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+begin
+  require 'redis-namespace'
+rescue LoadError
+  require 'rubygems'
+  require 'redis-namespace'
+end
 require 'resque'
+require 'optparse'
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: resque [options] COMMAND"
+
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-r", "--redis [HOST:PORT]", "Redis connection string") do |host|
+    Resque.redis = host
+  end
+
+  opts.on("-N", "--namespace [NAMESPACE]", "Redis namespace") do |namespace|
+    Resque.redis.namespace = namespace
+  end
+
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.separator ""
+  opts.separator "Commands:"
+  opts.separator "  remove WORKER   Removes a worker"
+  opts.separator "  kill WORKER     Kills a worker"
+  opts.separator "  list            Lists known workers"
+end
 
 def kill(worker)
   abort "** resque kill WORKER_ID" if worker.nil?
@@ -34,11 +67,7 @@ def list
   end
 end
 
-if (i = ARGV.index('-r')) && ARGV[i+1]
-  Resque.redis = ARGV[i+1]
-  ARGV.delete_at(i)
-  ARGV.delete_at(i+1)
-end
+parser.parse!
 
 case ARGV[0]
 when 'kill'
@@ -48,10 +77,5 @@ when 'remove'
 when 'list'
   list
 else
-  puts "Usage: resque [-r redis_host:redis_port] COMMAND [option]"
-  puts
-  puts "Commands:"
-  puts "  remove WORKER   Removes a worker"
-  puts "  kill WORKER     Kills a worker"
-  puts "  list            Lists known workers"
+  puts parser.help
 end

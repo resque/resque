@@ -114,3 +114,17 @@ class BadJobWithSyntaxError
     raise SyntaxError, "Extra Bad job!"
   end
 end
+
+class BadFailureBackend < Resque::Failure::Base
+  def save
+    raise Exception.new("Failure backend error")
+  end
+end
+
+def with_failure_backend(failure_backend, &block)
+  previous_backend = Resque::Failure.backend
+  Resque::Failure.backend = failure_backend
+  yield block
+ensure
+  Resque::Failure.backend = previous_backend
+end

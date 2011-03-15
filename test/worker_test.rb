@@ -25,6 +25,13 @@ context "Resque::Worker" do
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
   end
 
+  test "does not allow exceptions from failure backend to escape" do
+    job = Resque::Job.new(:jobs, {})
+    with_failure_backend BadFailureBackend do
+      @worker.perform job
+    end
+  end
+
   test "fails uncompleted jobs on exit" do
     job = Resque::Job.new(:jobs, [GoodJob, "blah"])
     @worker.working_on(job)
@@ -55,6 +62,12 @@ context "Resque::Worker" do
     @worker.process
     @worker.process
     assert_equal 2, Resque::Failure.count
+  end
+
+  test "strips whitespace from queue names" do
+    queues = "critical, high, low".split(',')
+    worker = Resque::Worker.new(*queues)
+    assert_equal %w( critical high low ), worker.queues
   end
 
   test "can work on multiple queues" do
@@ -298,5 +311,9 @@ context "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $AFTER_FORK_CALLED
+  end
+
+  test "returns PID of running process" do
+    assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
 end

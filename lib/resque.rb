@@ -33,7 +33,7 @@ module Resque
   def redis=(server)
     if server.respond_to? :split
       if server =~ /redis\:\/\//
-        redis = Redis.connect(:url => server)
+        redis = Redis.connect(:url => server, :thread_safe => true)
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
@@ -251,6 +251,15 @@ module Resque
   # This method is considered part of the `stable` API.
   def reserve(queue)
     Job.reserve(queue)
+  end
+
+  # Validates if the given klass could be a valid Resque job
+  #
+  # If no queue can be inferred this method will raise a `Resque::NoQueueError` 
+  # 
+  # If given klass is nil this method will raise a `Resque::NoClassError`
+  def validate!(klass)
+    Job.validate!(klass)
   end
 
 

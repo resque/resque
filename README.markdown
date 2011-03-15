@@ -1,8 +1,8 @@
 Resque
 ======
 
-Resque (pronounced like "rescue") is a Redis-backed library for creating 
-background jobs, placing those jobs on multiple queues, and processing 
+Resque (pronounced like "rescue") is a Redis-backed library for creating
+background jobs, placing those jobs on multiple queues, and processing
 them later.
 
 Background jobs can be any Ruby class or module that responds to
@@ -235,6 +235,13 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
+### Process IDs (PIDs)
+
+There are scenarios where it's helpful to record the PID of a resque
+worker process.  Use the PIDFILE option for easy access to the PID:
+
+    $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
+
 
 ### Priorities and Queue Lists
 
@@ -420,7 +427,8 @@ You can also set the namespace directly using `resque-web`:
 Using Passenger? Resque ships with a `config.ru` you can use. See
 Phusion's guide:
 
-<http://www.modrails.com/documentation/Users%20guide.html#_deploying_a_rack_based_ruby_application>
+Apache: <http://www.modrails.com/documentation/Users%20guide%20Apache.html#_deploying_a_rack_based_ruby_application>
+Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deploying_a_rack_app>
 
 ### Rack::URLMap
 
@@ -527,7 +535,7 @@ together. But, it's not that hard.
 Resque Dependencies
 -------------------
 
-    gem install redis redis-namespace yajl-ruby
+    gem install redis redis-namespace yajl-ruby vegas sinatra
 
 If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
 gem and Resque will use it instead.
@@ -751,7 +759,7 @@ Once you've made your great commits:
 1. [Fork][1] Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
-4. Create an [Issue][2] with a link to your branch
+4. Create a [Pull Request](http://help.github.com/pull-requests/) from your branch
 5. That's it!
 
 You might want to checkout our [Contributing][cb] wiki page for information

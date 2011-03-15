@@ -54,7 +54,7 @@ Great, now let's check out the Resque frontend. Either click on 'View
 Resque' in your web browser or run:
 
     $ open http://localhost:9292/resque/
-    
+
 You should see the Resque web frontend. 404 page? Don't forget the
 trailing slash!
 
