@@ -1,18 +1,18 @@
 <%start = params[:start].to_i %>
-<%failed = Resque::Failure.all(start, 20)%>
+<%archived = Resque::Failure.archived(start, 20)%>
 <% index = 0 %>
 
-<h1>Failed Jobs</h1>
-<%unless failed.empty?%>
-<form method="POST" action="<%=u 'failed/clear'%>" class='clear-failed'>
-  <input type='submit' name='' value='Clear Failed Jobs' />
+<h1>Archived Failed Jobs</h1>
+<%unless archived.empty?%>
+<form method="POST" action="<%=u 'archived/clear'%>" class='clear-failed'>
+  <input type='submit' name='' value='Clear Archived List' />
 </form>
 <%end%>
 
-<p class='sub'>Showing <%=start%> to <%= start + 20 %> of <b><%= size = Resque::Failure.count %></b> jobs</p>
+<p class='sub'>Showing <%=start%> to <%= start + 20 %> of <b><%= size = Resque::Failure.archived_count %></b> jobs</p>
 
 <ul class='failed'>
-  <%for job in failed%>
+  <%for job in archived%>
     <% index += 1 %>
     <li>
       <dl>
@@ -20,7 +20,9 @@
         <dd>
           <a href="<%= url(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= job['failed_at'] %></span></b>
           <div class='retry'>
-            <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
+            <% if job['retried_at'] %>
+              Retried <b><span class="time"><%= job['retried_at'] %></span></b>
+            <% end %>
           </div>
         </dd>
         <dt>Class</dt>

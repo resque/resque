@@ -62,5 +62,10 @@ module Resque
     def self.requeue(index)
       backend.requeue(index)
     end
+
+    def self.method_missing(name, *args, &block)
+      return backend.send(name, *args, &block) if backend.respond_to? name
+      super
+    end
   end
 end

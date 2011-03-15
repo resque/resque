@@ -168,11 +168,16 @@ module Resque
 
     get "/failed/requeue/:index" do
       Resque::Failure.requeue(params[:index])
-      if request.xhr?
-        return Resque::Failure.all(params[:index])['retried_at']
-      else
-        redirect u('failed')
-      end
+      redirect u('failed') unless request.xhr?
+    end
+
+    get "/archived" do
+      show :archived
+    end
+
+    post "/archived/clear" do
+      Resque::Failure.forget
+      redirect u('archived')
     end
 
     get "/stats" do
@@ -210,7 +215,7 @@ module Resque
     end
 
     def self.tabs
-      @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
+      @tabs ||= ["Overview", "Working", "Failed", "Archived", "Queues", "Workers", "Stats"]
     end
   end
 end

@@ -44,6 +44,10 @@
       <td class='queue failed'><a class="queue" href="<%= url :failed %>">failed</a></td>
       <td class='size'><%= Resque::Failure.count %></td>
     </tr>
+    <tr class="<%= Resque::Failure.archived_count.zero? ? "archived" : "failure" %>">
+      <td class='queue failed'><a class="queue" href="<%= url :archived %>">archived</a></td>
+      <td class='size'><%= Resque::Failure.archived_count %></td>
+    </tr>
   </table>
 
 <% end %>
