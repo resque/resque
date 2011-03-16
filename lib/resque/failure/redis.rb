@@ -55,7 +55,7 @@ module Resque
         Resque.redis.rpush(:archived, Resque.encode(item))
         Resque.redis.lset(:failed, index, @marker)
         purge
-		Stat.incr(:archived)
+        Stat.incr(:archived)
       end
     end
   end
