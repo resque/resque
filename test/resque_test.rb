@@ -235,4 +235,21 @@ context "Resque" do
   test "decode bad json" do
     assert_nil Resque.decode("{\"error\":\"Module not found \\u002\"}")
   end
+
+  test "default procline" do
+    assert_equal "resque-#{Resque::Version}", Resque.procline
+  end
+
+  test "set a custom procline" do
+    assert_equal "resque-#{Resque::Version}", Resque.procline
+    Resque.procline = "custom-procline"
+    assert_equal "custom-procline", Resque.procline
+  end
+
+  test "use default procline if procline nil" do
+    Resque.procline = 'custom'
+    assert_equal 'custom', Resque.procline
+    Resque.procline = nil
+    assert_equal "resque-#{Resque::Version}", Resque.procline
+  end
 end

@@ -9,6 +9,9 @@ namespace :resque do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    procline = (ENV['PROCLINE'])
+
+    Resque.procline = procline if procline
 
     begin
       worker = Resque::Worker.new(*queues)

@@ -118,6 +118,22 @@ module Resque
     "Resque Client connected to #{redis_id}"
   end
 
+  def custom_procline=(custom_procline)
+    @custom_procline = custom_procline
+  end
+
+  # Set custom procline
+  def procline=(procline)
+    @procline = procline
+  end
+
+  def procline
+    @procline || default_procline
+  end
+
+  def default_procline
+    "resque-#{Resque::Version}"
+  end
 
   #
   # queue manipulation

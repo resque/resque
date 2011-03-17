@@ -10,6 +10,7 @@ context "Resque::Worker" do
 
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    Resque.procline = Resque.default_procline
   end
 
   test "can fail jobs" do
@@ -226,10 +227,18 @@ context "Resque::Worker" do
     end
   end
 
-  test "sets $0 while working" do
+  test "sets $0 while working (without custom procline)" do
     @worker.work(0) do
       ver = Resque::Version
       assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+    end
+  end
+
+  test "sets $0 while working (with custom procline)" do
+    Resque.procline = "resque-custom-procline-#{Resque::VERSION}"
+    @worker.work(0) do
+      ver = Resque::Version
+      assert_equal "resque-custom-procline-#{Resque::VERSION}: Processing jobs since #{Time.now.to_i}", $0
     end
   end
 

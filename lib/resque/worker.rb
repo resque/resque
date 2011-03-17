@@ -109,7 +109,7 @@ module Resque
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
     def work(interval = 5, &block)
-      $0 = "resque: Starting"
+      $0 = "#{Resque.procline}: Starting"
       startup
 
       loop do
@@ -479,7 +479,7 @@ module Resque
     # Procline is always in the format of:
     #   resque-VERSION: STRING
     def procline(string)
-      $0 = "resque-#{Resque::Version}: #{string}"
+      $0 = "#{Resque.procline}: #{string}"
       log! $0
     end
 
