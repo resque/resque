@@ -1,0 +1,32 @@
+PATH
+  remote: .
+  specs:
+    resque (1.13.0)
+      json (~> 1.4.6)
+      redis-namespace (>= 0.10.0)
+      sinatra (>= 0.9.2)
+      vegas (~> 0.1.2)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    json (1.4.6)
+    rack (1.2.2)
+    rack-test (0.5.7)
+      rack (>= 1.0)
+    redis (2.1.1)
+    redis-namespace (0.10.0)
+      redis (< 3.0.0)
+    sinatra (1.2.1)
+      rack (~> 1.1)
+      tilt (>= 1.2.2, < 2.0)
+    tilt (1.2.2)
+    vegas (0.1.8)
+      rack (>= 1.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  rack-test (~> 0.5)
+  resque!
