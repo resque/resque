@@ -130,7 +130,7 @@ context "Resque" do
 
   test "validates job for queue presence" do
     assert_raises Resque::NoQueueError do
-      Resque.validate!(SomeJob)
+      Resque.validate(SomeJob)
     end
   end
 
