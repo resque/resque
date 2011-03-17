@@ -717,6 +717,20 @@ If you're using monit, `examples/monit/resque.monit` is provided free
 of charge. This is **not** used by GitHub in production, so please
 send patches for any tweaks or improvements you can make to it.
 
+Process Titles
+--------------
+If you would like to set a custom process title for your resque instances,
+you can do so by setting a custom Resque.procline like so:
+
+    Resque.procline = "[resque-myapp-myenv-#{Resque::Version}]"
+
+If using rails, this can be done in config/initializers/resque.rb. This is
+useful for monitoring if you happen to have different environments (staging,
+production) on the same server and only want to restart one on deploys. If
+nothing is set, it defaults to resque-VERSION. The procline can also be set
+as an environment variable:
+
+    QUEUE=* PROCLINE=myapp-production rake resque:work
 
 Development
 -----------
