@@ -215,6 +215,10 @@ module Resque
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
     Job.create(queue_from_class(klass), klass, *args)
+
+    Plugin.after_enqueue_hooks(klass).each do |hook|
+      klass.send(hook, *args)
+    end
   end
 
   # This method can be used to conveniently remove a job from a queue.
