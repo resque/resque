@@ -66,6 +66,8 @@ def context(*args, &block)
   end
   (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
   klass.class_eval &block
+  # XXX: In 1.8.x, not all tests will run unless anonymous classes are kept in scope.
+  ($test_classes ||= []) << klass
 end
 
 ##
@@ -127,4 +129,17 @@ def with_failure_backend(failure_backend, &block)
   yield block
 ensure
   Resque::Failure.backend = previous_backend
+end
+
+class Time
+  # Thanks, Timecop
+  class << self
+    alias_method :now_without_mock_time, :now
+
+    def now_with_mock_time
+      $fake_time || now_without_mock_time
+    end
+
+    alias_method :now, :now_with_mock_time
+  end
 end

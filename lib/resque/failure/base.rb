@@ -52,6 +52,9 @@ module Resque
       def self.requeue(index)
       end
 
+      def self.remove(index)
+      end
+
       # Logging!
       def log(message)
         @worker.log(message)

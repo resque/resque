@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 context "Resque" do
   setup do
@@ -8,7 +8,7 @@ context "Resque" do
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
   end
-  
+
   test "can set a namespace through a url-like string" do
     assert Resque.redis
     assert_equal :resque, Resque.redis.namespace
@@ -130,7 +130,7 @@ context "Resque" do
 
   test "validates job for queue presence" do
     assert_raises Resque::NoQueueError do
-      Resque.validate!(SomeJob)
+      Resque.validate(SomeJob)
     end
   end
 
@@ -235,6 +235,16 @@ context "Resque" do
   test "decode bad json" do
     assert_raises Resque::Helpers::DecodeException do
       Resque.decode("{\"error\":\"Module not found \\u002\"}")
+    end
+  end
+
+  test "inlining jobs" do
+    begin
+      Resque.inline = true
+      Resque.enqueue(SomeIvarJob, 20, '/tmp')
+      assert_equal 0, Resque.size(:ivar)
+    ensure
+      Resque.inline = false
     end
   end
 end

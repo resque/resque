@@ -40,13 +40,13 @@ module Resque
     #
     # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
-      validate!(klass, queue)
+      Resque.validate(klass, queue)
 
-      ret = Resque.push(queue, :class => klass.to_s, :args => args)
-      Plugin.after_enqueue_hooks(klass).each do |hook|
-        klass.send(hook, *args)
+      if Resque.inline?
+        constantize(klass).perform(*decode(encode(args)))
+      else
+        Resque.push(queue, :class => klass.to_s, :args => args)
       end
-      ret
     end
 
     # Removes a job from a queue. Expects a string queue name, a
@@ -96,18 +96,6 @@ module Resque
     def self.reserve(queue)
       return unless payload = Resque.pop(queue)
       new(queue, payload)
-    end
-
-
-    # Validates if the given klass could be a valid Resque job
-    def self.validate!(klass, queue = Resque.queue_from_class(klass))
-      if !queue
-        raise NoQueueError.new("Jobs must be placed onto a queue.")
-      end
-
-      if klass.to_s.empty?
-        raise NoClassError.new("Jobs must be given a class.")
-      end
     end
 
     # Attempts to perform the work represented by this job instance.

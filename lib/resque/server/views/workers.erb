@@ -95,12 +95,12 @@
     </tr>
     <% for hostname, workers in worker_hosts.sort_by { |h,w| h } %>
     <tr>
-      <td class='queue'><a class="queue" href="<%= url "workers/#{hostname}" %>"><%= hostname %></a></td>
+      <td class='queue'><a class="queue" href="<%= u "workers/#{hostname}" %>"><%= hostname %></a></td>
       <td class='size'><%= workers.size %></td>
     </tr>
     <% end %>
     <tr class="failed">
-      <td class='queue failed'><a class="queue" href="<%= url "workers/all" %>">all workers</a></td>
+      <td class='queue failed'><a class="queue" href="<%= u "workers/all" %>">all workers</a></td>
       <td class='size'><%= Resque.workers.size %></td>
     </tr>
   </table>

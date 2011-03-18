@@ -1,3 +1,16 @@
+## 1.14.0 (2011-03-17)
+
+* Sleep interval can now be a float
+* Added Resque.inline to allow in-process performing of jobs (for testing)
+* Fixed tests for Ruby 1.9.2
+* Added Resque.validate(klass) to validate a Job
+* Decode errors are no longer ignored to help debugging
+* Web: Sinatra 1.2 compatibility
+* Fixed after_enqueue hook to actually run in `Resque.enqueue`
+* Fixed very_verbose timestamps to use 24 hour time (AM/PM wasn't included)
+* Fixed monit example
+* Fixed Worker#pid
+
 ## 1.13.0 (2011-02-07)
 
 * Depend on redis-namespace >= 0.10
