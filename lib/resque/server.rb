@@ -110,7 +110,7 @@ module Resque
         if @polling
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
         else
-          text = "<a href='#{url(request.path_info)}.poll' rel='poll'>Live Poll</a>"
+          text = "<a href='#{u(request.path_info)}.poll' rel='poll'>Live Poll</a>"
         end
         "<p class='poll'>#{text}</p>"
       end
