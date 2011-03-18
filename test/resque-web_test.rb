@@ -51,4 +51,3 @@ context "on GET to /stats/resque" do
 
   should_respond_with_success
 end
-

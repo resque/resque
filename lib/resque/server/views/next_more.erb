@@ -1,10 +1,13 @@
-<%if  start - 20 >= 0 || start + 20 <= size%>
+<%= next_offset = start + page_size %>
+<%= prev_offset = start - page_size %>
+
+<% if prev_offset >= 0 || next_offset <= size %>
 <p class='pagination'>
-  <% if start - 20 >= 0 %>
-    <a href="<%= current_page %>?start=<%= start - 20 %>" class='less'>&laquo; less</a>
+  <% if prev_offset >= 0 %>
+    <a href="<%= current_page %>?start=<%= prev_offset %>" class='less'>&laquo; less</a>
   <% end %>
-  <% if start + 20 <= size %>
-    <a href="<%= current_page %>?start=<%= start + 20 %>" class='more'>more &raquo;</a>
+  <% if next_offset <= size %>
+    <a href="<%= current_page %>?start=<%= next_offset %>" class='more'>more &raquo;</a>
   <% end %>
 </p>
 <%end%>

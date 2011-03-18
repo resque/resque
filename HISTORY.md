@@ -1,3 +1,10 @@
+## 1.13.0 (2011-02-07)
+
+* Depend on redis-namespace >= 0.10
+* README tweaks
+* Use thread_safe option when setting redis url
+* Bugfix: worker pruning
+
 ## 1.12.0 (2011-02-03)
 
 * Added pidfile writing from `rake resque:work`

@@ -320,4 +320,3 @@ context "Resque::Job all hooks" do
     ]
   end
 end
-

@@ -157,6 +157,12 @@ module Resque
       if Resque::Failure.url
         redirect Resque::Failure.url
       else
+        @start = params[:start].to_i
+        @size = Resque::Failure.count
+        @page_size = Resque::Server.page_size
+
+        @failed = Resque::Failure.all(@start, @page_size)
+
         show :failed
       end
     end
@@ -209,8 +215,16 @@ module Resque
       Resque
     end
 
-    def self.tabs
-      @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
+    class << self
+      attr_accessor :page_size
+
+      def tabs
+        @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
+      end
+
+      def page_size
+        @page_size || 20 # default to original 20
+      end
     end
   end
 end

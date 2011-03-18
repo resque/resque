@@ -453,7 +453,7 @@ module Resque
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
     def to_s
-      @to_s ||= "#{hostname}:#{pid}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
     end
     alias_method :id, :to_s
 
@@ -462,15 +462,15 @@ module Resque
       @hostname ||= `hostname`.chomp
     end
 
-    # Returns PID of running worker
+    # Returns Integer PID of running worker
     def pid
-      @pid ||= Process.pid
+      @pid ||= to_s.split(":")[1].to_i
     end
 
     # Returns an array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def worker_pids
-      `ps -A -o pid,command | grep [r]esque | grep -i "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,command | grep [r]esque | grep -v "resque-web"`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end
