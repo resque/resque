@@ -1,3 +1,8 @@
+## 1.15.0 (2011-03-18)
+
+* Fallback to Redis.connect. Makes ENV variables and whatnot work.
+* Fixed Sinatra 1.2 compatibility
+
 ## 1.14.0 (2011-03-17)
 
 * Sleep interval can now be a float
