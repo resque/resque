@@ -45,6 +45,10 @@ module Resque
       def self.requeue(*args)
         classes.first.requeue(*args)
       end
+
+      def self.remove(index)
+        classes.each { |klass| klass.remove(index) }
+      end
     end
   end
 end
