@@ -719,7 +719,7 @@ the other is for killing workers that have been running too long.
 ### monit
 
 If you're using monit, `examples/monit/resque.monit` is provided free
-of charge. This is **not** used by GitHub in production, so please
+of charge. This is **not** used or tested by GitHub in production, so please
 send patches for any tweaks or improvements you can make to it.
 
 
