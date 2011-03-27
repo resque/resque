@@ -84,7 +84,7 @@ module Resque
         x.notice :version=>"2.0" do
           x.tag! "api-key", api_key
           x.notifier do
-            x.name "Resqueue"
+            x.name "Resque"
             x.version "0.1"
             x.url "http://github.com/defunkt/resque"
           end
@@ -108,8 +108,8 @@ module Resque
             end
           end
           x.tag!("server-environment") do
+            x.tag!("project-root", ENV['RAILS_ROOT'])
             x.tag!("environment-name",server_environment)
-            x.tag!("project-root", "RAILS_ROOT")
           end
 
         end
