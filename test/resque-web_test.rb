@@ -51,3 +51,30 @@ context "on GET to /stats/resque" do
 
   should_respond_with_success
 end
+
+# Status check
+context "on GET to /check_queue_sizes with default max size of 100" do
+  setup {
+    7.times { Resque.enqueue(SomeIvarJob, 20, '/tmp') }
+    get "/check_queue_sizes"
+  }
+
+  should_respond_with_success
+
+  test "should show message that the queue sizes are ok" do
+    assert last_response.body.include?('Queue sizes are ok')
+  end
+end
+
+context "on GET to /check_queue_sizes with a lower max size" do
+  setup {
+    7.times { Resque.enqueue(SomeIvarJob, 20, '/tmp') }
+    get "/check_queue_sizes?max_queue_size=5"
+  }
+
+  should_respond_with_success
+
+  test "should show message that the queue is backing up" do
+    assert last_response.body.include?('Queue size has grown larger than max queue size.')
+  end
+end

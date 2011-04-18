@@ -210,6 +210,15 @@ module Resque
       stats.join "\n"
     end
 
+    get "/check_queue_sizes" do
+      @max_queue_size = (params[:max_queue_size] || 100).to_i
+      @ok = true
+      Resque.queues.each do | queue |
+        @ok = false if resque.size(queue) > @max_queue_size
+      end
+      show :check_queue_sizes
+    end
+
     def resque
       Resque
     end
