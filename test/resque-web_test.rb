@@ -62,7 +62,7 @@ context "on GET to /check_queue_sizes with default max size of 100" do
   should_respond_with_success
 
   test "should show message that the queue sizes are ok" do
-    assert last_response.body.include?('Queue sizes are ok')
+    assert_equal 'Queue sizes are ok.', last_response.body
   end
 end
 
@@ -75,6 +75,6 @@ context "on GET to /check_queue_sizes with a lower max size" do
   should_respond_with_success
 
   test "should show message that the queue is backing up" do
-    assert last_response.body.include?('Queue size has grown larger than max queue size.')
+    assert_equal 'Queue size has grown larger than max queue size.', last_response.body
   end
 end
