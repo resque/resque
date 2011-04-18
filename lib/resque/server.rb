@@ -216,7 +216,7 @@ module Resque
       Resque.queues.each do | queue |
         @ok = false if resque.size(queue) > @max_queue_size
       end
-      show :check_queue_sizes
+      show :check_queue_sizes, false
     end
 
     def resque
