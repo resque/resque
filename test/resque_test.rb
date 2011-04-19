@@ -16,6 +16,15 @@ context "Resque" do
     assert_equal 'namespace', Resque.redis.namespace
   end
 
+  test "redis= works correctly with a Redis::Namespace param" do
+    new_redis = Redis.new(:host => "localhost", :port => 9736)
+    new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
+    Resque.redis = new_namespace
+    assert_equal new_namespace, Resque.redis
+
+    Resque.redis = 'localhost:9736/namespace'
+  end
+
   test "can put jobs on a queue" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
