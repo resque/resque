@@ -217,9 +217,9 @@ module Resque
         ok = false if resque.size(queue) > max_queue_size
       end
       if ok
-        render "Queue sizes are ok."
+        "Queue sizes are ok."
       else
-        render "Queue size has grown larger than max queue size."
+        "Queue size has grown larger than max queue size."
       end
     end
 
