@@ -2,6 +2,7 @@ require 'sinatra/base'
 require 'erb'
 require 'resque'
 require 'resque/version'
+require 'time'
 
 module Resque
   class Server < Sinatra::Base
