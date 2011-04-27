@@ -7,10 +7,18 @@ require 'resque/server'
 use Rack::ShowExceptions
 
 # Set the AUTH env variable to your basic auth password to protect Resque.
-AUTH_PASSWORD = ENV['AUTH']
-if AUTH_PASSWORD
+# If it contains a ":" it's split (at the first ":")
+# to have a username and a password,
+# otherwise, it's just the password, and any username will work.
+CREDENTIALS = ENV['AUTH']
+if CREDENTIALS
   Resque::Server.use Rack::Auth::Basic do |username, password|
-    password == AUTH_PASSWORD
+    credentials = CREDENTIALS.split(':',2)
+    if credentials.size == 2
+      [username, password] == credentials
+    else
+      password == credentials[0]
+    end
   end
 end
 
