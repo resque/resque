@@ -252,6 +252,14 @@ module Resque
     Job.destroy(queue_from_class(klass), klass, *args)
   end
 
+  # send a job to a queue, for being processed by another external client such as Java based Jesque
+  # queue: string for the queue name
+  # klass: string for the class name
+  # args: optional parameters
+  def send(queue, klass, *args)
+    Resque.push(queue, :class => klass.to_s, :args => args)
+  end
+
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
