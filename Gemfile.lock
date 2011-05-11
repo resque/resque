@@ -17,9 +17,12 @@ GEM
       activesupport
       builder
     json (1.4.6)
+    mocha (0.9.7)
+      rake
     rack (1.2.2)
     rack-test (0.5.7)
       rack (>= 1.0)
+    rake (0.8.7)
     redis (2.2.0)
     redis-namespace (0.10.0)
       redis (< 3.0.0)
@@ -34,5 +37,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  mocha (~> 0.9.7)
   rack-test (~> 0.5)
   resque!
