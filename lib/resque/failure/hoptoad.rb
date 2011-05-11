@@ -27,7 +27,7 @@ module Resque
       end
 
       def save
-        HoptoadNotifier.notify(exception,
+        HoptoadNotifier.notify_or_ignore(exception,
           :parameters => {
             :payload_class => payload['class'].to_s,
             :payload_args => payload['args'].inspect
