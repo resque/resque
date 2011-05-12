@@ -341,3 +341,4 @@ module Resque
     end
   end
 end
+
