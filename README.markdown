@@ -235,19 +235,6 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
-Brighter Planet's setup task makes Rails log to STDOUT:
-
-    task "resque:setup" => :environment do
-      # Make sure Rails logs to STDOUT
-      Rails.logger = Logger.new STDOUT
-      # Set log level to the right one for this Rails environment
-      Rails.logger.level = Logger.const_get(Rails.configuration.log_level.to_s.upcase)
-      # Double-check it's set for ActiveRecord
-      ActiveRecord::Base.logger = Rails.logger
-      # Ditto for DataMiner gem
-      DataMiner.logger = Rails.logger
-    end
-
 ### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque
