@@ -108,8 +108,8 @@ module Resque
             end
           end
           x.tag!("server-environment") do
-            x.tag!("environment-name",server_environment)
             x.tag!("project-root", "RAILS_ROOT")
+            x.tag!("environment-name",server_environment)
           end
 
         end
