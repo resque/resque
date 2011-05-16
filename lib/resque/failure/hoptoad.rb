@@ -1,4 +1,8 @@
-require 'hoptoad_notifier'
+begin
+  require 'hoptoad_notifier'
+rescue LoadError
+  raise "Can't find 'hoptoad_notifier' gem. Please add it to your Gemfile or install it."
+end
 
 module Resque
   module Failure
@@ -13,11 +17,11 @@ module Resque
     #
     # Once you've configured resque to use the Hoptoad failure backend,
     # you'll want to setup an initializer to configure the Hoptoad.
-    # 
+    #
     # HoptoadNotifier.configure do |config|
     #   config.api_key = 'your_key_here'
     # end
-    # For more information see https://github.com/thoughtbot/hoptoad_notifier 
+    # For more information see https://github.com/thoughtbot/hoptoad_notifier
     class Hoptoad < Base
 
       def self.count
