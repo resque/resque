@@ -723,6 +723,13 @@ of charge. This is **not** used by GitHub in production, so please
 send patches for any tweaks or improvements you can make to it.
 
 
+Questions
+---------
+
+Please add them to the [FAQ](https://github.com/defunkt/resque/wiki/FAQ) or
+ask on the Mailing List. The Mailing List is explained further below
+
+
 Development
 -----------
 
