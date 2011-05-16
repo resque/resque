@@ -47,14 +47,17 @@ later, pull those jobs off the queue and process them.
 Resque jobs are Ruby classes (or modules) which respond to the
 `perform` method. Here's an example:
 
-    class Archive
-      @queue = :file_serve
 
-      def self.perform(repo_id, branch = 'master')
-        repo = Repository.find(repo_id)
-        repo.create_archive(branch)
-      end
-    end
+``` ruby
+class Archive
+  @queue = :file_serve
+
+  def self.perform(repo_id, branch = 'master')
+    repo = Repository.find(repo_id)
+    repo.create_archive(branch)
+  end
+end
+```
 
 The `@queue` class instance variable determines which queue `Archive`
 jobs will be placed in. Queues are arbitrary and created on the fly -
@@ -63,11 +66,13 @@ you can name them whatever you want and have as many as you want.
 To place an `Archive` job on the `file_serve` queue, we might add this
 to our application's pre-existing `Repository` class:
 
-    class Repository
-      def async_create_archive(branch)
-        Resque.enqueue(Archive, self.id, branch)
-      end
-    end
+``` ruby
+class Repository
+  def async_create_archive(branch)
+    Resque.enqueue(Archive, self.id, branch)
+  end
+end
+```
 
 Now when we call `repo.async_create_archive('masterbrew')` in our
 application, a job will be created and placed on the `file_serve`
@@ -75,12 +80,16 @@ queue.
 
 Later, a worker will run something like this code to process the job:
 
-    klass, args = Resque.reserve(:file_serve)
-    klass.perform(*args) if klass.respond_to? :perform
+``` ruby
+klass, args = Resque.reserve(:file_serve)
+klass.perform(*args) if klass.respond_to? :perform
+```
 
 Which translates to:
 
-    Archive.perform(44, 'masterbrew')
+``` ruby
+Archive.perform(44, 'masterbrew')
+```
 
 Let's start a worker to run `file_serve` jobs:
 
@@ -129,25 +138,33 @@ needs to be crunched later into a queue.
 Jobs are persisted to queues as JSON objects. Let's take our `Archive`
 example from above. We'll run the following code to create a job:
 
-    repo = Repository.find(44)
-    repo.async_create_archive('masterbrew')
+``` ruby
+repo = Repository.find(44)
+repo.async_create_archive('masterbrew')
+```
 
 The following JSON will be stored in the `file_serve` queue:
 
-    {
-        'class': 'Archive',
-        'args': [ 44, 'masterbrew' ]
-    }
+``` javascript
+{
+    'class': 'Archive',
+    'args': [ 44, 'masterbrew' ]
+}
+```
 
 Because of this your jobs must only accept arguments that can be JSON encoded.
 
 So instead of doing this:
 
-    Resque.enqueue(Archive, self, branch)
+``` ruby
+Resque.enqueue(Archive, self, branch)
+```
 
 do this:
 
-    Resque.enqueue(Archive, self.id, branch)
+``` ruby
+Resque.enqueue(Archive, self.id, branch)
+```
 
 This is why our above example (and all the examples in `examples/`)
 uses object IDs instead of passing around the objects.
@@ -187,15 +204,17 @@ Workers
 
 Resque workers are rake tasks that run forever. They basically do this:
 
-    start
-    loop do
-      if job = reserve
-        job.process
-      else
-        sleep 5
-      end
-    end
-    shutdown
+``` ruby
+start
+loop do
+  if job = reserve
+    job.process
+  else
+    sleep 5
+  end
+end
+shutdown
+```
 
 Starting a worker is simple. Here's our example from earlier:
 
@@ -214,13 +233,17 @@ This will load the environment before starting a worker. Alternately
 we can define a `resque:setup` task with a dependency on the
 `environment` rake task:
 
-    task "resque:setup" => :environment
+``` ruby
+task "resque:setup" => :environment
+```
 
 GitHub's setup task looks like this:
 
-    task "resque:setup" => :environment do
-      Grit::Git.git_timeout = 10.minutes
-    end
+``` ruby
+task "resque:setup" => :environment do
+  Grit::Git.git_timeout = 10.minutes
+end
+```
 
 We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
@@ -435,11 +458,13 @@ Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deployi
 If you want to load Resque on a subpath, possibly alongside other
 apps, it's easy to do with Rack's `URLMap`:
 
-    require 'resque/server'
+``` ruby
+require 'resque/server'
 
-    run Rack::URLMap.new \
-      "/"       => Your::App.new,
-      "/resque" => Resque::Server.new
+run Rack::URLMap.new \
+  "/"       => Your::App.new,
+  "/resque" => Resque::Server.new
+```
 
 Check `examples/demo/config.ru` for a functional example (including
 HTTP basic auth).
@@ -555,7 +580,9 @@ First install the gem.
 
 Next include it in your application.
 
-    require 'resque'
+``` ruby
+require 'resque'
+```
 
 Now start your application:
 
@@ -566,8 +593,10 @@ That's it! You can now create Resque jobs from within your app.
 To start a worker, create a Rakefile in your app's root (or add this
 to an existing Rakefile):
 
-    require 'your/app'
-    require 'resque/tasks'
+``` ruby
+require 'your/app'
+require 'resque/tasks'
+```
 
 Now:
 
@@ -596,7 +625,9 @@ That's it! You can now create Resque jobs from within your app.
 
 To start a worker, add this to your Rakefile in `RAILS_ROOT`:
 
-    require 'resque/tasks'
+``` ruby
+require 'resque/tasks'
+```
 
 Now:
 
@@ -649,11 +680,13 @@ Here's our `config/resque.yml`:
 
 And our initializer:
 
-    rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
-    rails_env = ENV['RAILS_ENV'] || 'development'
+``` ruby
+rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
+rails_env = ENV['RAILS_ENV'] || 'development'
 
-    resque_config = YAML.load_file(rails_root + '/config/resque.yml')
-    Resque.redis = resque_config[rails_env]
+resque_config = YAML.load_file(rails_root + '/config/resque.yml')
+Resque.redis = resque_config[rails_env]
+```
 
 Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
 this way we can tell our Sinatra app about the config file:
@@ -665,7 +698,9 @@ Now everyone is on the same page.
 Also, you could disable jobs queueing by setting 'inline' attribute.
 For example, if you want to run all jobs in the same process for cucumber, try:
 
-    Resque.inline = ENV['RAILS_ENV'] == "cucumber"
+``` ruby
+Resque.inline = ENV['RAILS_ENV'] == "cucumber"
+```
 
 
 Plugins and Hooks
@@ -692,7 +727,9 @@ in your Redis server.
 
 Simply use the `Resque.redis.namespace` accessor:
 
-    Resque.redis.namespace = "resque:GitHub"
+``` ruby
+Resque.redis.namespace = "resque:GitHub"
+```
 
 We recommend sticking this in your initializer somewhere after Redis
 is configured.
