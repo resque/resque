@@ -1,3 +1,18 @@
+## 1.16.0 (2011-05-16)
+
+* Optional Hoptoad backend extracted into hoptoad_notifier. Install the gem to use it.
+* Added `Worker#paused?` method
+* Bugfix: Properly reseed random number generator after forking.
+* Bugfix: Resque.redis=(<a Redis::Namespace>)
+* Bugfix: Monit example stdout/stderr redirection
+* Bugfix: Removing single failure now works with multiple failure backends
+* Web: 'Remove Queue' now requires confirmation
+* Web: Favicon!
+* Web Bugfix: Dates display in Safari
+* Web Bugfix: Dates display timezone
+* Web Bugfix: Race condition querying working workers
+* Web Bugfix: Fix polling /workers/all in resque-web
+
 ## 1.15.0 (2011-03-18)
 
 * Fallback to Redis.connect. Makes ENV variables and whatnot work.
