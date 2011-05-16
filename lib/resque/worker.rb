@@ -122,7 +122,7 @@ module Resque
           working_on job
 
           if @child = fork
-            rand # Reseeding
+            srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait
           else
