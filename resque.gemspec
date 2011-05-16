@@ -24,9 +24,9 @@ Gem::Specification.new do |s|
   s.add_dependency "redis-namespace", ">= 0.10.0"
   s.add_dependency "vegas",           "~> 0.1.2"
   s.add_dependency "sinatra",         ">= 0.9.2"
-  s.add_dependency "json",            "~> 1.4.6"
+  s.add_dependency "json",            ">= 1.4.6", "< 1.6"
   s.add_dependency "hoptoad_notifier","~> 2.4.9"
- 
+
 
   s.description = <<description
     Resque is a Redis-backed Ruby library for creating background jobs,

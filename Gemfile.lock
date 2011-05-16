@@ -3,7 +3,7 @@ PATH
   specs:
     resque (1.15.0)
       hoptoad_notifier (~> 2.4.9)
-      json (~> 1.4.6)
+      json (>= 1.4.6, < 1.6)
       redis-namespace (>= 0.10.0)
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
@@ -16,7 +16,7 @@ GEM
     hoptoad_notifier (2.4.9)
       activesupport
       builder
-    json (1.4.6)
+    json (1.5.1)
     mocha (0.9.7)
       rake
     rack (1.2.2)
