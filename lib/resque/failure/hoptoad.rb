@@ -23,6 +23,10 @@ module Resque
     # end
     # For more information see https://github.com/thoughtbot/hoptoad_notifier
     class Hoptoad < Base
+      def self.configure
+        Resque::Failure.backend = self
+        HoptoadNotifier.configure
+      end
 
       def self.count
         # We can't get the total # of errors from Hoptoad so we fake it
