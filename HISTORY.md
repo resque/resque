@@ -1,3 +1,8 @@
+## 1.16.1 (2011-05-17)
+
+* Bugfix: Resque::Failure::Hoptoad.configure works again
+* Bugfix: Loading rake tasks
+
 ## 1.16.0 (2011-05-16)
 
 * Optional Hoptoad backend extracted into hoptoad_notifier. Install the gem to use it.
