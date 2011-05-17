@@ -2,7 +2,7 @@
 # Setup
 #
 
-load 'tasks/redis.rake'
+load 'lib/tasks/redis.rake'
 
 $LOAD_PATH.unshift 'lib'
 require 'resque/tasks'
@@ -31,7 +31,7 @@ else
   Rake::TestTask.new do |test|
     test.libs << "test"
     test.test_files = FileList['test/**/*_test.rb']
-  end  
+  end
 end
 
 if command? :kicker
