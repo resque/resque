@@ -1,6 +1,7 @@
 <%start = params[:start].to_i %>
 <%failed = Resque::Failure.all(start, 20)%>
 <% index = 0 %>
+<% date_format = "%Y/%m/%d %T %z" %>
 
 <h1>Failed Jobs</h1>
 <%unless failed.empty?%>
@@ -22,10 +23,10 @@
         <% else %>
         <dt>Worker</dt>
         <dd>
-          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime("%D %T %z") %></span></b>
+          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime(date_format) %></span></b>
           <% if job['retried_at'] %>
             <div class='retried'>
-              Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime("%D %T %z") %></span></b>
+              Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(date_format) %></span></b>
               <a href="<%= u "failed/remove/#{start + index - 1}" %>" class="remove" rel="remove">Remove</a>
             </div>
           <% else %>
