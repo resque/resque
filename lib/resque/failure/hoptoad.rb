@@ -25,7 +25,7 @@ module Resque
     class Hoptoad < Base
       def self.configure
         Resque::Failure.backend = self
-        HoptoadNotifier.configure
+        HoptoadNotifier.configure {}
       end
 
       def self.count
