@@ -1,3 +1,11 @@
+## 1.17.0 (2011-05-26)
+
+* Workers exit with `exit` instead of `exit!`. This means you
+  can now use `at_exit` hooks inside workers.
+* More monit typo fixes.
+* Fixed bug in Hoptoad backend.
+* Web UI: Wrap preformatted arguments.
+
 ## 1.16.1 (2011-05-17)
 
 * Bugfix: Resque::Failure::Hoptoad.configure works again
