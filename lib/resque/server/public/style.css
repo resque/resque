@@ -58,7 +58,7 @@ body { padding:0; margin:0; }
 #main table.stats th { font-size:100%; width:40%; color:#000;}
 #main hr { border:0; border-top:5px solid #efefef;  margin:15px 0;}
 
-#footer { padding:10px 5%; background:#efefef; color:#999; font-size:85%; line-height:1.5; border-top:5px solid #ccc; padding-top:10px;}  
+#footer { padding:10px 5%; background:#efefef; color:#999; font-size:85%; line-height:1.5; border-top:5px solid #ccc; padding-top:10px;}
 #footer p a { color:#999;}
 
 #main p.poll { background:url(poll.png) no-repeat 0 2px; padding:3px 0; padding-left:23px; float:right; font-size:85%; }
@@ -72,7 +72,7 @@ body { padding:0; margin:0; }
 #main ul.failed li.hover dl dd .retried .remove { display:block; }
 #main ul.failed li dl dd .controls { display:none; float:right; }
 #main ul.failed li.hover dl dd .controls { display:block; }
-#main ul.failed li dl dd code, #main ul.failed li dl dd pre { font-family:Monaco, "Courier New", monospace; font-size:90%;}
+#main ul.failed li dl dd code, #main ul.failed li dl dd pre { font-family:Monaco, "Courier New", monospace; font-size:90%; white-space: pre-wrap;}
 #main ul.failed li dl dd.error a {font-family:Monaco, "Courier New", monospace; font-size:90%; }
 #main ul.failed li dl dd.error pre { margin-top:3px; line-height:1.3;}
 
