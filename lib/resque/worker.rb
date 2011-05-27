@@ -128,7 +128,7 @@ module Resque
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             perform(job, &block)
-            exit unless @cant_fork
+            exit! unless @cant_fork
           end
 
           done_working
@@ -302,7 +302,7 @@ module Resque
     def paused?
       @paused
     end
-
+    
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
     def pause_processing
