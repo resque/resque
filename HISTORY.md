@@ -1,3 +1,7 @@
+## 1.17.1 (2011-05-27)
+
+* Reverted `exit` change. Back to `exit!`.
+
 ## 1.17.0 (2011-05-26)
 
 * Workers exit with `exit` instead of `exit!`. This means you
