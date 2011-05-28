@@ -424,7 +424,7 @@ The Front End
 Resque comes with a Sinatra-based front end for seeing what's up with
 your queue.
 
-![The Front End](https://img.skitch.com/20110528-dfdybjp8b48w84fk2mmush29pb.png)
+![The Front End](https://img.skitch.com/20110528-pc67a8qsfapgjxf5gagxd92fcu.png)
 
 ### Standalone
 
