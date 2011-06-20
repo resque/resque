@@ -1,11 +1,5 @@
 require 'redis/namespace'
 
-begin
-  require 'yajl'
-rescue LoadError
-  require 'json'
-end
-
 require 'resque/version'
 
 require 'resque/errors'
