@@ -251,6 +251,7 @@ context "Resque" do
     begin
       Resque.inline = true
       Resque.enqueue(SomeIvarJob, 20, '/tmp')
+      Resque.enqueue(PlaceholderIvarJob, 20, '/tmp')
       assert_equal 0, Resque.size(:ivar)
     ensure
       Resque.inline = false

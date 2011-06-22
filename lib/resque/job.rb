@@ -43,7 +43,8 @@ module Resque
       Resque.validate(klass, queue)
 
       if Resque.inline?
-        constantize(klass).perform(*decode(encode(args)))
+        klass_const = constantize(klass)
+        klass_const.perform(*decode(encode(args))) if klass_const.respond_to?(:perform)
       else
         Resque.push(queue, :class => klass.to_s, :args => args)
       end
