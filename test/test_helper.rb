@@ -120,6 +120,10 @@ class BadJobWithSyntaxError
   end
 end
 
+class PlaceholderIvarJob
+  @queue = :ivar
+end
+
 class BadFailureBackend < Resque::Failure::Base
   def save
     raise Exception.new("Failure backend error")
