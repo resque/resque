@@ -230,7 +230,7 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
-    Job.create(queue_from_class(klass), klass, *args)
+    Job.create(queue_from_class(klass, *args), klass, *args)
 
     Plugin.after_enqueue_hooks(klass).each do |hook|
       klass.send(hook, *args)
@@ -265,14 +265,23 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def dequeue(klass, *args)
-    Job.destroy(queue_from_class(klass), klass, *args)
+    Job.destroy(queue_from_class(klass, *args), klass, *args)
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
-  def queue_from_class(klass)
-    klass.instance_variable_get(:@queue) ||
-      (klass.respond_to?(:queue) and klass.queue)
+  def queue_from_class(klass, *args)
+    klass.instance_variable_get(:@queue) || queue_from_class_method(klass, *args)
+  end
+  
+  def queue_from_class_method(klass, *args)
+    return unless klass.respond_to?(:queue)
+    
+    if klass.method(:queue).arity != 0
+      klass.send(:queue, *args)
+    else
+      klass.queue
+    end
   end
 
   # This method will return a `Resque::Job` object or a non-true value

@@ -106,6 +106,27 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
+Dynamic queue names
+-------------------
+
+In addition to static names of queues, you may choose to figure the name
+of the queue for the job in real-time.
+
+If you want your job class to tell Resque which queue to use
+for a particular job, you can do so by defining a method #queue(arguments) in your
+job class.
+
+    class Job
+      def self.perform(arg1, arg2)
+      end
+      
+      def self.queue(arg1, arg2)
+        return 'queue_name'
+      end
+    end  
+
+Note that the number of arguments for the #queue method should either match
+exactly the number for the #perform method, or there can be no arguments at all.
 
 Jobs
 ----

@@ -256,4 +256,45 @@ context "Resque" do
       Resque.inline = false
     end
   end
+
+
+  context "queue from class" do
+    test "from instance variable" do
+      class M
+        @queue = 'qn'
+      end
+    
+      assert_equal 'qn', Resque.queue_from_class(M)
+    end
+    
+    test "from parameterless method" do
+      class N
+        def self.queue
+          "method"
+        end
+      end
+      
+      assert_equal 'method', Resque.queue_from_class(N)
+    end
+    
+    test "from parameterized method" do
+      class O
+        def self.queue(idx, *args)
+          "named_#{idx}"
+        end
+      end
+      
+      assert_equal 'named_5', Resque.queue_from_class(O, 5, 6)
+    end
+    
+    test "from parametrized method with fixed number of arguments" do
+      class P
+        def self.queue(idx)
+          "named_#{idx}"
+        end
+      end
+      
+      assert_equal 'named_6', Resque.queue_from_class(P, 6)
+    end
+  end
 end
