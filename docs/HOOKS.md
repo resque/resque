@@ -66,6 +66,9 @@ An unnamed hook (`before_perform`) will be executed first.
 
 The available hooks are:
 
+* `before _enqueue`: Called with the job args before a job is placed on the queue.
+  If the hook returns `false`, the job will not be placed on the queue.
+
 * `after_enqueue`: Called with the job args after a job is placed on the queue.
   Any exception raised propagates up to the code which queued the job.
 
