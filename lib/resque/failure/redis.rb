@@ -9,7 +9,7 @@ module Resque
           :payload   => payload,
           :exception => exception.class.to_s,
           :error     => exception.to_s,
-          :backtrace => Array(exception.backtrace),
+          :backtrace => filter_backtrace(Array(exception.backtrace)),
           :worker    => worker.to_s,
           :queue     => queue
         }
@@ -40,6 +40,10 @@ module Resque
         id = rand(0xffffff)
         Resque.redis.lset(:failed, index, id)
         Resque.redis.lrem(:failed, 1, id)
+      end
+
+      def filter_backtrace(backtrace)
+        backtrace.first(backtrace.index {|item| item.include?('/lib/resque/job.rb')})
       end
     end
   end
