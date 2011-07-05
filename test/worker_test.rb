@@ -329,4 +329,42 @@ context "Resque::Worker" do
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
+
+  test "can blocking grab a job from its queues" do
+    job = @worker.blocking_reserve(1)
+    assert_not_nil job
+    assert_equal 0, Resque.size(:jobs)
+  end
+
+  test "can blocking grab nothing from an empty queue" do
+    worker = Resque::Worker.new(:empty)
+    job = worker.blocking_reserve(1)
+    assert_nil job
+  end
+
+  test "can do blocking work" do
+    shutdown_thread = Thread.new do
+      sleep 2 
+      @worker.shutdown
+    end
+
+    @worker.work(1)
+
+    shutdown_thread.join
+  end
+
+  test "can blocking reserve from multiple queues" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+
+    worker = Resque::Worker.new(:critical, :high)
+
+    worker.blocking_reserve(5)
+    assert_equal 1, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+
+    worker.blocking_reserve(5)
+    assert_equal 0, Resque.size(:high)
+  end
+
 end
