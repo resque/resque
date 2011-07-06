@@ -36,7 +36,7 @@ module Resque
       names.map! { |name| "worker:#{name}" }
 
       reportedly_working = redis.mapped_mget(*names).reject do |key, value|
-        value.nil?
+        value.nil? || value.empty?
       end
       reportedly_working.keys.map do |key|
         find key.sub("worker:", '')
