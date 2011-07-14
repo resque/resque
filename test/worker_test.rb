@@ -33,7 +33,7 @@ context "Resque::Worker" do
   end
 
   test "fails uncompleted jobs on exit" do
-    job = Resque::Job.new(:jobs, [GoodJob, "blah"])
+    job = Resque::Job.new('jobs', ['GoodJob', "blah"])
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
