@@ -560,10 +560,7 @@ together. But, it's not that hard.
 Resque Dependencies
 -------------------
 
-    gem install redis redis-namespace yajl-ruby vegas sinatra
-
-If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
-gem and Resque will use it instead.
+    gem install redis redis-namespace multi_json vegas sinatra
 
 When problems arise, make sure you have the newest versions of the
 `redis` and `redis-namespace` gems.
