@@ -560,13 +560,8 @@ together. But, it's not that hard.
 Resque Dependencies
 -------------------
 
-    gem install redis redis-namespace yajl-ruby vegas sinatra
-
-If you cannot install `yajl-ruby` (JRuby?), you can install the `json`
-gem and Resque will use it instead.
-
-When problems arise, make sure you have the newest versions of the
-`redis` and `redis-namespace` gems.
+    $ gem install bundler
+    $ bundle install
 
 
 Installing Resque
@@ -606,7 +601,7 @@ Alternately you can define a `resque:setup` hook in your Rakefile if you
 don't want to load your app every time rake runs.
 
 
-### In a Rails app, as a gem
+### In a Rails 2.x app, as a gem
 
 First install the gem.
 
@@ -637,7 +632,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
-### In a Rails app, as a plugin
+### In a Rails 2.x app, as a plugin
 
     $ ./script/plugin install git://github.com/defunkt/resque
 
@@ -645,6 +640,40 @@ That's it! Resque will automatically be available when your Rails app
 loads.
 
 To start a worker:
+
+    $ QUEUE=* rake environment resque:work
+
+Don't forget you can define a `resque:setup` hook in
+`lib/tasks/whatever.rake` that loads the `environment` task every time.
+
+
+### In a Rails 3 app, as a gem
+
+First include it in your Gemfile.
+
+    $ cat Gemfile
+    ...
+    gem 'resque'
+    ...
+
+Next install it with Bundler.
+
+    $ bundle install
+
+Now start your application:
+
+    $ rails server
+
+That's it! You can now create Resque jobs from within your app.
+
+To start a worker, add this to a file in `lib/tasks` (ex:
+`lib/tasks/resque.rake`):
+
+``` ruby
+require 'resque/tasks'
+```
+
+Now:
 
     $ QUEUE=* rake environment resque:work
 

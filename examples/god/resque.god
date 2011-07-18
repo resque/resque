@@ -4,6 +4,7 @@ num_workers = rails_env == 'production' ? 5 : 2
 
 num_workers.times do |num|
   God.watch do |w|
+    w.dir      = "#{rails_root}"
     w.name     = "resque-#{num}"
     w.group    = 'resque'
     w.interval = 30.seconds

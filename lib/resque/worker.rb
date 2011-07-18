@@ -37,13 +37,13 @@ module Resque
 
       reportedly_working = begin
         redis.mapped_mget(*names).reject do |key, value|
-          value.nil?
+          value.nil? || value.empty?
         end
       rescue Redis::Distributed::CannotDistribute
         result = {}
         names.each do |name|
           value = redis.get name
-          result[name] = value unless value.nil?
+          result[name] = value unless value.nil? || value.empty?
         end
         result
       end
