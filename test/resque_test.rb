@@ -136,6 +136,16 @@ context "Resque" do
     assert_equal nil, Resque.reserve(:method)
   end
 
+  test "can define a queue for jobs by way of a method" do
+    assert_equal 0, Resque.size(:method)
+    assert Resque.enqueue_to(:new_queue, SomeMethodJob, 20, '/tmp')
+
+    job = Resque.reserve(:new_queue)
+    assert_equal SomeMethodJob, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+  end
+
   test "needs to infer a queue with enqueue" do
     assert_raises Resque::NoQueueError do
       Resque.enqueue(SomeJob, 20, '/tmp')
