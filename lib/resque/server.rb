@@ -119,13 +119,14 @@ module Resque
     end
 
     def show(page, layout = true)
+      response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
         erb page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
         erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis_id})"
       end
     end
-    
+
     def show_for_polling(page)
       content_type "text/html"
       @polling = true
@@ -136,12 +137,12 @@ module Resque
     get "/?" do
       redirect url_path(:overview)
     end
-    
+
     %w( overview workers ).each do |page|
       get "/#{page}.poll" do
         show_for_polling(page)
       end
-      
+
       get "/#{page}/:id.poll" do
         show_for_polling(page)
       end
