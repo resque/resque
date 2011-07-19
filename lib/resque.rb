@@ -224,13 +224,17 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
+    enqueue_with_queue(queue_from_class(klass), klass, *args)
+  end
+
+  def enqueue_with_queue(queue, klass, *args)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
     before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
       klass.send(hook, *args)
     end
     return if before_hooks.any? { |result| result == false }
 
-    Job.create(queue_from_class(klass), klass, *args)
+    Job.create(queue, klass, *args)
 
     Plugin.after_enqueue_hooks(klass).each do |hook|
       klass.send(hook, *args)
