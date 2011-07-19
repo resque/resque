@@ -222,18 +222,31 @@ module Resque
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
-  # Returns true if the job was queued, nil if the job was rejected by a 
+  # Returns true if the job was queued, nil if the job was rejected by a
   # before_enqueue hook.
   #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
+    enqueue_to(queue_from_class(klass), klass, *args)
+  end
+
+  # Just like `enqueue` but allows you to specify the queue you want to
+  # use. Runs hooks.
+  #
+  # `queue` should be the String name of the queue you're targeting.
+  #
+  # Returns true if the job was queued, nil if the job was rejected by a
+  # before_enqueue hook.
+  #
+  # This method is considered part of the `stable` API.
+  def enqueue_to(queue, klass, *args)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
     before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
       klass.send(hook, *args)
     end
     return nil if before_hooks.any? { |result| result == false }
 
-    Job.create(queue_from_class(klass), klass, *args)
+    Job.create(queue, klass, *args)
 
     Plugin.after_enqueue_hooks(klass).each do |hook|
       klass.send(hook, *args)
