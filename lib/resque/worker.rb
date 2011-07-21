@@ -289,7 +289,7 @@ module Resque
     def kill_child
       if @child
         log! "Killing child at #{@child}"
-        if system("ps -o pid,state -p #{@child}")
+        if system("ps -o pid,s -p #{@child}")
           Process.kill("KILL", @child) rescue nil
         else
           log! "Child #{@child} not found, restarting."
@@ -475,12 +475,27 @@ module Resque
 
     # Returns an array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
-    def worker_pids
-      `ps -A -o pid,command | grep [r]esque | grep -v "resque-web"`.split("\n").map do |line|
-        line.split(' ')[0]
+	def worker_pids
+	  # Are we running on Solaris???
+	  # Solaris has trouble using the usual ps method to gather a list of
+	  # currently valid worker pids. This version, fixes it for Solaris 10 (SPARC)
+	  # Should be extended for other architectures (x86) and versions (8, 9, etc)
+	  if RUBY_PLATFORM == "sparc-solaris2.10"
+        `ps -A -o pid,comm | grep ruby | grep -v grep | grep -v "resque-web"`.split("\n").map do |line|
+          real_pid = line.split(' ')[0]
+          pargs_command = `pargs -a #{real_pid} | grep [r]esque | grep -v "resque-web"`
+          if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
+            puts "Resque Worker Found at PID #{real_pid}"
+            real_pid
+          end
+        end
+      else
+        `ps -A -o pid,command | grep [r]esque | grep -v "resque-web"`.split("\n").map do |line|
+          line.split(' ')[0]
+        end
       end
     end
-
+	
     # Given a string, sets the procline ($0) and logs.
     # Procline is always in the format of:
     #   resque-VERSION: STRING
