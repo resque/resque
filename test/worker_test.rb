@@ -267,11 +267,6 @@ context "Resque::Worker" do
     end
   end
 
-  test "worker_pids returns pids" do
-    known_workers = @worker.worker_pids
-    assert !known_workers.empty?
-  end
-
   test "Processed jobs count" do
     @worker.work(0)
     assert_equal 1, Resque.info[:processed]
