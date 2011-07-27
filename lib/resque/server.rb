@@ -4,6 +4,8 @@ require 'resque'
 require 'resque/version'
 require 'time'
 
+Encoding.default_external = Encoding::UTF_8
+
 module Resque
   class Server < Sinatra::Base
     dir = File.dirname(File.expand_path(__FILE__))
