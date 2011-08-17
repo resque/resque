@@ -5,7 +5,7 @@ module Resque
     class Redis < Base
       def save
         data = {
-          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S"),
+          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload   => payload,
           :exception => exception.class.to_s,
           :error     => exception.to_s,
