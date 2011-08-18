@@ -1,3 +1,13 @@
+## 1.18.0 (2011-08-18)
+
+* Added before_enqueue hook.
+* Resque workers now preload files under app/ in Rails
+* Switch to MultiJSON
+* Bugfix: Finding worker pids on Solaris
+* Web UI: Fix NaN days ago for worker screens
+* Web UI: Add Cache-Control header to prevent proxy caching
+* Web UI: Update Resque.redis_id so it can be used in a distributed ring.
+
 ## 1.17.1 (2011-05-27)
 
 * Reverted `exit` change. Back to `exit!`.
