@@ -40,3 +40,10 @@ namespace :resque do
     threads.each { |thread| thread.join }
   end
 end
+
+# Preload app files
+task :environment do
+  Dir['app/**/*.rb'].each do |file|
+    require file
+  end
+end
