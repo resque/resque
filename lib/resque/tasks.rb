@@ -18,6 +18,10 @@ namespace :resque do
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
 
+    if ENV['BACKGROUND']
+      Process.daemon(true)
+    end
+
     if ENV['PIDFILE']
       File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
