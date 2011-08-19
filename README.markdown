@@ -265,6 +265,14 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
     $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
 
+### Running in the background
+
+There are scenarios where it's helpful for the resque worker to run
+itself in the background (usually in combination with PIDFILE).  Use the
+BACKGROUND option so that rake will return as soon as the worker is started.
+
+    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
+        rake environment resque:work
 
 ### Priorities and Queue Lists
 
