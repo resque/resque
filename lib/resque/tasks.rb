@@ -5,7 +5,7 @@ namespace :resque do
   task :setup
 
   desc "Start a Resque worker"
-  task :work => :setup do
+  task :work => [:preload, :setup] do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
@@ -39,11 +39,11 @@ namespace :resque do
 
     threads.each { |thread| thread.join }
   end
-end
 
-# Preload app files
-task :environment do
-  Dir['app/**/*.rb'].each do |file|
-    require file
+  # Preload app files
+  task :preload => [:environment] do
+    Dir['app/**/*.rb'].each do |file|
+      require file
+    end
   end
 end
