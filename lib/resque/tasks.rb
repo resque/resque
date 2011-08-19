@@ -43,8 +43,12 @@ namespace :resque do
   # Preload app files if this is Rails
   task :preload do
     if defined? Rails
-      Dir["#{Rails.root}/app/**/*.rb"].each do |file|
-        require file
+      if Rails.version >= '3'
+        require 'rails/all'
+      else
+        Dir["#{Rails.root}/app/**/*.rb"].each do |file|
+          require file
+        end
       end
     end
   end
