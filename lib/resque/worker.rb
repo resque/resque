@@ -498,7 +498,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def solaris_worker_pids
-      `ps -A -o pid,comm | grep ruby | grep -v grep | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,comm | grep [r]uby | grep -v "resque-web"`.split("\n").map do |line|
         real_pid = line.split(' ')[0]
         pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
         if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
