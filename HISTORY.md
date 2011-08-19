@@ -1,3 +1,7 @@
+## 1.18.2 (2011-08-19)
+
+* Fix RAILS_ROOT deprecation warning
+
 ## 1.18.1 (2011-08-19)
 
 * Bugfix: Use RAILS_ROOT in preload task
