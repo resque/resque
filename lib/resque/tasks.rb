@@ -41,7 +41,7 @@ namespace :resque do
   end
 
   # Preload app files if this is Rails
-  task :preload do
+  task :preload => :setup  do
     if defined? Rails
       if Rails.version >= '3'
         require 'rails/all'
