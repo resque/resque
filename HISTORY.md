@@ -1,3 +1,7 @@
+## 1.18.4 (2011-08-23)
+
+* Bugfix: preload task depends on setup
+
 ## 1.18.3 (2011-08-23)
 
 * Bugfix: Fix preloading on Rails 3.x.
