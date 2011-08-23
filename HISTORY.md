@@ -1,3 +1,7 @@
+## 1.18.3 (2011-08-23)
+
+* Bugfix: Fix preloading on Rails 3.x.
+
 ## 1.18.2 (2011-08-19)
 
 * Fix RAILS_ROOT deprecation warning
