@@ -22,8 +22,8 @@ module Resque
     # `Resque::Failure::Base`.
     #
     # Example use:
-    #   require 'resque/failure/hoptoad'
-    #   Resque::Failure.backend = Resque::Failure::Hoptoad
+    #   require 'resque/failure/airbrake'
+    #   Resque::Failure.backend = Resque::Failure::Airbrake
     def self.backend=(backend)
       @backend = backend
     end
