@@ -1,3 +1,16 @@
+## 1.18.5 (2011-08-24)
+
+* Added support for Travis CI
+* Bugfix: preload only happens in production Rails environment
+
+## 1.18.4 (2011-08-23)
+
+* Bugfix: preload task depends on setup
+
+## 1.18.3 (2011-08-23)
+
+* Bugfix: Fix preloading on Rails 3.x.
+
 ## 1.18.2 (2011-08-19)
 
 * Fix RAILS_ROOT deprecation warning

@@ -41,8 +41,8 @@ namespace :resque do
   end
 
   # Preload app files if this is Rails
-  task :preload do
-    if defined? Rails
+  task :preload => :setup do
+    if defined?(Rails) && Rails.env == 'production'
       Dir["#{Rails.root}/app/**/*.rb"].each do |file|
         require file
       end
