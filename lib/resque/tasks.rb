@@ -42,10 +42,13 @@ namespace :resque do
 
   # Preload app files if this is Rails
   task :preload => :setup do
-    if defined?(Rails) && Rails.env == 'production'
-      Dir["#{Rails.root}/app/**/*.rb"].each do |file|
-        require file
-      end
+    if defined?(Rails) && Rails.respond_to?(:application)
+      # Rails 3
+      Rails.application.eager_load!
+    elsif defined?(Rails::Initializer)
+      # Rails 2.3
+      $rails_rake_task = false
+      Rails::Initializer.run :load_application_classes
     end
   end
 end
