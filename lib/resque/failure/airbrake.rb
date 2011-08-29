@@ -4,6 +4,8 @@ rescue LoadError
   raise "Can't find 'airbrake' gem. Please add it to your Gemfile or install it."
 end
 
+require 'resque/failure/thoughtbot'
+
 module Resque
   module Failure
     # A Failure backend that sends exceptions raised by jobs to Airbrake.
@@ -22,27 +24,8 @@ module Resque
     #   config.api_key = 'your_key_here'
     # end
     # For more information see https://github.com/thoughtbot/airbrake
-    class Airbrake < Base
-      def self.configure(&block)
-        Resque::Failure.backend = self
-        Airbrake.configure(&block)
-      end
-
-      def self.count
-        # We can't get the total # of errors from Airbrake so we fake it
-        # by asking Resque how many errors it has seen.
-        Stat[:failed]
-      end
-
-      def save
-        Airbrake.notify_or_ignore(exception,
-          :parameters => {
-            :payload_class => payload['class'].to_s,
-            :payload_args => payload['args'].inspect
-          }
-        )
-      end
-
+    class Airbrake < Thoughtbot
+      @@klass = ::Airbrake
     end
   end
 end
