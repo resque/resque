@@ -1,3 +1,7 @@
+## 1.18.6 (2011-08-30)
+
+* Bugfix: Use Rails 3 eager loading for resque:preload
+
 ## 1.18.5 (2011-08-24)
 
 * Added support for Travis CI
