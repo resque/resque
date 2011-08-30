@@ -176,6 +176,13 @@ module Resque
       redirect u('failed')
     end
 
+    post "/failed/requeue/all" do
+      Resque::Failure.count.times do |num|
+        Resque::Failure.requeue(num)
+      end
+      redirect u('failed')
+    end
+
     get "/failed/requeue/:index" do
       Resque::Failure.requeue(params[:index])
       if request.xhr?

@@ -80,6 +80,6 @@ body { padding:0; margin:0; }
 #main p.pagination a.less { float:left;}
 #main p.pagination a.more { float:right;}
 
-#main form {float:right; margin-top:-10px;}
+#main form {float:right; margin-top:-10px;margin-left:10px;}
 
 #main .time a.toggle_format {text-decoration:none;}

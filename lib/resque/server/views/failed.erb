@@ -5,8 +5,11 @@
 
 <h1>Failed Jobs</h1>
 <%unless failed.empty?%>
-<form method="POST" action="<%=u 'failed/clear'%>" class='clear-failed'>
+<form method="POST" action="<%=u 'failed/clear'%>">
   <input type='submit' name='' value='Clear Failed Jobs' />
+</form>
+<form method="POST" action="<%=u 'failed/requeue/all'%>">
+  <input type='submit' name='' value='Retry Failed Jobs' />
 </form>
 <%end%>
 
