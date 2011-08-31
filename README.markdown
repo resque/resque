@@ -1,4 +1,4 @@
-Resque
+Resque Ranger
 ======
 
 Resque (pronounced like "rescue") is a Redis-backed library for creating
