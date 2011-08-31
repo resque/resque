@@ -16,10 +16,6 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 	font-family: inherit;
 }
 
-:focus {
-	outline: 0;
-}
-
 body {
 	line-height: 1;
 }
