@@ -118,30 +118,37 @@ module Resque
         threads << Thread.new do
           log! "Starting thread #{idx}"
           loop do
-            break if shutdown?
+            job = nil
+            begin
+              break if shutdown?
 
-            if not paused? and job = reserve
-              log "got: #{job.inspect}"
-              run_hook :before_fork, job
-              working_on job
+              if not paused? and job = reserve
+                log "got: #{job.inspect}"
+                run_hook :before_fork, job
+                #working_on job
 
-              if @child = fork
-                srand # Reseeding
-                procline "Forked #{@child} at #{Time.now.to_i}"
-                Process.wait
+                if @child = fork
+                  srand # Reseeding
+                  procline "Forked #{@child} at #{Time.now.to_i}"
+                  Process.wait
+                else
+                  procline "Processing #{job.queue} since #{Time.now.to_i}"
+                  perform(job, &block)
+                  exit! unless @cant_fork
+                end
+
+                #done_working
+                @child = nil
               else
-                procline "Processing #{job.queue} since #{Time.now.to_i}"
-                perform(job, &block)
-                exit! unless @cant_fork
+                break if interval.zero?
+                log! "Sleeping for #{interval} seconds"
+                procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
+                sleep interval
               end
-
-              done_working
-              @child = nil
-            else
-              break if interval.zero?
-              log! "Sleeping for #{interval} seconds"
-              procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
-              sleep interval
+            rescue Exception => ex
+              p [ex.class.name, ex.message]
+              puts ex.backtrace.join("\n")
+              job.fail(ex) if job
             end
           end
         end
