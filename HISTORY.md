@@ -1,3 +1,9 @@
+## 1.19.0 (2011-09-01)
+
+* Added Airbrake (formerly Hoptoad) support.
+* Web UI: Added retry all button to failed jobs page
+* Web UI: Show focus outline
+
 ## 1.18.6 (2011-08-30)
 
 * Bugfix: Use Rails 3 eager loading for resque:preload
