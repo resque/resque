@@ -116,7 +116,7 @@ module Resque
       threads = []
       thread_count.times do |idx|
         threads << Thread.new do
-          puts "Thread #{idx}"
+          log! "Starting thread #{idx}"
           loop do
             break if shutdown?
 
@@ -151,12 +151,14 @@ module Resque
         sleep 1
       end
 
+      log "Shutting down, main thread waiting up to #{exit_timeout} sec for workers to finish..."
       # wait up to 30 seconds for worker threads to exit
       count = 0
       while threads.any?(&:alive?) && count < exit_timeout
         sleep 1
         count += 1
       end
+      log 'Threads shutdown, exiting...'
 
     ensure
       unregister_worker
@@ -271,7 +273,10 @@ module Resque
     #
     # TERM: Shutdown immediately, stop processing jobs.
     #  INT: Shutdown immediately, stop processing jobs.
-    # QUIT: Shutdown after the current job has finished processing.
+    # QUIT: Shutdown after the current jobs have finished processing
+    # (note: QUIT doesn't work on JRuby)
+    # WINCH: Shutdown after the current jobs have finished processing
+    # (for JRuby)
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
@@ -280,7 +285,8 @@ module Resque
       trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
+        trap('QUIT') { shutdown }
+        trap('WINCH') { shutdown }
         trap('USR1') { kill_child }
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
