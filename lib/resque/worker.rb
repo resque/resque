@@ -113,36 +113,61 @@ module Resque
       $0 = "resque: Starting"
       startup
 
-      loop do
-        break if shutdown?
+      threads = []
+      thread_count.times do |idx|
+        threads << Thread.new do
+          puts "Thread #{idx}"
+          loop do
+            break if shutdown?
 
-        if not paused? and job = reserve
-          log "got: #{job.inspect}"
-          run_hook :before_fork, job
-          working_on job
+            if not paused? and job = reserve
+              log "got: #{job.inspect}"
+              run_hook :before_fork, job
+              working_on job
 
-          if @child = fork
-            srand # Reseeding
-            procline "Forked #{@child} at #{Time.now.to_i}"
-            Process.wait
-          else
-            procline "Processing #{job.queue} since #{Time.now.to_i}"
-            perform(job, &block)
-            exit! unless @cant_fork
+              if @child = fork
+                srand # Reseeding
+                procline "Forked #{@child} at #{Time.now.to_i}"
+                Process.wait
+              else
+                procline "Processing #{job.queue} since #{Time.now.to_i}"
+                perform(job, &block)
+                exit! unless @cant_fork
+              end
+
+              done_working
+              @child = nil
+            else
+              break if interval.zero?
+              log! "Sleeping for #{interval} seconds"
+              procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
+              sleep interval
+            end
           end
-
-          done_working
-          @child = nil
-        else
-          break if interval.zero?
-          log! "Sleeping for #{interval} seconds"
-          procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
-          sleep interval
         end
+      end
+
+      while !shutdown? do
+        sleep 1
+      end
+
+      # wait up to 30 seconds for worker threads to exit
+      count = 0
+      while threads.any?(&:alive?) && count < exit_timeout
+        sleep 1
+        count += 1
       end
 
     ensure
       unregister_worker
+    end
+
+    def thread_count
+      (ENV['RESQUE_THREADS'] || 10).to_i
+    end
+
+    def exit_timeout
+      (ENV['RESQUE_EXIT_TIMEOUT'] || 30).to_i
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
