@@ -66,5 +66,27 @@ module Resque
     def self.remove(index)
       backend.remove(index)
     end
+    
+    def self.requeue_queue(queue)
+      i=0
+      while job = Resque::Failure.all(i)
+        if job['queue'] == queue
+          Resque::Failure.requeue(i)
+        end  
+        i+=1
+      end
+    end
+
+    def self.remove_queue(queue)
+      i=0
+      while job = Resque::Failure.all(i)
+        if job['queue'] == queue
+          # This will remove from the queue so don't increment the index
+          Resque::Failure.remove(i)
+        else
+          i+=1    
+        end
+      end
+    end
   end
 end
