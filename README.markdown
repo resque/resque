@@ -477,6 +477,7 @@ You can also easily mount Resque on a subpath in your existing Rails 3 app by ad
 mount Resque::Server.new, :at => "/resque"
 ```
 
+You must also require `resque/server` at the top of your routes file for Rails to be able to mount Resque.
 
 Resque vs DelayedJob
 --------------------
