@@ -1,0 +1,25 @@
+{{#set_key_page?}}
+  <p class='sub'>
+    Showing
+    {{start}}
+    to
+    {{end}}
+    of
+    <b>
+      {{size}}
+    </b>
+  </p>
+
+  <h1>Key "{{key}}" is a {{key_type}}</h1>
+  <table>
+    {{#key_as_array}}
+    <tr>
+      <td>
+        {{row}}
+      </td>
+    </tr>
+    {{/key_as_array}}
+  </table>
+
+  {{> next_more}}
+{{/set_key_page?}}

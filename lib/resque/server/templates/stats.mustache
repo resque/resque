@@ -1,0 +1,34 @@
+{{#resque_page?}}
+  <h1>{{resque}}</h1>
+  {{>_stats_table}}
+{{/resque_page?}}
+
+{{#redis_page?}}
+  <h1>{{redis_server}}</h1>
+  {{>_stats_table}}
+{{/redis_page?}}
+
+{{#keys_page?}}
+  <h1>Keys owned by {{resque}}</h1>
+  <p class='sub'>(All keys are actually prefixed with "resque:")</p>
+  <table class='stats'>
+    <tr>
+      <th>key</th>
+      <th>type</th>
+      <th>size</th>
+    </tr>
+    {{#keys}}
+      <tr>
+        <th>
+          <a href="{{href}}">{{name}}</a>
+        </th>
+        <td>{{type}}</td>
+        <td>{{size}}</td>
+      </tr>
+    {{/keys}}
+  </table>
+{{/keys_page?}}
+
+{{#key_page?}}
+  {{>key_string_or_sets}}
+{{/key_page?}}

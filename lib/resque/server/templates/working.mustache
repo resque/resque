@@ -1,0 +1,120 @@
+{{#single_worker?}}
+  <h1>{{to_s}}'s job</h1>
+
+  <table>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Where</th>
+      <th>Queue</th>
+      <th>Started</th>
+      <th>Class</th>
+      <th>Args</th>
+    </tr>
+      <!--
+      <tr>
+        <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
+        <% host, pid, _ = worker.to_s.split(':') %>
+        <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
+        <% data = worker.job %>
+        <% queue = data['queue'] %>
+        <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
+        <td><span class="time"><%= data['run_at'] %></span></td>
+        <td>
+          <code><%= data['payload']['class'] %></code>
+        </td>
+        <td><%=h data['payload']['args'].inspect %></td>
+      </tr>
+      -->
+      {{#working}}
+        <tr>
+          <td class='icon'>{{{state_icon}}}</td>
+
+          <td class='where'>
+            <a href="{{working_url}}">{{worker_host}}:{{worker_pid}}</a>
+          </td>
+
+          <td class='queues queue'>
+            {{#job}}
+              <a class="queue-tag" href="{{job_queue_url}}">{{job_queue}}</a>
+            {{/job}}
+          </td>
+
+          <td class='process'>
+            {{#job}}
+              <small>
+                <a class="queue time" href="{{working_url}}">{{run_at}}</a>
+              </small>
+            {{/job}}
+            {{#no_job}}
+              <span class='waiting'>Waiting for a job...</span>
+            {{/no_job}}
+          </td>
+          
+          <td class="class">
+            {{#job}}
+              <code>{{#payload}}{{class}}{{/payload}}</code>
+              <small>
+                <a class="queue time" href="{{working_url}}">{{run_at}}</a>
+              </small>
+            {{/job}}
+          </td>
+          
+          <td class="args">
+            {{#job}}
+              {{#payload}}<code>{{args}}</code>{{/payload}}
+            {{/job}}
+          </td>
+        </tr>
+      {{/working}}
+  </table>
+
+{{/single_worker?}}
+
+{{#all_workers?}}
+  <h1 class='wi'>{{workers_working}} of {{workers_total}} Workers Working</h1>
+  <p class='intro'>
+    The list below contains all workers which are currently running a job.
+  </p>
+  <table class='workers'>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Where</th>
+      <th>Queue</th>
+      <th>Processing</th>
+    </tr>
+
+    {{#none_working?}}
+    <tr>
+      <td colspan="4" class='no-data'>Nothing is happening right now...</td>
+    </tr>
+    {{/none_working?}}
+
+    {{#working}}
+      <tr>
+        <td class='icon'>{{{state_icon}}}</td>
+
+        <td class='where'>
+          <a href="{{worker_url}}">{{worker_host}}:{{worker_pid}}</a>
+        </td>
+
+        <td class='queues queue'>
+          {{#job}}
+            <a class="queue-tag" href="{{job_queue_url}}">{{job_queue}}</a>
+          {{/job}}
+        </td>
+
+        <td class='process'>
+          {{#job}}
+            <code>{{#payload}}{{class}}{{/payload}}</code>
+            <small>
+              <a class="queue time" href="{{working_url}}">{{run_at}}</a>
+            </small>
+          {{/job}}
+          {{#no_job}}
+            <span class='waiting'>Waiting for a job...</span>
+          {{/no_job}}
+        </td>
+      </tr>
+    {{/working}}
+  </table>
+{{/all_workers?}}

@@ -1,0 +1,73 @@
+{{#queue?}}
+  <h1>Pending jobs on <span class='hl'>{{queue}}</span></h1>
+
+  <form method="POST" action="{{remove_queue_url}}" class='remove-queue'>
+    <input type='submit' name='' value='Remove Queue' />
+  </form>
+
+  <p class='sub'>
+    Showing {{start}}
+    to
+    {{end}}
+    of
+    <b>{{size}}</b>
+    jobs
+  </p>
+
+  <table class='jobs'>
+    <tr>
+      <th>Class</th>
+      <th>Args</th>
+    </tr>
+
+    {{#jobs}}
+    <tr>
+      <td class='class'>{{class}}</td>
+      <td class='args'>{{args}}</td>
+    </tr>
+    {{/jobs}}
+
+    {{#no_jobs}}
+    <tr>
+      <td class='no-data' colspan='2'>
+        There are no pending jobs in this queue
+      </td>
+    </tr>
+    {{/no_jobs}}
+  </table>
+
+  {{> next_more}}
+{{/queue?}}
+
+{{#queues?}}
+  <h1 class='wi'>Queues</h1>
+
+  <p class='intro'>
+    The list below contains all the registered queues with the number
+    of jobs currently in the queue. Select a queue from above to view
+    all jobs currently pending on the queue.
+  </p>
+
+  <table class='queues'>
+    <tr>
+      <th>Name</th>
+      <th>Jobs</th>
+    </tr>
+
+    {{#queues}}
+      <tr>
+        <td class='queue'>
+          <a class="queue" href="{{queue_url}}">{{queue}}</a>
+        </td>
+        <td class='size'>{{size}}</td>
+      </tr>
+    {{/queues}}
+
+    <tr class="{{failure_class}}">
+      <td class='queue failed'>
+        <a class="queue" href="{{failed_url}}">failed</a>
+      </td>
+      <td class='size'>{{failed_count}}</td>
+    </tr>
+  </table>
+{{/queues?}}

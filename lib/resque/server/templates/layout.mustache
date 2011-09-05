@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Resque.</title>
+  {{{reset_css}}}
+  {{{style_css}}}
+  {{{jquery_js}}}
+  {{{relatize_js}}}
+  {{{ranger_js}}}
+</head>
+<body>
+  <div class="header">
+    <ul class='nav'>
+      {{#tabs}}
+        {{{tab}}}
+      {{/tabs}}
+    </ul>
+    {{#custom_namespace?}}
+      <abbr class="namespace" title="Resque's Redis Namespace">
+        {{namespace}}
+      </abbr>
+    {{/custom_namespace?}}
+  </div>
+
+{{#any_subtabs?}}
+  <ul class='subnav'>
+    {{#keyed_subtabs}}
+      <li {{{class}}}>
+        <a href="{{current_section}}/{{subtab}}">
+          <span>{{subtab}}</span>
+        </a>
+      </li>
+    {{/keyed_subtabs}}
+  </ul>
+{{/any_subtabs?}}
+
+<div id="main">
+  {{{yield}}}
+</div>
+
+<div id="footer">
+  <p>Powered by <a href="http://github.com/defunkt/resque">Resque</a>
+  v{{version}}</p>
+  <p>Connected to Redis namespace {{namespace}} on {{redis_server}}</p>
+</div>
+
+</body>
+</html>
