@@ -268,7 +268,7 @@ module Resque
         warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
-      log! "Registered signals"
+      log! "Registered #{reverse_signals ? 'reversed ' : ''}signals"
     end
 
     # Schedule this worker for shutdown. Will finish processing the
