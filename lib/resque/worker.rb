@@ -111,9 +111,9 @@ module Resque
     # has completed processing. Useful for testing.
     def work(interval = 5.0, &block)
       if RUBY_ENGINE == 'jruby'
-        work_threads(interval, &block) # interval, will block
+        work_threads(interval, &block)
       else
-        work_processes(interval, &block) # interval, will block
+        work_processes(interval, &block)
       end
     end
 
@@ -319,19 +319,19 @@ module Resque
     #  INT: Shutdown immediately, stop processing jobs.
     # QUIT: Shutdown after the current jobs have finished processing
     # (note: QUIT doesn't work on JRuby)
-    # WINCH: Shutdown after the current jobs have finished processing
+    # TTIN: Shutdown after the current jobs have finished processing
     # (for JRuby)
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { shutdown!  }
-      trap('INT')  { shutdown!  }
+      trap('TERM') { log 'TERM'; shutdown!  }
+      trap('INT')  { log 'INT'; shutdown!  }
 
       begin
-        trap('QUIT') { shutdown }
-        trap('WINCH') { shutdown }
-        trap('USR1') { kill_child }
+        trap('QUIT') { log 'QUIT'; shutdown }
+        trap('TTIN') { log 'TTIN'; shutdown }
+        trap('USR1') { log 'USR1'; kill_child }
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
