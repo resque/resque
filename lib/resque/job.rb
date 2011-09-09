@@ -124,7 +124,24 @@ module Resque
 
         # Execute the job. Do it in an around_perform hook if available.
         if around_hooks.empty?
-          job.perform(*job_args)
+          retries = 2 
+          begin
+            job.perform(*job_args)
+          rescue ArgumentError, NameError => exc  
+            if retries == 2
+              if exc.message.match /undefined class\/module (.+)$/
+                $1.constantize
+              end
+              retries -= 1
+              retry          
+            elsif retries == 1
+              retries -= 1
+              preload_models
+              retry
+            else 
+              raise exc
+            end
+          end
           job_was_performed = true
         else
           # We want to nest all around_perform plugins, with the last one
@@ -137,7 +154,24 @@ module Resque
             else
               lambda do
                 job.send(hook, *job_args) do
-                  result = job.perform(*job_args)
+                  retries = 2 
+                  begin
+                    result = job.perform(*job_args)
+                  rescue ArgumentError, NameError => exc  
+                    if retries == 2
+                      if exc.message.match /undefined class\/module (.+)$/
+                        $1.constantize
+                      end
+                      retries -= 1
+                      retry          
+                    elsif retries == 1
+                      retries -= 1
+                      preload_models
+                      retry
+                    else 
+                      raise exc
+                    end
+                  end
                   job_was_performed = true
                   result
                 end
