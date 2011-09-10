@@ -19,8 +19,9 @@ context "Resque" do
   test "redis= works correctly with a Redis::Namespace param" do
     new_redis = Redis.new(:host => "localhost", :port => 9736)
     new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
-    Resque.redis = new_namespace
-    assert_equal new_namespace, Resque.redis
+    assert_raises ArgumentError do
+      Resque.redis = new_namespace
+    end
 
     Resque.redis = 'localhost:9736/namespace'
   end

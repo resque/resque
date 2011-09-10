@@ -13,6 +13,8 @@ require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
 
+require 'connection_pool'
+
 module Resque
   include Helpers
   extend self
@@ -21,27 +23,15 @@ module Resque
   #   1. A 'hostname:port' String
   #   2. A 'hostname:port:db' String (to select the Redis db)
   #   3. A 'hostname:port/namespace' String (to set the Redis namespace)
-  #   4. A Redis URL String 'redis://host:port'
-  #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
-  #      or `Redis::Namespace`.
   def redis=(server)
-    case server
-    when String
-      if server =~ /redis\:\/\//
-        redis = Redis.connect(:url => server, :thread_safe => true)
-      else
-        server, namespace = server.split('/', 2)
-        host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
-      end
-      namespace ||= :resque
+    raise ArgumentError, "Server must be specified as \'hostname:port/namespace\'" unless server.is_a?(String)
+    server, namespace = server.split('/', 2)
+    host, port, db = server.split(':')
+    namespace ||= :resque
 
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
-    when Redis::Namespace
-      @redis = server
-    else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
+    @redis = ConnectionPool.new(:size => 3) do
+      redis = Redis.new(:host => host, :port => port, :db => db)
+      Redis::Namespace.new(namespace, :redis => redis)
     end
   end
 

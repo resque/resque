@@ -125,6 +125,7 @@ module Resque
       threads = []
       thread_count.times do |idx|
         threads << Thread.new do
+          Thread.current[:resque_thread_idx] = idx
           log! "Starting thread #{idx}"
           loop do
             job = nil
@@ -443,11 +444,11 @@ module Resque
       end
 
       redis.srem(:workers, self)
-      redis.del("worker:#{self}:#{Thread.current}")
-      redis.del("worker:#{self}:#{Thread.current}:started")
+      redis.del("worker:#{self}:#{tid}")
+      redis.del("worker:#{self}:#{tid}:started")
 
-      Stat.clear("processed:#{self}:#{Thread.current}")
-      Stat.clear("failed:#{self}:#{Thread.current}")
+      Stat.clear("processed:#{self}:#{tid}")
+      Stat.clear("failed:#{self}:#{tid}")
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
@@ -458,51 +459,55 @@ module Resque
         :queue   => job.queue,
         :run_at  => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
         :payload => job.payload
-      redis.set("worker:#{self}:#{Thread.current}", data)
+      redis.set("worker:#{self}:#{tid}", data)
     end
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
       processed!
-      redis.del("worker:#{self}:#{Thread.current}")
+      redis.del("worker:#{self}:#{tid}")
+    end
+
+    def tid
+      "T#{Thread.current[:resque_thread_idx] || 'main'}"
     end
 
     # How many jobs has this worker processed? Returns an int.
     def processed
-      Stat["processed:#{self}:#{Thread.current}"]
+      Stat["processed:#{self}:#{tid}"]
     end
 
     # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
-      Stat << "processed:#{self}:#{Thread.current}"
+      Stat << "processed:#{self}:#{tid}"
     end
 
     # How many failed jobs has this worker seen? Returns an int.
     def failed
-      Stat["failed:#{self}:#{Thread.current}"]
+      Stat["failed:#{self}:#{tid}"]
     end
 
     # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
-      Stat << "failed:#{self}:#{Thread.current}"
+      Stat << "failed:#{self}:#{tid}"
     end
 
     # What time did this worker start? Returns an instance of `Time`
     def started
-      redis.get "worker:#{self}:#{Thread.current}:started"
+      redis.get "worker:#{self}:#{tid}:started"
     end
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:#{Thread.current}:started", Time.now.to_s)
+      redis.set("worker:#{self}:#{tid}:started", Time.now.to_s)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
     def job
-      decode(redis.get("worker:#{self}:#{Thread.current}")) || {}
+      decode(redis.get("worker:#{self}:#{tid}")) || {}
     end
     alias_method :processing, :job
 
@@ -519,7 +524,7 @@ module Resque
     # Returns a symbol representing the current worker state,
     # which can be either :working or :idle
     def state
-      redis.exists("worker:#{self}:#{Thread.current}") ? :working : :idle
+      redis.exists("worker:#{self}:#{tid}") ? :working : :idle
     end
 
     # Is this worker the same as another worker?
@@ -534,7 +539,7 @@ module Resque
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
     def to_s
-      @to_s ||= "#{hostname}:#{Process.pid}:#{Thread.current}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{Process.pid}:#{tid}:#{@queues.join(',')}"
     end
     alias_method :id, :to_s
 
