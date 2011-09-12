@@ -29,7 +29,8 @@ module Resque
     host, port, db = server.split(':')
     namespace ||= :resque
 
-    @redis = ConnectionPool.new(:size => (ENV['RESQUE_THREADS'] || 10).to_i) do
+    connection_count = RUBY_ENGINE == 'jruby' ? (ENV['RESQUE_THREADS'] || 10).to_i : 1
+    @redis = ConnectionPool.new(:size => connection_count) do
       redis = Redis.new(:host => host, :port => port, :db => db)
       Redis::Namespace.new(namespace, :redis => redis)
     end
