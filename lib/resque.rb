@@ -29,7 +29,7 @@ module Resque
     host, port, db = server.split(':')
     namespace ||= :resque
 
-    @redis = ConnectionPool.new(:size => 3) do
+    @redis = ConnectionPool.new(:size => (ENV['REDIS_CONNECTIONS'] || 3).to_i) do
       redis = Redis.new(:host => host, :port => port, :db => db)
       Redis::Namespace.new(namespace, :redis => redis)
     end
