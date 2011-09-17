@@ -33,10 +33,28 @@ context "Resque::Worker" do
   end
 
   test "fails uncompleted jobs on exit" do
-    job = Resque::Job.new(:jobs, [GoodJob, "blah"])
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
+  end
+
+  class ::SimpleJobWithFailureHandling
+    def self.on_failure_record_failure(exception)
+      @@exception = exception
+    end
+    
+    def self.exception
+      @@exception
+    end
+  end
+
+  test "fails uncompleted jobs on exit, and calls failure hook" do
+    job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
+    @worker.working_on(job)
+    @worker.unregister_worker
+    assert_equal 1, Resque::Failure.count
+    assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
   end
 
   test "can peek at failed jobs" do
