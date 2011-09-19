@@ -128,7 +128,7 @@ module Resque
         break if shutdown?
 
         procline "Blocked reserving for #{@queues.join(', ')}" if blocking
-        if not paused? and job = blocking ? blocking_reserve(interval) : reserve
+        if not paused? and job = blocking ? blocking_reserve(interval.to_i) : reserve
           log "got: #{job.inspect}"
           run_hook :before_fork, job
           working_on job
