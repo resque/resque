@@ -14,7 +14,7 @@
 </form>
 <%end%>
 
-<p class='sub'>Showing <%=start%> to <%= start + 20 %> of <b><%= size = Resque::Failure.count %></b> jobs</p>
+<p class='sub'>Showing <%=start%> to <%= start + per_page %> of <b><%= size = Resque::Failure.count %></b> jobs</p>
 
 <ul class='failed'>
   <%for job in failed%>
@@ -65,4 +65,3 @@
 </ul>
 
 <%= partial :next_more, :start => start, :size => size %>
-
