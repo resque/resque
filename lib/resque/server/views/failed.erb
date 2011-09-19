@@ -1,5 +1,6 @@
-<%start = params[:start].to_i %>
-<%failed = Resque::Failure.all(start, 20)%>
+<% start = params[:start].to_i %>
+<% per_page = (params[:per_page].to_i > 0) ? params[:per_page].to_i : 20 %>
+<% failed = Resque::Failure.all(start, per_page) %>
 <% index = 0 %>
 <% date_format = "%Y/%m/%d %T %z" %>
 
