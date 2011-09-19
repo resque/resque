@@ -58,6 +58,7 @@ Table Of Contents
       * [Mysql::Error: MySQL server has gone away](#section_Workers_Mysql_Error_MySQL_server_has_gone_away)
    * [The Front End](#section_The_Front_End)
       * [Standalone](#section_The_Front_End_Standalone)
+      * [Using the front end for failure review](#section_Using_The_Front_End_For_Review)
       * [Passenger](#section_The_Front_End_Passenger)
       * [Rack::URLMap](#section_The_Front_End_Rack_URLMap)
       * [Rails 3](#section_The_Front_End_Rails_3)
@@ -535,7 +536,21 @@ or set the Redis connection string if you need to do something like select a dif
 
     $ resque-web -p 8282 -r localhost:6379:2
 
+<a name='section_Using_The_Front_End_For_Review'></a>
+
+### Using The front end for failures review
+
+Using the front end to review what's happening in the queue
+-----------------------------------------------------------
+After using Resque for a while, you may have quite a few failed jobs.
+Reviewing them by going over pages when showing 20 a page can be a bit hard.
+
+You can change the param in the url (in the failed view only for now), just add per_page=100 and you will see 100 per page.
+for example: http://www.your_domain.com/resque/failed?start=20&per_page=200.
+
+
 <a name='section_The_Front_End_Passenger'></a>
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
