@@ -333,6 +333,7 @@ context "Resque::Worker" do
   test "can blocking grab a job from its queues" do
     job = @worker.blocking_reserve(1)
     assert_not_nil job
+    assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, job.payload)
     assert_equal 0, Resque.size(:jobs)
   end
 

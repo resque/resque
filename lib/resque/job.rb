@@ -103,8 +103,8 @@ module Resque
     # timeout is reached.
     def self.blocking_reserve(queues, timeout)
       return unless payload = Resque.bpop(queues, timeout)  # payload = ["namespace:queue:job", payload]
-      queue = payload[0][16..-1]
-      new(queue, payload[1])
+      queue = payload[0].split(':').last
+      new(queue, decode(payload[1]))
     end
 
     # Attempts to perform the work represented by this job instance.
