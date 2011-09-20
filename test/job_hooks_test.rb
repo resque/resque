@@ -344,11 +344,9 @@ context "Resque::Job before_dequeue" do
     assert_equal history, [:before_dequeue], "before_dequeue was not run"
   end
 
-  test "a before dequeue hook that returns false should prevent the job from getting queued" do
+  test "a before dequeue hook that returns false should prevent the job from getting dequeued" do
     history = []
-    @worker = Resque::Worker.new(:jobs)
-    Resque.dequeue(BeforeDequeueJobAbort, history)
-    assert_equal 0, Resque.size(:jobs)
+    assert_equal nil, Resque.dequeue(BeforeDequeueJobAbort, history)
   end
 end
 
