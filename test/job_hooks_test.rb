@@ -290,6 +290,68 @@ context "Resque::Job before_enqueue" do
   end
 end
 
+context "Resque::Job after_dequeue" do
+  include PerformJob
+
+  class ::AfterDequeueJob
+    @queue = :jobs
+    def self.after_dequeue_record_history(history)
+      history << :after_dequeue
+    end
+
+    def self.perform(history)
+    end
+  end
+
+  test "the after dequeue hook should run" do
+    history = []
+    @worker = Resque::Worker.new(:jobs)
+    Resque.dequeue(AfterDequeueJob, history)
+    @worker.work(0)
+    assert_equal history, [:after_dequeue], "after_dequeue was not run"
+  end
+end
+
+
+context "Resque::Job before_dequeue" do
+  include PerformJob
+
+  class ::BeforeDequeueJob
+    @queue = :jobs
+    def self.before_dequeue_record_history(history)
+      history << :before_dequeue
+    end
+
+    def self.perform(history)
+    end
+  end
+
+  class ::BeforeDequeueJobAbort
+    @queue = :jobs
+    def self.before_dequeue_abort(history)
+      false
+    end
+
+    def self.perform(history)
+    end
+  end
+
+  test "the before dequeue hook should run" do
+    history = []
+    @worker = Resque::Worker.new(:jobs)
+    Resque.dequeue(BeforeDequeueJob, history)
+    @worker.work(0)
+    assert_equal history, [:before_dequeue], "before_dequeue was not run"
+  end
+
+  test "a before dequeue hook that returns false should prevent the job from getting queued" do
+    history = []
+    @worker = Resque::Worker.new(:jobs)
+    Resque.dequeue(BeforeDequeueJobAbort, history)
+    assert_equal 0, Resque.size(:jobs)
+  end
+end
+
 context "Resque::Job all hooks" do
   include PerformJob
 
