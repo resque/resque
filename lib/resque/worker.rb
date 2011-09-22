@@ -35,17 +35,17 @@ module Resque
 
       names.map! { |name| "worker:#{name}" }
 
-      reportedly_working = begin
-        redis.mapped_mget(*names).reject do |key, value|
+      reportedly_working = {}
+
+      begin
+        reportedly_working = redis.mapped_mget(*names).reject do |key, value|
           value.nil? || value.empty?
         end
       rescue Redis::Distributed::CannotDistribute
-        result = {}
         names.each do |name|
           value = redis.get name
-          result[name] = value unless value.nil? || value.empty?
+          reportedly_working[name] = value unless value.nil? || value.empty?
         end
-        result
       end
 
       reportedly_working.keys.map do |key|
