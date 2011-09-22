@@ -98,6 +98,15 @@ module Resque
       new(queue, payload)
     end
 
+    # Given a list of queue names, returns an instance or Resque::Job
+    # or blocks until a job becomes available on any of the queues, or
+    # timeout is reached.
+    def self.blocking_reserve(queues, timeout)
+      return unless payload = Resque.bpop(queues, timeout)  # payload = ["namespace:queue:job", payload]
+      queue = payload[0].split(':').last
+      new(queue, decode(payload[1]))
+    end
+
     # Attempts to perform the work represented by this job instance.
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.
