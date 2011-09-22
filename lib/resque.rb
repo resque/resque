@@ -222,6 +222,9 @@ module Resque
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
+  # Returns true if the job was queued, nil if the job was rejected by a 
+  # before_enqueue hook.
+  #
   # This method is considered part of the `stable` API.
   def enqueue(klass, *args)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
