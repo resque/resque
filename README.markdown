@@ -469,6 +469,14 @@ run Rack::URLMap.new \
 Check `examples/demo/config.ru` for a functional example (including
 HTTP basic auth).
 
+### Rails 3
+
+You can also easily mount Resque on a subpath in your existing Rails 3 app by adding this to your `routes.rb`:
+
+``` ruby
+mount Resque::Server.new, :at => "/resque"
+```
+
 
 Resque vs DelayedJob
 --------------------
