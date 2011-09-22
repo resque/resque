@@ -106,11 +106,6 @@ module Resque
       job_args = args || []
       job_was_performed = false
 
-      before_hooks  = Plugin.before_hooks(job)
-      around_hooks  = Plugin.around_hooks(job)
-      after_hooks   = Plugin.after_hooks(job)
-      failure_hooks = Plugin.failure_hooks(job)
-
       begin
         # Execute before_perform hook. Abort the job gracefully if
         # Resque::DontPerform is raised.
@@ -158,7 +153,7 @@ module Resque
       # If an exception occurs during the job execution, look for an
       # on_failure hook then re-raise.
       rescue Object => e
-        failure_hooks.each { |hook| job.send(hook, e, *job_args) }
+        run_failure_hooks(e)
         raise e
       end
     end
@@ -176,6 +171,7 @@ module Resque
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
+      run_failure_hooks(exception)
       Failure.create \
         :payload   => payload,
         :exception => exception,
@@ -201,5 +197,27 @@ module Resque
         payload_class == other.payload_class &&
         args == other.args
     end
+
+    def before_hooks
+      @before_hooks ||= Plugin.before_hooks(payload_class)
+    end
+
+    def around_hooks
+      @around_hooks ||= Plugin.around_hooks(payload_class)
+    end
+
+    def after_hooks
+      @after_hooks ||= Plugin.after_hooks(payload_class)
+    end
+
+    def failure_hooks 
+      @failure_hooks ||= Plugin.failure_hooks(payload_class)
+    end
+    
+    def run_failure_hooks(exception)
+      job_args = args || []
+      failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) }
+    end
+
   end
 end
