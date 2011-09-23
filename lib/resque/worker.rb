@@ -480,7 +480,7 @@ module Resque
 
     # Returns Integer PID of running worker
     def pid
-      @pid ||= to_s.split(":")[1].to_i
+      Process.pid
     end
 
     # Returns an Array of string pids of all the other workers on this
