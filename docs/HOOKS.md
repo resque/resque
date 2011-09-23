@@ -72,6 +72,12 @@ The available hooks are:
 * `after_enqueue`: Called with the job args after a job is placed on the queue.
   Any exception raised propagates up to the code which queued the job.
 
+* `before_dequeue`: Called with the job args before a job is removed from the queue.
+  If the hook returns `false`, the job will not be removed from the queue.
+
+* `after_dequeue`: Called with the job args after a job was removed from the queue.
+  Any exception raised propagates up to the code which dequeued the job.
+
 * `before_perform`: Called with the job args before perform. If it raises
   `Resque::Job::DontPerform`, the job is aborted. If other exceptions
   are raised, they will be propagated up the the `Resque::Failure`
