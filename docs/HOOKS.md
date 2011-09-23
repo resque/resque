@@ -69,6 +69,8 @@ The available hooks are:
 * `before_enqueue`: Called with the job args before a job is placed on the queue.
   If the hook returns `false`, the job will not be placed on the queue.
 
+* `after_create`: Called after the job is pushed onto a queue.
+
 * `after_enqueue`: Called with the job args after a job is placed on the queue.
   Any exception raised propagates up to the code which queued the job.
 
@@ -87,6 +89,8 @@ The available hooks are:
 
 * `on_failure`: Called with the exception and job args if any exception occurs
   while performing the job (or hooks), this includes Resque::DirtyExit.
+
+* `after_destroy`: Called after a job is removed from a queue.
 
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.

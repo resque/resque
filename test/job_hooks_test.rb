@@ -290,6 +290,68 @@ context "Resque::Job before_enqueue" do
   end
 end
 
+context "Resque::Job after_create" do
+  include PerformJob
+  
+  class ::AfterCreateJob
+    @queue = :jobs
+    def self.after_create_record_history(history)
+      history << :after_create
+    end
+
+    def self.perform(history)
+      history << :perform
+    end
+  end
+  
+  test 'the after_create hook should run' do
+    history = []
+    Resque.enqueue(AfterCreateJob, history)
+    perform_job(AfterCreateJob, history)
+    
+    assert(history.include?(:after_create), "after_create was not invoked")
+    assert(history.include?(:perform), "perform was not invoked")
+    assert_equal(history, [:after_create, :perform], "too many methods invoked yo")
+  end
+
+end
+
+context "Resque::Job after_destroy" do
+  include PerformJob
+
+  class ::AfterDestroyJob
+    @queue = :jobs
+
+    class << self
+      attr_accessor :history
+    end
+    
+    def self.after_destroy_record_history(param)
+      history << :after_destroy
+    end
+
+  end
+
+  test 'the after_destroy hook should run' do
+    AfterDestroyJob.history = []
+    Resque.enqueue(AfterDestroyJob, "foobar")
+    Resque.dequeue(AfterDestroyJob, "foobar")
+
+    assert_equal(AfterDestroyJob.history, [:after_destroy], 
+                 "after_destroy was not invoked")
+  end
+  
+  test 'the after_destroy hook should run 2 times' do
+    AfterDestroyJob.history = []
+    2.times { Resque.enqueue(AfterDestroyJob, "foobar") }
+    Resque.dequeue(AfterDestroyJob)
+    
+    assert_equal(AfterDestroyJob.history, [:after_destroy, :after_destroy], 
+                 "after_destroy was not invoked for all jobs")
+  end
+
+end
+
 context "Resque::Job all hooks" do
   include PerformJob
 

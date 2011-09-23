@@ -42,10 +42,12 @@ module Resque
     def self.create(queue, klass, *args)
       Resque.validate(klass, queue)
 
+      job = constantize(klass)
       if Resque.inline?
-        constantize(klass).perform(*decode(encode(args)))
+        job.perform(*decode(encode(args)))
       else
         Resque.push(queue, :class => klass.to_s, :args => args)
+        Plugin.after_create_hooks(job).each { |hook| job.send(hook, *args) }
       end
     end
 
@@ -75,17 +77,22 @@ module Resque
     # a Ruby array before processing.
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
+      job   = constantize(klass)
       queue = "queue:#{queue}"
       destroyed = 0
+      after_hooks = Plugin.after_destroy_hooks(job)
 
       if args.empty?
         redis.lrange(queue, 0, -1).each do |string|
-          if decode(string)['class'] == klass
+          obj = decode(string)
+          if obj['class'] == klass
             destroyed += redis.lrem(queue, 0, string).to_i
+            after_hooks.each { |hook| job.send(hook, *obj['args']) }
           end
         end
       else
         destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
+        after_hooks.each { |hook| job.send(hook, *args) }
       end
 
       destroyed

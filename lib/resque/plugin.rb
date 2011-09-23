@@ -52,5 +52,16 @@ module Resque
     def before_enqueue_hooks(job)
       job.methods.grep(/^before_enqueue/).sort
     end
+
+    # Given an object, returns a list `after_create` hook names.
+    def after_create_hooks(job)
+      job.methods.grep(/^after_create/).sort
+    end
+
+    # Given an object, returns a list `after_destroy` hook names.
+    def after_destroy_hooks(job)
+      job.methods.grep(/^after_destroy/).sort
+    end
+
   end
 end
