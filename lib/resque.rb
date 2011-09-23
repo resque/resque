@@ -283,7 +283,17 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def dequeue(klass, *args)
+    # Perform before_dequeue hooks. Don't perform dequeue if any hook returns false
+    before_hooks = Plugin.before_dequeue_hooks(klass).collect do |hook|
+      klass.send(hook, *args)
+    end
+    return if before_hooks.any? { |result| result == false }
+
     Job.destroy(queue_from_class(klass), klass, *args)
+
+    Plugin.after_dequeue_hooks(klass).each do |hook|
+      klass.send(hook, *args)
+    end
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a
