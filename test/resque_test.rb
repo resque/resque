@@ -7,6 +7,11 @@ context "Resque" do
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
+    @original_redis = Resque.redis
+  end
+
+  teardown do
+    Resque.redis = @original_redis
   end
 
   test "can set a namespace through a url-like string" do
@@ -131,6 +136,16 @@ context "Resque" do
     assert_equal nil, Resque.reserve(:method)
   end
 
+  test "can define a queue for jobs by way of a method" do
+    assert_equal 0, Resque.size(:method)
+    assert Resque.enqueue_to(:new_queue, SomeMethodJob, 20, '/tmp')
+
+    job = Resque.reserve(:new_queue)
+    assert_equal SomeMethodJob, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+  end
+
   test "needs to infer a queue with enqueue" do
     assert_raises Resque::NoQueueError do
       Resque.enqueue(SomeJob, 20, '/tmp')
@@ -201,7 +216,7 @@ context "Resque" do
   end
 
   test "keeps track of resque keys" do
-    assert_equal ["queue:people", "queues"], Resque.keys
+    assert_equal ["queue:people", "queues"].sort, Resque.keys.sort
   end
 
   test "badly wants a class name, too" do
@@ -238,7 +253,11 @@ context "Resque" do
     assert_equal 3, stats[:queues]
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
-    assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
+    if ENV.key? 'RESQUE_DISTRIBUTED'
+      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
+    else
+      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
+    end
   end
 
   test "decode bad json" do

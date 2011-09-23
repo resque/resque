@@ -41,6 +41,7 @@ body { padding:0; margin:0; }
 #main table.jobs td.args{ width:50%;}
 
 #main table.workers td.icon {width:1%; background:#efefef;text-align:center;}
+#main table.workers td.icon img { height: 16px; width: 16px; }
 #main table.workers td.where { width:25%;}
 #main table.workers td.queues { width:35%;}
 #main .queue-tag { background:#b1d2e9; padding:2px; margin:0 3px; font-size:80%; text-decoration:none; text-transform:uppercase; font-weight:bold; color:#3274a2; -webkit-border-radius:4px; -moz-border-radius:4px;}

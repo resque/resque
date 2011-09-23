@@ -265,6 +265,15 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
     $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
 
+### Running in the background
+
+(Only supported with ruby >= 1.9). There are scenarios where it's helpful for
+the resque worker to run itself in the background (usually in combination with
+PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
+worker is started.
+
+    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
+        rake environment resque:work
 
 ### Priorities and Queue Lists
 
@@ -445,6 +454,10 @@ You can also set the namespace directly using `resque-web`:
 
     $ resque-web -p 8282 -N myapp
 
+or set the Redis connection string if you need to do something like select a different database:
+
+    $ resque-web -p 8282 -r localhost:6379:2
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
@@ -471,7 +484,7 @@ HTTP basic auth).
 
 ### Rails 3
 
-You can also easily mount Resque on a subpath in your existing Rails 3 app by adding this to your `routes.rb`:
+You can also mount Resque on a subpath in your existing Rails 3 app by adding `require resque/server` to the top of your routes file or in an initializer then adding this to `routes.rb`:
 
 ``` ruby
 mount Resque::Server.new, :at => "/resque"
