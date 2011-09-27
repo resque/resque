@@ -35,9 +35,19 @@ module Resque
 
       names.map! { |name| "worker:#{name}" }
 
-      reportedly_working = redis.mapped_mget(*names).reject do |key, value|
-        value.nil? || value.empty?
+      reportedly_working = {}
+
+      begin
+        reportedly_working = redis.mapped_mget(*names).reject do |key, value|
+          value.nil? || value.empty?
+        end
+      rescue Redis::Distributed::CannotDistribute
+        names.each do |name|
+          value = redis.get name
+          reportedly_working[name] = value unless value.nil? || value.empty?
+        end
       end
+
       reportedly_working.keys.map do |key|
         find key.sub("worker:", '')
       end.compact
@@ -470,7 +480,7 @@ module Resque
 
     # Returns Integer PID of running worker
     def pid
-      @pid ||= to_s.split(":")[1].to_i
+      Process.pid
     end
 
     # Returns an Array of string pids of all the other workers on this
@@ -488,7 +498,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def linux_worker_pids
-      `ps -A -o pid,command | grep [r]esque | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,command | grep "[r]esque" | grep -v "resque-web"`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end
@@ -498,7 +508,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def solaris_worker_pids
-      `ps -A -o pid,comm | grep [r]uby | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,comm | grep "[r]uby" | grep -v "resque-web"`.split("\n").map do |line|
         real_pid = line.split(' ')[0]
         pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
         if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
