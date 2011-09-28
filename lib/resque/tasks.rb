@@ -18,6 +18,13 @@ namespace :resque do
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
 
+    if ENV['BACKGROUND']
+      unless Process.respond_to?('daemon')
+          abort "env var BACKGROUND is set, which requires ruby >= 1.9"
+      end
+      Process.daemon(true)
+    end
+
     if ENV['PIDFILE']
       File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
