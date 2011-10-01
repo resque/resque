@@ -13,7 +13,7 @@ module Resque
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"
-    if Sinatra.const_defined?("VERSION") && Sinatra::VERSION >= "1.3.0"
+    if Sinatra.const_defined?("VERSION") && Gem::Version.new(Sinatra::VERSION) >= Gem::Version.new("1.3.0")
       set :public_folder, "#{dir}/server/public"
     else
       set :public, "#{dir}/server/public"
