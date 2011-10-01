@@ -33,7 +33,7 @@ module Resque
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
-          mustache page.to_sym, {:layout => layout}, :resque => Resque
+        mustache page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
         mustache :error, :locals => {:error => "Can't connect to Redis! (#{Resque.redis_id})"}
       end
