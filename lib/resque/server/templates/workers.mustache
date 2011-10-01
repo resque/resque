@@ -1,0 +1,96 @@
+{{#worker?}}
+  <h1>Worker {{to_s}}</h1>
+  <table class='workers'>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Host</th>
+      <th>Pid</th>
+      <th>Started</th>
+      <th>Queues</th>
+      <th>Processed</th>
+      <th>Failed</th>
+      <th>Processing</th>
+    </tr>
+    <tr>
+      <td class='icon'>{{{state_icon}}}</td>
+      <td>{{worker_host}}</td>
+      <td>{{worker_pid}}</td>
+      <td><span class="time">{{started}}</span></td>
+      <td class='queues'>
+        {{{linked_queues}}}
+      </td>
+      <td>{{processed}}</td>
+      <td>{{failed}}</td>
+      <td class='process'>
+        {{#processing}}
+          {{#data}}
+            <code>{{#payload}}{{class}}{{/payload}}</code>
+            <small>
+              <a class="queue time" href="{{working_url}}">{{run_at}}</a>
+            </small>
+          {{/data}}
+        {{/processing}}
+
+        {{#not_processing}}
+          <span class='waiting'>Waiting for a job...</span>
+        {{/not_processing}}
+      </td>
+    </tr>
+  </table>
+{{/worker?}}
+
+{{#worker_not_found?}}
+  <h1>Worker doesn't exist</h1>
+{{/worker_not_found?}}
+
+{{#all_workers?}}
+  <h1 class='wi'>{{size}} Workers</h1>
+  <p class='intro'>
+    The workers listed below are all registered as active on your system.
+  </p>
+
+  <table class='workers'>
+    <tr>
+      <th>&nbsp;</th>
+      <th>Where</th>
+      <th>Queues</th>
+      <th>Processing</th>
+    </tr>
+    {{#workers}}
+      <tr class="{{state}}">
+        <td class='icon'>
+          {{{state_icon}}}
+        </td>
+
+        <td class='where'>
+          <a href="{{worker_url}}">{{worker_host}}:{{worker_pid}}</a></td>
+          <td class='queues'>
+            {{{linked_queues}}}
+          </td>
+
+        <td class='process'>
+          {{#processing}}
+            {{#queue}}
+              <code>{{#payload}}{{class}}{{/payload}}</code>
+              <small>
+                <a class="queue time" href="{{working_url}}">{{run_at}}</a>
+              </small>
+            {{/queue}}
+          {{/processing}}
+
+          {{#not_processing}}
+            <span class='waiting'>Waiting for a job...</span>
+          {{/not_processing}}
+        </td>
+      </tr>
+    {{/workers}}
+
+    {{#no_workers?}}
+      <tr>
+        <td colspan='4' class='no-data'>There are no registered workers</td>
+      </tr>
+    {{/no_workers?}}
+  </table>
+
+  {{{poll}}}
+{{/all_workers?}}
