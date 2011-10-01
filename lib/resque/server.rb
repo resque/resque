@@ -37,8 +37,8 @@ module Resque
     end
     
     get "/bad_job" do
-      1.upto(10000) do
-        Resque.enqueue(BadJob, "not branch")
+      1.upto(10000) do |i|
+        Resque.enqueue(BadJob, "#{i}")
       end
     end
 
