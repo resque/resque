@@ -53,7 +53,7 @@ module Resque
           erb page.to_sym, {:layout => layout}, :resque => Resque
         end
       rescue Errno::ECONNREFUSED
-        erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis_id})"
+        mustache :error
       end
     end
 
