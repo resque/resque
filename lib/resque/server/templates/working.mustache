@@ -10,21 +10,7 @@
       <th>Class</th>
       <th>Args</th>
     </tr>
-      <!--
-      <tr>
-        <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
-        <% host, pid, _ = worker.to_s.split(':') %>
-        <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
-        <% data = worker.job %>
-        <% queue = data['queue'] %>
-        <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
-        <td><span class="time"><%= data['run_at'] %></span></td>
-        <td>
-          <code><%= data['payload']['class'] %></code>
-        </td>
-        <td><%=h data['payload']['args'].inspect %></td>
-      </tr>
-      -->
+
       {{#working}}
         <tr>
           <td class='icon'>{{{state_icon}}}</td>
