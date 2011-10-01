@@ -1,6 +1,6 @@
 module QueueMethods
   def subtabs
-    Resque.queues
+    Resque.queues if self.class.eql?(Resque::Views::Queues)
   end
 
   def queues?
