@@ -26,21 +26,6 @@ module Resque
       :templates => "#{dir}/server/templates",
       :views     => "#{dir}/server/views"
     }
-    
-    class BadJob
-      @queue = :bad_jobs
-      
-      def self.perform(branch = 'master')
-        sleep 1
-        raise "Bad job on #{branch}"
-      end
-    end
-    
-    get "/bad_job" do
-      1.upto(10000) do |i|
-        Resque.enqueue(BadJob, "#{i}")
-      end
-    end
 
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
