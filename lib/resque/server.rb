@@ -1,6 +1,5 @@
 require 'sinatra/base'
 require 'mustache/sinatra'
-require 'erb'
 require 'resque'
 require 'resque/version'
 require 'time'
@@ -30,13 +29,7 @@ module Resque
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
-        templates = settings.mustache[:templates]
-
-        if File.exists? "#{templates}/#{page}.mustache"
-          mustache page.to_sym
-        else
-          erb page.to_sym, {:layout => layout}, :resque => Resque
-        end
+          mustache page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
         mustache :error, :locals => {:error => "Can't connect to Redis! (#{Resque.redis_id})"}
       end
