@@ -6,7 +6,7 @@ module Resque
       end
            
       def failed
-        Resque::Failure.all(start, 20)
+        Resque::Failure.all(actual_start, 20)
       end
       
       def requeue_all_url
@@ -74,12 +74,46 @@ module Resque
         nil
       end
 
+      def pagination?
+        true if size > 20
+      end
+
+      def less_page?
+        actual_start > 0
+      end
+
+      def more_page?
+        size > (actual_start + 20)
+      end
+
+      def start_less
+        s = actual_start - 20
+        if s >= 0
+          s
+        else
+          0
+        end
+      end
+
+      def start_more
+        actual_start + 20
+      end
+
       def start
-        params[:start].to_i
+        actual_start + 1
+      end
+
+      def actual_start
+        params[:start].to_i or 0
       end
 
       def end
-        start + 20
+        s = actual_start + 20
+        if s <= size
+          s
+        else
+          size
+        end
       end
       
       def size
