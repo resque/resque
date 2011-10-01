@@ -66,7 +66,7 @@ module QueueMethods
   end
 
   def jobs
-    Resque.peek(queue, actual_start, 20).map do |job|
+    Resque.peek(queue, start, 20).map do |job|
       job.merge('args' => job['args'].inspect)
     end
   end
