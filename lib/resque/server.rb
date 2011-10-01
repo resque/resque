@@ -13,7 +13,11 @@ module Resque
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"
-    set :public, "#{dir}/server/public"
+    if Sinatra.const_defined?("VERSION") && Sinatra::VERSION >= "1.3.0"
+      set :public_folder, "#{dir}/server/public"
+    else
+      set :public, "#{dir}/server/public"
+    end
     set :static, true
 
     helpers do
