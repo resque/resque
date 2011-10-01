@@ -29,46 +29,36 @@ module QueueMethods
     u "/queues/#{queue}/remove"
   end
 
-  def pagination?
-    true if size > 20
-  end
-  
-  def less_page?
-    actual_start > 0
-  end
-  
-  def more_page?
-    size > (actual_start + 20)
-  end
-  
-  def start_less
-    s = actual_start - 20
-    if s >= 0
-      s
-    else
-      0
-    end
-  end
-  
-  def start_more
-    actual_start + 20
-  end
-  
   def start
-    actual_start + 1
-  end
-  
-  def actual_start
-    params[:start].to_i or 0
+    params[:start].to_i
   end
 
   def end
-    s = actual_start + 20
-    if s <= size
-      s
-    else
-      size
-    end
+    start + 20
+  end
+
+  def size
+    redis_get_size(key)
+  end
+
+  def pagination?
+    less_page? || more_page?
+  end
+
+  def less_page?
+    start - 20 >= 0
+  end
+
+  def more_page?
+    start + 20 <= size
+  end
+
+  def start_less
+    start - 20
+  end
+
+  def start_more
+    start + 20
   end
 
   def size
