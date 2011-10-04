@@ -454,10 +454,6 @@ You can also set the namespace directly using `resque-web`:
 
     $ resque-web -p 8282 -N myapp
 
-or set the Redis connection string if you need to do something like select a different database:
-
-    $ resque-web -p 8282 -r localhost:6379:2
-
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
