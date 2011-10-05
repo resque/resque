@@ -40,10 +40,10 @@ context "Resque::Worker" do
   end
 
   class ::SimpleJobWithFailureHandling
-    def self.on_failure_record_failure(exception)
+    def self.on_failure_record_failure(exception, *args)
       @@exception = exception
     end
-    
+
     def self.exception
       @@exception
     end
@@ -352,7 +352,7 @@ context "Resque::Worker" do
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   test "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
