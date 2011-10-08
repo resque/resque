@@ -299,12 +299,17 @@ module Resque
       @shutdown
     end
 
-    # Kills the forked child immediately, without remorse. The job it
+    # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed.
     def kill_child
       if @child
         log! "Killing child at #{@child}"
         if system("ps -o pid,state -p #{@child}")
+          Process.kill("TERM", @child) rescue nil
+          10.times do
+            return unless system("ps -o pid,state -p #{@child}")
+            sleep(0.1)
+          end
           Process.kill("KILL", @child) rescue nil
         else
           log! "Child #{@child} not found, restarting."
