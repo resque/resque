@@ -314,12 +314,11 @@ module Resque
           log! "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
         else
-          log! "Child #{@child} not found, restarting."
-          shutdown
+          log! "Child #{@child} already quit."
         end
       end
     rescue SystemCallError
-      log! "Child #{@child} already quit."
+      log! "Child #{@child} already quit and reaped."
     end
 
     # are we paused?
