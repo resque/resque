@@ -11,10 +11,15 @@ end
 module Resque
   class Server < Sinatra::Base
     dir = File.dirname(File.expand_path(__FILE__))
+    sinatra_ver_major, sinatra_ver_minor, _ = Sinatra::VERSION.split('.')
 
     set :views,  "#{dir}/server/views"
-    set :public, "#{dir}/server/public"
     set :static, true
+    if sinatra_ver_major > '1' || (sinatra_ver_major == '1' && sinatra_ver_minor >= '3')
+      set :public_dir, "#{dir}/server/public"
+    else
+      set :public, "#{dir}/server/public"
+    end
 
     helpers do
       include Rack::Utils
