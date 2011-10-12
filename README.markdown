@@ -1,3 +1,4 @@
+<a name="resque"></a>
 Resque
 ======
 
@@ -31,6 +32,7 @@ not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
 
+<a name="the-blog-post"></a>
 The Blog Post
 -------------
 
@@ -38,6 +40,7 @@ For the backstory, philosophy, and history of Resque's beginnings,
 please see [the blog post][0].
 
 
+<a name="overview"></a>
 Overview
 --------
 
@@ -107,6 +110,7 @@ multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
 
+<a name="jobs"></a>
 Jobs
 ----
 
@@ -133,6 +137,7 @@ sense. You could easily be spidering sites and sticking data which
 needs to be crunched later into a queue.
 
 
+<a name="persistence"></a>
 ### Persistence
 
 Jobs are persisted to queues as JSON objects. Let's take our `Archive`
@@ -178,6 +183,7 @@ If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
 
+<a name="send-later-and-async"></a>
 ### send_later / async
 
 Want something like DelayedJob's `send_later` or the ability to use
@@ -187,6 +193,7 @@ directory for goodies.
 We plan to provide first class `async` support in a future release.
 
 
+<a name="failure"></a>
 ### Failure
 
 If a job raises an exception, it is logged and handed off to the
@@ -199,6 +206,7 @@ Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
 
 
+<a name="workers"></a>
 Workers
 -------
 
@@ -249,6 +257,7 @@ We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
 
+<a name="logging"></a>
 ### Logging
 
 Workers support basic logging to STDOUT. If you start them with the
@@ -258,6 +267,7 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
+<a name="pids"></a>
 ### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque
@@ -265,6 +275,7 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
     $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
 
+<a name="running-in-the-background"></a>
 ### Running in the background
 
 (Only supported with ruby >= 1.9). There are scenarios where it's helpful for
@@ -275,6 +286,7 @@ worker is started.
     $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
         rake environment resque:work
 
+<a name="priorities-and-queue-lists"></a>
 ### Priorities and Queue Lists
 
 Resque doesn't support numeric priorities but instead uses the order
@@ -310,6 +322,7 @@ And workers on our specialized archive machine with this command:
     $ QUEUE=archive rake resque:work
 
 
+<a name="running-all-queues"></a>
 ### Running All Queues
 
 If you want your workers to work off of every queue, including new
@@ -320,6 +333,7 @@ queues created on the fly, you can use a splat:
 Queues will be processed in alphabetical order.
 
 
+<a name="running-multiple-workers"></a>
 ### Running Multiple Workers
 
 At GitHub we use god to start and stop multiple workers. A sample god
@@ -335,6 +349,7 @@ This will spawn five Resque workers, each in its own thread. Hitting
 ctrl-c should be sufficient to stop them all.
 
 
+<a name="forking"></a>
 ### Forking
 
 On certain platforms, when a Resque worker reserves a job it
@@ -377,6 +392,7 @@ complicated.
 Workers instead handle their own state.
 
 
+<a name="parents-and-children"></a>
 ### Parents and Children
 
 Here's a parent / child pair doing some work:
@@ -398,6 +414,7 @@ waiting for work on:
     92099 resque: Waiting for file_serve,warm_cache
 
 
+<a name="signals"></a>
 ### Signals
 
 Resque workers respond to a few different signals:
@@ -420,6 +437,7 @@ If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
 then `CONT` to start it again.
 
+<a name="mysql-server-has-gone-away"></a>
 ### Mysql::Error: MySQL server has gone away
 
 If your workers remain idle for too long they may lose their MySQL
@@ -427,6 +445,7 @@ connection. If that happens we recommend using [this
 Gist](http://gist.github.com/238999).
 
 
+<a name="the-front-end"></a>
 The Front End
 -------------
 
@@ -435,6 +454,7 @@ your queue.
 
 ![The Front End](https://img.skitch.com/20110528-pc67a8qsfapgjxf5gagxd92fcu.png)
 
+<a name="standalone"></a>
 ### Standalone
 
 If you've installed Resque as a gem running the front end standalone is easy:
@@ -458,6 +478,7 @@ or set the Redis connection string if you need to do something like select a dif
 
     $ resque-web -p 8282 -r localhost:6379:2
 
+<a name="passenger"></a>
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
@@ -466,6 +487,7 @@ Phusion's guide:
 Apache: <http://www.modrails.com/documentation/Users%20guide%20Apache.html#_deploying_a_rack_based_ruby_application>
 Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deploying_a_rack_app>
 
+<a name="rack-URLMap"></a>
 ### Rack::URLMap
 
 If you want to load Resque on a subpath, possibly alongside other
@@ -482,6 +504,7 @@ run Rack::URLMap.new \
 Check `examples/demo/config.ru` for a functional example (including
 HTTP basic auth).
 
+<a name="rails-3"></a>
 ### Rails 3
 
 You can also mount Resque on a subpath in your existing Rails 3 app by adding `require resque/server` to the top of your routes file or in an initializer then adding this to `routes.rb`:
@@ -491,6 +514,7 @@ mount Resque::Server.new, :at => "/resque"
 ```
 
 
+<a name="resque-vs-delayedjob"></a>
 Resque vs DelayedJob
 --------------------
 
@@ -537,6 +561,7 @@ In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
 
+<a name="installing-redis"></a>
 Installing Redis
 ----------------
 
@@ -545,6 +570,7 @@ Resque requires Redis 0.900 or higher.
 Resque uses Redis' lists for its queues. It also stores worker state
 data in Redis.
 
+<a name="homebrew"></a>
 #### Homebrew
 
 If you're on OS X, Homebrew is the simplest way to install Redis:
@@ -554,6 +580,7 @@ If you're on OS X, Homebrew is the simplest way to install Redis:
 
 You now have a Redis daemon running on 6379.
 
+<a name="via-resque"></a>
 #### Via Resque
 
 Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
@@ -578,6 +605,7 @@ The demo is probably the best way to figure out how to put the parts
 together. But, it's not that hard.
 
 
+<a name="resque-dependencies"></a>
 Resque Dependencies
 -------------------
 
@@ -585,9 +613,11 @@ Resque Dependencies
     $ bundle install
 
 
+<a name="installing-resque"></a>
 Installing Resque
 -----------------
 
+<a name="installing-resque-in-rack-app-as-a-gem"></a>
 ### In a Rack app, as a gem
 
 First install the gem.
@@ -622,6 +652,7 @@ Alternately you can define a `resque:setup` hook in your Rakefile if you
 don't want to load your app every time rake runs.
 
 
+<a name="installing-resque-in-rails-2-x-app-as-a-gem"></a>
 ### In a Rails 2.x app, as a gem
 
 First install the gem.
@@ -653,6 +684,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name="installing-resque-in-a-rails-2-x-app-as-a-plugin"></a>
 ### In a Rails 2.x app, as a plugin
 
     $ ./script/plugin install git://github.com/defunkt/resque
@@ -668,6 +700,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name="installing-resque-in-rails-3-app-as-a-gem"></a>
 ### In a Rails 3 app, as a gem
 
 First include it in your Gemfile.
@@ -702,6 +735,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name="configuration"></a>
 Configuration
 -------------
 
@@ -753,6 +787,7 @@ Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 ```
 
 
+<a name="plugins-and-hooks"></a>
 Plugins and Hooks
 -----------------
 
@@ -764,6 +799,7 @@ using hooks (such as `Resque.after_fork`), see
 [docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
 
 
+<a name="namespaces"></a>
 Namespaces
 ----------
 
@@ -785,6 +821,7 @@ We recommend sticking this in your initializer somewhere after Redis
 is configured.
 
 
+<a name="demo"></a>
 Demo
 ----
 
@@ -794,15 +831,18 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
+<a name="monitoring"></a>
 Monitoring
 ----------
 
+<a name="god"></a>
 ### god
 
 If you're using god to monitor Resque, we have provided example
 configs in `examples/god/`. One is for starting / stopping workers,
 the other is for killing workers that have been running too long.
 
+<a name="monit"></a>
 ### monit
 
 If you're using monit, `examples/monit/resque.monit` is provided free
@@ -810,6 +850,7 @@ of charge. This is **not** used by GitHub in production, so please
 send patches for any tweaks or improvements you can make to it.
 
 
+<a name="questions"></a>
 Questions
 ---------
 
@@ -817,6 +858,7 @@ Please add them to the [FAQ](https://github.com/defunkt/resque/wiki/FAQ) or
 ask on the Mailing List. The Mailing List is explained further below
 
 
+<a name="development"></a>
 Development
 -----------
 
@@ -850,6 +892,7 @@ Feel free to ping the mailing list with your problem and we'll try to
 sort it out.
 
 
+<a name="contributing"></a>
 Contributing
 ------------
 
@@ -864,6 +907,7 @@ Once you've made your great commits:
 5. That's it!
 
 
+<a name="mailing-list"></a>
 Mailing List
 ------------
 
@@ -874,6 +918,7 @@ including unsubscribe information.
 The archive can be found at <http://librelist.com/browser/resque/>.
 
 
+<a name="meta"></a>
 Meta
 ----
 
@@ -888,6 +933,7 @@ Meta
 This project uses [Semantic Versioning][sv].
 
 
+<a name="author"></a>
 Author
 ------
 
