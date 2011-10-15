@@ -210,7 +210,7 @@ loop do
   if job = reserve
     job.process
   else
-    sleep 5
+    sleep 5 # Polling frequency = 5 
   end
 end
 shutdown
@@ -274,6 +274,13 @@ worker is started.
 
     $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
         rake environment resque:work
+
+### Polling frequency
+
+You can pass an INTERVAL option which is a float representing the polling frequency. 
+The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+
+    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
 
 ### Priorities and Queue Lists
 
