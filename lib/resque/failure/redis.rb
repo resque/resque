@@ -35,6 +35,13 @@ module Resque
         Resque.redis.lset(:failed, index, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
+      
+      def self.requeue_to(index, queue_name)
+        item = all(index)
+        item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+        Resque.redis.lset(:failed, index, Resque.encode(item))
+        Job.create(queue_name, item['payload']['class'], *item['payload']['args'])
+      end
 
       def self.remove(index)
         id = rand(0xffffff)
