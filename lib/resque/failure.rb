@@ -62,6 +62,10 @@ module Resque
     def self.requeue(index)
       backend.requeue(index)
     end
+    
+    def self.requeue_to(index, queue_name)
+      backend.requeue(index, queue_name)
+    end
 
     def self.remove(index)
       backend.remove(index)
