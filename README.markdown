@@ -210,7 +210,7 @@ loop do
   if job = reserve
     job.process
   else
-    sleep 5
+    sleep 5 # Polling frequency = 5 
   end
 end
 shutdown
@@ -274,6 +274,13 @@ worker is started.
 
     $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
         rake environment resque:work
+
+### Polling frequency
+
+You can pass an INTERVAL option which is a float representing the polling frequency. 
+The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+
+    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
 
 ### Priorities and Queue Lists
 
@@ -853,6 +860,8 @@ sort it out.
 Contributing
 ------------
 
+Read the [Contributing][cb] wiki page first. 
+
 Once you've made your great commits:
 
 1. [Fork][1] Resque
@@ -860,9 +869,6 @@ Once you've made your great commits:
 3. Push to your branch - `git push origin my_branch`
 4. Create a [Pull Request](http://help.github.com/pull-requests/) from your branch
 5. That's it!
-
-You might want to checkout our [Contributing][cb] wiki page for information
-on coding standards, new features, etc.
 
 
 Mailing List
