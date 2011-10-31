@@ -213,11 +213,19 @@ module Resque
     def failure_hooks 
       @failure_hooks ||= Plugin.failure_hooks(payload_class)
     end
+
+    def after_kill_hooks
+      @after_kill_hooks ||= Plugin.after_kill_hooks(payload_class)
+    end
     
     def run_failure_hooks(exception)
       job_args = args || []
       failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) }
     end
 
+    def run_after_kill_hooks
+      job_args = args || []
+      after_kill_hooks.each { |hook| payload_class.send(hook, *job_args) }
+    end
   end
 end

@@ -350,6 +350,82 @@ context "Resque::Job before_dequeue" do
   end
 end
 
+context "after_kill hooks" do
+
+    include PerformJob
+    class ::SleepyJob
+      @queue = :sleepy_job
+      def self.perform(a)
+        sleep 1 unless a==:nosleep.to_s
+        send_to_parent('[perform finished first]')
+      end
+      def self.after_kill_send_message_to_parent(*a)
+        send_to_parent("[after_kill_send_message_to_parent was run with args(#{a.inspect})]")
+      end
+      def self.send_to_parent(message)
+        close_read
+        @w.write message
+      end
+      def self.prepare
+        @r,@w = IO.pipe
+      end
+      def self.close_read
+        @r.close unless @r.closed?
+      end
+      def self.close_write
+        @w.close unless @w.closed?
+      end
+    end
+
+    def enable_worker_forking &block
+      return false unless Kernel.respond_to? :fork
+      
+      old_testing_value = $TESTING||false
+      $TESTING = false #needed to let Worker#work fork
+
+      yield
+    ensure
+      $TESTING=old_testing_value
+    end
+
+    test "should run after the worker is killed while processing" do
+      enable_worker_forking do
+        r,w = SleepyJob.prepare
+        Resque.enqueue SleepyJob, :foo
+
+        @worker = Resque::Worker.new(:sleepy_job)
+        if worker_process = Kernel.fork
+          SleepyJob.close_write
+          sleep 0.1
+          Process.kill( 'TERM', worker_process )
+          Process.wait( worker_process )
+          assert_equal( "[after_kill_send_message_to_parent was run with args(#{['foo'].inspect})]", r.read, 'callback failed to run.' )
+        else
+          srand # reseed
+          @worker.work(0)
+        end
+      end
+    end
+
+    test "should not run after the work is finished" do
+      enable_worker_forking do
+        r,w = SleepyJob.prepare
+        Resque.enqueue SleepyJob, :nosleep
+        @worker = Resque::Worker.new(:sleepy_job)
+        if worker_process = Kernel.fork
+          SleepyJob.close_write
+          sleep 0.1
+          Process.kill( 'TERM', worker_process )
+          Process.wait( worker_process )
+          assert_equal( "[perform finished first]", r.read )
+        else
+          srand # reseed
+          @worker.work(0)
+        end
+      end
+    end
+end
+
 context "Resque::Job all hooks" do
   include PerformJob
 
