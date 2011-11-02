@@ -22,6 +22,40 @@ module Resque
         end
       end
     end
+    
+    def run_enqueue_hooks(klass, *args, &blk)
+      klass = Job.constantize(klass) if klass.is_a?(String)
+      
+      before_hooks = before_enqueue_hooks(klass).collect do |hook|
+        klass.send(hook, *args)
+      end
+      return nil if before_hooks.any? { |result| result == false }
+      
+      blk.call
+      
+      Plugin.after_enqueue_hooks(klass).each do |hook|
+        klass.send(hook, *args)
+      end
+      
+      return true
+    end
+    
+    def run_dequeue_hooks(klass, *args, &blk)
+      klass = Job.constantize(klass) if klass.is_a?(String)
+      
+      before_hooks = before_dequeue_hooks(klass).collect do |hook|
+        klass.send(hook, *args)
+      end
+      return nil if before_hooks.any? { |result| result == false }
+      
+      blk.call
+      
+      Plugin.after_dequeue_hooks(klass).each do |hook|
+        klass.send(hook, *args)
+      end
+      
+      return true
+    end
 
     # Given an object, returns a list `before_perform` hook names.
     def before_hooks(job)

@@ -33,7 +33,10 @@ module Resque
         item = all(index)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
         Resque.redis.lset(:failed, index, Resque.encode(item))
-        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        
+        Plugin.run_enqueue_hooks(item['payload']['class'], *item['payload']['args']) do
+          Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        end
       end
 
       def self.remove(index)
