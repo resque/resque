@@ -35,9 +35,19 @@ module Resque
 
       names.map! { |name| "worker:#{name}" }
 
-      reportedly_working = redis.mapped_mget(*names).reject do |key, value|
-        value.nil? || value.empty?
+      reportedly_working = {}
+
+      begin
+        reportedly_working = redis.mapped_mget(*names).reject do |key, value|
+          value.nil? || value.empty?
+        end
+      rescue Redis::Distributed::CannotDistribute
+        names.each do |name|
+          value = redis.get name
+          reportedly_working[name] = value unless value.nil? || value.empty?
+        end
       end
+
       reportedly_working.keys.map do |key|
         find key.sub("worker:", '')
       end.compact
@@ -118,13 +128,14 @@ module Resque
 
         if not paused? and job = reserve
           log "got: #{job.inspect}"
+          job.worker = self
           run_hook :before_fork, job
           working_on job
 
           if @child = fork
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            Process.wait
+            Process.wait(@child)
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             perform(job, &block)
@@ -150,6 +161,7 @@ module Resque
     def process(job = nil, &block)
       return unless job ||= reserve
 
+      job.worker = self
       working_on job
       perform(job, &block)
     ensure
@@ -181,7 +193,7 @@ module Resque
     def reserve
       queues.each do |queue|
         log! "Checking #{queue}"
-        if job = Resque::Job.reserve(queue)
+        if job = Resque.reserve(queue)
           log! "Found job on #{queue}"
           return job
         end
@@ -198,7 +210,7 @@ module Resque
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      @queues[0] == "*" ? Resque.queues.sort : @queues
+      @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
     end
 
     # Not every platform supports fork. Here we do our magic to
@@ -378,7 +390,6 @@ module Resque
     # Given a job, tells Redis we're working on it. Useful for seeing
     # what workers are doing and when.
     def working_on(job)
-      job.worker = self
       data = encode \
         :queue   => job.queue,
         :run_at  => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
@@ -470,7 +481,7 @@ module Resque
 
     # Returns Integer PID of running worker
     def pid
-      @pid ||= to_s.split(":")[1].to_i
+      Process.pid
     end
 
     # Returns an Array of string pids of all the other workers on this
@@ -488,7 +499,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def linux_worker_pids
-      `ps -A -o pid,command | grep [r]esque | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,command | grep "[r]esque" | grep -v "resque-web"`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end
@@ -498,7 +509,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def solaris_worker_pids
-      `ps -A -o pid,comm | grep [r]uby | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,comm | grep "[r]uby" | grep -v "resque-web"`.split("\n").map do |line|
         real_pid = line.split(' ')[0]
         pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
         if pargs_command.split(':')[1] == " resque-#{Resque::Version}"

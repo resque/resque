@@ -18,6 +18,13 @@ namespace :resque do
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
 
+    if ENV['BACKGROUND']
+      unless Process.respond_to?('daemon')
+          abort "env var BACKGROUND is set, which requires ruby >= 1.9"
+      end
+      Process.daemon(true)
+    end
+
     if ENV['PIDFILE']
       File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
@@ -42,10 +49,13 @@ namespace :resque do
 
   # Preload app files if this is Rails
   task :preload => :setup do
-    if defined?(Rails) && Rails.env == 'production'
-      Dir["#{Rails.root}/app/**/*.rb"].each do |file|
-        require file
-      end
+    if defined?(Rails) && Rails.respond_to?(:application)
+      # Rails 3
+      Rails.application.eager_load!
+    elsif defined?(Rails::Initializer)
+      # Rails 2.3
+      $rails_rake_task = false
+      Rails::Initializer.run :load_application_classes
     end
   end
 end
