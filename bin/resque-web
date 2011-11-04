@@ -20,4 +20,8 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
     runner.logger.info "Using Redis namespace '#{namespace}'"
     Resque.redis.namespace = namespace
   }
+  opts.on('-r redis-connection', "--redis redis-connection", "set the Redis connection string") {|redis_conf|
+    runner.logger.info "Using Redis connection '#{redis_conf}'"
+    Resque.redis = redis_conf
+  }
 end

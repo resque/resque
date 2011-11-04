@@ -33,10 +33,28 @@ context "Resque::Worker" do
   end
 
   test "fails uncompleted jobs on exit" do
-    job = Resque::Job.new(:jobs, [GoodJob, "blah"])
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
+  end
+
+  class ::SimpleJobWithFailureHandling
+    def self.on_failure_record_failure(exception, *job_args)
+      @@exception = exception
+    end
+    
+    def self.exception
+      @@exception
+    end
+  end
+
+  test "fails uncompleted jobs on exit, and calls failure hook" do
+    job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
+    @worker.working_on(job)
+    @worker.unregister_worker
+    assert_equal 1, Resque::Failure.count
+    assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
   end
 
   test "can peek at failed jobs" do
@@ -95,6 +113,36 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
+  end
+
+  test "can work with wildcard at the end of the list" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new(:critical, :high, "*")
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+    assert_equal 0, Resque.size(:beer)
+  end
+
+  test "can work with wildcard at the middle of the list" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new(:critical, "*", :high)
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+    assert_equal 0, Resque.size(:beer)
   end
 
   test "processes * queues in alphabetical order" do
@@ -267,6 +315,11 @@ context "Resque::Worker" do
     end
   end
 
+  test "worker_pids returns pids" do
+    known_workers = @worker.worker_pids
+    assert !known_workers.empty?
+  end
+
   test "Processed jobs count" do
     @worker.work(0)
     assert_equal 1, Resque.info[:processed]
@@ -328,5 +381,25 @@ context "Resque::Worker" do
 
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
+  end
+  
+  test "requeue failed queue" do
+    queue = 'good_job'
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => 'some_job', :payload => {'class' => SomeJob})
+    Resque::Failure.requeue_queue(queue)
+    assert Resque::Failure.all(0).has_key?('retried_at')
+    assert !Resque::Failure.all(1).has_key?('retried_at')
+  end
+
+  test "remove failed queue" do
+    queue = 'good_job'
+    queue2 = 'some_job'
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2), :queue => queue2, :payload => {'class' => SomeJob})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
+    Resque::Failure.remove_queue(queue)
+    assert_equal queue2, Resque::Failure.all(0)['queue']
+    assert_equal 1, Resque::Failure.count
   end
 end

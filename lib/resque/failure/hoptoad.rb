@@ -4,6 +4,8 @@ rescue LoadError
   raise "Can't find 'hoptoad_notifier' gem. Please add it to your Gemfile or install it."
 end
 
+require 'resque/failure/thoughtbot'
+
 module Resque
   module Failure
     # A Failure backend that sends exceptions raised by jobs to Hoptoad.
@@ -23,26 +25,9 @@ module Resque
     # end
     # For more information see https://github.com/thoughtbot/hoptoad_notifier
     class Hoptoad < Base
-      def self.configure(&block)
-        Resque::Failure.backend = self
-        HoptoadNotifier.configure(&block)
-      end
+      include Resque::Failure::Thoughtbot
 
-      def self.count
-        # We can't get the total # of errors from Hoptoad so we fake it
-        # by asking Resque how many errors it has seen.
-        Stat[:failed]
-      end
-
-      def save
-        HoptoadNotifier.notify_or_ignore(exception,
-          :parameters => {
-            :payload_class => payload['class'].to_s,
-            :payload_args => payload['args'].inspect
-          }
-        )
-      end
-
+      @klass = ::HoptoadNotifier
     end
   end
 end

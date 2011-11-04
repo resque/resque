@@ -4,12 +4,22 @@ require 'resque'
 require 'resque/version'
 require 'time'
 
+if defined? Encoding
+  Encoding.default_external = Encoding::UTF_8
+end
+
 module Resque
   class Server < Sinatra::Base
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"
-    set :public, "#{dir}/server/public"
+
+    if respond_to? :public_folder
+      set :public_folder, "#{dir}/server/public"
+    else
+      set :public, "#{dir}/server/public"
+    end
+
     set :static, true
 
     helpers do
@@ -173,6 +183,13 @@ module Resque
 
     post "/failed/clear" do
       Resque::Failure.clear
+      redirect u('failed')
+    end
+
+    post "/failed/requeue/all" do
+      Resque::Failure.count.times do |num|
+        Resque::Failure.requeue(num)
+      end
       redirect u('failed')
     end
 
