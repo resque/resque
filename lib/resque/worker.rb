@@ -10,15 +10,18 @@ module Resque
     include Resque::Helpers
     extend Resque::Helpers
 
-    # Whether the worker should log basic info to STDOUT
+    # Whether the worker should log basic info
     attr_accessor :verbose
 
-    # Whether the worker should log lots of info to STDOUT
+    # Whether the worker should log lots of info
     attr_accessor  :very_verbose
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
+
+    # File object to log to, default to STDOUT
+    attr_accessor :logfile
 
     attr_writer :to_s
 
@@ -88,6 +91,7 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(*queues)
+      @logfile = $stdout
       @queues = queues.map { |queue| queue.to_s.strip }
       validate_queues
     end
@@ -243,7 +247,7 @@ module Resque
 
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
-      $stdout.sync = true
+      logfile.sync = true
     end
 
     # Enables GC Optimizations if you're running REE.
@@ -526,17 +530,17 @@ module Resque
       log! $0
     end
 
-    # Log a message to STDOUT if we are verbose or very_verbose.
+    # Log a message if we are verbose or very_verbose.
     def log(message)
       if verbose
-        puts "*** #{message}"
+        logfile << "*** #{message}\n"
       elsif very_verbose
         time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "** [#{time}] #$$: #{message}"
+        logfile << "** [#{time}] #$$: #{message}\n"
       end
     end
 
-    # Logs a very verbose message to STDOUT.
+    # Logs a very verbose message.
     def log!(message)
       log message if very_verbose
     end

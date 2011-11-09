@@ -29,6 +29,10 @@ namespace :resque do
       File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
 
+    if ENV['LOGFILE']
+      worker.logfile = File.open(ENV['LOGFILE'], 'a')
+    end
+
     worker.log "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block

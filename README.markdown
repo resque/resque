@@ -251,12 +251,13 @@ but in the Resque workers it's fine.
 
 ### Logging
 
-Workers support basic logging to STDOUT. If you start them with the
-`VERBOSE` env variable set, they will print basic debugging
-information. You can also set the `VVERBOSE` (very verbose) env
-variable.
+Workers support basic logging to STDOUT or a plain file. If you start
+them with the `VERBOSE` env variable set, they will print basic
+debugging information. You can also set the `VVERBOSE` (very verbose)
+env variable.
 
-    $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
+    $ VVERBOSE=1 LOGFILE=./resque.log QUEUE=file_serve \
+        rake environment resque:work
 
 ### Process IDs (PIDs)
 
@@ -269,11 +270,11 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
 (Only supported with ruby >= 1.9). There are scenarios where it's helpful for
 the resque worker to run itself in the background (usually in combination with
-PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
-worker is started.
+PIDFILE and/or LOGFILE).  Use the BACKGROUND option so that rake will return
+as soon as the worker is started.
 
-    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
-        rake environment resque:work
+    $ PIDFILE=./resque.pid LOGFILE=./resque.log BACKGROUND=yes \
+        QUEUE=file_serve rake environment resque:work
 
 ### Polling frequency
 
