@@ -323,6 +323,10 @@ If you want your workers to work off of every queue, including new
 queues created on the fly, you can use a splat:
 
     $ QUEUE=* rake resque:work
+    
+or 
+
+    $ QUEUE=critial,*,very_low rake resque:work
 
 Queues will be processed in alphabetical order.
 
