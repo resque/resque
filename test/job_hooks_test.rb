@@ -228,6 +228,40 @@ context "Resque::Job on_failure" do
   end
 end
 
+context 'Resque::Job before_reporting_failure' do
+  include PerformJob
+
+  class ::BeforeReportingFailureJob
+    @queue = :jobs
+    def self.perform(x) raise Exception.new; end
+    def self.before_reporting_failure_block failure_definition
+      value = failure_definition[:payload]['args'][0]
+      raise Exception, 'oh no!' if value == 'raise!'
+      value
+    end
+  end
+
+  [nil,true,10,'str',[]].each do |value|
+    test "the failure backend should be incremented when the hook returns <#{value.class.inspect}:#{value.inspect}>" do
+      cached_count = (Resque::Failure.count || 0)
+      perform_job_in_worker ::BeforeReportingFailureJob, value
+      assert_not_equal cached_count, Resque::Failure.count
+    end
+  end
+
+  test "the failure backend should be incremented when the hook raises" do
+    cached_count = (Resque::Failure.count || 0)
+    perform_job_in_worker ::BeforeReportingFailureJob, 'raise!'
+    assert_not_equal cached_count, Resque::Failure.count
+  end
+
+  test "the failure backend should not be incremented when the hook returns false" do
+    cached_count = (Resque::Failure.count || 0)
+    perform_job_in_worker ::BeforeReportingFailureJob, false
+    assert_equal cached_count, Resque::Failure.count
+  end
+end
+
 context "Resque::Job after_enqueue" do
   include PerformJob
 
