@@ -175,6 +175,7 @@ module Resque
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
+        log e.backtrace.join("\n")
         begin
           job.fail(e)
         rescue Object => e
