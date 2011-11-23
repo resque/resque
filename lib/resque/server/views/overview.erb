@@ -1,4 +1,15 @@
+<style>
+  #overview-main { margin: 0; padding: 0; }
+  #overview-main #queues { position: relative; float: left; width: 29%; }
+  #overview-main #working { position: relative; float: right; width: 70%; clear:right; }
+</style>
+
+<div id="overview-main">
+  <div id="queues">
 <%= partial :queues %>
-<hr />
-<%= partial :working %>
+  </div>
+  <div id="working">
 <%= poll %>
+    <%= partial :working %>
+  </div>
+</div>

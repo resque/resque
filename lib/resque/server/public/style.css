@@ -54,6 +54,7 @@ body { padding:0; margin:0; }
 #main.polling table.workers tr.working td.where a { color:#7ac312;}
 #main.polling table.workers tr.working td.process code { font-weight:bold;}
 
+#main table.workers tr.paused { background-color: #ddd; }
 
 #main table.stats th { font-size:100%; width:40%; color:#000;}
 #main hr { border:0; border-top:5px solid #efefef;  margin:15px 0;}

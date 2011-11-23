@@ -197,5 +197,15 @@ module Resque
     def self.tabs
       @tabs ||= ["Overview", "Working", "Failed", "Queues", "Workers", "Stats"]
     end
+
+    def worker_text(worker)
+      worker.paused? ? 'Paused' : 'Waiting for a job...'
+    end
+
+    def worker_row_class(worker)
+      row_class = [worker.state.to_s]
+      row_class << 'paused' if worker.paused?
+      row_class.join(' ')
+    end
   end
 end

@@ -29,7 +29,6 @@
 
   <% workers = resque.working.reject { |w| w.idle? } %>
   <h1 class='wi'><%= workers.size %> of <%= resque.workers.size %> Workers Working</h1>
-  <p class='intro'>The list below contains all workers which are currently running a job.</p>
   <table class='workers'>
     <tr>
       <th>&nbsp;</th>
@@ -65,4 +64,5 @@
     <% end %>
   </table>
 
+  <p class='intro'>The list above contains all workers which are currently running a job.</p>
 <% end %>

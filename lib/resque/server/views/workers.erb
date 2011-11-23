@@ -28,7 +28,7 @@
           <code><%= data['payload']['class'] %></code>
           <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
         <% else %>
-          <span class='waiting'>Waiting for a job...</span>
+          <span class='waiting'><%= worker_text(worker) %> </span>
         <% end %>
       </td>
     </tr>
@@ -50,7 +50,8 @@
       <th>Processing</th>
     </tr>
     <% for worker in (workers = resque.workers.sort_by { |w| w.to_s }) %>
-    <tr class="<%=state = worker.state%>">
+      <% state = worker.state %>
+      <tr class="<%= worker_row_class(worker) %>">
       <td class='icon'><img src="<%=u state %>.png" alt="<%= state %>" title="<%= state %>"></td>
 
       <% host, pid, queues = worker.to_s.split(':') %>
@@ -63,7 +64,7 @@
           <code><%= data['payload']['class'] %></code>
           <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
         <% else %>
-          <span class='waiting'>Waiting for a job...</span>
+            <span class='waiting'><%= worker_text(worker) %></span>
         <% end %>
       </td>
     </tr>

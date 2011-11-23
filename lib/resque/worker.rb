@@ -110,7 +110,7 @@ module Resque
       loop do
         break if shutdown?
 
-        if not @paused and job = reserve
+        if not paused? and job = reserve
           log "got: #{job.inspect}"
           run_hook :before_fork, job
           working_on job
@@ -130,7 +130,7 @@ module Resque
         else
           break if interval.to_i == 0
           log! "Sleeping for #{interval.to_i}"
-          procline @paused ? "Paused" : "Waiting for #{@queues.join(',')}"
+          procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
           sleep interval.to_i
         end
       end
@@ -288,13 +288,13 @@ module Resque
     # currently running one).
     def pause_processing
       log "USR2 received; pausing job processing"
-      @paused = true
+      pause!
     end
 
     # Start processing jobs again after a pause
     def unpause_processing
       log "CONT received; resuming job processing"
-      @paused = false
+      unpause!
     end
 
     # Looks for any workers which should be running on this server
@@ -404,6 +404,20 @@ module Resque
     # Tell Redis we've started
     def started!
       redis.set("worker:#{self}:started", Time.now.to_s)
+    end
+
+    # Tell Redis we've paused
+    def pause!
+      redis.set("worker:#{self}:paused", 't')
+    end
+
+    # Tell Redis we continue processing
+    def unpause!
+      redis.set("worker:#{self}:paused", 'f')
+    end
+
+    def paused?
+      (redis.get("worker:#{self}:paused") || 'f') == 't'
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
