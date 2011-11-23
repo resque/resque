@@ -174,7 +174,7 @@ module Resque
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
-      run_failure_hooks(exception)
+      run_failure_hooks(exception) rescue nil
       Failure.create \
         :payload   => payload,
         :exception => exception,

@@ -28,6 +28,14 @@ describe "Resque::Worker" do
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
   end
 
+  it "unavailable job definition reports exception and message" do
+    Resque::Job.create(:jobs, 'NoJobDefinition') 
+    @worker.work(0)
+    assert_equal 1, Resque::Failure.count, 'failure not reported'
+    assert_equal('NameError', Resque::Failure.all['exception'])
+    assert_equal('uninitialized constant NoJobDefinition', Resque::Failure.all['error'])
+  end
+
   it "does not allow exceptions from failure backend to escape" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
