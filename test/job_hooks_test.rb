@@ -206,7 +206,7 @@ context "Resque::Job on_failure" do
     assert_raises StandardError do
       perform_job(FailureJobThatFails, history)
     end
-    assert_equal [:perform, "oh no"], history
+    assert_equal [:perform], history
   end
 
   class ::FailureJobThatFailsBadly
@@ -224,7 +224,7 @@ context "Resque::Job on_failure" do
     assert_raises SyntaxError do
       perform_job(FailureJobThatFailsBadly, history)
     end
-    assert_equal [:perform, "oh no"], history
+    assert_equal [:perform], history
   end
 end
 
@@ -417,7 +417,6 @@ context "Resque::Job all hooks" do
       :perform,
       :finish_around_perform,
       :after_perform,
-      "oh no"
     ], history
   end
 end

@@ -225,6 +225,6 @@ context "Resque::Plugin ordering on_failure" do
     assert_raises StandardError do
       perform_job(FailureJob, history)
     end
-    assert_equal [:perform, "oh no", "oh no plugin"], history
+    assert_equal [:perform], history
   end
 end
