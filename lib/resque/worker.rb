@@ -137,11 +137,12 @@ module Resque
               procline "Processing #{job.queue} since #{Time.now.to_i}"
               perform(job, &block)
               exit unless @cant_fork
+              
+              nil
             end
           end
 
-          unless @cant_fork
-            @child = thread.value
+          if @child = thread.value
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait(@child)
