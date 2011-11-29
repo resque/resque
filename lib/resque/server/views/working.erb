@@ -31,7 +31,7 @@
     workers = resque.working
     jobs = workers.collect {|w| w.job }
     worker_jobs = workers.zip(jobs)
-    worker_jobs = worker_jobs.reject { |w, j| w.idle? }
+    worker_jobs = worker_jobs.reject { |w, j| w.idle? || j.empty? }
   %>
 
   <h1 class='wi'><%= worker_jobs.size %> of <%= resque.workers.size %> Workers Working</h1>
@@ -49,7 +49,7 @@
     </tr>
     <% end %>
 
-    <% worker_jobs.sort_by {|w, j| j['run_at'] ? j['run_at'] : '' }.each do |worker, job| %>
+    <% worker_jobs.sort_by {|w, j| j['run_at'] || '' }.each do |worker, job| %>
       <tr>
         <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
         <% host, pid, queues = worker.to_s.split(':') %>
