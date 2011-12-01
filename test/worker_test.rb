@@ -40,7 +40,7 @@ context "Resque::Worker" do
   end
 
   class ::SimpleJobWithFailureHandling
-    def self.on_failure_record_failure(exception)
+    def self.on_failure_record_failure(exception, *job_args)
       @@exception = exception
     end
     
@@ -113,6 +113,36 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
+  end
+
+  test "can work with wildcard at the end of the list" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new(:critical, :high, "*")
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+    assert_equal 0, Resque.size(:beer)
+  end
+
+  test "can work with wildcard at the middle of the list" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new(:critical, "*", :high)
+
+    worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+    assert_equal 0, Resque.size(:beer)
   end
 
   test "processes * queues in alphabetical order" do

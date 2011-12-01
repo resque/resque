@@ -29,7 +29,7 @@ module Resque
       begin
         ::MultiJson.decode(object)
       rescue ::MultiJson::DecodeError => e
-        raise DecodeException, e
+        raise DecodeException, e.message, e.backtrace
       end
     end
 
@@ -40,9 +40,23 @@ module Resque
       dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
     end
 
-    # Given a camel cased word, returns the constant it represents
+    # Tries to find a constant with the name specified in the argument string:
     #
-    # constantize('JobName') # => JobName
+    # constantize("Module") # => Module
+    # constantize("Test::Unit") # => Test::Unit
+    #
+    # The name is assumed to be the one of a top-level constant, no matter
+    # whether it starts with "::" or not. No lexical context is taken into
+    # account:
+    #
+    # C = 'outside'
+    # module M
+    #   C = 'inside'
+    #   C # => 'inside'
+    #   constantize("C") # => 'outside', same as ::C
+    # end
+    #
+    # NameError is raised when the constant is unknown.
     def constantize(camel_cased_word)
       camel_cased_word = camel_cased_word.to_s
 
@@ -55,7 +69,13 @@ module Resque
 
       constant = Object
       names.each do |name|
-        constant = constant.const_get(name) || constant.const_missing(name)
+        args = Module.method(:const_get).arity != 1 ? [false] : []
+
+        if constant.const_defined?(name, *args)
+          constant = constant.const_get(name)
+        else
+          constant = constant.const_missing(name)
+        end
       end
       constant
     end

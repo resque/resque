@@ -13,7 +13,13 @@ module Resque
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"
-    set :public, "#{dir}/server/public"
+
+    if respond_to? :public_folder
+      set :public_folder, "#{dir}/server/public"
+    else
+      set :public, "#{dir}/server/public"
+    end
+
     set :static, true
 
     helpers do
@@ -143,21 +149,21 @@ module Resque
     end
 
     %w( overview workers ).each do |page|
-      get "/#{page}.poll" do
+      get "/#{page}.poll/?" do
         show_for_polling(page)
       end
 
-      get "/#{page}/:id.poll" do
+      get "/#{page}/:id.poll/?" do
         show_for_polling(page)
       end
     end
 
     %w( overview queues working workers key ).each do |page|
-      get "/#{page}" do
+      get "/#{page}/?" do
         show page
       end
 
-      get "/#{page}/:id" do
+      get "/#{page}/:id/?" do
         show page
       end
     end
@@ -167,7 +173,7 @@ module Resque
       redirect u('queues')
     end
 
-    get "/failed" do
+    get "/failed/?" do
       if Resque::Failure.url
         redirect Resque::Failure.url
       else
@@ -187,7 +193,7 @@ module Resque
       redirect u('failed')
     end
 
-    get "/failed/requeue/:index" do
+    get "/failed/requeue/:index/?" do
       Resque::Failure.requeue(params[:index])
       if request.xhr?
         return Resque::Failure.all(params[:index])['retried_at']
@@ -196,24 +202,24 @@ module Resque
       end
     end
 
-    get "/failed/remove/:index" do
+    get "/failed/remove/:index/?" do
       Resque::Failure.remove(params[:index])
       redirect u('failed')
     end
 
-    get "/stats" do
+    get "/stats/?" do
       redirect url_path("/stats/resque")
     end
 
-    get "/stats/:id" do
+    get "/stats/:id/?" do
       show :stats
     end
 
-    get "/stats/keys/:key" do
+    get "/stats/keys/:key/?" do
       show :stats
     end
 
-    get "/stats.txt" do
+    get "/stats.txt/?" do
       info = Resque.info
 
       stats = []
