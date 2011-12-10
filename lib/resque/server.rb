@@ -126,6 +126,9 @@ module Resque
         "<p class='poll'>#{text}</p>"
       end
 
+      def action_for_queue(queue)
+        (resque.state_of_queue(queue) == :active)? :deactivate : :activate
+      end
     end
 
     def show(page, layout = true)
@@ -171,6 +174,16 @@ module Resque
     post "/queues/:id/remove" do
       Resque.remove_queue(params[:id])
       redirect u('queues')
+    end
+
+    post "/queues/:id/activate" do
+      Resque.activate_queue(params[:id])
+      redirect back
+    end
+
+    post "/queues/:id/deactivate" do
+      Resque.deactivate_queue(params[:id])
+      redirect back
     end
 
     get "/failed/?" do

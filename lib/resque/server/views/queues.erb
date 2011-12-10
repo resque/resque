@@ -33,16 +33,26 @@
     <tr>
       <th>Name</th>
       <th>Jobs</th>
+      <th>State</th>
+      <th>Actions</th>
     </tr>
     <% for queue in resque.queues.sort_by { |q| q.to_s } %>
-    <tr>
-      <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
-      <td class='size'><%= resque.size queue %></td>
-    </tr>
+      <tr>
+        <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
+        <td class='size'><%= resque.size queue %></td>
+        <td class='state <%= resque.state_of_queue queue %>'><%= resque.state_of_queue queue %></td>
+        <td class='actions'>
+          <form method="POST" action="<%=u "/queues/#{queue}/#{action_for_queue(queue)}" %>">
+            <input type='submit' name='' value='<%= action_for_queue(queue).to_s.capitalize %>'/>
+          </form>
+        </td>
+      </tr>
     <% end %>
     <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
       <td class='queue failed'><a class="queue" href="<%= u :failed %>">failed</a></td>
       <td class='size'><%= Resque::Failure.count %></td>
+      <td/>
+      <td/>
     </tr>
   </table>
 

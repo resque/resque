@@ -164,6 +164,11 @@ module Resque
     redis.llen("queue:#{queue}").to_i
   end
 
+  # Returns the state of a queue.
+  def state_of_queue(queue)
+    redis.sismember(:inactive_queues, queue)? :inactive : :active
+  end
+
   # Returns an array of items currently queued. Queue name should be
   # a string.
   #
@@ -193,9 +198,15 @@ module Resque
     Array(redis.smembers(:queues))
   end
 
+  # Returns an array of all inactivated queues as strings.
+  def inactive_queues
+    Array(redis.smembers(:inactive_queues))
+  end
+
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
     redis.srem(:queues, queue.to_s)
+    redis.srem(:inactive_queues, queue.to_s)
     redis.del("queue:#{queue}")
   end
 
@@ -205,6 +216,15 @@ module Resque
     redis.sadd(:queues, queue.to_s)
   end
 
+  # Activates a queue.
+  def activate_queue(queue)
+    redis.srem(:inactive_queues, queue.to_s)
+  end
+
+  # Deactivates a queue.
+  def deactivate_queue(queue)
+    redis.sadd(:inactive_queues, queue.to_s)
+  end
 
   #
   # job shortcuts

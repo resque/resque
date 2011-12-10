@@ -33,6 +33,10 @@ body { padding:0; margin:0; }
 
 #main table.queues { width:40%;}
 #main table.queues td.queue { font-weight:bold; width:50%;}
+#main table.queues td.state.active { color:green;}
+#main table.queues td.state.inactive { color:red;}
+#main table.queues td.actions { width: 90px;}
+#main table.queues td.actions form { float:left; margin: -5px 0;}
 #main table.queues tr.failed td { border-top:2px solid; font-size:90%; }
 #main table.queues tr.failure td { background:#ffecec; border-top:2px solid #d37474; font-size:90%; color:#d37474;}
 #main table.queues tr.failure td a{ color:#d37474;}

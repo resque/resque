@@ -191,7 +191,7 @@ module Resque
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
     def reserve
-      queues.each do |queue|
+      (queues - Resque.inactive_queues).each do |queue|
         log! "Checking #{queue}"
         if job = Resque.reserve(queue)
           log! "Found job on #{queue}"
