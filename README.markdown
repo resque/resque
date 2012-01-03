@@ -891,6 +891,7 @@ Meta
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
 * Gems: <http://gemcutter.org/gems/resque>
+* Dependencies: [![Dependency Status](https://gemnasium.com/defunkt/resque.png)][ds]
 
 This project uses [Semantic Versioning][sv].
 
@@ -906,3 +907,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [sv]: http://semver.org/
 [rs]: http://github.com/defunkt/redis-namespace
 [cb]: http://wiki.github.com/defunkt/resque/contributing
+[ds]: https://gemnasium.com/defunkt/resque
