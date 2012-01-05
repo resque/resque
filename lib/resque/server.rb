@@ -168,6 +168,11 @@ module Resque
       end
     end
 
+    post "/worker/usr1" do
+      Process.kill("USR1", params[:pid].to_i)
+      redirect u('working')
+    end
+
     post "/queues/:id/remove" do
       Resque.remove_queue(params[:id])
       redirect u('queues')
