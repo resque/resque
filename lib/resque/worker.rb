@@ -302,7 +302,9 @@ module Resque
       if @child
         log! "Killing child at #{@child}"
         if system("ps -o pid,state -p #{@child}")
-          Process.kill("KILL", find_descendant(@child)) rescue nil
+          find_descendant(@child).each do |d|
+            Process.kill("KILL", d) rescue nil
+          end
         else
           log! "Child #{@child} not found, restarting."
           shutdown
