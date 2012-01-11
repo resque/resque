@@ -302,12 +302,26 @@ module Resque
       if @child
         log! "Killing child at #{@child}"
         if system("ps -o pid,state -p #{@child}")
-          Process.kill("KILL", @child) rescue nil
+          Process.kill("KILL", find_descendant(@child)) rescue nil
         else
           log! "Child #{@child} not found, restarting."
           shutdown
         end
       end
+    end
+
+    def find_descendant( process_id )
+      descendant = []
+      if process_id
+        `ps -o pid --ppid #{process_id}`.each do |line|
+          if line.to_i > 0 
+            descendant << line.to_i
+            sub_descendant = find_descendant( line.to_i )
+            descendant.concat sub_descendant if !sub_descendant.empty?
+          end
+        end
+      end
+      descendant
     end
 
     # are we paused?
