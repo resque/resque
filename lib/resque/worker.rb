@@ -100,6 +100,9 @@ module Resque
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
+      if @queues.count('*') > 1 
+        raise PriorityQueueError.new(' Dynamic queues(\'*\') can only be defined once in the worker')
+      end
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -210,7 +213,14 @@ module Resque
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+      explicit_queues = @queues - ['*']
+      @queues.map  do |queue| 
+        if queue == "*"
+         Resque.queues.sort - explicit_queues
+        else
+          queue 
+        end
+      end.flatten.uniq
     end
 
     # Not every platform supports fork. Here we do our magic to
