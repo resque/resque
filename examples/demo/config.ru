@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'logger'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../../lib'
+$LOAD_PATH.unshift File.dirname(__FILE__)
 require 'app'
 require 'resque/server'
 
