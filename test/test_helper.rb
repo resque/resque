@@ -39,12 +39,12 @@ at_exit do
     exit_code = Test::Unit::AutoRunner.run
   end
 
-  processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
-  pids = processes.map { |process| process.split(" ")[0] }
-  puts "Killing test redis server..."
-  `rm -f #{dir}/dump.rdb #{dir}/dump-cluster.rdb`
-  pids.each { |pid| Process.kill("KILL", pid.to_i) }
-  exit exit_code
+  #processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
+  #pids = processes.map { |process| process.split(" ")[0] }
+  #puts "Killing test redis server..."
+  #`rm -f #{dir}/dump.rdb #{dir}/dump-cluster.rdb`
+  #pids.each { |pid| Process.kill("KILL", pid.to_i) }
+  #exit exit_code
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
