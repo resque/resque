@@ -69,6 +69,7 @@ end
 def context(*args, &block)
   return super unless (name = args.first) && block
   require 'test/unit'
+  require 'mocha'
   klass = Class.new(defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase) do
     def self.test(name, &block)
       define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
