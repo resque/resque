@@ -15,6 +15,9 @@ module Resque
 
     # Whether the worker should log lots of info to STDOUT
     attr_accessor  :very_verbose
+    
+    # Whether the worker reverses the TERM and QUIT signals for compatibly reasons
+    attr_accessor :reverse_signals
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
@@ -262,12 +265,14 @@ module Resque
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
+    # 
+    # When `reverse_signals` is set to true the TERM and QUIT signals are swapped
     def register_signal_handlers
-      trap('TERM') { shutdown!  }
+      trap(reverse_signals ? 'QUIT' : 'TERM') { shutdown!  }
       trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
+        trap(reverse_signals ? 'TERM' : 'QUIT') { shutdown   }
         trap('USR1') { kill_child }
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
@@ -275,7 +280,7 @@ module Resque
         warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
-      log! "Registered signals"
+      log! "Registered #{reverse_signals ? 'reversed ' : ''}signals"
     end
 
     # Schedule this worker for shutdown. Will finish processing the
