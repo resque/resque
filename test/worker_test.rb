@@ -385,8 +385,8 @@ context "Resque::Worker" do
   
   test "requeue failed queue" do
     queue = 'good_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => 'some_job', :payload => {'class' => SomeJob})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
     Resque::Failure.requeue_queue(queue)
     assert Resque::Failure.all(0).has_key?('retried_at')
     assert !Resque::Failure.all(1).has_key?('retried_at')
@@ -395,9 +395,9 @@ context "Resque::Worker" do
   test "remove failed queue" do
     queue = 'good_job'
     queue2 = 'some_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2), :queue => queue2, :payload => {'class' => SomeJob})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => GoodJob})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2), :queue => queue2, :payload => {'class' => 'SomeJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.remove_queue(queue)
     assert_equal queue2, Resque::Failure.all(0)['queue']
     assert_equal 1, Resque::Failure.count
