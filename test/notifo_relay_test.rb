@@ -30,7 +30,7 @@ if defined? Notifo
       queue = "test"
       payload = {'class' => Object, 'args' => 66}
 
-      Notifo.any_instance.expects(:post).with("auser", "Resque failure: #{exception.class.to_s}")
+      Notifo.any_instance.expects(:post).with("auser", "Resque failure in #{queue}")
 
       backend = Resque::Failure::NotifoRelay.new(exception, worker, queue, payload)
       backend.save

@@ -8,14 +8,21 @@ module Resque
   module Failure
     # A Failure backend that sends exceptions raised by jobs to Notifo.
     #
-    # To use it, put this code in an initializer, Rake task, or wherever:
+    # To use it, add forked Notifo and Resque dependencies to your Gemfile:
     #
+    #   gem 'notifo', :git => 'git@github.com:btedev/notifo.git'
+    #   gem 'resque', :git => 'git@github.com:btedev/resque.git'
+    #
+    # Put this code in an initializer, Rake task, or wherever:
+    #
+    #   require 'resque/failure/redis'
+    #   require 'resque/failure/multiple'
     #   require 'resque/failure/notifo_relay'
     #
-    #   Resque::Failure::NotifyRelay.username = 'your_username'
-    #   Resque::Failure::NotifyRelay.api_key  = 'your_apikey'
-    #   Resque::Failure::Multiple.classes = [Resque::Failure::Redis, Resque::Failure::NotifoRelay]
-    #   Resque::Failure.backend = Resque::Failure::Multiple
+    #   Resque::Failure::NotifoRelay.username     = 'your_username'
+    #   Resque::Failure::NotifoRelay.api_secret   = 'your_apisecret'
+    #   Resque::Failure::Multiple.classes         = [Resque::Failure::Redis, Resque::Failure::NotifoRelay]
+    #   Resque::Failure.backend                   = Resque::Failure::Multiple
     #
     class NotifoRelay < Base
 
@@ -29,7 +36,7 @@ module Resque
   
         if username && api_secret
           notifo = Notifo.new(username, api_secret)
-          notifo.post(username, "Resque failure: #{exception.class.to_s}")
+          notifo.post(username, "Resque failure in #{queue}")
         end
       end
     end

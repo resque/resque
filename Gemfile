@@ -11,6 +11,6 @@ group :test do
   gem "json", "~>1.5.3", :platforms => [:jruby, :rbx]
   gem "hoptoad_notifier"
   gem "airbrake"
-  gem "notifo"
+  gem "notifo", :git => 'git@github.com:btedev/notifo.git'
   gem "i18n"
 end
