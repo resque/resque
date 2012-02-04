@@ -277,7 +277,8 @@ context "Resque::Worker" do
   test "sets $0 while working" do
     @worker.work(0) do
       ver = Resque::Version
-      assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+      env = Resque.info[:environment]
+      assert_equal "resque-#{ver} [#{env}]: Processing jobs since #{Time.now.to_i}", $0
     end
   end
 
