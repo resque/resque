@@ -22,7 +22,17 @@ module Resque
       end
 
       def self.all(start = 0, count = 1)
-        Resque.list_range(:failed, start, count)
+        # failed jobs from Redis are displayed in reverse order, because we want recent ones at the beginning
+        start = self.count - count - start
+        if start < 0
+          count += start
+          start = 0
+        end
+        if count > 0
+          Resque.list_range(:failed, start, count).reverse
+        else
+          []
+        end
       end
 
       def self.clear
