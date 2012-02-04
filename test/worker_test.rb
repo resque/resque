@@ -3,6 +3,7 @@ require 'test_helper'
 context "Resque::Worker" do
   setup do
     Resque.redis.flushall
+    Resque.cached_queues.clear
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil

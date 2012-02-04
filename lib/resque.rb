@@ -1,3 +1,4 @@
+require 'set'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -193,8 +194,14 @@ module Resque
     Array(redis.smembers(:queues))
   end
 
+  # Queues cached in memory to help prevent unnecessary sadd roundtrips.
+  def cached_queues
+    @cached_queues ||= Set.new
+  end
+
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
+    cached_queues.delete(queue.to_s)
     redis.srem(:queues, queue.to_s)
     redis.del("queue:#{queue}")
   end
@@ -202,6 +209,8 @@ module Resque
   # Used internally to keep track of which queues we've created.
   # Don't call this directly.
   def watch_queue(queue)
+    return false if cached_queues.include?(queue.to_s)
+    cached_queues.add(queue.to_s)
     redis.sadd(:queues, queue.to_s)
   end
 

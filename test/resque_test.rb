@@ -3,6 +3,7 @@ require 'test_helper'
 context "Resque" do
   setup do
     Resque.redis.flushall
+    Resque.cached_queues.clear
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
@@ -210,9 +211,16 @@ context "Resque" do
   test "can delete a queue" do
     Resque.push(:cars, { 'make' => 'bmw' })
     assert_equal %w( cars people ), Resque.queues
+    assert_equal %w( cars people ).to_set, Resque.cached_queues
     Resque.remove_queue(:people)
     assert_equal %w( cars ), Resque.queues
+    assert_equal %w( cars ).to_set, Resque.cached_queues
     assert_equal nil, Resque.pop(:people)
+  end
+
+  test "can watch a queue" do
+    assert_equal true,  Resque.watch_queue(:cars)
+    assert_equal false, Resque.watch_queue(:cars)
   end
 
   test "keeps track of resque keys" do
