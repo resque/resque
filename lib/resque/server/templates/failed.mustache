@@ -1,0 +1,64 @@
+<h1>Failed Jobs</h1>
+{{#failed?}}
+<form method="POST" action="{{clear_all_url}}">
+  <input type='submit' name='' value='Clear Failed Jobs' />
+</form>
+<form method="POST" action="{{requeue_all_url}}">
+  <input type='submit' name='' value='Retry Failed Jobs' />
+</form>
+{{/failed?}}
+
+<p class='sub'>Showing {{start}} to {{end}} of <b>{{size}}</b> jobs</p>
+
+<ul class='failed'>
+  {{#failed}}
+    {{next_index}}
+    <li>
+      <dl>
+        {{#job}}
+          <dt>Error</dt>
+          <dd>Job {{index}} could not be parsed; perhaps it contains invalid JSON?</dd>
+        {{/job}}
+        {{^job}}
+        <dt>Worker</dt>
+        <dd>
+          <a href="{{worker_url}}">{{worker_name}}</a> on <b class='queue-tag'>{{queue}}</b > at <b><span class="time">{{failed_at}}</span></b>
+          {{#retried_at}}
+            <div class='retried'>
+              Retried <b><span class="time">{{retried_at}}</span></b>
+              <a href="{{failed_remove_url}}" class="remove" rel="remove">Remove</a>
+            </div>
+          {{/retried_at}}
+          {{^retried_at}}
+            <div class='controls'>
+              <a href="{{retry_job_url}}" rel="retry">Retry</a>
+              or
+              <a href="{{remove_failed_job_url}}" rel="remove">Remove</a>
+            </div>
+          {{/retried_at}}
+        </dd>
+        <dt>Class</dt>
+        <dd><code>{{payload_class}}</code></dd>
+        <dt>Arguments</dt>
+        <dd><pre>{{payload_args}}</pre></dd>
+        <dt>Exception</dt>
+        <dd><code>{{exception}}</code></dd>
+        <dt>Error</dt>
+        <dd class='error'>
+          {{^backtrace?}}
+            <a href="#" class="backtrace">{{error}}</a>
+            <pre style='display:none'>{{{error_backtrace}}}</pre>
+          {{/backtrace?}}
+          {{#backtrace?}}
+            {{{error}}}
+          {{/backtrace?}}
+        </dd>
+        {{/job}}
+      </dl>
+      <div class='r'>
+      </div>
+    </li>
+  {{/failed}}
+</ul>
+
+{{> next_more}}

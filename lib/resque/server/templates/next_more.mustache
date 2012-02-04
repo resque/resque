@@ -1,0 +1,10 @@
+{{#pagination?}}
+<p class='pagination'>
+  {{#less_page?}}
+    <a href="{{current_page}}?start={{start_less}}" class='less'>&laquo; less</a>
+  {{/less_page?}}
+  {{#more_page?}}
+    <a href="{{current_page}}?start={{start_more}}" class='more'>more &raquo;</a>
+  {{/more_page?}}
+</p>
+{{/pagination?}}
