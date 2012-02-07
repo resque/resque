@@ -172,11 +172,17 @@ module Resque
     # the Failure module.
     def fail(exception)
       run_failure_hooks(exception)
-      Failure.create \
+      failure_definition = {
         :payload   => payload,
         :exception => exception,
         :worker    => worker,
         :queue     => queue
+      }
+
+      before_reporting = run_before_reporting_failure_hooks(failure_definition)
+      return nil if before_reporting.any? { |result| result == false }
+
+      Failure.create failure_definition
     end
 
     # Creates an identical job, essentially placing this job back on
@@ -219,5 +225,21 @@ module Resque
       failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) }
     end
 
+    def before_reporting_failure_hooks
+      @before_reporting_failure_hooks ||= Plugin.before_reporting_failure_hooks(payload_class)
+    end
+
+    def run_before_reporting_failure_hooks failure_definition
+      before_reporting_failure_hooks.map do |hook|
+        begin
+          payload_class.send(hook, failure_definition)
+        rescue Object => e
+          worker.log(
+            "Received exception when running hook(#{hook.inspect}) error(#{e.inspect})"
+          ) unless worker.nil?
+        end
+      end
+    end
+    
   end
 end

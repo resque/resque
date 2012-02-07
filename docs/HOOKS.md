@@ -94,6 +94,10 @@ The available hooks are:
 * `on_failure`: Called with the exception and job args if any exception occurs
   while performing the job (or hooks), this includes Resque::DirtyExit.
 
+* `before_reporting_failure`: Called with the same args that would be passed to 
+  `Failure.create` before passing a failure to the Failure backend. If the hook 
+  returns false, the failure will not be reported.
+
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.
 

@@ -87,9 +87,17 @@ end
 # Helper to perform job classes
 #
 module PerformJob
+  def build_job(klass,*args)
+    Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
+  end
   def perform_job(klass, *args)
-    resque_job = Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
-    resque_job.perform
+    job = build_job(klass,*args)
+    job.perform
+  end
+  def perform_job_in_worker(klass,*args)
+    worker = Resque::Worker.new(:test_queue)
+    job = build_job(klass,*args)
+    worker.process( job )
   end
 end
 

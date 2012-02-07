@@ -62,5 +62,10 @@ module Resque
     def before_dequeue_hooks(job)
       job.methods.grep(/^before_dequeue/).sort
     end
+
+    # Given an object, returns a list `before_reporting_failure` hook names.
+    def before_reporting_failure_hooks(job)
+      job.methods.grep(/^before_reporting_failure/).sort
+    end
   end
 end
