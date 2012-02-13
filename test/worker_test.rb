@@ -9,6 +9,7 @@ context "Resque::Worker" do
     Resque.after_fork = nil
 
     @worker = Resque::Worker.new(:jobs)
+    @worker.register_worker
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
@@ -307,7 +308,8 @@ context "Resque::Worker" do
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
     workerB.register_worker
 
-    assert_equal 2, Resque.workers.size
+    # should be 3 counting @worker
+    assert_equal 3, Resque.workers.size
 
     # then we prune them
     @worker.work(0) do
