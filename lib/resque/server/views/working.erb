@@ -9,6 +9,7 @@
       <th>Started</th>
       <th>Class</th>
       <th>Args</th>
+      <th>Signals</th>
     </tr>
       <tr>
         <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
@@ -22,6 +23,12 @@
           <code><%= data['payload']['class'] %></code>
         </td>
         <td><%=h data['payload']['args'].inspect %></td>
+        <td class='buttons'>
+          <form method="POST" action="<%=u "worker/usr1" %>">
+            <input type='hidden' name ='pid' value="<%= pid %>">
+            <input type='submit' name='' value='USR1' />
+          </form>
+        </td>
       </tr>
   </table>
 
