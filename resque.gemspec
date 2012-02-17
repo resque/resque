@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.summary           = "Resque is a Redis-backed queueing system."
   s.homepage          = "http://github.com/defunkt/resque"
   s.email             = "chris@ozmm.org"
-  s.authors           = [ "Chris Wanstrath" ]
+  s.authors           = [ "Chris Wanstrath", "Terence Lee" ]
 
   s.files             = %w( README.markdown Rakefile LICENSE HISTORY.md )
   s.files            += Dir.glob("lib/**/*")
