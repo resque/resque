@@ -39,12 +39,12 @@ module Resque
 
       begin
         reportedly_working = redis.mapped_mget(*names).reject do |key, value|
-          value.nil? || value.empty?
+          value.blank?
         end
       rescue Redis::Distributed::CannotDistribute
         names.each do |name|
           value = redis.get name
-          reportedly_working[name] = value unless value.nil? || value.empty?
+          reportedly_working[name] = value unless value.blank?
         end
       end
 
@@ -97,7 +97,7 @@ module Resque
     #
     # You probably never need to call this.
     def validate_queues
-      if @queues.nil? || @queues.empty?
+      if @queues.blank?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
     end
