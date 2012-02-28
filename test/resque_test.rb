@@ -169,6 +169,27 @@ context "Resque" do
     assert_equal nil, Resque.pop(:people)
   end
 
+  test "queues are activated initially" do
+    assert_equal :active, Resque.state_of_queue(:people)
+    assert_equal [], Resque.inactive_queues
+  end
+
+  test "can deactivate a queue" do
+    Resque.deactivate_queue(:people)
+
+    assert_equal :inactive, Resque.state_of_queue(:people)
+    assert_equal ["people"], Resque.inactive_queues
+  end
+
+  test "can activate a queue" do
+    Resque.deactivate_queue(:people)
+    assert_equal :inactive, Resque.state_of_queue(:people)
+
+    Resque.activate_queue(:people)
+    assert_equal :active, Resque.state_of_queue(:people)
+    assert_equal [], Resque.inactive_queues
+  end
+
   test "knows how big a queue is" do
     assert_equal 3, Resque.size(:people)
 

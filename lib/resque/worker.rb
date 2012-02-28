@@ -190,10 +190,10 @@ module Resque
       end
     end
 
-    # Attempts to grab a job off one of the provided queues. Returns
+    # Attempts to grab a job off one of the provided active queues. Returns
     # nil if no job can be found.
     def reserve
-      queues.each do |queue|
+      active_queues.each do |queue|
         log! "Checking #{queue}"
         if job = Resque.reserve(queue)
           log! "Found job on #{queue}"
@@ -208,11 +208,16 @@ module Resque
       raise e
     end
 
-    # Returns a list of queues to use when searching for a job.
+    # Returns a list of queues that this worker is assigned to.
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+      @queues.map { |queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+    end
+
+    # Returns a list of active queues to select from when searching for a job.
+    def active_queues
+      queues - Resque.inactive_queues
     end
 
     # Not every platform supports fork. Here we do our magic to
