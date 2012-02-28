@@ -89,6 +89,8 @@ module Resque
     # removed without needing to restart workers using this method.
     def initialize(*queues)
       @queues = queues.map { |queue| queue.to_s.strip }
+      @shutdown = nil
+      @paused = nil
       validate_queues
     end
 
