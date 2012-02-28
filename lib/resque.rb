@@ -77,9 +77,7 @@ module Resque
 
   # Set a proc that will be called in the parent process before the
   # worker forks for the first time.
-  def before_first_fork=(before_first_fork)
-    @before_first_fork = before_first_fork
-  end
+  attr_writer :before_first_fork
 
   # The `before_fork` hook will be run in the **parent** process
   # before every job, so be careful- any changes you make will be
@@ -92,9 +90,7 @@ module Resque
   end
 
   # Set the before_fork proc.
-  def before_fork=(before_fork)
-    @before_fork = before_fork
-  end
+  attr_writer :before_fork
 
   # The `after_fork` hook will be run in the child process and is passed
   # the current job. Any changes you make, therefore, will only live as
@@ -107,9 +103,7 @@ module Resque
   end
 
   # Set the after_fork proc.
-  def after_fork=(after_fork)
-    @after_fork = after_fork
-  end
+  attr_writer :after_fork
 
   def to_s
     "Resque Client connected to #{redis_id}"
