@@ -20,18 +20,11 @@ require 'rake/testtask'
 
 task :default => :test
 
-if command?(:rg)
-  desc "Run the test suite with rg"
-  task :test do
-    Dir['test/**/*_test.rb'].each do |f|
-      sh("rg #{f}")
-    end
-  end
-else
-  Rake::TestTask.new do |test|
-    test.libs << "test"
-    test.test_files = FileList['test/**/*_test.rb']
-  end
+Rake::TestTask.new do |test|
+  test.verbose = true
+  test.libs << "test"
+  test.libs << "lib"
+  test.test_files = FileList['test/**/*_test.rb']
 end
 
 if command? :kicker
