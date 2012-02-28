@@ -6,6 +6,7 @@ module Resque
   # backend is being used. For instance, the Resque web app uses it to display
   # stats and other information.
   module Failure
+    autoload :Resque, 'resque/failure/redis'
     # Creates a new failure, which is delegated to the appropriate backend.
     #
     # Expects a hash with the following keys:
@@ -32,7 +33,6 @@ module Resque
     # back to `Resque::Failure::Redis`
     def self.backend
       return @backend if @backend
-      require 'resque/failure/redis'
       @backend = Failure::Redis
     end
 
