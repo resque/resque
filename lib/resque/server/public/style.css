@@ -78,8 +78,8 @@ body { padding:0; margin:0; }
 #main ul.failed li dl dd.error pre { margin-top:3px; line-height:1.3;}
 
 #main p.pagination { background:#efefef; padding:10px; overflow:hidden;}
-#main p.pagination a.less { float:left;}
-#main p.pagination a.more { float:right;}
+#main p.pagination span.less { float:left;}
+#main p.pagination span.more { float:right;}
 
 #main form {float:right; margin-top:-10px;margin-left:10px;}
 
