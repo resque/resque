@@ -67,5 +67,4 @@ task :publish do
   sh "git push origin v#{Resque::Version}"
   sh "git push origin master"
   sh "git clean -fd"
-  exec "rake pages"
 end
