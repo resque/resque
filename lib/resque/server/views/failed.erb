@@ -1,4 +1,5 @@
-<%start = params[:start].to_i %>
+<% size = Resque::Failure.count %>
+<%start = params.fetch("start", size - 20).to_i %>
 <%failed = Resque::Failure.all(start, 20)%>
 <% index = 0 %>
 <% date_format = "%Y/%m/%d %T %z" %>
@@ -14,6 +15,8 @@
 <%end%>
 
 <p class='sub'>Showing <%=start%> to <%= start + 20 %> of <b><%= size = Resque::Failure.count %></b> jobs</p>
+
+<%= partial :next_more, :start => start, :size => size %>
 
 <ul class='failed'>
   <%for job in failed%>

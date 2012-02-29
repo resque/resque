@@ -2,7 +2,7 @@
 
 <% if queue = params[:id] %>
   <% size = resque.size(queue) %>
-  <% start = params.fetch("start", size).to_i %>
+  <% start = params.fetch("start", size - 20).to_i %>
 
   <h1>Pending jobs on <span class='hl'><%= queue %></span></h1>
   <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
