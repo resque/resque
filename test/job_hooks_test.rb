@@ -420,4 +420,16 @@ context "Resque::Job all hooks" do
       "oh no"
     ]
   end
+  
+
+  class ::VerifyBackupRemovalJob
+    def self.perform(ignored); end
+  end
+  
+  test "the backup job is removed from the job's backup queue" do
+    Resque.redis.rpush("backup-queue:testqueue", Resque.encode("class" => "VerifyBackupRemovalJob", "args" => ["foo" => "bar"]))
+    perform_job("VerifyBackupRemovalJob", "foo" => "bar")
+    assert_equal [], Resque.redis.lrange("backup-queue:testqueue", 0, -1)
+  end  
+  
 end

@@ -144,6 +144,7 @@ module Resque
 
           done_working
           @child = nil
+          restore_unprocessed_messages
         else
           break if interval.zero?
           log! "Sleeping for #{interval} seconds"
@@ -238,12 +239,22 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
+      restore_unprocessed_messages
       run_hook :before_first_fork
       register_worker
 
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
       $stdout.sync = true
+    end
+
+
+    def restore_unprocessed_messages
+      @queues.each do |queue|
+        while Resque.lpoprpush("backup-queue:#{queue}", "queue:#{queue}")
+          #just moving the backup queue stuff onto the queue again
+        end
+      end
     end
 
     # Enables GC Optimizations if you're running REE.
