@@ -144,7 +144,33 @@ module Resque
   #
   # Returns a Ruby object.
   def pop(queue)
-    decode redis.lpop("queue:#{queue}")
+    decode lpoprpush("queue:#{queue}", "backup-queue:#{queue}")
+  end
+  
+  def lpoprpush(from, to)
+    payload = nil
+    begin
+      redis.watch(from)
+      payload = redis.lindex(from, 0)
+      if payload.nil?
+        redis.unwatch
+        return nil
+      end
+      redis.multi
+      redis.lpop(from)
+
+      # Doing this to ensure that we can later LREM in remove_backup because
+      # Ruby 1.8.* orders hashes with string/symbol keys differently.
+      payload = encode(decode(payload))
+      
+      redis.rpush(to, payload)
+    end until redis.exec
+    payload
+  end
+
+  # Removes a job off a backup-queue.
+  def remove_backup(queue, payload)
+    redis.lrem("backup-queue:#{queue}", 1, encode(payload))
   end
 
   # Returns an integer representing the size of a queue.
