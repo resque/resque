@@ -119,7 +119,7 @@ module Resque
 
         # Execute the job. Do it in an around_perform hook if available.
         if around_hooks.empty?
-          job.perform(*job_args)
+          do_perform(job, job_args)
           job_was_performed = true
         else
           # We want to nest all around_perform plugins, with the last one
@@ -132,7 +132,7 @@ module Resque
             else
               lambda do
                 job.send(hook, *job_args) do
-                  result = job.perform(*job_args)
+                  result = do_perform(job, job_args)
                   job_was_performed = true
                   result
                 end
@@ -157,6 +157,11 @@ module Resque
         raise e
       end
     end
+
+    def do_perform(job, job_args)
+      Resque.remove_backup(queue, payload) if Resque.use_lpoprpush?
+      job.perform(*job_args)
+    end    
 
     # Returns the actual class constant represented in this job's payload.
     def payload_class
