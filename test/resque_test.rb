@@ -170,8 +170,10 @@ context "Resque" do
   end
 
   test "can backup items when they are pulled off a queue" do
+    Resque.stubs(:use_lpoprpush? => true)
     Resque.pop(:people)
     assert_equal({ 'name' => 'chris' }, Resque.decode(Resque.redis.lpop("backup-queue:people")))
+    Resque.unstub(:use_lpoprpush?)
   end  
 
   test "knows how big a queue is" do
