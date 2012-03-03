@@ -426,8 +426,10 @@ context "Resque::Job all hooks" do
   end
   
   test "the backup job is removed from the job's backup queue" do
+    Resque.stubs(:use_lpoprpush? => true)
     Resque.redis.rpush("backup-queue:testqueue", Resque.encode("class" => "VerifyBackupRemovalJob", "args" => ["foo" => "bar"]))
     perform_job("VerifyBackupRemovalJob", "foo" => "bar")
     assert_equal [], Resque.redis.lrange("backup-queue:testqueue", 0, -1)
+    Resque.unstub(:use_lpoprpush?)
   end  
 end

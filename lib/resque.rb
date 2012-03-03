@@ -64,6 +64,18 @@ module Resque
     end
   end
 
+  # Enable/Disable lpoprpush
+  # Accepts:
+  #   truthy value
+  def use_lpoprpush=(new_use_lpoprpush)
+    @use_lpoprpush = new_use_lpoprpush
+  end
+
+  # Returns truthy value of whether or not lpoprpush is enabled
+  def use_lpoprpush?
+    @use_lpoprpush ||= false
+  end
+
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
   # changes you make will be permanent for the lifespan of the
@@ -155,7 +167,7 @@ module Resque
   #
   # Returns a Ruby object.
   def pop(queue)
-    decode lpoprpush("queue:#{queue}", "backup-queue:#{queue}")
+    decode(use_lpoprpush? ? lpoprpush("queue:#{queue}", "backup-queue:#{queue}") : redis.lpop("queue:#{queue}"))
   end
 
   # Removes a job _from_ queue and pushes it on _to_ another queue.

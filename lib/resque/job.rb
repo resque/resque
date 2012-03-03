@@ -159,7 +159,7 @@ module Resque
     end
 
     def do_perform(job, job_args)
-      Resque.remove_backup(queue, payload)
+      Resque.remove_backup(queue, payload) if Resque.use_lpoprpush?
       job.perform(*job_args)
     end    
 
