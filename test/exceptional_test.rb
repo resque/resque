@@ -1,7 +1,7 @@
 require 'test_helper'
 
 begin
-  require 'exceptoional'
+  require 'exceptional'
 rescue LoadError
   warn "Install exceptional gem to run Exceptional tests."
 end
