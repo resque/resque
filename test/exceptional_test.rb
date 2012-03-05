@@ -8,7 +8,7 @@ end
 
 if defined? Exceptional
   require 'resque/failure/exceptional'
-  context "Airbrake" do
+  context "Exceptional" do
     test "should be notified of an error" do
       exception = StandardError.new("BOOM")
       worker = Resque::Worker.new(:test)
