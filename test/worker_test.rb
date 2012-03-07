@@ -5,10 +5,6 @@ describe "Resque::Worker" do
     Resque.redis = Resque.redis # reset state in Resque object
     Resque.redis.flushall
 
-    Resque.before_first_fork = nil
-    Resque.before_fork = nil
-    Resque.after_fork = nil
-
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
