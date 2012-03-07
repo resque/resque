@@ -4,10 +4,6 @@ context "Resque::Worker" do
   setup do
     Resque.redis.flushall
 
-    Resque.before_first_fork = nil
-    Resque.before_fork = nil
-    Resque.after_fork = nil
-
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
@@ -43,7 +39,7 @@ context "Resque::Worker" do
     def self.on_failure_record_failure(exception, *job_args)
       @@exception = exception
     end
-    
+
     def self.exception
       @@exception
     end
@@ -325,35 +321,6 @@ context "Resque::Worker" do
     assert_equal 1, Resque.info[:processed]
   end
 
-  test "Will call a before_first_fork hook only once" do
-    Resque.redis.flushall
-    $BEFORE_FORK_CALLED = 0
-    Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
-    workerA = Resque::Worker.new(:jobs)
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-
-    assert_equal 0, $BEFORE_FORK_CALLED
-
-    workerA.work(0)
-    assert_equal 1, $BEFORE_FORK_CALLED
-
-    # TODO: Verify it's only run once. Not easy.
-#     workerA.work(0)
-#     assert_equal 1, $BEFORE_FORK_CALLED
-  end
-
-  test "Will call a before_fork hook before forking" do
-    Resque.redis.flushall
-    $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert !$BEFORE_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert $BEFORE_FORK_CALLED
-  end
-
   test "very verbose works in the afternoon" do
     begin
       require 'time'
@@ -373,22 +340,10 @@ context "Resque::Worker" do
     end
   end
 
-  test "Will call an after_fork hook after forking" do
-    Resque.redis.flushall
-    $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert !$AFTER_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert $AFTER_FORK_CALLED
-  end
-
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   test "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
