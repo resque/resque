@@ -14,6 +14,12 @@ module Resque
           assert last_response.ok?, last_response.errors
         end
       end
+
+      def self.should_contain(text)
+        test "should contain text" do
+          assert last_response.body.include?(text)
+        end
+      end
     end
   end
 end

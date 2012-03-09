@@ -1,6 +1,5 @@
 require 'test_helper'
 require 'resque/server/test_helper'
- 
 # Root path test
 context "on GET to /" do
   setup { get "/" }
@@ -28,12 +27,22 @@ end
 
 # Failed
 context "on GET to /failed" do
-  setup { get "/failed" }
 
-  should_respond_with_success
+  setup {
+    22.times{Resque::Job.create(:jobs, BadJob)}
+    @worker = Resque::Worker.new(:jobs)
+    @worker.register_worker
+    23.times { @worker.process }
+    stats = Resque.info
+    assert_equal 22, stats[:failed]
+
+    get "/failed"
+  }
+  should_contain(%q[<a href="/failed?start=20" class='page'>2</a>])
+
 end
 
-# Stats 
+# Stats
 context "on GET to /stats/resque" do
   setup { get "/stats/resque" }
 
