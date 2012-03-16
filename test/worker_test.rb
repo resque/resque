@@ -43,7 +43,7 @@ context "Resque::Worker" do
     def self.on_failure_record_failure(exception, *job_args)
       @@exception = exception
     end
-    
+
     def self.exception
       @@exception
     end
@@ -55,6 +55,29 @@ context "Resque::Worker" do
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
+  end
+
+  class ::SimpleFailingJob
+    @@exception_count = 0
+
+    def self.on_failure_record_failure(exception, *job_args)
+      @@exception_count += 1
+    end
+
+    def self.exception_count
+      @@exception_count
+    end
+
+    def self.perform
+      raise Exception.new
+    end
+  end
+
+  test "only calls failure hook once on exception" do
+    job = Resque::Job.new(:jobs, {'class' => 'SimpleFailingJob', 'args' => ""})
+    @worker.perform(job)
+    assert_equal 1, Resque::Failure.count
+    assert_equal 1, SimpleFailingJob.exception_count
   end
 
   test "can peek at failed jobs" do
@@ -388,7 +411,7 @@ context "Resque::Worker" do
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   test "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
