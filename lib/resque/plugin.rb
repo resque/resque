@@ -17,7 +17,7 @@ module Resque
       end
 
       failure_hooks(plugin).each do |hook|
-        if hook.ends_with?('perform')
+        if hook.ends_with?('failure')
           raise LintError, "#{plugin}.#{hook} is not namespaced"
         end
       end
