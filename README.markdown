@@ -177,6 +177,10 @@ pull from the DB or cache.
 If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
+Note that if you queue a job with a hash as an argument the hash
+will have its keys stringified when decoded. If you use ActiveSupport
+you can call `symbolize_keys!` on the hash to symbolize the keys again
+or you can access the values using strings as keys.
 
 ### send_later / async
 
