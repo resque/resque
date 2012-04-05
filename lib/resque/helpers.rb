@@ -1,10 +1,4 @@
-require 'multi_json'
-
-# OkJson won't work because it doesn't serialize symbols
-# in the same way yajl and json do.
-if MultiJson.engine.to_s == 'MultiJson::Engines::OkJson'
-  raise "Please install the yajl-ruby or json gem"
-end
+require 'msgpack'
 
 module Resque
   # Methods used by various classes in Resque.
@@ -19,7 +13,7 @@ module Resque
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
-      ::MultiJson.encode(object)
+      object.to_msgpack
     end
     alias :dump :encode
 
@@ -28,8 +22,8 @@ module Resque
       return unless object
 
       begin
-        ::MultiJson.decode(object)
-      rescue ::MultiJson::DecodeError => e
+        MessagePack.unpack(object)
+      rescue ::MessagePack::UnpackError => e
         raise DecodeException, e.message, e.backtrace
       end
     end
