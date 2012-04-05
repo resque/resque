@@ -3,6 +3,8 @@ require 'resque/queue'
 
 module Resque
   class TestQueue < MiniTest::Unit::TestCase
+    include Test::Unit::Assertions
+
     class Thing
       attr_reader :inside
 
