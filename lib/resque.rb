@@ -140,7 +140,6 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
-    watch_queue(queue)
     @queues[queue] << item
   end
 
@@ -194,12 +193,6 @@ module Resque
   def remove_queue(queue)
     redis.srem(:queues, queue.to_s)
     @queues[queue].destroy
-  end
-
-  # Used internally to keep track of which queues we've created.
-  # Don't call this directly.
-  def watch_queue(queue)
-    redis.sadd(:queues, queue.to_s)
   end
 
 

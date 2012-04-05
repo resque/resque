@@ -24,6 +24,8 @@ module Resque
 
     # Add +object+ to the queue
     def push object
+      @redis.sadd(:queues, @name)
+
       synchronize do
         @redis.rpush @redis_name, encode(object)
       end
