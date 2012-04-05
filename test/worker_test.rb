@@ -4,6 +4,7 @@ describe "Resque::Worker" do
   include Test::Unit::Assertions
 
   before do
+    Resque.redis = Resque.redis # reset state in Resque object
     Resque.redis.flushall
 
     Resque.before_first_fork = nil

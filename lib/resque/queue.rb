@@ -20,12 +20,12 @@ module Resque
       @redis_name = "queue:#{@name}"
       @redis      = redis
       @coder      = coder
+
+      @redis.sadd(:queues, @name)
     end
 
     # Add +object+ to the queue
     def push object
-      @redis.sadd(:queues, @name)
-
       synchronize do
         @redis.rpush @redis_name, encode(object)
       end
