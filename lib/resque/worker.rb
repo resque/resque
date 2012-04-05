@@ -88,6 +88,7 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(*queues)
+      @shutdown = false
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
@@ -121,6 +122,69 @@ module Resque
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
     def work(interval = 5.0, &block)
+      if RUBY_ENGINE == 'jruby'
+        work_threads(interval, &block)
+      else
+        work_processes(interval, &block)
+      end
+    end
+
+    def work_threads(interval, &block)
+      interval = Float(interval)
+      $0 = "resque: Starting"
+      startup
+
+      threads = []
+      thread_count.times do |idx|
+        threads << Thread.new do
+          Thread.current[:resque_thread_idx] = idx
+          log! "Starting thread #{idx}"
+          loop do
+            job = nil
+            begin
+              break if shutdown?
+
+              if not paused? and job = reserve
+                log "got: #{job.inspect}"
+                run_hook :before_fork, job
+                working_on job
+
+                procline "Processing #{job.queue} since #{Time.now.to_i}"
+                perform(job, &block)
+
+                done_working
+              else
+                break if interval.zero?
+                log! "Sleeping for #{interval} seconds"
+                procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
+                sleep interval
+              end
+            rescue Exception => ex
+              p [ex.class.name, ex.message]
+              puts ex.backtrace.join("\n")
+              job.fail(ex) if job
+            end
+          end
+        end
+      end
+
+      while !shutdown? do
+        sleep 1
+      end
+
+      log "Shutting down, main thread waiting up to #{exit_timeout} sec for workers to finish..."
+      # wait up to 30 seconds for worker threads to exit
+      count = 0
+      while threads.any?(&:alive?) && count < exit_timeout
+        sleep 1
+        count += 1
+      end
+      log 'Threads shutdown, exiting...'
+    ensure
+      unregister_worker
+    end
+
+    def work_processes(interval, &block)
       interval = Float(interval)
       $0 = "resque: Starting"
       startup
@@ -156,6 +220,14 @@ module Resque
 
     ensure
       unregister_worker
+    end
+
+    def thread_count
+      (ENV['RESQUE_THREADS'] || 10).to_i
+    end
+
+    def exit_timeout
+      (ENV['RESQUE_EXIT_TIMEOUT'] || 30).to_i
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -260,17 +332,21 @@ module Resque
     #
     # TERM: Shutdown immediately, stop processing jobs.
     #  INT: Shutdown immediately, stop processing jobs.
-    # QUIT: Shutdown after the current job has finished processing.
+    # QUIT: Shutdown after the current jobs have finished processing
+    # (note: QUIT doesn't work on JRuby)
+    # TTIN: Shutdown after the current jobs have finished processing
+    # (for JRuby)
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { shutdown!  }
-      trap('INT')  { shutdown!  }
+      trap('TERM') { log 'TERM'; shutdown!  }
+      trap('INT')  { log 'INT'; shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
-        trap('USR1') { kill_child }
+        trap('QUIT') { log 'QUIT'; shutdown }
+        trap('TTIN') { log 'TTIN'; shutdown }
+        trap('USR1') { log 'USR1'; kill_child }
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
@@ -382,11 +458,11 @@ module Resque
       end
 
       redis.srem(:workers, self)
-      redis.del("worker:#{self}")
-      redis.del("worker:#{self}:started")
+      redis.del("worker:#{self}:#{tid}")
+      redis.del("worker:#{self}:#{tid}:started")
 
-      Stat.clear("processed:#{self}")
-      Stat.clear("failed:#{self}")
+      Stat.clear("processed:#{self}:#{tid}")
+      Stat.clear("failed:#{self}:#{tid}")
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
@@ -396,51 +472,55 @@ module Resque
         :queue   => job.queue,
         :run_at  => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
         :payload => job.payload
-      redis.set("worker:#{self}", data)
+      redis.set("worker:#{self}:#{tid}", data)
     end
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
       processed!
-      redis.del("worker:#{self}")
+      redis.del("worker:#{self}:#{tid}")
+    end
+
+    def tid
+      "T#{Thread.current[:resque_thread_idx] || 'main'}"
     end
 
     # How many jobs has this worker processed? Returns an int.
     def processed
-      Stat["processed:#{self}"]
+      Stat["processed:#{self}:#{tid}"]
     end
 
     # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
-      Stat << "processed:#{self}"
+      Stat << "processed:#{self}:#{tid}"
     end
 
     # How many failed jobs has this worker seen? Returns an int.
     def failed
-      Stat["failed:#{self}"]
+      Stat["failed:#{self}:#{tid}"]
     end
 
     # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
-      Stat << "failed:#{self}"
+      Stat << "failed:#{self}:#{tid}"
     end
 
     # What time did this worker start? Returns an instance of `Time`
     def started
-      redis.get "worker:#{self}:started"
+      redis.get "worker:#{self}:#{tid}:started"
     end
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.to_s)
+      redis.set("worker:#{self}:#{tid}:started", Time.now.to_s)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
     def job
-      decode(redis.get("worker:#{self}")) || {}
+      decode(redis.get("worker:#{self}:#{tid}")) || {}
     end
     alias_method :processing, :job
 
@@ -457,7 +537,7 @@ module Resque
     # Returns a symbol representing the current worker state,
     # which can be either :working or :idle
     def state
-      redis.exists("worker:#{self}") ? :working : :idle
+      redis.exists("worker:#{self}:#{tid}") ? :working : :idle
     end
 
     # Is this worker the same as another worker?
@@ -472,7 +552,7 @@ module Resque
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
     def to_s
-      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{Process.pid}:#{tid}:#{@queues.join(',')}"
     end
     alias_method :id, :to_s
 
