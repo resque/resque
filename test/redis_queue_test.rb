@@ -16,6 +16,10 @@ describe "Resque::Queue" do
     end
   end
 
+  it "generates a redis_name" do
+    assert_equal "queue:foo", q.redis_name
+  end
+
   it "acts sanely" do
     queue = q
     x = Thing.new

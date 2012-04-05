@@ -9,20 +9,23 @@ module Resque
   class Queue
     include Mutex_m
 
+    attr_reader :name, :redis_name
+
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
     # the +coder+ for encoding and decoding objects that are stored in redis.
     def initialize name, redis, coder = Marshal
       super()
-      @name  = "queue:#{name}"
-      @redis = redis
-      @coder = coder
+      @name       = name
+      @redis_name = "queue:#{@name}"
+      @redis      = redis
+      @coder      = coder
     end
 
     # Add +object+ to the queue
     def push object
       synchronize do
-        @redis.rpush @name, encode(object)
+        @redis.rpush @redis_name, encode(object)
       end
     end
 
@@ -34,11 +37,11 @@ module Resque
     def slice start, length
       if length == 1
         synchronize do
-          decode @redis.lindex @name, start
+          decode @redis.lindex @redis_name, start
         end
       else
         synchronize do
-          Array(@redis.lrange(@name, start, start + length - 1)).map do |item|
+          Array(@redis.lrange(@redis_name, start, start + length - 1)).map do |item|
             decode item
           end
         end
@@ -53,13 +56,13 @@ module Resque
     def pop non_block = false
       if non_block
         synchronize do
-          value = @redis.lpop(@name)
+          value = @redis.lpop(@redis_name)
           raise ThreadError unless value
           decode value
         end
       else
         synchronize do
-          value = @redis.blpop(@name, 1) until value
+          value = @redis.blpop(@redis_name, 1) until value
           decode value.last
         end
       end
@@ -67,7 +70,7 @@ module Resque
 
     # Get the length of the queue
     def length
-      @redis.llen @name
+      @redis.llen @redis_name
     end
     alias :size :length
 
@@ -79,7 +82,7 @@ module Resque
     # Deletes this Queue from redis. This method is *not* available on the
     # stdlib Queue.
     def destroy
-      @redis.del @name
+      @redis.del @redis_name
     end
 
     private
