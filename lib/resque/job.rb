@@ -32,6 +32,7 @@ module Resque
     def initialize(queue, payload)
       @queue = queue
       @payload = payload
+      @failure_hooks_already_ran = false
     end
 
     # Creates a job by placing it on a queue. Expects a string queue
@@ -210,14 +211,16 @@ module Resque
       @after_hooks ||= Plugin.after_hooks(payload_class)
     end
 
-    def failure_hooks 
+    def failure_hooks
       @failure_hooks ||= Plugin.failure_hooks(payload_class)
     end
-    
-    def run_failure_hooks(exception)
-      job_args = args || []
-      failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) }
-    end
 
+    def run_failure_hooks(exception)
+      begin
+        failure_hooks.each { |hook| payload_class.send(hook, exception, *Array.wrap(args)) } unless @failure_hooks_already_ran
+      ensure
+        @failure_hooks_already_ran = true
+      end
+    end
   end
 end
