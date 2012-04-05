@@ -21,6 +21,7 @@ module Resque
     def encode(object)
       ::MultiJson.encode(object)
     end
+    alias :dump :encode
 
     # Given a string, returns a Ruby object.
     def decode(object)
@@ -32,6 +33,7 @@ module Resque
         raise DecodeException, e.message, e.backtrace
       end
     end
+    alias :load :decode
 
     # Given a word with dashes, returns a camel cased version of it.
     #
