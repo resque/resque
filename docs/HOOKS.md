@@ -94,6 +94,11 @@ The available hooks are:
 * `on_failure`: Called with the exception and job args if any exception occurs
   while performing the job (or hooks), this includes Resque::DirtyExit.
 
+* `after_kill`: Called with the job args after a worker is killed mid-process
+  (typically by sending a signal to the worker that invokes worker#kill_child). 
+  This hook should be used with caution, as it is executed in the worker parent
+  fork and therefore has the potential to subject that worker to memory bloat.
+
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.
 

@@ -62,5 +62,10 @@ module Resque
     def before_dequeue_hooks(job)
       job.methods.grep(/^before_dequeue/).sort
     end
+
+    # Given an object, returns a list `after_kill` hook names.
+    def after_kill_hooks(job)
+      job.methods.grep(/^after_kill/).sort
+    end
   end
 end

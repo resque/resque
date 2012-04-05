@@ -305,6 +305,7 @@ module Resque
         log! "Killing child at #{@child}"
         if system("ps -o pid,state -p #{@child}")
           Process.kill("KILL", @child) rescue nil
+          run_after_kill_hooks
         else
           log! "Child #{@child} not found, restarting."
           shutdown
@@ -367,6 +368,14 @@ module Resque
       log msg
 
       args.any? ? hook.call(*args) : hook.call
+    end
+
+    # if there is a current job, run its after_kill hooks.
+    def run_after_kill_hooks
+      return unless (hash = processing) && !hash.empty?
+      job = Job.new(hash['queue'], hash['payload'])
+      
+      job.run_after_kill_hooks
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
