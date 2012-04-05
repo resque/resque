@@ -11,12 +11,6 @@ require 'test/unit'
 require 'redis/namespace'
 require 'resque'
 
-begin
-  require 'leftright'
-rescue LoadError
-end
-
-
 #
 # make sure we can run redis
 #
