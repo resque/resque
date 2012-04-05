@@ -237,19 +237,9 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue_to(queue, klass, *args)
-    # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
-    before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
-      klass.send(hook, *args)
+    Plugin.run_enqueue_hooks(klass, *args) do
+      Job.create(queue, klass, *args)
     end
-    return nil if before_hooks.any? { |result| result == false }
-
-    Job.create(queue, klass, *args)
-
-    Plugin.after_enqueue_hooks(klass).each do |hook|
-      klass.send(hook, *args)
-    end
-
-    return true
   end
 
   # This method can be used to conveniently remove a job from a queue.
@@ -280,17 +270,9 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def dequeue(klass, *args)
-    # Perform before_dequeue hooks. Don't perform dequeue if any hook returns false
-    before_hooks = Plugin.before_dequeue_hooks(klass).collect do |hook|
-      klass.send(hook, *args)
-    end
-    return if before_hooks.any? { |result| result == false }
-
-    Job.destroy(queue_from_class(klass), klass, *args)
-
-    Plugin.after_dequeue_hooks(klass).each do |hook|
-      klass.send(hook, *args)
-    end
+    Plugin.run_dequeue_hooks(klass, *args) do
+      Job.destroy(queue_from_class(klass), klass, *args)
+    end 
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a

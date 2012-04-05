@@ -40,21 +40,40 @@ context "Resque::Worker" do
   end
 
   class ::SimpleJobWithFailureHandling
+    def self.perform(*args)
+      raise Exception, 'planned failure'
+    end
+
     def self.on_failure_record_failure(exception, *job_args)
-      @@exception = exception
+      self.exception << exception
     end
     
     def self.exception
-      @@exception
+      @@exception ||= []
+    end
+
+    def self.reset!
+      @@exception = nil
     end
   end
 
   test "fails uncompleted jobs on exit, and calls failure hook" do
+    SimpleJobWithFailureHandling.reset!
     job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
-    assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
+    assert_equal 1, SimpleJobWithFailureHandling.exception.count
+    assert(SimpleJobWithFailureHandling.exception[0].kind_of?(Resque::DirtyExit))
+  end
+
+  test "failed job calls failure hooks once" do
+    SimpleJobWithFailureHandling.reset!
+    job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
+    @worker.process(job)
+    assert_equal 1, Resque::Failure.count
+    assert_equal 1, SimpleJobWithFailureHandling.exception.count
+    assert_operator SimpleJobWithFailureHandling.exception[0], :kind_of?, Exception
   end
 
   test "can peek at failed jobs" do
