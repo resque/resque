@@ -115,22 +115,31 @@ context "Resque::Worker" do
     assert_equal 0, Resque.size(:blahblah)
   end
 
-  test "can work with wildcard at the end of the list" do
+  test "cannot define multiple wildcards" do
+    assert_raise Resque::PriorityQueueError do
+      Resque::Worker.new("*", "*")
+    end
+  end
+
+  test "can prioritize work with wildcard at the end of the list" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
     worker = Resque::Worker.new(:critical, :high, "*")
+    2.times do
+      job = worker.reserve
+      worker.process job
+    end
 
-    worker.work(0)
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
-    assert_equal 0, Resque.size(:blahblah)
-    assert_equal 0, Resque.size(:beer)
+    assert_equal 1, Resque.size(:blahblah)
+    assert_equal 1, Resque.size(:beer)
   end
 
-  test "can work with wildcard at the middle of the list" do
+  test "can prioritize work with wildcard at the middle of the list" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
@@ -138,14 +147,36 @@ context "Resque::Worker" do
 
     worker = Resque::Worker.new(:critical, "*", :high)
 
-    worker.work(0)
-    assert_equal 0, Resque.size(:high)
+    3.times do
+      job = worker.reserve
+      worker.process job
+    end
+
+    assert_equal 1, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
     assert_equal 0, Resque.size(:beer)
   end
 
-  test "processes * queues in alphabetical order" do
+  test "can prioritize work with wildcard at the beginning of the list" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new("*", :beer)
+    3.times do
+      job = worker.reserve
+      worker.process job
+    end
+
+    assert_equal 1, Resque.size(:beer)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:blahblah)
+  end
+
+  test "processes wildcard queues in alphabetical order" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
@@ -158,6 +189,22 @@ context "Resque::Worker" do
     end
 
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
+  end
+
+  test "processes wildcard queues in alphabetical order with respect to priority" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    worker = Resque::Worker.new(:critical, "*", :beer)
+    processed_queues = []
+
+    worker.work(0) do |job|
+      processed_queues << job.queue
+    end
+
+    assert_equal %w( critical blahblah high jobs beer), processed_queues
   end
 
   test "has a unique id" do
