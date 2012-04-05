@@ -80,7 +80,6 @@ describe "Resque::Queue" do
   end
 
   def backend
-    redis = Redis.new(:host => "127.0.0.1", :port => 9736)
-    Redis::Namespace.new :resque, :redis => redis
+    Redis::Namespace.new :resque, :redis => Resque.redis
   end
 end
