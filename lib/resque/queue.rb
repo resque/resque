@@ -9,8 +9,6 @@ module Resque
   class Queue
     include Mutex_m
 
-    VERSION = '1.0.0'
-
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
     # the +coder+ for encoding and decoding objects that are stored in redis.
