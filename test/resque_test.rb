@@ -277,4 +277,21 @@ describe "Resque" do
       Resque.inline = false
     end
   end
+
+  it "normalizes @queues' keys" do
+    [:foo, "foo"].each do |queue|
+      Resque.push(queue, GoodJob)
+      Resque.size(queue)
+      Resque.peek(queue)
+      Resque.pop(queue)
+    end
+
+    assert_equal 2, Resque.instance_variable_get("@queues").size
+    assert_equal 2, Resque.queues.size
+
+    Resque.remove_queue(:foo)
+
+    assert_equal 1, Resque.instance_variable_get("@queues").size
+    assert_equal 1, Resque.queues.size
+  end
 end
