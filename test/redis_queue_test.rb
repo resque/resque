@@ -16,6 +16,10 @@ describe "Resque::Queue" do
     end
   end
 
+  before do
+    Resque.redis.flushall
+  end
+
   it "generates a redis_name" do
     assert_equal "queue:foo", q.redis_name
   end
@@ -83,7 +87,7 @@ describe "Resque::Queue" do
     Resque::Queue.new 'foo', backend
   end
 
-  def backend
-    Redis::Namespace.new :resque, :redis => Resque.redis
+  def q
+    Resque::Queue.new 'foo', Resque.redis
   end
 end
