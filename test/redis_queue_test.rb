@@ -89,6 +89,15 @@ describe "Resque::Queue" do
     assert_equal ["foo"], Resque.queues
   end
 
+  it "cleans up after itself when destroyed" do
+    queue = q
+    queue << Thing.new
+    q.destroy
+
+    assert_equal [], Resque.queues
+    assert !Resque.redis.exists(queue.redis_name)
+  end
+
   def q
     Resque::Queue.new 'foo', Resque.redis
   end

@@ -85,6 +85,7 @@ module Resque
     # stdlib Queue.
     def destroy
       @redis.del @redis_name
+      @redis.srem(:queues, @name)
     end
 
     private

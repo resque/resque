@@ -191,8 +191,8 @@ module Resque
 
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
-    redis.srem(:queues, queue.to_s)
     @queues[queue.to_s].destroy
+    @queues.delete(queue.to_s)
   end
 
 
