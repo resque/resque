@@ -13,6 +13,8 @@ require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
 require 'resque/queue'
+require 'resque/coder'
+require 'resque/multi_json_coder'
 
 module Resque
   include Helpers
@@ -45,9 +47,16 @@ module Resque
       @redis = Redis::Namespace.new(:resque, :redis => server)
     end
     @queues = Hash.new { |h,name|
-      h[name] = Resque::Queue.new(name, @redis, self)
+      h[name] = Resque::Queue.new(name, @redis, coder)
     }
   end
+
+  # Encapsulation of encode/decode. Overwrite this to use it across Resque.
+  # This defaults to MultiJson for backwards compatibilty.
+  def coder
+    @coder ||= MultiJsonCoder.new
+  end
+  attr_writer :coder
 
   # Returns the current Redis connection. If none has been created, will
   # create a new one.

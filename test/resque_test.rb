@@ -263,8 +263,8 @@ describe "Resque" do
   end
 
   it "decode bad json" do
-    assert_raises Resque::Helpers::DecodeException do
-      Resque.decode("{\"error\":\"Module not found \\u002\"}")
+    assert_raises Resque::DecodeException do
+      Resque.coder.decode("{\"error\":\"Module not found \\u002\"}")
     end
   end
 
