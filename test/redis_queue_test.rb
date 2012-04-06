@@ -83,8 +83,10 @@ describe "Resque::Queue" do
     end
   end
 
-  def q
-    Resque::Queue.new 'foo', backend
+  it "registers itself with Resque" do
+    q
+
+    assert_equal ["foo"], Resque.queues
   end
 
   def q
