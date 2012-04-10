@@ -149,7 +149,7 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
-    @queues[queue.to_s] << item
+    queue(queue) << item
   end
 
   # Pops a job off a queue. Queue name should be a string.
@@ -157,7 +157,7 @@ module Resque
   # Returns a Ruby object.
   def pop(queue)
     begin
-      @queues[queue.to_s].pop(true)
+      queue(queue).pop(true)
     rescue ThreadError
       nil
     end
@@ -166,7 +166,7 @@ module Resque
   # Returns an integer representing the size of a queue.
   # Queue name should be a string.
   def size(queue)
-    @queues[queue.to_s].size
+    queue(queue).size
   end
 
   # Returns an array of items currently queued. Queue name should be
@@ -178,7 +178,7 @@ module Resque
   # To get the 3rd page of a 30 item, paginatied list one would use:
   #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
-    @queues[queue.to_s].slice start, count
+    queue(queue).slice start, count
   end
 
   # Does the dirty work of fetching a range of items from a Redis list
@@ -200,8 +200,13 @@ module Resque
 
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
-    @queues[queue.to_s].destroy
+    queue(queue).destroy
     @queues.delete(queue.to_s)
+  end
+
+  # Return the Resque::Queue object for a given name
+  def queue(name)
+    @queues[name.to_s]
   end
 
 
