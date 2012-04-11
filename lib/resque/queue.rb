@@ -9,7 +9,7 @@ module Resque
   class Queue
     include Mutex_m
 
-    attr_reader :name, :redis_name, :coder
+    attr_reader :name, :redis_name
 
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
@@ -88,7 +88,6 @@ module Resque
       @redis.srem(:queues, @name)
     end
 
-    private
     def encode object
       @coder.dump object
     end

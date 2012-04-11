@@ -48,7 +48,7 @@ module Resque
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
-          @queues[queue_name].coder.decode(payload)
+          @queues[queue_name].decode(payload)
         end
       end
     end

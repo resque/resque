@@ -14,9 +14,9 @@ describe "Resque::MulitQueue" do
     queue = Resque::MultiQueue.new([foo, bar], redis)
     t     = Thread.new { queue.pop }
 
-    job = Resque::Job.new(:bar, :class => 'GoodJob')
+    job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
     bar << job
-    assert_equal coder.decode(job.to_json), t.join.value
+    assert_equal job, t.join.value
   end
 
   it "nonblocking pop works" do
@@ -24,9 +24,9 @@ describe "Resque::MulitQueue" do
     bar   = Resque::Queue.new 'bar', redis, coder
     queue = Resque::MultiQueue.new([foo, bar], redis)
 
-    job = Resque::Job.new(:bar, :class => 'GoodJob')
+    job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
     bar << job
-    assert_equal coder.decode(job.to_json), queue.pop(true)
+    assert_equal job, queue.pop(true)
   end
 
   it "blocks forever on pop" do
