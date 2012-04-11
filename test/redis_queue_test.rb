@@ -98,6 +98,16 @@ describe "Resque::Queue" do
     assert !Resque.redis.exists(queue.redis_name)
   end
 
+  it "returns false if a queue is not destroyed" do
+    assert !q.destroyed?
+  end
+
+  it "returns true if a queue is destroyed" do
+    queue1 = q
+    queue1.destroy
+    assert queue1.destroyed?
+  end
+
   def q
     Resque::Queue.new 'foo', Resque.redis
   end

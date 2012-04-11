@@ -88,6 +88,11 @@ module Resque
       @redis.srem(:queues, @name)
     end
 
+    # returns +true+ if the queue is destroyed and +false+ if it isn't
+    def destroyed?
+      !@redis.sismember(:queues, @name)
+    end
+
     def encode object
       @coder.dump object
     end
