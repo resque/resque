@@ -16,6 +16,7 @@ module Resque
 
       @queues = {}
       @redis  = redis
+      @q_list = queues
 
       queues.each do |queue|
         key = @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:" : ""
@@ -32,25 +33,25 @@ module Resque
     def pop(non_block = false)
       if non_block
         synchronize do
-          value = nil
+          queue_name, payload = @redis.blpop(*(queue_names + [0]))
 
-          @queues.values.each do |queue|
-            begin
-              return queue.pop(true)
-            rescue ThreadError
-            end
-          end
-
-          raise ThreadError
+          raise ThreadError unless queue_name && payload
+          @queues[queue_name].decode(payload)
         end
       else
-        queue_names = @queues.values.map {|queue| queue.redis_name }
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
           @queues[queue_name].decode(payload)
         end
       end
+    end
+
+    private
+    def queue_names
+      # possibly refactor this to set an ivar of the list in the constructor.
+      # We don't need to calculate the list on every call to `pop`.
+      @q_list.map {|queue| queue.redis_name }
     end
   end
 end
