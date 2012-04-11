@@ -5,6 +5,10 @@ require 'mutex_m'
 
 module Resque
   ###
+  # Exception raised when trying to access a queue that's already destroyed
+  class QueueDestroyed < RuntimeError; end
+
+  ###
   # A queue interface that quacks like Queue from Ruby's stdlib.
   class Queue
     include Mutex_m
@@ -25,7 +29,10 @@ module Resque
     end
 
     # Add +object+ to the queue
+    # If trying to push to an already destroyed queue, it will raise a Resque::QueueDestroyed exception
     def push object
+      raise QueueDestroyed if destroyed?
+
       synchronize do
         @redis.rpush @redis_name, encode(object)
       end

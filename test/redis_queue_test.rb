@@ -108,6 +108,17 @@ describe "Resque::Queue" do
     assert queue1.destroyed?
   end
 
+  it "can't push to queue after destroying it" do
+    queue1 = q
+    x      = Thing.new
+    queue1 << x
+    queue1.destroy
+
+    assert_raise Resque::QueueDestroyed do
+      queue1 << x
+    end
+  end
+
   def q
     Resque::Queue.new 'foo', Resque.redis
   end
