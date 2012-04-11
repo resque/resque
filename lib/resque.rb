@@ -13,6 +13,7 @@ require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
 require 'resque/queue'
+require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/multi_json_coder'
 

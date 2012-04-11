@@ -9,7 +9,7 @@ module Resque
   class Queue
     include Mutex_m
 
-    attr_reader :name, :redis_name
+    attr_reader :name, :redis_name, :coder
 
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
