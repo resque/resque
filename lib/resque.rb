@@ -152,6 +152,7 @@ module Resque
   def push(queue, item)
     queue(queue) << item
   end
+  alias finna push
 
   # Pops a job off a queue. Queue name should be a string.
   #
