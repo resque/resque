@@ -16,7 +16,8 @@ describe "Resque::MulitQueue" do
 
     job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
     bar << job
-    assert_equal job, t.join.value
+
+    assert_equal [bar, job], t.join.value
   end
 
   it "nonblocking pop works" do
@@ -26,7 +27,8 @@ describe "Resque::MulitQueue" do
 
     job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
     bar << job
-    assert_equal job, queue.pop(true)
+
+    assert_equal [bar, job], queue.pop(true)
   end
 
   it "blocks forever on pop" do

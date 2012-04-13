@@ -25,7 +25,7 @@ module Resque
     end
 
     # Pop an item off one of the queues.  This method will block until an item
-    # is available.
+    # is available. This method returns a tuple of the queue object and job.
     #
     # Pass +true+ for a non-blocking pop.  If nothing is read on a non-blocking
     # pop, a ThreadError is raised.
@@ -36,7 +36,7 @@ module Resque
 
           @queues.values.each do |queue|
             begin
-              return queue.pop(true)
+              return [queue, queue.pop(true)]
             rescue ThreadError
             end
           end
@@ -48,7 +48,8 @@ module Resque
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
-          @queues[queue_name].decode(payload)
+          queue = @queues[queue_name]
+          [queue, queue.decode(payload)]
         end
       end
     end
