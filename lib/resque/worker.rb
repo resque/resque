@@ -193,19 +193,15 @@ module Resque
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
     def reserve
-      queues.each do |queue|
-        log! "Checking #{queue}"
-        if job = Resque.reserve(queue)
-          log! "Found job on #{queue}"
-          return job
-        end
-      end
+      multi_queue = MultiQueue.new(
+        queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
+        Resque.redis)
 
+      queue, job = multi_queue.pop(true)
+      log! "Found job on #{queue}"
+      return Job.new(queue.name, job)
+    rescue ThreadError
       nil
-    rescue Exception => e
-      log "Error reserving job: #{e.inspect}"
-      log e.backtrace.join("\n")
-      raise e
     end
 
     # Returns a list of queues to use when searching for a job.
