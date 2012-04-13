@@ -329,7 +329,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a before_first_fork hook only once" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = 0
     Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
     workerA = Resque::Worker.new(:jobs)
@@ -346,7 +345,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a before_fork hook before forking" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
@@ -377,7 +375,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call an after_fork hook after forking" do
-    Resque.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
