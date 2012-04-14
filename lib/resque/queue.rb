@@ -24,6 +24,7 @@ module Resque
       @redis_name = "queue:#{@name}"
       @redis      = redis
       @coder      = coder
+      @destroyed  = false
 
       @redis.sadd(:queues, @name)
     end
@@ -90,14 +91,19 @@ module Resque
 
     # Deletes this Queue from redis. This method is *not* available on the
     # stdlib Queue.
+    #
+    # If there are multiple queue objects of the same name, Queue A and Queue
+    # B and you delete Queue A, pushing to Queue B will have unknown side
+    # effects. Queue A will be marked destroyed, but Queue B will not.
     def destroy
       @redis.del @redis_name
       @redis.srem(:queues, @name)
+      @destroyed = true
     end
 
     # returns +true+ if the queue is destroyed and +false+ if it isn't
     def destroyed?
-      !@redis.sismember(:queues, @name)
+      @destroyed
     end
 
     def encode object
