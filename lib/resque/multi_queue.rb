@@ -14,13 +14,14 @@ module Resque
     def initialize(queues, redis)
       super()
 
-      @queues = {}
-      @redis  = redis
+      @queues     = queues # since ruby 1.8 doesn't have Ordered Hashes
+      @queue_hash = {}
+      @redis      = redis
 
       queues.each do |queue|
         key = @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:" : ""
         key += queue.redis_name
-        @queues[key] = queue
+        @queue_hash[key] = queue
       end
     end
 
@@ -34,7 +35,7 @@ module Resque
         synchronize do
           value = nil
 
-          @queues.values.each do |queue|
+          @queues.each do |queue|
             begin
               return [queue, queue.pop(true)]
             rescue ThreadError
@@ -44,11 +45,11 @@ module Resque
           raise ThreadError
         end
       else
-        queue_names = @queues.values.map {|queue| queue.redis_name }
+        queue_names = @queues.map {|queue| queue.redis_name }
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
-          queue = @queues[queue_name]
+          queue = @queue_hash[queue_name]
           [queue, queue.decode(payload)]
         end
       end
