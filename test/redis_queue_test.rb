@@ -44,6 +44,14 @@ describe "Resque::Queue" do
 
   it "nonblocking pop works" do
     queue1 = q
+    x      = Thing.new
+
+    queue1 << x
+    assert_equal x, queue1.pop
+  end
+
+  it "nonblocking pop doesn't block" do
+    queue1 = q
 
     assert_raises ThreadError do
       queue1.pop(true)
