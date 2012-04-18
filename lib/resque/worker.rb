@@ -647,7 +647,7 @@ module Resque
 
     # chomp'd hostname of this machine
     def hostname
-      @hostname ||= `hostname`.chomp
+      Socket.gethostname
     end
 
     # Returns Integer PID of running worker
