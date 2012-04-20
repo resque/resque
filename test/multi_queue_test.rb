@@ -8,6 +8,13 @@ describe "Resque::MulitQueue" do
     redis.flushall
   end
 
+  it "poll times out and returns nil" do
+    foo   = Resque::Queue.new 'foo', redis
+    bar   = Resque::Queue.new 'bar', redis
+    queue = Resque::MultiQueue.new([foo, bar], redis)
+    assert_nil queue.poll(1)
+  end
+
   it "blocks on pop" do
     foo   = Resque::Queue.new 'foo', redis, coder
     bar   = Resque::Queue.new 'bar', redis, coder
