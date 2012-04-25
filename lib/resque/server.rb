@@ -14,11 +14,7 @@ module Resque
 
     set :views,  "#{dir}/server/views"
 
-    if respond_to? :public_folder
-      set :public_folder, "#{dir}/server/public"
-    else
-      set :public, "#{dir}/server/public"
-    end
+    set :public_folder, "#{dir}/server/public"
 
     set :static, true
 
