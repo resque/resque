@@ -264,6 +264,14 @@ describe "Resque::Worker" do
     assert_equal 3, @worker.processed
   end
 
+  it "reserve blocks when the queue is empty" do
+    worker = Resque::Worker.new(:timeout)
+
+    assert_raises Timeout::Error do
+      Timeout.timeout(1) { worker.reserve(5) }
+    end
+  end
+
   it "keeps track of how many failures it has seen" do
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)

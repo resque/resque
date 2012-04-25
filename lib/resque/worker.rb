@@ -128,7 +128,7 @@ module Resque
       loop do
         break if shutdown?
 
-        if not paused? and job = reserve
+        if not paused? and job = reserve(interval)
           log "got: #{job.inspect}"
           job.worker = self
           run_hook :before_fork, job
@@ -148,9 +148,8 @@ module Resque
           @child = nil
         else
           break if interval.zero?
-          log! "Sleeping for #{interval} seconds"
+          log! "Timed out after #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
-          sleep interval
         end
       end
 
@@ -192,12 +191,18 @@ module Resque
 
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
-    def reserve
+    def reserve(interval = 5.0)
+      interval = interval.to_i
       multi_queue = MultiQueue.new(
         queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
         Resque.redis)
 
-      queue, job = multi_queue.pop(true)
+      if interval < 1
+        queue, job = multi_queue.pop(true)
+      else
+        queue, job = multi_queue.poll(interval.to_i)
+      end
+
       log! "Found job on #{queue}"
       return Job.new(queue.name, job)
     rescue ThreadError
