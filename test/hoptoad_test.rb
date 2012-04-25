@@ -8,8 +8,8 @@ end
 
 if defined? HoptoadNotifier
   require 'resque/failure/hoptoad'
-  context "Hoptoad" do
-    test "should be notified of an error" do
+  describe "Hoptoad" do
+    it "should be notified of an error" do
       exception = StandardError.new("BOOM")
       worker = Resque::Worker.new(:test)
       queue = "test"

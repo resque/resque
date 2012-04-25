@@ -12,6 +12,10 @@ require 'resque/stat'
 require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
+require 'resque/queue'
+require 'resque/multi_queue'
+require 'resque/coder'
+require 'resque/multi_json_coder'
 
 module Resque
   include Helpers
@@ -43,7 +47,17 @@ module Resque
     else
       @redis = Redis::Namespace.new(:resque, :redis => server)
     end
+    @queues = Hash.new { |h,name|
+      h[name] = Resque::Queue.new(name, @redis, coder)
+    }
   end
+
+  # Encapsulation of encode/decode. Overwrite this to use it across Resque.
+  # This defaults to MultiJson for backwards compatibilty.
+  def coder
+    @coder ||= MultiJsonCoder.new
+  end
+  attr_writer :coder
 
   # Returns the current Redis connection. If none has been created, will
   # create a new one.
@@ -77,9 +91,7 @@ module Resque
 
   # Set a proc that will be called in the parent process before the
   # worker forks for the first time.
-  def before_first_fork=(before_first_fork)
-    @before_first_fork = before_first_fork
-  end
+  attr_writer :before_first_fork
 
   # The `before_fork` hook will be run in the **parent** process
   # before every job, so be careful- any changes you make will be
@@ -92,9 +104,7 @@ module Resque
   end
 
   # Set the before_fork proc.
-  def before_fork=(before_fork)
-    @before_fork = before_fork
-  end
+  attr_writer :before_fork
 
   # The `after_fork` hook will be run in the child process and is passed
   # the current job. Any changes you make, therefore, will only live as
@@ -107,25 +117,18 @@ module Resque
   end
 
   # Set the after_fork proc.
-  def after_fork=(after_fork)
-    @after_fork = after_fork
-  end
+  attr_writer :after_fork
 
   def to_s
     "Resque Client connected to #{redis_id}"
   end
 
+  attr_accessor :inline
+
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
   # The 'inline' is false Resque jobs will be put in queue regularly.
-  def inline?
-    @inline
-  end
-  alias_method :inline, :inline?
-
-  def inline=(inline)
-    @inline = inline
-  end
+  alias :inline? :inline
 
   #
   # queue manipulation
@@ -147,21 +150,24 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
-    watch_queue(queue)
-    redis.rpush "queue:#{queue}", encode(item)
+    queue(queue) << item
   end
 
   # Pops a job off a queue. Queue name should be a string.
   #
   # Returns a Ruby object.
   def pop(queue)
-    decode redis.lpop("queue:#{queue}")
+    begin
+      queue(queue).pop(true)
+    rescue ThreadError
+      nil
+    end
   end
 
   # Returns an integer representing the size of a queue.
   # Queue name should be a string.
   def size(queue)
-    redis.llen("queue:#{queue}").to_i
+    queue(queue).size
   end
 
   # Returns an array of items currently queued. Queue name should be
@@ -173,7 +179,7 @@ module Resque
   # To get the 3rd page of a 30 item, paginatied list one would use:
   #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
-    list_range("queue:#{queue}", start, count)
+    queue(queue).slice start, count
   end
 
   # Does the dirty work of fetching a range of items from a Redis list
@@ -195,14 +201,13 @@ module Resque
 
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
-    redis.srem(:queues, queue.to_s)
-    redis.del("queue:#{queue}")
+    queue(queue).destroy
+    @queues.delete(queue.to_s)
   end
 
-  # Used internally to keep track of which queues we've created.
-  # Don't call this directly.
-  def watch_queue(queue)
-    redis.sadd(:queues, queue.to_s)
+  # Return the Resque::Queue object for a given name
+  def queue(name)
+    @queues[name.to_s]
   end
 
 

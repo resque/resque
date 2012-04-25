@@ -1,18 +1,15 @@
 require 'rubygems'
-require 'bundler'
-Bundler.setup(:default, :test)
-Bundler.require(:default, :test)
 
 dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift dir + '/../lib'
 $TESTING = true
+require 'mocha'
+require 'minitest/unit'
+require 'minitest/spec'
 require 'test/unit'
 
-begin
-  require 'leftright'
-rescue LoadError
-end
-
+require 'redis/namespace'
+require 'resque'
 
 #
 # make sure we can run redis
@@ -60,28 +57,6 @@ else
   Resque.redis = 'localhost:9736'
 end
 
-
-##
-# test/spec/mini 3
-# http://gist.github.com/25455
-# chris@ozmm.org
-#
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  require 'test/unit'
-  klass = Class.new(defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
-    end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup, &block) end
-    def self.teardown(&block) define_method(:teardown, &block) end
-  end
-  (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
-  klass.class_eval &block
-  # XXX: In 1.8.x, not all tests will run unless anonymous classes are kept in scope.
-  ($test_classes ||= []) << klass
-end
 
 ##
 # Helper to perform job classes
@@ -147,12 +122,14 @@ end
 class Time
   # Thanks, Timecop
   class << self
+    attr_accessor :fake_time
+
     alias_method :now_without_mock_time, :now
 
-    def now_with_mock_time
-      $fake_time || now_without_mock_time
+    def now
+      fake_time || now_without_mock_time
     end
-
-    alias_method :now, :now_with_mock_time
   end
+
+  self.fake_time = nil
 end
