@@ -24,11 +24,11 @@ module Resque
       return unless object
 
       begin
-      if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
-        MultiJson.dump object
-      else
-        MultiJson.decode object
-      end
+        if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+          MultiJson.dump object
+        else
+          MultiJson.decode object
+        end
       rescue ::MultiJson::DecodeError => e
         raise DecodeException, e.message, e.backtrace
       end
