@@ -31,6 +31,24 @@ describe "Resque::Queue" do
     assert_equal x, queue.pop
   end
 
+  it "blocks on poll" do
+    queue = q
+
+    t = Thread.new { queue.poll(1) }
+    x = Thing.new
+
+    queue.push x
+    assert_equal [queue, x], t.join.value
+  end
+
+  it "returns nil on poll when timing out" do
+    queue = q
+
+    t = Thread.new { queue.poll(1) }
+    sleep 1.1
+    assert_nil t.join.value
+  end
+
   it "blocks on pop" do
     queue1 = q
     queue2 = q

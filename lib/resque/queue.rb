@@ -78,6 +78,19 @@ module Resque
       end
     end
 
+    # Retrieves data from the queue head, and removes it.
+    #
+    # Blocks for +timeout+ seconds if the queue is empty, and returns nil if
+    # the timeout expires.
+    def poll(timeout)
+      queue_name, payload = @redis.blpop(@redis_name, timeout)
+      return unless payload
+
+      synchronize do
+        [self, decode(payload)]
+      end
+    end
+
     # Get the length of the queue
     def length
       @redis.llen @redis_name
