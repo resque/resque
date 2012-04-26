@@ -71,6 +71,26 @@ module Resque
       Thread.pass until t.status != "sleep"
       sleep 1
       assert_equal 0, q.length, 'all jobs should be consumed'
+      t.kill
+    end
+
+    it "shuts down" do
+      q = Queue.new(:foo)
+      c = Consumer.new(q, 1)
+      t = Thread.new { c.consume }
+      # wait until queue blocks
+      Thread.pass until t.status == "sleep"
+      c.shutdown
+
+      # sleep past the poll timeout
+      sleep 2
+      q << Actionable.new
+      # sleep past the poll timeout
+      sleep 2
+      assert_equal 1, q.length
+      assert c.shutdown?
+      q.pop until q.empty?
+      t.kill
     end
   end
 end

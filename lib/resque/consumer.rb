@@ -16,16 +16,23 @@ module Resque
     end
 
     def initialize(queue, timeout = 5)
-      @queue        = queue
-      @should_pause = false
-      @paused       = false
-      @timeout      = timeout
-      @latch        = Latch.new
+      @queue           = queue
+      @should_pause    = false
+      @should_shutdown = false
+      @paused          = false
+      @shutdown        = false
+      @timeout         = timeout
+      @latch           = Latch.new
     end
 
     def consume
       loop do
         suspend if @should_pause
+
+        if @should_shutdown
+          @shutdown = true
+          break
+        end
 
         queue, job = @queue.poll(@timeout)
         next unless job
@@ -41,6 +48,10 @@ module Resque
       @paused
     end
 
+    def shutdown?
+      @shutdown
+    end
+
     def resume
       @should_pause = false
       @paused       = false
@@ -48,6 +59,7 @@ module Resque
     end
     
     def shutdown
+      @should_shutdown = true
     end
 
     private
