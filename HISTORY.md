@@ -1,3 +1,7 @@
+## 1.21.0 (2012-04-23)
+
+# Use multi_json 1.3+ API
+
 ## 1.20.0 (2012-02-17)
 
 * Fixed demos for ruby 1.9 (@BMorearty, #445)
