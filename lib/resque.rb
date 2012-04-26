@@ -17,10 +17,16 @@ require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/multi_json_coder'
 require 'resque/consumer'
+require 'resque/threaded_pool'
 
 module Resque
   include Helpers
   extend self
+
+  @consumer_timeout = 5
+  class << self
+    attr_accessor :consumer_timeout
+  end
 
   # Accepts:
   #   1. A 'hostname:port' String
@@ -30,6 +36,14 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
+    @server = server
+    @redis  = create_connection(server)
+    @queues = Hash.new { |h,name|
+      h[name] = Resque::Queue.new(name, @redis, coder)
+    }
+  end
+
+  def create_connection(server)
     case server
     when String
       if server =~ /redis\:\/\//
@@ -42,15 +56,16 @@ module Resque
       end
       namespace ||= :resque
 
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
+      Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
-      @redis = server
+      server
     else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
+      Redis::Namespace.new(:resque, :redis => server)
     end
-    @queues = Hash.new { |h,name|
-      h[name] = Resque::Queue.new(name, @redis, coder)
-    }
+  end
+
+  def server
+    @server
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.

@@ -15,7 +15,7 @@ module Resque
       end
     end
 
-    def initialize(queue, timeout = 5)
+    def initialize(queue, timeout = Resque.consumer_timeout)
       @queue           = queue
       @should_pause    = false
       @should_shutdown = false
