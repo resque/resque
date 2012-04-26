@@ -199,16 +199,18 @@ module Resque
         queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
         Resque.redis)
 
-      if interval < 1
-        queue, job = multi_queue.pop(true)
+      queue, job = if interval < 1
+        begin
+          multi_queue.pop(true)
+        rescue ThreadError
+          nil
+        end
       else
         queue, job = multi_queue.poll(interval.to_i)
       end
 
       log! "Found job on #{queue}"
-      return Job.new(queue.name, job)
-    rescue ThreadError
-      nil
+      Job.new(queue.name, job) if queue && job
     end
 
     # Returns a list of queues to use when searching for a job.

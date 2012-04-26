@@ -272,6 +272,12 @@ describe "Resque::Worker" do
     end
   end
 
+  it "reserve returns nil when there is no job and is polling" do
+    worker = Resque::Worker.new(:timeout)
+
+    assert_equal nil, worker.reserve(1)
+  end
+
   it "keeps track of how many failures it has seen" do
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
