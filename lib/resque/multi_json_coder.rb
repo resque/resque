@@ -3,7 +3,7 @@ require 'resque/coder'
 
 # OkJson won't work because it doesn't serialize symbols
 # in the same way yajl and json do.
-if MultiJson.engine.to_s == 'MultiJson::Engines::OkJson'
+if MultiJson.adapter.to_s == 'MultiJson::Adapters::OkJson'
   raise "Please install the yajl-ruby or json gem"
 end
 
