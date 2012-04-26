@@ -128,6 +128,6 @@ describe "Resque::Queue" do
   end
 
   def q
-    Resque::Queue.new 'foo', Resque.redis
+    Resque::Queue.new 'foo', Resque.redis, Marshal
   end
 end
