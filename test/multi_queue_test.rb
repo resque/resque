@@ -1,6 +1,6 @@
 require "test_helper"
 
-describe "Resque::MulitQueue" do
+describe "Resque::MultiQueue" do
   let(:redis) { Resque.redis }
   let(:coder) { Resque::MultiJsonCoder.new }
 
