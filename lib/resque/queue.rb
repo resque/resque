@@ -18,7 +18,7 @@ module Resque
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
     # the +coder+ for encoding and decoding objects that are stored in redis.
-    def initialize name, redis, coder = Marshal
+    def initialize name, redis = Resque.redis, coder = Marshal
       super()
       @name       = name
       @redis_name = "queue:#{@name}"

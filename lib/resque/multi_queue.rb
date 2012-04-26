@@ -11,7 +11,7 @@ module Resque
 
     ###
     # Create a new MultiQueue using the +queues+ from the +redis+ connection
-    def initialize(queues, redis)
+    def initialize(queues, redis = Resque.redis)
       super()
 
       @queues     = queues # since ruby 1.8 doesn't have Ordered Hashes
