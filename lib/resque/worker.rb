@@ -199,9 +199,9 @@ module Resque
         queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
         Resque.redis)
 
-      queue, job = if interval < 1
+      if interval < 1
         begin
-          multi_queue.pop(true)
+          queue, job = multi_queue.pop(true)
         rescue ThreadError
           nil
         end
@@ -209,7 +209,7 @@ module Resque
         queue, job = multi_queue.poll(interval.to_i)
       end
 
-      log! "Found job on #{queue}"
+      log! "Found job on #{queue.name}"
       Job.new(queue.name, job) if queue && job
     end
 
