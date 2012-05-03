@@ -48,7 +48,7 @@ module Resque
         # decode(encode(args)) to ensure that args are normalized in the same manner as a non-inline job
         new(:inline, {'class' => klass, 'args' => decode(encode(args))}).perform
       else
-        Resque.push(queue, :class => klass.to_s, :args => args)
+        Resque.push(queue, 'class' => klass.to_s, 'args' => args)
       end
     end
 
@@ -88,7 +88,7 @@ module Resque
           end
         end
       else
-        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
+        destroyed += redis.lrem(queue, 0, encode('class' => klass, 'args' => args))
       end
 
       destroyed
