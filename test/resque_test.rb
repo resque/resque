@@ -267,6 +267,13 @@ describe "Resque" do
       Resque.coder.decode("{\"error\":\"Module not found \\u002\"}")
     end
   end
+  
+  it "marshal encode/decode" do 
+    require 'resque/marshal_coder'
+    d = [:str1, 'str2', {:a => 2}]
+    x = Resque::MarshalCoder.new.encode(d)
+    assert_equal Resque::MarshalCoder.new.decode(x), d
+  end
 
   it "inlining jobs" do
     begin
