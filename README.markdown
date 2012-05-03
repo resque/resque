@@ -465,6 +465,16 @@ or set the Redis connection string if you need to do something like select a dif
 
     $ resque-web -p 8282 -r localhost:6379:2
 
+
+Using the front end to review what's happening in the queue
+-----------------------------------------------------------
+After using Resque for a while, you may have quite a few failed jobs.
+Reviewing them by going over pages when showing 20 a page can be a bit hard.
+
+You can change the param in the url (in the failed view only for now), just add per_page=100 and you will see 100 per page.
+for example: http://www.your_domain.com/resque/failed?start=20&per_page=200.
+
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
