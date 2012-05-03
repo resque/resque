@@ -146,7 +146,7 @@ module Resque
   #
   # Example
   #
-  #   Resque.push('archive', :class => 'Archive', :args => [ 35, 'tar' ])
+  #   Resque.push('archive', 'class' => 'Archive', 'args' => [ 35, 'tar' ])
   #
   # Returns nothing
   def push(queue, item)

@@ -45,7 +45,7 @@ module Resque
       if Resque.inline?
         constantize(klass).perform(*decode(encode(args)))
       else
-        Resque.push(queue, :class => klass.to_s, :args => args)
+        Resque.push(queue, 'class' => klass.to_s, 'args' => args)
       end
     end
 
@@ -85,7 +85,7 @@ module Resque
           end
         end
       else
-        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
+        destroyed += redis.lrem(queue, 0, encode('class' => klass, 'args' => args))
       end
 
       destroyed
