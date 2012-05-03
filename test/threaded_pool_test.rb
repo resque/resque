@@ -20,7 +20,7 @@ module Resque
 
     before do
       @write  = Queue.new(:foo)
-      conn = Resque.create_connection(Resque.server)
+      conn = Resque.create_connection
       @read  = Queue.new(:foo, conn)
       @tp = ThreadedPool.new(@read, 5)
     end

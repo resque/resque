@@ -37,13 +37,13 @@ module Resque
   #      or `Redis::Namespace`.
   def redis=(server)
     @server = server
-    @redis  = create_connection(server)
+    @redis  = create_connection
     @queues = Hash.new { |h,name|
       h[name] = Resque::Queue.new(name, @redis, coder)
     }
   end
 
-  def create_connection(server)
+  def create_connection(server = Resque.server)
     case server
     when String
       if server =~ /redis\:\/\//
