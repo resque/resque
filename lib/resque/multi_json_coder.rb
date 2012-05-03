@@ -14,7 +14,7 @@ module Resque
   class MultiJsonCoder < Coder
     def encode(object)
       if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
-        MultiJson.load object
+        MultiJson.dump object
       else
         MultiJson.encode object
       end
@@ -25,7 +25,7 @@ module Resque
 
       begin
         if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
-          MultiJson.dump object
+          MultiJson.load object
         else
           MultiJson.decode object
         end
