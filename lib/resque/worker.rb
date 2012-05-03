@@ -199,11 +199,11 @@ module Resque
         queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
         Resque.redis)
 
-      queue, job = if interval < 1
+      if interval < 1
         begin
-          multi_queue.pop(true)
+          queue, job = multi_queue.pop(true)
         rescue ThreadError
-          nil
+          queue, job = nil
         end
       else
         queue, job = multi_queue.poll(interval.to_i)
