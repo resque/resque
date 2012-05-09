@@ -203,7 +203,7 @@ module Resque
         begin
           queue, job = multi_queue.pop(true)
         rescue ThreadError
-          nil
+          queue, job = nil
         end
       else
         queue, job = multi_queue.poll(interval.to_i)
