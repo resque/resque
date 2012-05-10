@@ -24,4 +24,8 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
     runner.logger.info "Using Redis connection '#{redis_conf}'"
     Resque.redis = redis_conf
   }
+  opts.on('--redis-password redis-password', "set the Redis password"){ |redis_password|
+    runner.logger.info "Using Redis password '#{redis_password}'"
+    Resque.redis.auth(redis_password)
+  }
 end
