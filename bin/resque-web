@@ -9,6 +9,8 @@ rescue LoadError
 end  
 require 'resque/server'
 
+# preserve original ARGV for $PROGRAM_NAME modification.
+original_argv = ARGV.dup
 
 Vegas::Runner.new(Resque::Server, 'resque-web', {
   :before_run => lambda {|v|
@@ -27,5 +29,9 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
   opts.on('--redis-password redis-password', "set the Redis password"){ |redis_password|
     runner.logger.info "Using Redis password '#{redis_password}'"
     Resque.redis.auth(redis_password)
+
+    # hide --redis-password argument from ps(1) top(1)
+    masked_argv = Hash[*original_argv].delete_if{ |key,value| key == '--redis-password' }.to_a.join(' ')
+    $PROGRAM_NAME = "#{$PROGRAM_NAME} #{masked_argv}"
   }
 end
