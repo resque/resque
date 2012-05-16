@@ -255,7 +255,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
-      run_hook :before_first_fork
+      run_hook :before_first_fork, self
       register_worker
 
       # Fix buffering so we can `rake resque:work > resque.log` and

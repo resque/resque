@@ -416,6 +416,16 @@ describe "Resque::Worker" do
 #     assert_equal 1, $BEFORE_FORK_CALLED
   end
 
+  it "Passes the worker to the before_first_fork hook" do
+    $BEFORE_FORK_WORKER = nil
+    Resque.before_first_fork = Proc.new { |w| $BEFORE_FORK_WORKER = w.id }
+    workerA = Resque::Worker.new(:jobs)
+
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert_equal workerA.id, $BEFORE_FORK_WORKER
+  end
+
   it "Will call a before_fork hook before forking" do
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
