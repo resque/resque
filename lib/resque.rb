@@ -16,6 +16,9 @@ require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/multi_json_coder'
+require 'resque/redis_retry_wrapper'
+
+require 'retryable'
 
 module Resque
   include Helpers
@@ -41,12 +44,15 @@ module Resque
       end
       namespace ||= :resque
 
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
+      @redis = Redis::Namespace.new(namespace, :redis => Resque::RedisRetryWrapper.new(redis))
+    when Resque::RedisRetryWrapper
+      @redis = server
     when Redis::Namespace
       @redis = server
     else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
+      @redis = Redis::Namespace.new(:resque, :redis => Resque::RedisRetryWrapper.new(server))
     end
+    
     @queues = Hash.new { |h,name|
       h[name] = Resque::Queue.new(name, @redis, coder)
     }
@@ -64,7 +70,6 @@ module Resque
   def redis
     return @redis if @redis
     self.redis = Redis.respond_to?(:connect) ? Redis.connect : "localhost:6379"
-    self.redis
   end
 
   def redis_id
