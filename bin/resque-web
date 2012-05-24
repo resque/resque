@@ -31,7 +31,10 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
     Resque.redis.auth(redis_password)
 
     # hide --redis-password argument from ps(1) top(1)
-    masked_argv = Hash[*original_argv].delete_if{ |key,value| key == '--redis-password' }.to_a.join(' ')
+    masked_argv = original_argv.dup
+    redis_password_pos = masked_argv.index('--redis-password')
+    masked_argv.delete_at(redis_password_pos)
+    masked_argv.delete_at(redis_password_pos + 1)
     $PROGRAM_NAME = "#{$PROGRAM_NAME} #{masked_argv}"
   }
 end
