@@ -74,7 +74,7 @@ body { padding:0; margin:0; }
 #main ul.failed li dl dd .controls { display:none; float:right; }
 #main ul.failed li.hover dl dd .controls { display:block; }
 #main ul.failed li dl dd code, #main ul.failed li dl dd pre { font-family:Monaco, "Courier New", monospace; font-size:90%; white-space: pre-wrap;}
-#main ul.failed li dl dd.error a {font-family:Monaco, "Courier New", monospace; font-size:90%; }
+#main ul.failed li dl dd.error a {font-family:Monaco, "Courier New", monospace; font-size:90%; white-space: pre }
 #main ul.failed li dl dd.error pre { margin-top:3px; line-height:1.3;}
 
 #main p.pagination { background:#efefef; padding:10px; overflow:hidden;}
