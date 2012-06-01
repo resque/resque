@@ -6,10 +6,10 @@
 <h1>Failed Jobs</h1>
 <%unless failed.empty?%>
 <form method="POST" action="<%=u 'failed/clear'%>">
-  <input type='submit' name='' value='Clear Failed Jobs' />
+  <input type='submit' name='' value='Clear Failed Jobs' id="clear-failed-jobs" />
 </form>
 <form method="POST" action="<%=u 'failed/requeue/all'%>">
-  <input type='submit' name='' value='Retry Failed Jobs' />
+  <input type='submit' name='' value='Retry Failed Jobs' id="retry-failed-jobs"  />
 </form>
 <%end%>
 
