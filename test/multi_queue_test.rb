@@ -1,6 +1,6 @@
 require "test_helper"
 
-describe "Resque::MulitQueue" do
+describe "Resque::MultiQueue" do
   let(:redis) { Resque.redis }
   let(:coder) { Resque::MultiJsonCoder.new }
 
@@ -12,6 +12,11 @@ describe "Resque::MulitQueue" do
     foo   = Resque::Queue.new 'foo', redis
     bar   = Resque::Queue.new 'bar', redis
     queue = Resque::MultiQueue.new([foo, bar], redis)
+    assert_nil queue.poll(1)
+  end
+
+  it "poll is a no-op when queues are empty" do
+    queue = Resque::MultiQueue.new([], redis)
     assert_nil queue.poll(1)
   end
 
@@ -91,5 +96,12 @@ describe "Resque::MulitQueue" do
     end
 
     assert_equal processed_queues, queues
+  end
+
+  it "blocking pop is a no-op if queues are empty" do
+    queue = Resque::MultiQueue.new([], redis)
+    assert_raises Timeout::Error do
+      Timeout.timeout(2) { queue.pop }
+    end
   end
 end

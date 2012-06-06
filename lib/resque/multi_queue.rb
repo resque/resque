@@ -46,11 +46,15 @@ module Resque
         end
       else
         queue_names = @queues.map {|queue| queue.redis_name }
-        synchronize do
-          value = @redis.blpop(*(queue_names + [1])) until value
-          queue_name, payload = value
+        if queue_names.any?
+          synchronize do
+            value = @redis.blpop(*(queue_names + [1])) until value
+            queue_name, payload = value
           queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
-          [queue, queue.decode(payload)]
+            [queue, queue.decode(payload)]
+          end
+        else
+          Kernel.sleep # forever
         end
       end
     end
@@ -61,12 +65,17 @@ module Resque
     # the timeout expires.
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
-      queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
-      return unless payload
+      if queue_names.any?
+        queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
+        return unless payload
 
-      synchronize do
-        queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
-        [queue, queue.decode(payload)]
+        synchronize do
+          queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+          [queue, queue.decode(payload)]
+        end
+      else
+        Kernel.sleep(timeout)
+        nil
       end
     end
   end
