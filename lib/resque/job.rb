@@ -217,7 +217,8 @@ module Resque
 
     def run_failure_hooks(exception)
       begin
-        failure_hooks.each { |hook| payload_class.send(hook, exception, *Array.wrap(args)) } unless @failure_hooks_ran
+        job_args = args || []
+        failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
       ensure
         @failure_hooks_ran = true
       end
