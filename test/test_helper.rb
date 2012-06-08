@@ -119,6 +119,36 @@ ensure
   Resque::Failure.backend = previous_backend
 end
 
+class DelayJob
+  def self.a_class_method
+    Resque.redis.set('DelayJob.counter', "2")
+  end
+
+  def self.method_with_args(val)
+    Resque.redis.set('DelayJob.counter', val)
+  end
+end
+
+class DBJob
+  def id
+    10
+  end
+
+  def self.find(*args)
+    DBJob.new
+  end
+
+  def calculation_method
+    r = Resque.redis.set('DBJob.counter', "3")
+  end
+end
+
+class UnsupportedDelayJob
+  def work
+    Resque.redis.set('UnsupportedDelayJob.counter', "-1")
+  end
+end
+
 class Time
   # Thanks, Timecop
   class << self

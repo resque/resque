@@ -381,5 +381,9 @@ module Resque
       key.sub("#{redis.namespace}:", '')
     end
   end
+
+  def enable_delay_proxy!
+    require 'resque/delay'
+  end
 end
 
