@@ -92,4 +92,21 @@ describe "Resque::MulitQueue" do
 
     assert_equal processed_queues, queues
   end
+
+  it "namespaces queue key" do
+    foo    = Resque::Queue.new 'foo', redis, coder
+    bar    = Resque::Queue.new 'bar', redis, coder
+    baz    = Resque::Queue.new 'baz', redis, coder
+    queues = [foo, bar, baz]
+
+    namespace = 'redis'
+    redisns   = Redis::Namespace.new(namespace, :redis  => redis)
+    queue     = Resque::MultiQueue.new(queues, redisns)
+
+    queue_name = 'foo'
+    queue_key  = queue.send(:queue_key, queue_name)
+
+    assert queue_key =~ /#{namespace}/
+    assert queue_key =~ /#{queue_name}/
+  end
 end
