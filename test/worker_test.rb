@@ -180,7 +180,29 @@ describe "Resque::Worker" do
 
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
+  
+  it "can work with dynamically added queues with wildcard matching in certain priorities" do
+    worker = Resque::Worker.new("user_*", "*_system", "jobs")
 
+    assert_equal ["jobs"], Resque.queues
+
+    Resque::Job.create(:user_a, GoodJob)            
+    Resque::Job.create(:a_user_not_matched, GoodJob)
+    Resque::Job.create(:a_system, GoodJob)
+    Resque::Job.create(:user_b, GoodJob)            
+    Resque::Job.create(:b_system, GoodJob)
+    Resque::Job.create(:system_not_matched, GoodJob)    
+
+    processed_queues = []
+
+    worker.work(0) do |job|
+      processed_queues << job.queue
+    end
+
+    assert_equal %w( user_a user_b a_system b_system jobs ), processed_queues
+      
+  end
+  
   it "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end

@@ -220,11 +220,11 @@ module Resque
       @queues.map {|queue| queue.include?("*") ? wildcard_queues(queue) : queue }.flatten.uniq
     end
     
-    # Return a list of queues for wildcard matching.
+    # Return a list of queues for partial wildcard matching.
     # This can be useful for dynamically adding new queues with priorities.
     def wildcard_queues(queue)
       return Resque.queues.sort if queue == "*"
-      re = /#{queue}.sub("*", ".*")/i
+      re = /^#{queue.sub("*", ".*")}$/i
       Resque.queues.sort.map {|queue| queue if re =~ queue }.flatten.uniq.compact
     end
 
