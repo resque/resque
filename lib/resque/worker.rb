@@ -171,7 +171,9 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
+        t1 = Time.now
         run_hook :after_fork, job
+        t2 = Time.now
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
@@ -182,7 +184,8 @@ module Resque
         end
         failed!
       else
-        log "done: #{job.inspect}"
+        t3 = Time.now
+        log "done: #{job.inspect} #{t2-t1} #{t3-t2} #{t3-t1}"
       ensure
         yield job if block_given?
       end
