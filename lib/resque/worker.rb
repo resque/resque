@@ -136,11 +136,14 @@ module Resque
           run_hook :before_fork, job
           working_on job
 
+          t1 = Time.now
           if @child = fork
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait(@child)
           else
+            t2 = Time.now
+            puts "Processing #{job.queue} since #{Time.now.to_i} (Time to fork= #{t2 - t1})"
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             perform(job, &block)
             exit! unless @cant_fork
@@ -174,7 +177,9 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
+        t1 = Time.now
         run_hook :after_fork, job
+        t2 = Time.now
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
@@ -185,7 +190,8 @@ module Resque
         end
         failed!
       else
-        log "done: #{job.inspect}"
+        t3 = Time.now
+        log "done: #{job.inspect} #{t2-t1} #{t3-t2} #{t3-t1}"
       ensure
         yield job if block_given?
       end
