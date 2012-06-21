@@ -222,12 +222,13 @@ module Resque
     
     # Return a list of queues for partial wildcard matching.
     # This can be useful for dynamically adding new queues with priorities.
-    def wildcard_queues(queue)
-      return Resque.queues.sort if queue == "*"
-      re = /^#{queue.sub("*", ".*")}$/i
-      Resque.queues.sort.map {|queue| queue if re =~ queue }.flatten.uniq.compact
+    def wildcard_queues(queue_with_wildcards)
+      return Resque.queues.sort if queue_with_wildcards == "*"
+      
+      re = /\A#{Regexp.escape(queue_with_wildcards).sub('\\*','.*')}\Z/
+      Resque.queues.sort.select{ |queue| queue =~ re }
     end
-
+        
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
     def fork
