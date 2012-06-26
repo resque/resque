@@ -27,9 +27,13 @@ end
 # kill it when they end
 #
 
+def remove_when_file_exists(path_to_file)
+  File.delete(path_to_file) if File.exists?(path_to_file)
+end
+
 at_exit do
   next if $!
-
+  
   if defined?(MiniTest)
     exit_code = MiniTest::Unit.new.run(ARGV)
   else
@@ -39,7 +43,8 @@ at_exit do
   processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
   pids = processes.map { |process| process.split(" ")[0] }
   puts "Killing test redis server..."
-  `rm -f #{dir}/dump.rdb #{dir}/dump-cluster.rdb`
+  remove_when_file_exists("test/dump-cluster.rdb")
+  remove_when_file_exists("test/dump.rdb")
   pids.each { |pid| Process.kill("KILL", pid.to_i) }
   exit exit_code
 end

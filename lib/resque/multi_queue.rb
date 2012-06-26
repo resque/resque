@@ -17,14 +17,17 @@ module Resque
       @queues     = queues # since ruby 1.8 doesn't have Ordered Hashes
       @queue_hash = {}
       @redis      = redis
-
+      
       queues.each do |queue|
-        key = @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:" : ""
-        key += queue.redis_name
+        key = queue_name_with_namespace_when_present(queue.redis_name)
         @queue_hash[key] = queue
       end
     end
-
+    
+    def queue_name_with_namespace_when_present(queue_name)
+      @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:#{queue_name}" : queue_name
+    end
+    
     # Pop an item off one of the queues.  This method will block until an item
     # is available. This method returns a tuple of the queue object and job.
     #
@@ -49,7 +52,7 @@ module Resque
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
-          queue = @queue_hash[queue_name]
+          queue = @queue_hash[queue_name_with_namespace_when_present(queue_name)]
           [queue, queue.decode(payload)]
         end
       end
@@ -63,9 +66,9 @@ module Resque
       queue_names = @queues.map {|queue| queue.redis_name }
       queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
       return unless payload
-
+      
       synchronize do
-        queue = @queue_hash[queue_name]
+        queue = @queue_hash[queue_name_with_namespace_when_present(queue_name)]
         [queue, queue.decode(payload)]
       end
     end

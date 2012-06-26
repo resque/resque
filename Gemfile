@@ -2,6 +2,8 @@ source :rubygems
 
 gemspec
 
+gem "debugger"
+
 group :test do
   gem "rake"
   gem "rack-test", "~> 0.5"
