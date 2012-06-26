@@ -440,4 +440,10 @@ describe "Resque::Worker" do
     assert_equal queue2, Resque::Failure.all(0)['queue']
     assert_equal 1, Resque::Failure.count
   end
+
+  it "reconnects to redis after fork" do
+    original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
+    @worker.work(0)
+    assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+  end
 end
