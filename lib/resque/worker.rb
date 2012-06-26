@@ -487,7 +487,6 @@ module Resque
     end
     alias_method :id, :to_s
 
-    # chomp'd hostname of this machine
     def hostname
       Socket.gethostname
     end
