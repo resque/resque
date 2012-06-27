@@ -13,6 +13,8 @@ require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
 
+require 'resque/vendor/utf8_util'
+
 module Resque
   include Helpers
   extend self

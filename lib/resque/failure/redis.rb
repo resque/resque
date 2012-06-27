@@ -8,7 +8,7 @@ module Resque
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload   => payload,
           :exception => exception.class.to_s,
-          :error     => exception.to_s,
+          :error     => UTF8Util.clean(exception.to_s),
           :backtrace => filter_backtrace(Array(exception.backtrace)),
           :worker    => worker.to_s,
           :queue     => queue
