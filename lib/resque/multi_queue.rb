@@ -54,6 +54,10 @@ module Resque
           end
 
           queue_name, payload = value
+
+          # this repairs when the namespace is being used
+          queue_name = [@redis.namespace, queue_name].join(":") if @redis.namespace
+
           queue = @queue_hash[queue_name]
           [queue, queue.decode(payload)]
         end
@@ -76,6 +80,9 @@ module Resque
       return unless payload
 
       synchronize do
+        # this repairs when the namespace is being used
+        queue_name = [@redis.namespace, queue_name].join(":") if @redis.namespace
+
         queue = @queue_hash[queue_name]
         [queue, queue.decode(payload)]
       end
