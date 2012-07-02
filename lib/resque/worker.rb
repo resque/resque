@@ -142,6 +142,7 @@ module Resque
             Process.wait(@child)
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
+            redis.client.reconnect # Don't share connection with parent
             perform(job, &block)
             exit! unless @cant_fork
           end
@@ -209,8 +210,10 @@ module Resque
         queue, job = multi_queue.poll(interval.to_i)
       end
 
-      log! "Found job on #{queue}"
-      Job.new(queue.name, job) if queue && job
+      if queue && job
+        log! "Found job on #{queue.name}"
+        Job.new(queue.name, job)
+      end
     end
 
     # Returns a list of queues to use when searching for a job.

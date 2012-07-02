@@ -47,8 +47,17 @@ module Resque
       else
         queue_names = @queues.map {|queue| queue.redis_name }
         synchronize do
-          value = @redis.blpop(*(queue_names + [1])) until value
+          if Redis::VERSION =~ /^3.0/
+            value = @redis.blpop(queue_names, {:timeout => 1}) until value
+          else
+            value = @redis.blpop(*(queue_names + [1])) until value
+          end
+
           queue_name, payload = value
+
+          # this repairs when the namespace is being used
+          queue_name = [@redis.namespace, queue_name].join(":") if @redis.namespace
+
           queue = @queue_hash[queue_name]
           [queue, queue.decode(payload)]
         end
@@ -61,10 +70,19 @@ module Resque
     # the timeout expires.
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
-      queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
+
+      if Redis::VERSION =~ /^3.0/
+        queue_name, payload = @redis.blpop(queue_names, {:timeout => timeout})
+      else
+        queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
+      end
+
       return unless payload
 
       synchronize do
+        # this repairs when the namespace is being used
+        queue_name = [@redis.namespace, queue_name].join(":") if @redis.namespace
+
         queue = @queue_hash[queue_name]
         [queue, queue.decode(payload)]
       end
