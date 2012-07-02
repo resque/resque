@@ -17,6 +17,8 @@ require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/multi_json_coder'
 
+require 'resque/vendor/utf8_util'
+
 module Resque
   include Helpers
   extend self
