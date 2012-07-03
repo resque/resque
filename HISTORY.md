@@ -6,7 +6,7 @@
 * loosen dependency of redis-namespace to 1.x, support for redis-rb 3.0.x
 * change '%' to '$' in the 'stop program' command for monit
 * UTF8 sanitize exception messages when there's a failure (@brianmario, #507)
-* don't share a redis connection between parent and child (@jsanders, #585)
+* don't share a redis connection between parent and child (@jsanders, #588)
 
 ## 1.20.0 (2012-02-17)
 
