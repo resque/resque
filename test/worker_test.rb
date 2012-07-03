@@ -432,7 +432,7 @@ context "Resque::Worker" do
     assert_equal 1, Resque::Failure.count
   end
 
-  it "reconnects to redis after fork" do
+  test "reconnects to redis after fork" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
