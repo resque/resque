@@ -308,12 +308,28 @@ module Resque
       if @child
         log! "Killing child at #{@child}"
         if system("ps -o pid,state -p #{@child}")
-          Process.kill("KILL", @child) rescue nil
+          find_descendant(@child).each do |d|
+            Process.kill("KILL", d) rescue nil
+          end
         else
           log! "Child #{@child} not found, restarting."
           shutdown
         end
       end
+    end
+
+    def find_descendant( process_id )
+      descendant = []
+      if process_id
+        `ps -o pid --ppid #{process_id}`.each do |line|
+          if line.to_i > 0 
+            descendant << line.to_i
+            sub_descendant = find_descendant( line.to_i )
+            descendant.concat sub_descendant if !sub_descendant.empty?
+          end
+        end
+      end
+      descendant
     end
 
     # are we paused?
@@ -382,17 +398,22 @@ module Resque
 
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker
-      # If we're still processing a job, make sure it gets logged as a
-      # failure.
-      if (hash = processing) && !hash.empty?
-        job = Job.new(hash['queue'], hash['payload'])
-        # Ensure the proper worker is attached to this job, even if
-        # it's not the precise instance that died.
-        job.worker = self
-        job.fail(DirtyExit.new)
+
+      # Multiple workers on a single machine can fail a job, causing
+      # duplicate retries when using retry plugin. Here we're effectively
+      # synchronizing on the srem call to prevent that.
+      if redis.srem(:workers, self)
+        # If we're still processing a job, make sure it gets logged as a
+        # failure.
+        if (hash = processing) && !hash.empty?
+          job = Job.new(hash['queue'], hash['payload'])
+          # Ensure the proper worker is attached to this job, even if
+          # it's not the precise instance that died.
+          job.worker = self
+          job.fail(DirtyExit.new)
+        end
       end
 
-      redis.srem(:workers, self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
 
