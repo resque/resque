@@ -286,7 +286,7 @@ context "Resque::Worker" do
   test "knows when it started" do
     time = Time.now
     @worker.work(0) do
-      assert_equal time.to_s, @worker.started.to_s
+      assert Time.parse(@worker.started) - time < 0.1
     end
   end
 
