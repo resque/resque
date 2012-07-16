@@ -139,7 +139,11 @@ module Resque
           if @child = fork
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            Process.wait(@child)
+            begin
+              Process.waitpid(@child)
+            rescue SystemCallError
+              nil
+            end
           else
             unregister_signal_handlers unless @cant_fork
             procline "Processing #{job.queue} since #{Time.now.to_i}"
