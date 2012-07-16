@@ -437,4 +437,65 @@ context "Resque::Worker" do
     @worker.work(0)
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
+
+
+  test 'SIGTERM' do
+    begin
+      class LongRunningJob
+        @queue = :long_running_job
+        def self.perform(time)
+          $child_pid_writer.write Process.pid
+          $child_pid_writer.close
+          sleep(time)
+        rescue SignalException => e
+          $child_worker_message_writer.write %Q(SignalException caught! #{e.inspect})
+          $child_worker_message_writer.close
+        end
+      end
+
+      $child_pid_reader, $child_pid_writer = IO.pipe
+      $child_worker_message_reader, $child_worker_message_writer = IO.pipe
+
+      Resque.enqueue(LongRunningJob, 2)
+
+      worker_pid = Kernel.fork do
+        # don't hold up the read-end of the pipe
+        $child_pid_reader.close
+        # ensure we actually fork
+        $TESTING = false
+        # reconnect since we just forked
+        Resque.redis.client.reconnect
+
+        worker = Resque::Worker.new(:long_running_job)
+        worker.term_timeout = 1
+
+        worker.work(0)
+        exit!
+      end
+
+      # close writers in parent now that we've forked
+      $child_pid_writer.close
+      $child_worker_message_writer.close
+
+      # give it a moment to start up the worker
+      sleep(0.2)
+
+      # send signal to abort the worker
+      Process.kill('TERM', worker_pid)
+      Process.waitpid(worker_pid)
+
+      # try to get the child pid
+      child_pid = Timeout.timeout(1.0) { $child_pid_reader.read.to_i }
+      assert child_pid > 0
+
+      child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
+      assert !child_still_running
+
+      child_exception = $child_worker_message_reader.read
+      assert_not_equal '', child_exception, 'child did not raise SignalException'
+    ensure
+      $child_pid_reader, $child_pid_writer, $child_worker_message_reader, $child_worker_message_writer = nil, nil, nil, nil
+    end
+  end
+
 end
