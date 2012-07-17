@@ -20,6 +20,8 @@ module Resque
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
 
+    attr_accessor :term_timeout
+
     attr_writer :to_s
 
     # Returns an array of all worker objects.
@@ -137,8 +139,13 @@ module Resque
           if @child = fork
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            Process.wait(@child)
+            begin
+              Process.waitpid(@child)
+            rescue SystemCallError
+              nil
+            end
           else
+            unregister_signal_handlers unless @cant_fork
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             redis.client.reconnect # Don't share connection with parent
             perform(job, &block)
@@ -281,6 +288,18 @@ module Resque
       log! "Registered signals"
     end
 
+    def unregister_signal_handlers
+      trap('TERM', 'DEFAULT')
+      trap('INT', 'DEFAULT')
+
+      begin
+        trap('QUIT', 'DEFAULT')
+        trap('USR1', 'DEFAULT')
+        trap('USR2', 'DEFAULT')
+      rescue ArgumentError
+      end
+    end
+
     # Schedule this worker for shutdown. Will finish processing the
     # current job.
     def shutdown
@@ -299,18 +318,26 @@ module Resque
       @shutdown
     end
 
-    # Kills the forked child immediately, without remorse. The job it
-    # is processing will not be completed.
+    # Kills the forked child immediately with minimal remorse. The job it
+    # is processing will not be completed. Send the child a TERM signal,
+    # wait 5 seconds, and then a KILL signal if it has not quit
     def kill_child
       if @child
-        log! "Killing child at #{@child}"
-        if system("ps -o pid,state -p #{@child}")
-          Process.kill("KILL", @child) rescue nil
+        unless Process.waitpid(@child, Process::WNOHANG)
+          log! "Sending TERM signal to child #{@child}"
+          Process.kill("TERM", @child)
+          (term_timeout.to_f * 10).round.times do |i|
+            sleep(0.1)
+            return if Process.waitpid(@child, Process::WNOHANG)
+          end
+          log! "Sending KILL signal to child #{@child}"
+          Process.kill("KILL", @child)
         else
-          log! "Child #{@child} not found, restarting."
-          shutdown
+          log! "Child #{@child} already quit."
         end
       end
+    rescue SystemCallError
+      log! "Child #{@child} already quit and reaped."
     end
 
     # are we paused?
