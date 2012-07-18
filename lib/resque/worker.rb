@@ -564,7 +564,6 @@ module Resque
     end
 
     # Find Resque worker pids on Windows.
-    #
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
@@ -586,7 +585,6 @@ module Resque
     # Find worker pids - platform independent
     #
     # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
     def get_worker_pids(command)
        active_worker_pids = []
        output = %x[#{command}]  # output format of ps must be ^<PID> <COMMAND WITH ARGS>
