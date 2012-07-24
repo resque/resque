@@ -136,14 +136,20 @@ module Resque
           run_hook :before_fork, job
           working_on job
 
-          if @child = fork
+          thread = Thread.new do
+            fork or begin
+              procline "Processing #{job.queue} since #{Time.now.to_i}"
+              perform(job, &block)
+              exit unless @cant_fork
+              
+              nil
+            end
+          end
+
+          if @child = thread.value
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             Process.wait(@child)
-          else
-            procline "Processing #{job.queue} since #{Time.now.to_i}"
-            perform(job, &block)
-            exit! unless @cant_fork
           end
 
           done_working
