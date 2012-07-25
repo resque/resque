@@ -40,7 +40,11 @@ module Resque
       alias_method :u, :url_path
 
       def path_prefix
-        request.env['SCRIPT_NAME']
+        if request.env['SCRIPT_NAME'] == "" and request.env["HTTP_SCRIPT_NAME"]
+          request.env['HTTP_SCRIPT_NAME']
+        else
+          request.env['SCRIPT_NAME']
+        end
       end
 
       def class_if_current(path = '')
