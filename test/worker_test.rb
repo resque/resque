@@ -469,6 +469,7 @@ context "Resque::Worker" do
 
           worker = Resque::Worker.new(:long_running_job)
           worker.term_timeout = 1
+          worker.term_child = 1
 
           worker.work(0)
           exit!

@@ -22,6 +22,9 @@ module Resque
 
     attr_accessor :term_timeout
 
+    # decide whether to use new_kill_child logic
+    attr_accessor :term_child
+
     attr_writer :to_s
 
     # Returns an array of all worker objects.
@@ -278,7 +281,11 @@ module Resque
 
       begin
         trap('QUIT') { shutdown   }
-        trap('USR1') { kill_child }
+        if term_child
+          trap('USR1') { new_kill_child }
+        else
+          trap('USR1') { kill_child }
+        end
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
@@ -310,7 +317,11 @@ module Resque
     # Kill the child and shutdown immediately.
     def shutdown!
       shutdown
-      kill_child
+      if term_child
+        new_kill_child
+      else
+        kill_child
+      end
     end
 
     # Should this worker shutdown as soon as current job is finished?
@@ -318,10 +329,24 @@ module Resque
       @shutdown
     end
 
+    # Kills the forked child immediately, without remorse. The job it
+    # is processing will not be completed.
+    def kill_child
+      if @child
+        log! "Killing child at #{@child}"
+        if system("ps -o pid,state -p #{@child}")
+          Process.kill("KILL", @child) rescue nil
+        else
+          log! "Child #{@child} not found, restarting."
+          shutdown
+        end
+      end
+    end
+
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
-    def kill_child
+    def new_kill_child
       if @child
         unless Process.waitpid(@child, Process::WNOHANG)
           log! "Sending TERM signal to child #{@child}"
