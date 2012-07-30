@@ -1,0 +1,56 @@
+<% start = params[:start].to_i %>
+<% date_format = "%Y/%m/%d %T %z" %>
+
+<% description = [] %>
+<% description << "class #{params[:class]}" if params[:class] %>
+<% description << "exception #{params[:exception]}" if params[:exception] %>
+<% description << "smart #{params[:smart]}" if params[:smart] %>
+<h1>Failed Jobs for <%= description.join(', ')  %></h1>
+
+<ul class='failed'>
+  <%for job, index in @jobs %>
+    <li>
+      <dl>
+        <% if job.nil? %>
+        <dt>Error</dt>
+        <dd>Job <%= index%> could not be parsed; perhaps it contains invalid JSON?</dd>
+        <% else %>
+        <dt>Worker</dt>
+        <dd>
+          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime(date_format) %></span></b>
+          <% if job['retried_at'] %>
+            <div class='retried'>
+              Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(date_format) %></span></b>
+              <a href="<%= u "failed/remove/#{index}" %>" class="remove" rel="remove">Remove</a>
+            </div>
+          <% else %>
+            <div class='controls'>
+              <a href="<%= u "failed/requeue/#{index}" %>" rel="retry">Retry</a>
+              or
+              <a href="<%= u "failed/remove/#{index}" %>" rel="remove">Remove</a>
+            </div>
+          <% end %>
+        </dd>
+        <dt>Class</dt>
+        <dd><code><%= job['payload'] ? job['payload']['class'] : 'nil' %></code></dd>
+        <dt>Arguments</dt>
+        <dd><pre><%=h job['payload'] ? show_args(job['payload']['args']) : 'nil' %></pre></dd>
+        <dt>Exception</dt>
+        <dd><code><%= job['exception'] %></code></dd>
+        <dt>Error</dt>
+        <dd class='error'>
+          <% if job['backtrace'] %>
+            <a href="#" class="backtrace"><%= h(job['error']) %></a>
+            <pre style='display:none'><%=h job['backtrace'].join("\n") %></pre>
+          <% else %>
+            <%=h job['error'] %>
+          <% end %>
+        </dd>
+        <% end %>
+      </dl>
+      <div class='r'>
+      </div>
+    </li>
+  <%end%>
+</ul>
+

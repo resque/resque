@@ -173,6 +173,46 @@ module Resque
       redirect u('queues')
     end
 
+    get "/failed/overview/?" do
+      show :failed_overview
+    end
+
+    get "/failed/overview/list/?" do
+      @jobs = Resque::Failure.backend.each(:class => params[:class],
+                                           :exception => params[:exception],
+                                           :smart => params[:smart],
+                                           :skip => params[:start].to_i)
+
+      show :failed_overview_list
+    end
+
+    get "/failed/overview/remove/?" do
+      Resque::Failure.backend.action_by(:class => params[:class],
+                                        :exception => params[:exception],
+                                        :smart => params[:smart],
+                                        :action => :mark_for_remove)
+
+      redirect u('failed/overview')
+    end
+
+    get "/failed/overview/requeue/?" do
+      Resque::Failure.backend.action_by(:class => params[:class],
+                                        :exception => params[:exception],
+                                        :smart => params[:smart],
+                                        :action => :requeue)
+
+      redirect u('failed/overview')
+    end
+
+    get "/failed/overview/requeue_and_remove/?" do
+      Resque::Failure.backend.action_by(:class => params[:class],
+                                        :exception => params[:exception],
+                                        :smart => params[:smart],
+                                        :action => :requeue_and_remove)
+
+      redirect u('failed/overview')
+    end
+
     get "/failed/?" do
       if Resque::Failure.url
         redirect Resque::Failure.url

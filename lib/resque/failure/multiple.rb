@@ -1,8 +1,11 @@
+require 'resque/failure/extra'
+
 module Resque
   module Failure
     # A Failure backend that uses multiple backends
     # delegates all queries to the first backend
     class Multiple < Base
+      extend Resque::Failure::Extra::MultipleBackend
 
       class << self
         attr_accessor :classes

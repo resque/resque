@@ -1,8 +1,12 @@
+require 'resque/failure/extra'
+
 module Resque
   module Failure
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class Redis < Base
+      extend Resque::Failure::Extra
+
       def save
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),

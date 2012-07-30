@@ -41,7 +41,10 @@
     </tr>
     <% end %>
     <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
-      <td class='queue failed'><a class="queue" href="<%= u :failed %>">failed</a></td>
+      <td class='queue failed'>
+	<a class="queue" href="<%= u :failed %>">failed</a>
+	<a class="queue" href="<%= u 'failed/overview' %>">(overview)</a>
+      </td>
       <td class='size'><%= Resque::Failure.count %></td>
     </tr>
   </table>

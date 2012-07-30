@@ -1,0 +1,70 @@
+<% stats = Resque::Failure.backend.stats %>
+<h1>Failed Overview </h1>
+<p>failed: <%= Resque::Failure.count %></p>
+
+<h2>Class</h2>
+<table>
+  <% for klass, count in stats["class"] %>
+    <% params = "?class=#{klass}" %>
+    <tr>
+      <th>
+	<a href="<%= u 'failed/overview/list', params %>"><%= klass %></a>
+      </th>
+      <td>
+	<%= count %>
+      </td>
+      <td>
+	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
+	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
+	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
+<h2>Class/Exception</h2>
+<table>
+  <% for key, count in stats["class_exception"] %>
+    <% klass, exception = key %>
+    <% params = "?class=#{klass}&exception=#{exception}" %>
+    <tr>
+      <th>
+	<a href="<%= u 'failed/overview/list', params %>">
+	  <%= key.join(' / ') %>
+	</a>
+      </th>
+      <td>
+	<%= count %>
+      </td>
+      <td>
+	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
+	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
+	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
+<h2>Class/Smart</h2>
+<table>
+  <% for key, count in stats["class_smart"] %>
+    <% klass, smart = key %>
+    <% params = "?class=#{klass}&smart=#{smart}" %>
+    <tr>
+      <th>
+	<a href="<%= u 'failed/overview/list', params %>">
+	  <%= key.join(' / ') %>
+	</a>
+      </th>
+      <td>
+	<%= count %>
+      </td>
+      <td>
+	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
+	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
+	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+      </td>
+    </tr>
+  <% end %>
+</table>
+
