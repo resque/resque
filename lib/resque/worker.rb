@@ -148,7 +148,7 @@ module Resque
               nil
             end
           else
-            unregister_signal_handlers unless @cant_fork
+            unregister_signal_handlers if !@cant_fork && term_child
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             redis.client.reconnect # Don't share connection with parent
             perform(job, &block)
