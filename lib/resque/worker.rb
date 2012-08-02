@@ -433,7 +433,7 @@ module Resque
     def working_on(job)
       data = encode \
         :queue   => job.queue,
-        :run_at  => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
+        :run_at  => Time.now.rfc2822,
         :payload => job.payload
       redis.set("worker:#{self}", data)
     end
@@ -474,7 +474,7 @@ module Resque
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.to_s)
+      redis.set("worker:#{self}:started", Time.now.rfc2822)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
