@@ -439,6 +439,66 @@ context "Resque::Worker" do
   end
 
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
+    test "old signal handling is the default" do
+      rescue_time = nil
+
+      begin
+        class LongRunningJob
+          @queue = :long_running_job
+
+          def self.perform( run_time, rescue_time=nil )
+            Resque.redis.client.reconnect # get its own connection
+            Resque.redis.rpush( 'sigterm-test:start', Process.pid )
+            sleep run_time
+            Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
+          rescue Resque::TermException => e
+            Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
+            sleep rescue_time unless rescue_time.nil?
+          ensure
+            puts 'fuuuu'
+            Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
+          end
+        end
+
+        Resque.enqueue( LongRunningJob, 5, rescue_time )
+
+        worker_pid = Kernel.fork do
+          # ensure we actually fork
+          $TESTING = false
+          # reconnect since we just forked
+          Resque.redis.client.reconnect
+
+          worker = Resque::Worker.new(:long_running_job)
+
+          worker.work(0)
+          exit!
+        end
+
+        # ensure the worker is started
+        start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
+        assert_not_nil start_status
+        child_pid = start_status[1].to_i
+        assert_operator child_pid, :>, 0
+
+        # send signal to abort the worker
+        Process.kill('TERM', worker_pid)
+        Process.waitpid(worker_pid)
+
+        # wait to see how it all came down
+        result = Resque.redis.blpop( 'sigterm-test:result', 5 )
+        assert_nil result
+
+        # ensure that the child pid is no longer running
+        child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
+        assert !child_still_running
+      ensure
+        remaining_keys = Resque.redis.keys('sigterm-test:*') || []
+        Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
+      end
+    end
+  end
+
+  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
     [SignalException, Resque::TermException].each do |exception|
       {
         'cleanup occurs in allotted time' => nil,
