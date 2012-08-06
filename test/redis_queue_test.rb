@@ -2,8 +2,6 @@ require 'test_helper'
 require 'resque/queue'
 
 describe "Resque::Queue" do
-  include Test::Unit::Assertions
-
   class Thing
     attr_reader :inside
 
@@ -140,7 +138,7 @@ describe "Resque::Queue" do
     queue1 << x
     queue1.destroy
 
-    assert_raise Resque::QueueDestroyed do
+    assert_raises Resque::QueueDestroyed do
       queue1 << x
     end
   end
