@@ -63,7 +63,7 @@ module Resque
       @paused       = false
       @latch.release
     end
-    
+
     def shutdown
       @should_shutdown = true
     end
