@@ -13,7 +13,20 @@ module Resque
         self.class.ran << self
       end
     end
-    
+
+    class Resumer
+      LATCHES = {}
+
+      def initialize(latch)
+        @latch_id          = latch.object_id
+        LATCHES[@latch_id] = latch
+      end
+
+      def run
+        LATCHES[@latch_id].release
+      end
+    end
+
     before do
       Actionable.ran.clear
     end
@@ -28,7 +41,7 @@ module Resque
       assert_raises Timeout::Error do
         Timeout.timeout(1) { c.consume }
       end
-      
+
       assert_equal 1, Actionable.ran.length
       assert q.empty?
     end
@@ -59,17 +72,19 @@ module Resque
       q.pop until q.empty?
 
       c = Consumer.new(q, 1)
+      consumed = Consumer::Latch.new
 
       c.pause
       t = Thread.new { c.consume }
-      # wait until queue blocks
-      sleep 1
+      Thread.pass until c.paused?
 
-      q << Actionable.new
+      # A job that unblocks the main thread
+      q << Resumer.new(consumed)
       c.resume
-      # wait until queue blocks
-      Thread.pass until t.status != "sleep"
-      sleep 1
+
+      # wait until consumed
+      consumed.await
+
       assert_equal 0, q.length, 'all jobs should be consumed'
       t.kill
     end

@@ -1,17 +1,23 @@
 module Resque
   class Consumer
     class Latch # :nodoc:
-      def initialize
-        @mutex = Mutex.new
-        @cond  = ConditionVariable.new
+      def initialize(count = 1)
+        @count = count
+        @lock  = Monitor.new
+        @cv    = @lock.new_cond
       end
 
       def release
-        @mutex.synchronize { @cond.broadcast }
+        @lock.synchronize do
+          @count -= 1 if @count > 0
+          @cv.broadcast if @count.zero?
+        end
       end
 
       def await
-        @mutex.synchronize { @cond.wait @mutex }
+        @lock.synchronize do
+          @cv.wait_while { @count > 0 }
+        end
       end
     end
 
@@ -57,7 +63,7 @@ module Resque
       @paused       = false
       @latch.release
     end
-    
+
     def shutdown
       @should_shutdown = true
     end
