@@ -13,7 +13,7 @@ module Resque
         self.class.ran << self
       end
     end
-    
+
     before do
       Actionable.ran.clear
     end
@@ -28,7 +28,7 @@ module Resque
       assert_raises Timeout::Error do
         Timeout.timeout(1) { c.consume }
       end
-      
+
       assert_equal 1, Actionable.ran.length
       assert q.empty?
     end
