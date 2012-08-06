@@ -7,4 +7,7 @@ module Resque
 
   # Raised when a worker was killed while processing a job.
   class DirtyExit < RuntimeError; end
+
+  # Raised when child process is TERM'd so job can rescue this to do shutdown work.
+  class TermException < SignalException; end
 end

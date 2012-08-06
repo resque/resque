@@ -1,3 +1,13 @@
+## 1.21.0 (2012-07-02)
+
+* Add a flag to make sure failure hooks are only ran once (jakemack, #546)
+* Support updated MultiJSON API (@twinturbo)
+* Fix worker logging in monit example config (@twinturbo)
+* loosen dependency of redis-namespace to 1.x, support for redis-rb 3.0.x
+* change '%' to '$' in the 'stop program' command for monit
+* UTF8 sanitize exception messages when there's a failure (@brianmario, #507)
+* don't share a redis connection between parent and child (@jsanders, #588)
+
 ## 1.20.0 (2012-02-17)
 
 * Fixed demos for ruby 1.9 (@BMorearty, #445)
