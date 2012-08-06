@@ -420,4 +420,45 @@ describe "Resque::Job all hooks" do
       "oh no"
     ]
   end
+
+  class ::CallbacksInline
+    @queue = :callbacks_inline
+
+    def self.before_perform_record_history(history, count)
+      history << :before_perform
+      count['count'] += 1
+    end
+
+    def self.after_perform_record_history(history, count)
+      history << :after_perform
+      count['count'] += 1
+    end
+
+    def self.around_perform_record_history(history, count)
+      history << :start_around_perform
+      count['count'] += 1
+      yield
+      history << :finish_around_perform
+      count['count'] += 1
+    end
+
+    def self.perform(history, count)
+      history << :perform
+      $history = history
+      $count = count
+    end
+  end
+
+  it "it runs callbacks when inline is true" do
+    begin
+      Resque.inline = true
+      # Sending down two parameters that can be passed and updated by reference
+      result = Resque.enqueue(CallbacksInline, [], {'count' => 0})
+      assert_equal true, result, "perform returned true"
+      assert_equal $history, [:before_perform, :start_around_perform, :perform, :finish_around_perform, :after_perform]
+      assert_equal 4, $count['count']
+    ensure
+      Resque.inline = false
+    end
+  end
 end
