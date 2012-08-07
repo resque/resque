@@ -61,9 +61,17 @@ module Resque
 
       Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
-      server
+      Redis::Namespace.new(server.namespace,
+        :redis => Redis.new(:host        => server.redis.client.host,
+                            :port        => server.redis.client.port,
+                            :db          => server.redis.client.db,
+                            :thread_safe => true))
     else
-      Redis::Namespace.new(:resque, :redis => server)
+      Redis::Namespace.new(:resque,
+        :redis => Redis.new(:host        => server.client.host,
+                            :port        => server.client.port,
+                            :db          => server.client.db,
+                            :thread_safe => true))
     end
   end
 

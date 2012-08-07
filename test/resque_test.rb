@@ -25,7 +25,34 @@ describe "Resque" do
     new_redis = Redis.new(:host => "localhost", :port => 9736)
     new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
     Resque.redis = new_namespace
-    assert_equal new_namespace, Resque.redis
+
+    assert_equal new_namespace.namespace, Resque.redis.namespace
+    [:db, :host, :port].each do |part|
+      assert_equal new_namespace.redis.client.send(part), Resque.redis.client.send(part)
+    end
+  end
+
+  describe "#create_connection" do
+    it "always creates a new connection with a Redis::Namespace" do
+      new_redis      = Redis.new(:host => "localhost", :port => 9736)
+      namespace      = Redis::Namespace.new("namespace", :redis => new_redis)
+      new_connection = Resque.create_connection(namespace)
+
+      refute_equal namespace, new_connection
+      assert_equal "namespace", new_connection.namespace
+      [:db, :host, :port].each do |part|
+        assert_equal namespace.redis.client.send(part), new_connection.redis.client.send(part)
+      end
+    end
+
+    it "always creates a new connection with a Redis object" do
+      new_redis      = Redis.new(:host => "localhost", :port => 9736)
+      new_connection = Resque.create_connection(new_redis)
+      refute_equal new_connection.redis, new_redis
+      [:db, :host, :port].each do |part|
+        assert_equal new_redis.client.send(part), new_connection.redis.client.send(part)
+      end
+    end
   end
 
   it "can put jobs on a queue" do
