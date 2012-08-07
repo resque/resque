@@ -36,5 +36,26 @@ module Resque
 
       assert_equal conn, t.join.value
     end
+
+    it "yields a connection to a block" do
+      cp = ConnectionPool.new(REDIS_URL, 1)
+      c = nil
+      cp.with_connection do |conn|
+        c = conn
+      end
+      assert_equal c, cp.checkout
+    end
+
+    it 'checks in the connection if there is an exception' do
+      cp = ConnectionPool.new(REDIS_URL, 1)
+      c = nil
+      assert_raises(RuntimeError) do
+        cp.with_connection do |conn|
+          c = conn
+          raise
+        end
+      end
+      assert_equal c, cp.checkout
+    end
   end
 end

@@ -35,6 +35,13 @@ module Resque
       end
     end
 
+    def with_connection
+      conn = checkout
+      yield(conn)
+    ensure
+      checkin(conn)
+    end
+
     private
     def checked_out_conns
       @conns.find_all {|k, v| v }.map(&:first)
