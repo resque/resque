@@ -57,5 +57,14 @@ module Resque
       end
       assert_equal c, cp.checkout
     end
+
+    it 'is fork aware' do
+      cp = ConnectionPool.new(REDIS_URL, 1)
+      conn = cp.checkout
+
+      Process.waitpid fork {
+        assert cp.checkout
+      }
+    end
   end
 end

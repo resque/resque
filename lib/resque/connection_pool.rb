@@ -8,7 +8,9 @@ module Resque
       @url     = url
       @size    = size
       @timeout = timeout
-      @conns   = {}
+      @conns   = Hash.new { |h,k|
+        h[Process.pid] = {}
+      }
     end
 
     def checkout
@@ -18,12 +20,12 @@ module Resque
         Timeout.timeout(@timeout) do
           @cv.wait_while { checked_out_conns.length >= @size }
         end
-        if @conns.size < @size
+        if conns.size < @size
           conn = Resque.create_connection(@url)
         else
-          conn = @conns.find {|k, v| !v }.first
+          conn = conns.find {|k, v| !v }.first
         end
-        @conns[conn] = true
+        conns[conn] = true
       end
 
       conn
@@ -31,7 +33,7 @@ module Resque
     
     def checkin(conn)
       @lock.synchronize do
-        @conns[conn] = false
+        conns[conn] = false
       end
     end
 
@@ -44,7 +46,11 @@ module Resque
 
     private
     def checked_out_conns
-      @conns.find_all {|k, v| v }.map(&:first)
+      conns.find_all {|k, v| v }.map(&:first)
+    end
+
+    def conns
+      @conns[Process.pid]
     end
   end
 end
