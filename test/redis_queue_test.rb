@@ -148,6 +148,6 @@ describe "Resque::Queue" do
   end
 
   def pipe
-    [Resque::Queue.new('foo', Resque.create_connection(REDIS_URL)), Resque::Queue.new('foo', Resque.create_connection(REDIS_URL))]
+    [Resque::Queue.new('foo', Resque.create_connection), Resque::Queue.new('foo', Resque.create_connection)]
   end
 end
