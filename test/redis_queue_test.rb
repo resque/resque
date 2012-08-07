@@ -32,10 +32,10 @@ describe "Resque::Queue" do
   it "blocks on poll" do
     queue = q
 
-    t = Thread.new { queue.poll(1) }
     x = Thing.new
-
     queue.push x
+    t = Thread.new { queue.poll(1) }
+
     assert_equal [queue, x], t.join.value
   end
 
