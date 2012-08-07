@@ -59,6 +59,7 @@ module Resque
     end
 
     it 'is fork aware' do
+      skip if jruby?
       cp = ConnectionPool.new(REDIS_URL, 1)
       conn = cp.checkout
 

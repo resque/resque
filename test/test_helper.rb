@@ -136,3 +136,7 @@ class Time
 
   self.fake_time = nil
 end
+
+def jruby?
+  defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+end
