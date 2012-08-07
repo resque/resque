@@ -2,12 +2,12 @@ require 'test_helper'
 
 describe "Resque" do
   before do
+    @original_redis = Resque.redis
     Resque.redis.flushall
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
-    @original_redis = Resque.redis
   end
 
   after do
@@ -26,8 +26,6 @@ describe "Resque" do
     new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
     Resque.redis = new_namespace
     assert_equal new_namespace, Resque.redis
-
-    Resque.redis = 'localhost:9736/namespace'
   end
 
   it "can put jobs on a queue" do

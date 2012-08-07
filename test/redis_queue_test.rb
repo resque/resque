@@ -30,13 +30,13 @@ describe "Resque::Queue" do
   end
 
   it "blocks on poll" do
-    queue = q
+    read, write = pipe
 
+    t = Thread.new { read.poll(5) }
     x = Thing.new
-    queue.push x
-    t = Thread.new { queue.poll(1) }
+    write.push x
 
-    assert_equal [queue, x], t.join.value
+    assert_equal [read, x], t.join.value
   end
 
   it "returns nil on poll when timing out" do
@@ -145,5 +145,9 @@ describe "Resque::Queue" do
 
   def q
     Resque::Queue.new 'foo', Resque.redis
+  end
+
+  def pipe
+    [Resque::Queue.new('foo', Resque.create_connection(REDIS_URL)), Resque::Queue.new('foo', Resque.create_connection(REDIS_URL))]
   end
 end
