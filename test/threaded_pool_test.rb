@@ -1,7 +1,5 @@
 require "test_helper"
 
-Thread.abort_on_exception = true
-
 module Resque
 
   describe "ThreadedPool" do

@@ -27,6 +27,8 @@ end
 # kill it when they end
 #
 
+Thread.abort_on_exception = true
+
 at_exit do
   next if $!
 
