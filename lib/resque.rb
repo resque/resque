@@ -39,6 +39,7 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
+    STDERR.puts "WARNING: `Resque.redis=` is deprecated. Please use `Resque.create_pool` instead"
     create_pool(server)
   end
 
