@@ -122,6 +122,7 @@ ensure
   Resque::Failure.backend = previous_backend
 end
 
+require 'time'
 class Time
   # Thanks, Timecop
   class << self
