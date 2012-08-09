@@ -39,10 +39,15 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
+    create_pool(server)
+  end
+
+  def create_pool(server = Resque.server, size = 5, timeout = nil)
     @server = server
     @redis  = create_connection
+    @pool   = ConnectionPool.new(@redis, size, timeout)
     @queues = Hash.new { |h,name|
-      h[name] = Resque::Queue.new(name, @redis, coder)
+      h[name] = Resque::Queue.new(name, @pool, coder)
     }
   end
 
@@ -92,6 +97,11 @@ module Resque
     return @redis if @redis
     self.redis = Redis.respond_to?(:connect) ? Redis.connect : "localhost:6379"
     self.redis
+  end
+
+  def pool
+    return @pool if @pool
+    @pool = Resque::ConnectionPool.new(Resque.redis)
   end
 
   def redis_id

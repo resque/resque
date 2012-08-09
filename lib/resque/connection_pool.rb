@@ -2,7 +2,7 @@ module Resque
   class ConnectionPool
     attr_reader :size
 
-    def initialize(url, size, timeout = nil)
+    def initialize(url = Resque.redis, size = 5, timeout = nil)
       @lock    = Monitor.new
       @cv      = @lock.new_cond
       @url     = url
