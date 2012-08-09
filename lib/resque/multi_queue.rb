@@ -11,12 +11,12 @@ module Resque
 
     ###
     # Create a new MultiQueue using the +queues+ from the +redis+ connection
-    def initialize(queues, redis = Resque.redis)
+    def initialize(queues, pool = Resque.pool)
       super()
 
       @queues     = queues # since ruby 1.8 doesn't have Ordered Hashes
       @queue_hash = {}
-      @redis      = redis
+      @pool       = pool
 
       queues.each do |queue|
         @queue_hash[queue.redis_name] = queue
@@ -45,7 +45,7 @@ module Resque
       else
         queue_names = @queues.map {|queue| queue.redis_name }
         synchronize do
-          value = @redis.blpop(*(queue_names + [1])) until value
+          value = @pool.with_connection {|pool| pool.blpop(*(queue_names + [1])) } until value
           queue_name, payload = value
           queue = @queue_hash[queue_name]
           [queue, queue.decode(payload)]
@@ -59,7 +59,7 @@ module Resque
     # the timeout expires.
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
-      queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
+      queue_name, payload = @pool.with_connection {|pool| pool.blpop(*(queue_names + [timeout])) }
       return unless payload
 
       synchronize do

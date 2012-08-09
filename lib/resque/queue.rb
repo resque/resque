@@ -18,15 +18,17 @@ module Resque
     ###
     # Create a new Queue object with +name+ on +redis+ connection, and using
     # the +coder+ for encoding and decoding objects that are stored in redis.
-    def initialize name, redis = Resque.redis, coder = Marshal
+    def initialize name, pool = Resque.pool, coder = Marshal
       super()
       @name       = name
       @redis_name = "queue:#{@name}"
-      @redis      = redis
+      @pool       = pool
       @coder      = coder
       @destroyed  = false
 
-      @redis.sadd(:queues, @name)
+      @pool.with_connection do |conn|
+        conn.sadd(:queues, @name)
+      end
     end
 
     # Add +object+ to the queue
@@ -34,8 +36,8 @@ module Resque
     def push object
       raise QueueDestroyed if destroyed?
 
-      synchronize do
-        @redis.rpush @redis_name, encode(object)
+      @pool.with_connection do |conn|
+        conn.rpush @redis_name, synchronize {encode(object) }
       end
     end
 
@@ -47,13 +49,15 @@ module Resque
     def slice start, length
       if length == 1
         synchronize do
-          decode @redis.lindex @redis_name, start
+          decode(@pool.with_connection {|conn| conn.lindex(@redis_name , start) })
         end
       else
-        synchronize do
-          Array(@redis.lrange(@redis_name, start, start + length - 1)).map do |item|
-            decode item
+        Array(
+          @pool.with_connection do |conn|
+            conn.lrange(@redis_name, start, start + length - 1)
           end
+        ).map do |item|
+          synchronize {decode item }
         end
       end
     end
@@ -65,16 +69,12 @@ module Resque
     # pop, a ThreadError is raised.
     def pop non_block = false
       if non_block
-        synchronize do
-          value = @redis.lpop(@redis_name)
-          raise ThreadError unless value
-          decode value
-        end
+        value = @pool.with_connection {|pool| pool.lpop(@redis_name) }
+        raise ThreadError unless value
+        synchronize {decode value }
       else
-        synchronize do
-          value = @redis.blpop(@redis_name, 1) until value
-          decode value.last
-        end
+        value = @pool.with_connection {|pool| pool.blpop(@redis_name, 1) } until value
+        synchronize {decode value.last }
       end
     end
 
@@ -83,7 +83,7 @@ module Resque
     # Blocks for +timeout+ seconds if the queue is empty, and returns nil if
     # the timeout expires.
     def poll(timeout)
-      queue_name, payload = @redis.blpop(@redis_name, timeout)
+      queue_name, payload = @pool.with_connection {|pool| pool.blpop(@redis_name, timeout) }
       return unless payload
 
       synchronize do
@@ -93,7 +93,7 @@ module Resque
 
     # Get the length of the queue
     def length
-      @redis.llen @redis_name
+      @pool.with_connection {|pool| pool.llen @redis_name }
     end
     alias :size :length
 
@@ -109,8 +109,10 @@ module Resque
     # B and you delete Queue A, pushing to Queue B will have unknown side
     # effects. Queue A will be marked destroyed, but Queue B will not.
     def destroy
-      @redis.del @redis_name
-      @redis.srem(:queues, @name)
+      @pool.with_connection do |conn|
+        conn.del @redis_name
+        conn.srem(:queues, @name)
+      end
       @destroyed = true
     end
 

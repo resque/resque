@@ -144,10 +144,10 @@ describe "Resque::Queue" do
   end
 
   def q
-    Resque::Queue.new 'foo', Resque.redis
+    Resque::Queue.new 'foo'
   end
 
   def pipe
-    [Resque::Queue.new('foo', Resque.create_connection), Resque::Queue.new('foo', Resque.create_connection)]
+    [Resque::Queue.new('foo'), Resque::Queue.new('foo')]
   end
 end
