@@ -20,10 +20,11 @@ module Resque
         Timeout.timeout(@timeout) do
           @cv.wait_while { checked_out_conns.length >= @size }
         end
-        if conns.size < @size
+        available_conns = conns.find {|k, v| !v }
+        if conns.size < @size && available_conns.nil?
           conn = Resque.create_connection(@url)
         else
-          conn = conns.find {|k, v| !v }.first
+          conn = available_conns.first
         end
         conns[conn] = true
       end

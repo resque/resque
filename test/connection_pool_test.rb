@@ -113,5 +113,13 @@ module Resque
         refute_equal "fatal", e.class.to_s, e.message
       end
     end
+
+    it "reuse existing connections first if available" do
+      cp   = ConnectionPool.new(REDIS_URL, 2)
+      conn = nil
+      cp.with_connection {|c| conn = c }
+
+      assert_equal conn, cp.checkout, "Does not use the same connection"
+    end
   end
 end
