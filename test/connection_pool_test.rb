@@ -93,5 +93,25 @@ module Resque
 
       assert cp.checkout, "Connection should not be nil"
     end
+
+    it "avoids deadlocks" do
+      cp = ConnectionPool.new(REDIS_URL, 2)
+      cp.with_connection {|conn| conn.rpush(:foo, "hello") }
+
+      threads = []
+      5.times do
+        threads << Thread.new do
+          cp.with_connection do |conn|
+            conn.blpop(:foo, 1)
+          end
+        end
+      end
+
+      begin
+        threads.each {|t| t.join }
+      rescue Exception => e
+        refute_equal "fatal", e.class.to_s, e.message
+      end
+    end
   end
 end

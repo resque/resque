@@ -34,6 +34,7 @@ module Resque
     def checkin(conn)
       @lock.synchronize do
         conns[conn] = false
+        @cv.broadcast
       end
     end
 
