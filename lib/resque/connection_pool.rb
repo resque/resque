@@ -41,7 +41,7 @@ module Resque
       conn = checkout
       yield(conn)
     ensure
-      checkin(conn)
+      checkin(conn) if conn
     end
 
     private

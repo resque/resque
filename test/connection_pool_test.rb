@@ -67,5 +67,31 @@ module Resque
         assert cp.checkout
       }
     end
+
+    it "only checkin a connection if checkout succeeded" do
+      class MockRedis
+        def initialize(server)
+          @server = Resque.create_connection(server)
+          @mocked = false
+        end
+
+        def method_missing(meth, *args, &block)
+          # simulate failure
+          unless @mocked
+            @mocked = true
+            raise "throw an error"
+          end
+
+          @server.send(meth, *args, &block)
+        end
+      end
+      cp = ConnectionPool.new(MockRedis.new(REDIS_URL), 1)
+      begin
+        cp.with_connection {|conn| }
+      rescue
+      end
+
+      assert cp.checkout, "Connection should not be nil"
+    end
   end
 end
