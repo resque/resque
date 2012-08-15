@@ -60,25 +60,27 @@ module Resque
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
+        redis = create_redis(host, port, db)
       end
       namespace ||= :resque
 
       Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
       Redis::Namespace.new(server.namespace,
-        :redis => Redis.new(:host        => server.redis.client.host,
-                            :port        => server.redis.client.port,
-                            :db          => server.redis.client.db,
-                            :thread_safe => true))
+        :redis => create_redis(server.client.host, server.client.port, server.client.db))
     else
       Redis::Namespace.new(:resque,
-        :redis => Redis.new(:host        => server.client.host,
-                            :port        => server.client.port,
-                            :db          => server.client.db,
-                            :thread_safe => true))
+        :redis => create_redis(server.client.host, server.client.port, server.client.db))
     end
+  end
+
+  def create_redis(host, port, db)
+    require 'logger'
+    Redis.new(:host        => host,
+              :port        => port,
+              :db          => db,
+              :thread_safe => true,
+              :logger      => Logger.new(STDOUT))
   end
 
   def server
