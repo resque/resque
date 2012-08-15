@@ -501,9 +501,19 @@ module Resque
     def worker_pids
       if RUBY_PLATFORM =~ /solaris/
         solaris_worker_pids
+      elsif RUBY_PLATFORM =~ /mingw32/
+        windows_worker_pids     
       else
         linux_worker_pids
       end
+    end
+
+    # Find Resque worker pids on Windows.
+    #
+    # Returns an Array of string pids of all the other workers on this
+    # machine. Useful when pruning dead workers on startup.
+    def windows_worker_pids
+      `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split("\n").select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
     end
 
     # Find Resque worker pids on Linux and OS X.
