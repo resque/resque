@@ -2,7 +2,7 @@ require 'test_helper'
 
 describe "Resque::Worker" do
   before do
-    Resque.redis = Resque.redis # reset state in Resque object
+    Resque.create_pool(Resque.redis) # reset state in Resque object
     Resque.redis.flushall
 
     Resque.before_first_fork = nil

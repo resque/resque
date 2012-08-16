@@ -11,13 +11,13 @@ describe "Resque" do
   end
 
   after do
-    Resque.redis = @original_redis
+    Resque.create_pool(@original_redis)
   end
 
   it "can set a namespace through a url-like string" do
     assert Resque.redis
     assert_equal :resque, Resque.redis.namespace
-    Resque.redis = 'localhost:9736/namespace'
+    Resque.create_pool('localhost:9736/namespace')
     assert_equal 'namespace', Resque.redis.namespace
   end
 
