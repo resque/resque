@@ -19,6 +19,7 @@ require 'resque/multi_json_coder'
 require 'resque/consumer'
 require 'resque/threaded_pool'
 require 'resque/connection_pool'
+require 'resque/sized_stack'
 
 require 'resque/vendor/utf8_util'
 
