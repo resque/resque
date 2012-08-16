@@ -1,3 +1,4 @@
+require 'logger'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -76,12 +77,13 @@ module Resque
   end
 
   def create_redis(host, port, db)
-    require 'logger'
+    logger = Logger.new(STDOUT)
+    logger.level = Logger::WARN
     Redis.new(:host        => host,
               :port        => port,
               :db          => db,
               :thread_safe => true,
-              :logger      => Logger.new(STDOUT))
+              :logger      => logger)
   end
 
   def server
