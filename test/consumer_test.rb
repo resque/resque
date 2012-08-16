@@ -27,6 +27,19 @@ module Resque
       end
     end
 
+    class Poison
+      CONSUMERS = {}
+
+      def initialize(consumer)
+        @consumer_id            = consumer.object_id
+        CONSUMERS[@consumer_id] = consumer
+      end
+
+      def run
+        CONSUMERS[@consumer_id].shutdown
+      end
+    end
+
     before do
       Actionable.ran.clear
     end
@@ -63,8 +76,7 @@ module Resque
       # consumed
       sleep 2
       assert_equal 1, q.length
-      t.kill
-      q.pop
+      q << Poison.new(c)
     end
 
     it "resumes" do
@@ -86,7 +98,7 @@ module Resque
       consumed.await
 
       assert_equal 0, q.length, 'all jobs should be consumed'
-      t.kill
+      q << Poison.new(c) # gracefully shutdown the consumer
     end
 
     it "shuts down" do
@@ -105,7 +117,7 @@ module Resque
       assert_equal 1, q.length
       assert c.shutdown?
       q.pop until q.empty?
-      t.kill
+      q << Poison.new(c)
     end
   end
 end
