@@ -73,7 +73,7 @@ module Resque
         raise ThreadError unless value
         synchronize {decode value }
       else
-        value = @pool.with_connection {|pool| pool.blpop(@redis_name, 1) } until value
+        value = @pool.with_connection {|pool| pool.blpop(@redis_name, :timeout => 1) } until value
         synchronize {decode value.last }
       end
     end
@@ -83,7 +83,7 @@ module Resque
     # Blocks for +timeout+ seconds if the queue is empty, and returns nil if
     # the timeout expires.
     def poll(timeout)
-      queue_name, payload = @pool.with_connection {|pool| pool.blpop(@redis_name, timeout) }
+      queue_name, payload = @pool.with_connection {|pool| pool.blpop(@redis_name, :timeout => timeout) }
       return unless payload
 
       synchronize do
