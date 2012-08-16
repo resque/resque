@@ -2,7 +2,7 @@ module Resque
   class ConnectionPool
     attr_reader :size
 
-    DUMMY = Object.new
+    DUMMY = Object.new # :nodoc:
 
     def initialize(url = Resque.redis, size = 5, timeout = nil)
       @url     = url
