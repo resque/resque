@@ -5,10 +5,6 @@ describe "Resque::MulitQueue" do
   let(:pool)  { Resque.pool }
   let(:coder) { Resque::MultiJsonCoder.new }
 
-  before do
-    redis.flushall
-  end
-
   it "poll times out and returns nil" do
     foo   = Resque::Queue.new 'foo', pool
     bar   = Resque::Queue.new 'bar', pool

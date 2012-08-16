@@ -14,10 +14,6 @@ describe "Resque::Queue" do
     end
   end
 
-  before do
-    Resque.redis.flushall
-  end
-
   it "generates a redis_name" do
     assert_equal "queue:foo", q.redis_name
   end

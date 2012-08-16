@@ -3,7 +3,6 @@ require 'test_helper'
 describe "Resque" do
   before do
     @original_redis = Resque.redis
-    Resque.redis.flushall
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })

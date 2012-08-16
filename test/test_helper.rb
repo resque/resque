@@ -141,3 +141,9 @@ end
 def jruby?
   defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
 end
+
+class MiniTest::Spec
+  def setup
+    Resque.redis.flushall
+  end
+end
