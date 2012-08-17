@@ -1,5 +1,5 @@
 module Resque
-  class ThreadedPool
+  class ThreadedConsumerPool
 
     def initialize(queue, size)
       @queue = queue

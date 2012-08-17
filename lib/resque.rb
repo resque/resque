@@ -18,7 +18,7 @@ require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/multi_json_coder'
 require 'resque/consumer'
-require 'resque/threaded_pool'
+require 'resque/threaded_consumer_pool'
 require 'resque/connection_pool'
 require 'resque/sized_stack'
 

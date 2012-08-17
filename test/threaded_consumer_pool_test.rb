@@ -2,7 +2,7 @@ require "test_helper"
 
 module Resque
 
-  describe "ThreadedPool" do
+  describe "ThreadedConsumerPool" do
 
     class Actionable
       @@ran = []
