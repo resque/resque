@@ -1,9 +1,9 @@
 module Resque
   class ThreadedPool
 
-    def initialize(queue, pool)
+    def initialize(queue, size)
       @queue = queue
-      @pool  = pool
+      @size  = size
       @threads = []
       @consumers = []
     end
@@ -11,7 +11,7 @@ module Resque
 
     def start
       @consumers.clear
-      @threads = @pool.times.map {
+      @threads = @size.times.map {
         c = Consumer.new(@queue)
         @consumers << c
         Thread.new { c.consume }
