@@ -10,6 +10,7 @@ module Resque
 
 
     def start
+      stop
       @consumers.clear
       @threads = @size.times.map {
         c = Consumer.new(@queue)
