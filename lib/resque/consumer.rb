@@ -47,7 +47,12 @@ module Resque
         if job == POISON
           shutdown
         else
-          job.run
+          begin
+            job.run
+          rescue Exception
+            # run failure hooks
+            Stat << "failed"
+          end
         end
       end
     end

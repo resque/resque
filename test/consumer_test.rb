@@ -14,6 +14,12 @@ module Resque
       end
     end
 
+    class FailingJob
+      def run
+        raise "fuuuu"
+      end
+    end
+
     class Resumer
       LATCHES = {}
 
@@ -129,6 +135,15 @@ module Resque
 
       assert_equal 1, q.length
       assert_equal 0, Actionable.ran.length
+    end
+
+    it "gracefully handles a job failure" do
+      q = Queue.new(:foo)
+      c = Consumer.new(q, 1)
+      q << FailingJob.new
+      q << Poison.new(c)
+      c.consume
+      assert_equal 1, Stat["failed"], 'should have one fail'
     end
   end
 end
