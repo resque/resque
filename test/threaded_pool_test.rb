@@ -16,6 +16,12 @@ module Resque
       end
     end
 
+    class FailingJob
+      def run
+        raise 'fuuu'
+      end
+    end
+
     before do
       @write  = Queue.new(:foo)
       @read  = Queue.new(:foo, Resque.pool)
@@ -32,7 +38,15 @@ module Resque
     end
 
     it "recovers from blowed-up jobs" do
-      skip
+      Resque.consumer_timeout = 1
+      @tp = ThreadedPool.new(@read, 1)
+      @write << RaiseJob.new
+      @write << Actionable.new
+
+      @tp.start
+      sleep 1
+      @tp.stop
+      assert @write.empty?
     end
 
   end
