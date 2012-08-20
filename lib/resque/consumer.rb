@@ -1,5 +1,7 @@
 module Resque
   class Consumer
+    POISON = Object.new # :nodoc:
+
     class Latch # :nodoc:
       def initialize(count = 1)
         @count = count
@@ -42,7 +44,11 @@ module Resque
 
         queue, job = @queue.poll(@timeout)
         next unless job
-        job.run
+        if job == POISON
+          shutdown
+        else
+          job.run
+        end
       end
     end
 

@@ -117,7 +117,18 @@ module Resque
       assert_equal 1, q.length
       assert c.shutdown?
       q.pop until q.empty?
-      q << Poison.new(c)
+      q << Consumer::POISON
+    end
+
+    it "shuts down with a poison object" do
+      q = Queue.new(:foo)
+      q << Consumer::POISON
+      q << Actionable.new
+      c = Consumer.new(q, 1)
+      t = Thread.new { c.consume }
+
+      assert_equal 1, q.length
+      assert_equal 0, Actionable.ran.length
     end
   end
 end
