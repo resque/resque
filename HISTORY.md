@@ -1,3 +1,9 @@
+## 1.22.0 (2012-08-21)
+
+* unregister signal handlers in child process when ENV["TERM_CHILD"] is set (@dylanasmith, #621)
+* new signal handling for TERM. See http://hone.heroku.com/resque/2012/08/21/resque-signals.html. (@wuputah, @yaaule, #638)
+* supports calling perform hooks when using Resque.inline (@jonhyman, #506)
+
 ## 1.21.0 (2012-07-02)
 
 * Add a flag to make sure failure hooks are only ran once (jakemack, #546)
