@@ -248,6 +248,7 @@ module Resque
 
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
+      warn "WARNING: This way of doing signal handling is now deprecated. Please see http://hone.heroku.com/resque/2012/08/21/resque-signals.html for more info." unless term_child
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
