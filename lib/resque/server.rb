@@ -30,6 +30,10 @@ module Resque
         url_path request.path_info.sub('/','').split('/')[0].downcase
       end
 
+      def current_subtab
+        url_path request.path_info.sub('/','').split('/')[0, 2].join('/').downcase
+      end
+
       def current_page
         url_path request.path_info.sub('/','')
       end
@@ -44,7 +48,7 @@ module Resque
       end
 
       def class_if_current(path = '')
-        'class="current"' if current_page[0, path.size] == path
+        'class="current"' if [current_section, current_subtab].include?(path)
       end
 
       def tab(name)
