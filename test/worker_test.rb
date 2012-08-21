@@ -662,5 +662,11 @@ describe "Resque::Worker" do
         end
       end
     end
+
+    it "displays warning" do
+      stderr = capture_stderr { @worker.work(0) }
+
+      assert stderr.match(/^WARNING:/)
+    end
   end
 end
