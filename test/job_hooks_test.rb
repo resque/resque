@@ -111,6 +111,22 @@ context "Resque::Job around_perform" do
     assert_equal history, [:start_around_perform, :perform, :finish_around_perform]
   end
 
+  class ::AroundPerformJobWithItsOwnArgsYielded
+    def self.perform(which_args)
+      which_args.shift if which_args.length > 1
+    end
+    def self.around_perform_change_args(which_args)
+      which_args << "those passed from around"
+      yield(which_args)
+    end    
+  end
+
+  test "it uses the args passed to yield" do
+    result = perform_job(AroundPerformJobWithItsOwnArgsYielded, which_args=["those passed to perform"])
+    assert_equal true, result, "perform returned true"
+    assert_equal which_args, ["those passed from around"]
+  end
+
   class ::AroundPerformJobFailsBeforePerforming
     def self.perform(history)
       history << :perform
