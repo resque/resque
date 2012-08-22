@@ -134,8 +134,12 @@ module Resque
               end
             else
               lambda do
-                job.send(hook, *job_args) do
-                  result = job.perform(*job_args)
+                job.send(hook, *job_args) do |*args|
+                  # If the hook yields its own arguments use those,
+                  # else use the original job_args
+                  args_to_pass = (args.empty?) ? job_args : args
+                  result = job.perform(*args_to_pass)
+                  
                   job_was_performed = true
                   result
                 end
