@@ -246,11 +246,18 @@ describe "Resque::Worker" do
   end
 
   it "records what it is working on" do
-    @worker.work(0) do
-      task = @worker.job
-      assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
-      assert task['run_at']
-      assert_equal 'jobs', task['queue']
+    begin
+      require 'time'
+      Time.fake_time = Time.parse("15:44:33 2011-03-02")
+
+      @worker.work(0) do
+        task = @worker.job
+        assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
+        assert_equal "2011/03/02 15:44:33 +0100", task['run_at']
+        assert_equal 'jobs', task['queue']
+      end
+    ensure
+      Time.fake_time = nil
     end
   end
 
