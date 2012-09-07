@@ -171,6 +171,15 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:beer)
   end
 
+  it "preserves order with a wildcard in the middle of a list" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:bulk, GoodJob)
+
+    worker = Resque::Worker.new(:beer, "*", :bulk)
+
+    assert_equal %w( beer critical jobs bulk ), worker.queues
+  end
+
   it "processes * queues in alphabetical order" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
