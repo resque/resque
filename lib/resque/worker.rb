@@ -223,9 +223,11 @@ module Resque
 
     # Returns a list of queues to use when searching for a job.
     # A splat ("*") means you want every queue (in alpha order) - this
-    # can be useful for dynamically adding new queues.
+    # can be useful for dynamically adding new queues. Low priority queues
+    # can be placed after a splat to ensure execution after all other dynamic
+    # queues.
     def queues
-      @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+      @queues.map {|queue| queue == "*" ? (Resque.queues - @queues).sort : queue }.flatten.uniq
     end
 
     # Not every platform supports fork. Here we do our magic to
