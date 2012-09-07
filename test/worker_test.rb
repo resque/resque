@@ -253,7 +253,7 @@ describe "Resque::Worker" do
       @worker.work(0) do
         task = @worker.job
         assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
-        assert_equal "2011/03/02 15:44:33 +0100", task['run_at']
+        assert_match /2011\/03\/02 15:44:33 (\+|-)\d+/, task['run_at']
         assert_equal 'jobs', task['queue']
       end
     ensure
