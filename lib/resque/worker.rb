@@ -176,7 +176,7 @@ module Resque
       tries = 0
       begin
         redis.client.reconnect
-      rescue BaseConnectionError => e
+      rescue Redis::BaseConnectionError => e
         if (tries += 1) < 3
           log "Error reserving job: #{e.inspect}"
           log e.backtrace.join("\n")
