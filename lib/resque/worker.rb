@@ -140,6 +140,7 @@ module Resque
             Process.wait(@child)
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
+            reconnect
             perform(job, &block)
             exit! unless @cant_fork
           end
@@ -168,6 +169,23 @@ module Resque
       perform(job, &block)
     ensure
       done_working
+    end
+
+    # Don't share connection with parent, retry 3 times with increasing delay
+    def reconnect
+      tries = 0
+      begin
+        redis.client.reconnect
+      rescue BaseConnectionError => e
+        if (tries += 1) < 3
+          log "Error reserving job: #{e.inspect}"
+          log e.backtrace.join("\n")
+          sleep(tries)
+          retry
+        else
+          raise e
+        end
+      end
     end
 
     # Processes a given job in the child.
