@@ -154,8 +154,9 @@ module Resque
         end
       end
 
-    ensure
       unregister_worker
+    rescue Exception => exception
+      unregister_worker(exception)
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -370,7 +371,7 @@ module Resque
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
-    def unregister_worker
+    def unregister_worker(exception = nil)
       # If we're still processing a job, make sure it gets logged as a
       # failure.
       if (hash = processing) && !hash.empty?
@@ -378,7 +379,7 @@ module Resque
         # Ensure the proper worker is attached to this job, even if
         # it's not the precise instance that died.
         job.worker = self
-        job.fail(DirtyExit.new)
+        job.fail(exception || DirtyExit.new)
       end
 
       redis.srem(:workers, self)
