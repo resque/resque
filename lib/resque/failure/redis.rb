@@ -43,8 +43,12 @@ module Resque
       end
 
       def filter_backtrace(backtrace)
-        index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
-        backtrace.first(index.to_i)
+        index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }.to_i
+        if index == 0
+          backtrace
+        else
+          backtrace.first(index.to_i)
+        end
       end
     end
   end
