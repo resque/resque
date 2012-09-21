@@ -358,8 +358,10 @@ module Resque
         wr.write 'x'
         wr.close
       }
+      run_hook :before_pause, self
       rd.read 1
       rd.close
+      run_hook :after_pause, self
     end
 
     # Stop processing jobs after the current one has completed (if we're

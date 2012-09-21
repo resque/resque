@@ -470,6 +470,52 @@ describe "Resque::Worker" do
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
+  it "Will call before_pause before it is paused" do
+    $BEFORE_PAUSE_CALLED = false
+    $CAPTURED_WORKER = nil
+
+    Resque.before_pause do |worker|
+      $BEFORE_PAUSE_CALLED = true
+      $CAPTURED_WORKER = worker
+    end
+
+    @worker.instance_variable_set(:@paused, true)
+
+    assert !$BEFORE_PAUSE_CALLED
+
+    t = Thread.start { sleep(1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert $BEFORE_PAUSE_CALLED
+    assert_equal @worker, $CAPTURED_WORKER
+  end
+
+  it "Will call after_pause after it is paused" do
+    $AFTER_PAUSED_CALLED = false
+    $CAPTURED_WORKER = nil
+
+    Resque.after_pause do |worker|
+      $AFTER_PAUSED_CALLED = true
+      $CAPTURED_WORKER = worker
+    end
+
+    @worker.instance_variable_set(:@paused, true)
+
+    assert !$AFTER_PAUSED_CALLED
+
+    t = Thread.start { sleep(1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert $AFTER_PAUSED_CALLED
+    assert_equal @worker, $CAPTURED_WORKER
+  end
+
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
     [SignalException, Resque::TermException].each do |exception|
       {
