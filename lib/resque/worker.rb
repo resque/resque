@@ -568,10 +568,10 @@ module Resque
 
     # Log a message to STDOUT if we are verbose or very_verbose.
     def log(message)
+      time = Time.now.strftime('%H:%M:%S %Y-%m-%d') if verbose || very_verbose
       if verbose
-        puts "*** #{message}"
+        puts "*** [#{time}] #{message}"
       elsif very_verbose
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
         puts "** [#{time}] #$$: #{message}"
       end
     end
