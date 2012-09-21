@@ -443,7 +443,7 @@ describe "Resque::Worker" do
   it "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   it "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
@@ -479,11 +479,11 @@ describe "Resque::Worker" do
       $CAPTURED_WORKER = worker
     end
 
-    @worker.instance_variable_set(:@paused, true)
+    @worker.pause_processing
 
     assert !$BEFORE_PAUSE_CALLED
 
-    t = Thread.start { sleep(1); Process.kill('CONT', @worker.pid) }
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
     @worker.work(0)
 
@@ -502,11 +502,11 @@ describe "Resque::Worker" do
       $CAPTURED_WORKER = worker
     end
 
-    @worker.instance_variable_set(:@paused, true)
+    @worker.pause_processing
 
     assert !$AFTER_PAUSED_CALLED
 
-    t = Thread.start { sleep(1); Process.kill('CONT', @worker.pid) }
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
     @worker.work(0)
 
