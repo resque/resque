@@ -50,7 +50,7 @@ namespace :resque do
 
   # Preload app files if this is Rails
   task :preload => :setup do
-    if defined?(Rails) && Rails.respond_to?(:application)
+    if defined?(Rails) && Rails.respond_to?(:application) && Rails.application
       # Rails 3
       Rails.application.eager_load!
     elsif defined?(Rails::Initializer)
