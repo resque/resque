@@ -136,10 +136,9 @@ module Resque
         if not paused? and job = reserve
           log "got: #{job.inspect}"
           job.worker = self
-          run_hook :before_fork, job
           working_on job
 
-          if @child = fork
+          if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -228,8 +227,12 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork
+    def fork(job)
       return if @cant_fork
+      
+      # Only run before_fork hooks if we're actually going to fork
+      # (after checking @cant_fork)
+      run_hook :before_fork, job
 
       begin
         # IronRuby doesn't support `Kernel.fork` yet
