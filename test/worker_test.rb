@@ -421,6 +421,19 @@ context "Resque::Worker" do
     assert $AFTER_FORK_CALLED
   end
 
+  test "Will not call an after_fork hook when the worker can't fork" do
+    Resque.redis.flushall
+    $AFTER_FORK_CALLED = false
+    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+    workerA.cant_fork = true
+
+    assert !$AFTER_FORK_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert !$AFTER_FORK_CALLED
+  end
+
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end

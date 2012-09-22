@@ -183,7 +183,7 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
-        run_hook :after_fork, job
+        run_hook :after_fork, job unless @cant_fork
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
