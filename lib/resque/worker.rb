@@ -148,11 +148,11 @@ module Resque
               nil
             end
           else
-            unregister_signal_handlers if !@cant_fork && term_child
+            unregister_signal_handlers if will_fork? && term_child
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             redis.client.reconnect # Don't share connection with parent
             perform(job, &block)
-            exit! unless @cant_fork
+            exit! if will_fork?
           end
 
           done_working
@@ -229,14 +229,12 @@ module Resque
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
     def fork
-      @cant_fork = true if $TESTING
-
       return if @cant_fork
 
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork
+          Kernel.fork if will_fork?
         else
           raise NotImplementedError
         end
@@ -506,6 +504,10 @@ module Resque
     # Boolean - true if idle, false if not
     def idle?
       state == :idle
+    end
+    
+    def will_fork?
+      !(@cant_fork || $TESTING)
     end
 
     # Returns a symbol representing the current worker state,
