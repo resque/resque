@@ -1,12 +1,15 @@
 <% @subtabs = resque.queues unless partial? || params[:id].nil? %>
 
 <% if queue = params[:id] %>
+  <% size = resque.size(queue) %>
+  <% start = params.fetch("start", size - 20).to_i %>
 
   <h1>Pending jobs on <span class='hl'><%= queue %></span></h1>
   <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
     <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
   </form>
-  <p class='sub'>Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.size(queue)%></b> jobs</p>
+  <p class='sub'>Showing <%= start %> to <%= start + 20 %> of <b><%=size %></b> jobs</p>
+  <%= partial :next_more, :start => start, :size => size %>
   <table class='jobs'>
     <tr>
       <th>Class</th>
