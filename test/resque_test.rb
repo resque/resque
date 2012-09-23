@@ -228,8 +228,6 @@ describe "Resque" do
   end
 
   it "keeps stats" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, GoodJob)
