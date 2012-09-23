@@ -22,7 +22,7 @@ pending jobs rising.
 Now in another shell terminal start the worker:
 
     $ cd resque/examples/demo
-    $ VERBOSE=true QUEUE=default rake resque:work
+    $ VERBOSE=true QUEUE=default,failing rake resque:work
 
 You should see the following output:
 
@@ -33,7 +33,7 @@ You should see the following output:
 
 You can also use `VVERBOSE` (very verbose) if you want to see more:
 
-    $ VVERBOSE=true QUEUE=default rake resque:work
+    $ VVERBOSE=true QUEUE=default,failing rake resque:work
     *** Starting worker hostname:90399:default
     ** [05:55:09 2009-09-16] 90399: Registered signals
     ** [05:55:09 2009-09-16] 90399: Checking default
