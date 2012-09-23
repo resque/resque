@@ -100,8 +100,6 @@ describe "Resque::Worker" do
   end
 
   it "catches exceptional jobs" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
     @worker.process
@@ -117,8 +115,6 @@ describe "Resque::Worker" do
   end
 
   it "can work on multiple queues" do
-    skip "not quite working yet"
-
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
 
@@ -281,8 +277,6 @@ describe "Resque::Worker" do
   end
 
   it "keeps track of how many jobs it has processed" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
 
@@ -308,8 +302,6 @@ describe "Resque::Worker" do
   end
 
   it "keeps track of how many failures it has seen" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
 
