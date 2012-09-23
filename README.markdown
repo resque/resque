@@ -497,6 +497,18 @@ You can also mount Resque on a subpath in your existing Rails 3 app by adding `r
 mount Resque::Server.new, :at => "/resque"
 ```
 
+If you use Devise, the following will integrate with your existing admin authentication (assuming you have an Admin Devise scope):
+
+``` ruby
+resque_constraint = lambda do |request|
+  request.env['warden'].authenticate!({ :scope => :admin })
+end
+constraints resque_constraint do
+  mount Resque::Server.new, :at => "/resque"
+end
+```
+
+
 
 Resque vs DelayedJob
 --------------------
