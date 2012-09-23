@@ -49,7 +49,7 @@ module Resque
         synchronize do
           value = @redis.blpop(*(queue_names + [1])) until value
           queue_name, payload = value
-          queue = @queue_hash[queue_name]
+          queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
           [queue, queue.decode(payload)]
         end
       end
@@ -65,7 +65,7 @@ module Resque
       return unless payload
 
       synchronize do
-        queue = @queue_hash[queue_name]
+        queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
         [queue, queue.decode(payload)]
       end
     end
