@@ -177,6 +177,10 @@ pull from the DB or cache.
 If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
+Note that if you queue a job with a hash as an argument the hash
+will have its keys stringified when decoded. If you use ActiveSupport
+you can call `symbolize_keys!` on the hash to symbolize the keys again
+or you can access the values using strings as keys.
 
 ### send_later / async
 
@@ -497,6 +501,18 @@ You can also mount Resque on a subpath in your existing Rails 3 app by adding `r
 mount Resque::Server.new, :at => "/resque"
 ```
 
+If you use Devise, the following will integrate with your existing admin authentication (assuming you have an Admin Devise scope):
+
+``` ruby
+resque_constraint = lambda do |request|
+  request.env['warden'].authenticate!({ :scope => :admin })
+end
+constraints resque_constraint do
+  mount Resque::Server.new, :at => "/resque"
+end
+```
+
+
 
 Resque vs DelayedJob
 --------------------
@@ -729,11 +745,16 @@ appropriately.
 
 Here's our `config/resque.yml`:
 
-    development: localhost:6379
-    test: localhost:6379
-    staging: redis1.se.github.com:6379
-    fi: localhost:6379
-    production: redis1.ae.github.com:6379
+``` yaml
+development: localhost:6379
+test: localhost:6379:1
+staging: redis1.se.github.com:6379
+fi: localhost:6379
+production: redis1.ae.github.com:6379
+```
+
+Note that separated Redis database should be used for test environment
+So that you can flush it and without impacting development environment
 
 And our initializer:
 

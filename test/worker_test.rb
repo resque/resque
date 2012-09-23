@@ -28,6 +28,14 @@ describe "Resque::Worker" do
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
   end
 
+  it "unavailable job definition reports exception and message" do
+    Resque::Job.create(:jobs, 'NoJobDefinition') 
+    @worker.work(0)
+    assert_equal 1, Resque::Failure.count, 'failure not reported'
+    assert_equal('NameError', Resque::Failure.all['exception'])
+    assert_equal('uninitialized constant NoJobDefinition', Resque::Failure.all['error'])
+  end
+
   it "does not allow exceptions from failure backend to escape" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
@@ -100,8 +108,6 @@ describe "Resque::Worker" do
   end
 
   it "catches exceptional jobs" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
     @worker.process
@@ -117,8 +123,6 @@ describe "Resque::Worker" do
   end
 
   it "can work on multiple queues" do
-    skip "not quite working yet"
-
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
 
@@ -173,6 +177,15 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
     assert_equal 0, Resque.size(:beer)
+  end
+
+  it "preserves order with a wildcard in the middle of a list" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:bulk, GoodJob)
+
+    worker = Resque::Worker.new(:beer, "*", :bulk)
+
+    assert_equal %w( beer critical jobs bulk ), worker.queues
   end
 
   it "processes * queues in alphabetical order" do
@@ -281,8 +294,6 @@ describe "Resque::Worker" do
   end
 
   it "keeps track of how many jobs it has processed" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
 
@@ -308,8 +319,6 @@ describe "Resque::Worker" do
   end
 
   it "keeps track of how many failures it has seen" do
-    skip "not quite working yet"
-
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
 
