@@ -117,6 +117,10 @@ module Resque
         @partial = false
       end
 
+      def auto_polling?
+        ENV["ALWAYS_POLL"] != nil
+      end
+
       def poll
         if @polling
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"

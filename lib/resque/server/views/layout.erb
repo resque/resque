@@ -9,7 +9,7 @@
   <script src="<%=u 'jquery.relatize_date.js' %>" type="text/javascript"></script>
   <script src="<%=u 'ranger.js' %>" type="text/javascript"></script>
 </head>
-<body>
+<body data-auto-poll="<%= auto_polling? %>">
   <div class="header">
     <ul class='nav'>
       <% tabs.each do |tab_name| %>
