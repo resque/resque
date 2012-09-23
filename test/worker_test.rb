@@ -470,18 +470,18 @@ describe "Resque::Worker" do
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
-  it "Will call before_pause before it is paused" do
-    $BEFORE_PAUSE_CALLED = false
-    $CAPTURED_WORKER = nil
+  it "will call before_pause before it is paused" do
+    before_pause_called = false
+    captured_worker = nil
 
     Resque.before_pause do |worker|
-      $BEFORE_PAUSE_CALLED = true
-      $CAPTURED_WORKER = worker
+      before_pause_called = true
+      captured_worker = worker
     end
 
     @worker.pause_processing
 
-    assert !$BEFORE_PAUSE_CALLED
+    assert !before_pause_called
 
     t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
@@ -489,22 +489,22 @@ describe "Resque::Worker" do
 
     t.join
 
-    assert $BEFORE_PAUSE_CALLED
-    assert_equal @worker, $CAPTURED_WORKER
+    assert before_pause_called
+    assert_equal @worker, captured_worker
   end
 
-  it "Will call after_pause after it is paused" do
-    $AFTER_PAUSED_CALLED = false
-    $CAPTURED_WORKER = nil
+  it "will call after_pause after it is paused" do
+    after_pause_called = false
+    captured_worker = nil
 
     Resque.after_pause do |worker|
-      $AFTER_PAUSED_CALLED = true
-      $CAPTURED_WORKER = worker
+      after_pause_called = true
+      captured_worker = worker
     end
 
     @worker.pause_processing
 
-    assert !$AFTER_PAUSED_CALLED
+    assert !after_pause_called
 
     t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
@@ -512,8 +512,8 @@ describe "Resque::Worker" do
 
     t.join
 
-    assert $AFTER_PAUSED_CALLED
-    assert_equal @worker, $CAPTURED_WORKER
+    assert after_pause_called
+    assert_equal @worker, captured_worker
   end
 
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"

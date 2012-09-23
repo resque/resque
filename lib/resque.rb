@@ -124,7 +124,8 @@ module Resque
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
   def before_pause(&block)
-    block ? (@before_pause = block) : @before_pause
+    @before_pause = block if block_given?
+    @before_pause
   end
 
   # Set the after_pause proc.
@@ -133,7 +134,8 @@ module Resque
   # The `after_pause` hook will be run in the parent process after the
   # worker has paused (via SIGCONT).
   def after_pause(&block)
-    block ? (@after_pause = block) : @after_pause
+    @after_pause = block if block_given?
+    @after_pause
   end
 
   # Set the after_continue proc.
