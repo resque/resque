@@ -5,7 +5,7 @@ namespace :resque do
   task :setup
 
   desc "Start a Resque worker"
-  task :work => [ :preload, :setup ] do
+  task :work => [ :pidfile, :preload, :setup ] do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
@@ -24,10 +24,6 @@ namespace :resque do
           abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
       Process.daemon(true)
-    end
-
-    if ENV['PIDFILE']
-      File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
 
     worker.log "Starting worker #{worker}"
@@ -57,6 +53,12 @@ namespace :resque do
       # Rails 2.3
       $rails_rake_task = false
       Rails::Initializer.run :load_application_classes
+    end
+  end
+
+  task :pidfile do
+    if ENV['PIDFILE']
+      File.open(ENV['PIDFILE'], 'w') { |f| f << Process.pid }
     end
   end
 end
