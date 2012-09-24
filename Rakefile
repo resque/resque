@@ -57,3 +57,4 @@ task :install => [ 'redis:install', 'dtach:install' ]
 #
 require 'yard'
 YARD::Rake::YardocTask.new
+task :docs => :yard
