@@ -137,10 +137,9 @@ module Resque
         if job = reserve(interval)
           log "got: #{job.inspect}"
           job.worker = self
-          run_hook :before_fork, job
           working_on job
 
-          if @child = fork
+          if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -149,11 +148,11 @@ module Resque
               nil
             end
           else
-            unregister_signal_handlers if !@cant_fork
+            unregister_signal_handlers if will_fork?
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             reconnect
             perform(job, &block)
-            exit! unless @cant_fork
+            exit! if will_fork?
           end
 
           done_working
@@ -185,7 +184,7 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
-        run_hook :after_fork, job
+        run_hook :after_fork, job unless @cant_fork
         job.perform
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
@@ -253,15 +252,17 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork
-      @cant_fork = true if $TESTING
-
+    def fork(job)
       return if @cant_fork
+      
+      # Only run before_fork hooks if we're actually going to fork
+      # (after checking @cant_fork)
+      run_hook :before_fork, job
 
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork
+          Kernel.fork if will_fork?
         else
           raise NotImplementedError
         end
@@ -518,6 +519,10 @@ module Resque
     # Boolean - true if idle, false if not
     def idle?
       state == :idle
+    end
+    
+    def will_fork?
+      !(@cant_fork || $TESTING)
     end
 
     # Returns a symbol representing the current worker state,
