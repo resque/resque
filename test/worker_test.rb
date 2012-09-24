@@ -33,7 +33,7 @@ describe "Resque::Worker" do
     @worker.work(0)
     assert_equal 1, Resque::Failure.count, 'failure not reported'
     assert_equal('NameError', Resque::Failure.all['exception'])
-    assert_equal('uninitialized constant NoJobDefinition', Resque::Failure.all['error'])
+    assert_match('uninitialized constant', Resque::Failure.all['error'])
   end
 
   it "does not allow exceptions from failure backend to escape" do
