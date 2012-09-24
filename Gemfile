@@ -13,9 +13,10 @@ group :documentation do
 end
 
 group :test do
-  gem "rack-test", "~> 0.5"
-  gem "yajl-ruby", :platforms => :mri
-  gem "json", "~>1.5.3", :platforms => [:jruby, :rbx]
-  gem "i18n"
-  gem "minitest"
+  gem 'airbrake'
+  gem 'i18n'
+  gem 'json', '~>1.5.3', :platforms => [:jruby, :rbx]
+  gem 'minitest'
+  gem 'rack-test', '~> 0.5'
+  gem 'yajl-ruby', :platforms => :mri
 end
