@@ -5,7 +5,7 @@ module Resque
     class Redis < Base
       def save
         data = {
-          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
+          :failed_at => Time.now.rfc2822,
           :payload   => payload,
           :exception => exception.class.to_s,
           :error     => UTF8Util.clean(exception.to_s),
@@ -31,7 +31,7 @@ module Resque
 
       def self.requeue(index)
         item = all(index)
-        item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+        item['retried_at'] = Time.now.rfc2822
         Resque.redis.lset(:failed, index, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
@@ -43,8 +43,12 @@ module Resque
       end
 
       def filter_backtrace(backtrace)
-        index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
-        backtrace.first(index.to_i)
+        index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }.to_i
+        if index == 0
+          backtrace
+        else
+          backtrace.first(index.to_i)
+        end
       end
     end
   end
