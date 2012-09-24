@@ -51,7 +51,7 @@ describe "Resque::Worker" do
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
   end
 
-  test "fails uncompleted jobs with worker exception on exit" do
+  it "fails uncompleted jobs with worker exception on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
     @worker.unregister_worker(StandardError.new)
