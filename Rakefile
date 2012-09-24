@@ -1,3 +1,13 @@
+require 'rubygems'
+
+begin
+  require 'bundler/setup'
+rescue LoadError => e
+  warn e.message
+  warn "Run `gem install bundler` to install Bundler"
+  exit -1
+end
+
 #
 # Setup
 #
@@ -45,10 +55,7 @@ task :install => [ 'redis:install', 'dtach:install' ]
 # Documentation
 #
 
-begin
-  require 'sdoc_helpers'
-rescue LoadError
-end
+require 'sdoc_helpers'
 
 
 #
