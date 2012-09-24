@@ -9,7 +9,7 @@ end
 
 group :documentation do
   gem 'rdoc'
-  gem 'redcarpet'
+  gem 'kramdown'
 end
 
 group :test do
