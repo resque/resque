@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath", "Terence Lee" ]
 
-  s.files             = %w( README.markdown Rakefile LICENSE HISTORY.md )
+  s.files             = %w( README.md Rakefile LICENSE HISTORY.md )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("tasks/**/*")
   s.executables       = [ "resque", "resque-web" ]
 
-  s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
+  s.extra_rdoc_files  = [ "LICENSE", "README.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
   s.add_dependency "redis-namespace", "~> 1.0"
