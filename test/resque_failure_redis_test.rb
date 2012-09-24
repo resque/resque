@@ -1,6 +1,13 @@
 require 'test_helper'
 require 'resque/failure/redis'
 
+unless defined?(JSON)
+  module JSON
+    class GeneratorError
+    end
+  end
+end
+
 context "Resque::Failure::Redis" do
   setup do
     @bad_string    = [39, 250, 141, 168, 138, 191, 52, 211, 159, 86, 93, 95, 39].map { |c| c.chr }.join
@@ -13,7 +20,7 @@ context "Resque::Failure::Redis" do
 
   test 'cleans up bad strings before saving the failure, in order to prevent errors on the resque UI' do
     # test assumption: the bad string should not be able to round trip though JSON
-    assert_raises(MultiJson::DecodeError) {
+    assert_raises(MultiJson::DecodeError, JSON::GeneratorError) {
       MultiJson.decode(MultiJson.encode(@bad_string))
     }
 
