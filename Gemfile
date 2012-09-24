@@ -2,8 +2,17 @@ source :rubygems
 
 gemspec
 
+group :development do
+  gem 'rake'
+  gem 'yard'
+end
+
+group :documentation do
+  gem 'rdoc'
+  gem 'redcarpet'
+end
+
 group :test do
-  gem "rake"
   gem "rack-test", "~> 0.5"
   gem "mocha", "~> 0.9.7"
   gem "yajl-ruby", "~>0.8.2", :platforms => :mri

@@ -499,7 +499,7 @@ then `CONT` to start it again.
 
 If your workers remain idle for too long they may lose their MySQL
 connection. If that happens we recommend using [this
-Gist](http://gist.github.com/238999).
+Gist](https://gist.github.com/238999).
 
 
 <a name='section_The_Front_End'></a>
@@ -866,11 +866,11 @@ Plugins and Hooks
 -----------------
 
 For a list of available plugins see
-<http://wiki.github.com/defunkt/resque/plugins>.
+<https://wiki.github.com/defunkt/resque/plugins>.
 
 If you'd like to write your own plugin, or want to customize Resque
 using hooks (such as `Resque.after_fork`), see
-[docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
+[docs/HOOKS.md](https://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
 
 
 <a name='section_Namespaces'></a>
@@ -977,7 +977,7 @@ Once you've made your great commits:
 1. [Fork][1] Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
-4. Create a [Pull Request](http://help.github.com/pull-requests/) from your branch
+4. Create a [Pull Request](https://help.github.com/pull-requests/) from your branch
 5. That's it!
 
 
@@ -997,12 +997,12 @@ Meta
 ----
 
 * Code: `git clone git://github.com/defunkt/resque.git`
-* Home: <http://github.com/defunkt/resque>
-* Docs: <http://defunkt.github.com/resque/>
-* Bugs: <http://github.com/defunkt/resque/issues>
+* Home: <https://github.com/defunkt/resque>
+* Docs: <http://rubydoc.info/gems/resque/frames>
+* Bugs: <https://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
-* Gems: <http://gemcutter.org/gems/resque>
+* Gems: <http://rubygems.org/gems/resque>
 
 This project uses [Semantic Versioning][sv].
 
@@ -1013,9 +1013,9 @@ Author
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
-[0]: http://github.com/blog/542-introducing-resque
-[1]: http://help.github.com/forking/
-[2]: http://github.com/defunkt/resque/issues
+[0]: https://github.com/blog/542-introducing-resque
+[1]: https://help.github.com/forking/
+[2]: https://github.com/defunkt/resque/issues
 [sv]: http://semver.org/
-[rs]: http://github.com/defunkt/redis-namespace
-[cb]: http://wiki.github.com/defunkt/resque/contributing
+[rs]: https://github.com/defunkt/redis-namespace
+[cb]: https://wiki.github.com/defunkt/resque/contributing
