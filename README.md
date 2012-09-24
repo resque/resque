@@ -998,7 +998,7 @@ Meta
 
 * Code: `git clone git://github.com/defunkt/resque.git`
 * Home: <https://github.com/defunkt/resque>
-* Docs: <http://defunkt.github.com/resque/>
+* Docs: <http://rubydoc.info/gems/resque/frames>
 * Bugs: <https://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
