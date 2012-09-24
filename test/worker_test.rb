@@ -479,7 +479,7 @@ describe "Resque::Worker" do
   it "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   it "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
@@ -504,6 +504,52 @@ describe "Resque::Worker" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+  end
+
+  it "will call before_pause before it is paused" do
+    before_pause_called = false
+    captured_worker = nil
+
+    Resque.before_pause do |worker|
+      before_pause_called = true
+      captured_worker = worker
+    end
+
+    @worker.pause_processing
+
+    assert !before_pause_called
+
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert before_pause_called
+    assert_equal @worker, captured_worker
+  end
+
+  it "will call after_pause after it is paused" do
+    after_pause_called = false
+    captured_worker = nil
+
+    Resque.after_pause do |worker|
+      after_pause_called = true
+      captured_worker = worker
+    end
+
+    @worker.pause_processing
+
+    assert !after_pause_called
+
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert after_pause_called
+    assert_equal @worker, captured_worker
   end
 
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"

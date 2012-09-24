@@ -38,6 +38,18 @@ The `after_fork` hook will be run in the child process and is passed
 the current job. Any changes you make, therefor, will only live as
 long as the job currently being processes.
 
+You can also run a hook both before a worker pauses (`before_pause`),
+and after it is paused (`after_pause`). In each case the block will be
+passed the worker that is pausing or unpausing, respectively:
+
+    Resque.before_pause do |worker|
+      puts "It looks like #{worker} is now paused!"
+    end
+
+    Resque.after_pause do |worker|
+      puts "Whew, back to work for #{worker}!"
+    end
+
 All worker hooks can also be set using a setter, e.g.
 
     Resque.after_fork = proc { puts "called" }
