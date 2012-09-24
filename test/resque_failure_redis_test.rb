@@ -1,7 +1,12 @@
 require 'test_helper'
 require 'resque/failure/redis'
 
-require 'json'
+unless defined?(JSON)
+  module JSON
+    class GeneratorError
+    end
+  end
+end
 
 describe "Resque::Failure::Redis" do
   before do
