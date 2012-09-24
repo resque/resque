@@ -1,16 +1,14 @@
 require 'rubygems'
 require 'timeout'
 require 'bundler/setup'
+require 'redis/namespace'
+require 'minitest/unit'
+require 'minitest/spec'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
-$TESTING = true
-require 'minitest/unit'
-require 'minitest/spec'
-require 'test/unit'
-
-require 'redis/namespace'
 require 'resque'
+$TESTING = true
 
 #
 # make sure we can run redis
@@ -31,11 +29,7 @@ end
 at_exit do
   next if $!
 
-  if defined?(MiniTest)
-    exit_code = MiniTest::Unit.new.run(ARGV)
-  else
-    exit_code = Test::Unit::AutoRunner.run
-  end
+  exit_code = MiniTest::Unit.new.run(ARGV)
 
   processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
   pids = processes.map { |process| process.split(" ")[0] }

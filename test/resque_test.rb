@@ -1,8 +1,6 @@
 require 'test_helper'
 
 describe "Resque" do
-  include Test::Unit::Assertions
-
   before do
     Resque.redis.flushall
 
@@ -115,11 +113,11 @@ describe "Resque" do
 
     assert Resque::Job.create(:jobs, 'SomeMethodJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
-    assert_not_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
+    refute_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
 
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 30, '/tmp')
-    assert_not_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
+    refute_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
   end
 
   it "can put jobs on a queue by way of a method" do
