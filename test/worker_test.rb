@@ -1,8 +1,6 @@
 require 'test_helper'
 
 describe "Resque::Worker" do
-  include Test::Unit::Assertions
-
   before do
     Resque.redis = Resque.redis # reset state in Resque object
     Resque.redis.flushall
@@ -235,7 +233,7 @@ describe "Resque::Worker" do
   end
 
   it "complains if no queues are given" do
-    assert_raise Resque::NoQueueError do
+    assert_raises Resque::NoQueueError do
       Resque::Worker.new
     end
   end
@@ -503,7 +501,7 @@ describe "Resque::Worker" do
   it "reconnects to redis after fork" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
-    assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+    refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
   it "will call before_pause before it is paused" do
@@ -594,7 +592,7 @@ describe "Resque::Worker" do
 
             # ensure the worker is started
             start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
-            assert_not_nil start_status
+            refute_nil start_status
             child_pid = start_status[1].to_i
             assert_operator child_pid, :>, 0
 
@@ -604,7 +602,7 @@ describe "Resque::Worker" do
 
             # wait to see how it all came down
             result = Resque.redis.blpop( 'sigterm-test:result', 5 )
-            assert_not_nil result
+            refute_nil result
             assert !result[1].start_with?('Finished Normally'), 'Job Finished normally. Sleep not long enough?'
             assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
 
