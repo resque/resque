@@ -27,4 +27,21 @@ describe "Resque::Failure::Redis" do
     @redis_backend.save
     Resque::Failure::Redis.all # should not raise an error
   end
+
+  it "only shows the backtrace for client code" do
+    backtrace = ["show", "/lib/resque/job.rb", "hide"]
+
+    failure = Resque::Failure::Redis.new(nil, nil, nil, nil)
+    filtered_backtrace = failure.filter_backtrace(backtrace)
+
+    assert_equal ["show"], filtered_backtrace
+  end
+  it "shows the whole backtrace when the exception happens before client code is reached" do
+    backtrace = ["everything", "is", "shown"]
+
+    failure = Resque::Failure::Redis.new(nil, nil, nil, nil)
+    filtered_backtrace = failure.filter_backtrace(backtrace)
+
+    assert_equal ["everything", "is", "shown"], filtered_backtrace
+  end
 end

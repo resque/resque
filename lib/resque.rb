@@ -65,7 +65,7 @@ module Resque
   # create a new one.
   def redis
     return @redis if @redis
-    self.redis = Redis.respond_to?(:connect) ? Redis.connect : "localhost:6379"
+    self.redis = Redis.respond_to?(:connect) ? Redis.connect(:thread_safe => true) : "localhost:6379"
     self.redis
   end
 
@@ -139,7 +139,7 @@ module Resque
   # Pushes a job onto a queue. Queue name should be a string and the
   # item should be any JSON-able Ruby object.
   #
-  # Resque works generally expect the `item` to be a hash with the following
+  # Resque workers generally expect the `item` to be a hash with the following
   # keys:
   #
   #   class - The String name of the job to run.

@@ -111,7 +111,7 @@ module Resque
 
       begin
         # Execute before_perform hook. Abort the job gracefully if
-        # Resque::DontPerform is raised.
+        # Resque::Job::DontPerform is raised.
         begin
           before_hooks.each do |hook|
             job.send(hook, *job_args)
@@ -166,6 +166,13 @@ module Resque
       @payload_class ||= constantize(@payload['class'])
     end
 
+    # returns true if payload_class does not raise NameError
+    def has_payload_class?
+      payload_class != Object
+    rescue NameError
+      false
+    end
+
     # Returns an array of args represented in this job's payload.
     def args
       @payload['args']
@@ -174,7 +181,7 @@ module Resque
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
-      run_failure_hooks(exception)
+      run_failure_hooks(exception) if has_payload_class?
       Failure.create \
         :payload   => payload,
         :exception => exception,
