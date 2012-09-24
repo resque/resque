@@ -1,6 +1,8 @@
 require 'test_helper'
 require 'resque/failure/redis'
 
+require 'json'
+
 describe "Resque::Failure::Redis" do
   before do
     @bad_string    = [39, 250, 141, 168, 138, 191, 52, 211, 159, 86, 93, 95, 39].map { |c| c.chr }.join
