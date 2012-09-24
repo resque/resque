@@ -1,7 +1,7 @@
 require 'test_helper'
 
-context "Resque Hooks" do
-  setup do
+describe "Resque Hooks" do
+  before do
     Resque.redis.flushall
 
     Resque.before_first_fork = nil
@@ -19,13 +19,13 @@ context "Resque Hooks" do
     end
   end
 
-  test 'retrieving hooks if none have been set' do
+  it 'retrieving hooks if none have been set' do
     assert_equal [], Resque.before_first_fork
     assert_equal [], Resque.before_fork
     assert_equal [], Resque.after_fork
   end
 
-  test 'it calls before_first_fork once' do
+  it 'it calls before_first_fork once' do
     counter = 0
 
     Resque.before_first_fork { counter += 1 }
@@ -36,7 +36,7 @@ context "Resque Hooks" do
     assert_equal(1, counter)
   end
 
-  test 'it calls before_fork before each job' do
+  it 'it calls before_fork before each job' do
     counter = 0
 
     Resque.before_fork { counter += 1 }
@@ -47,7 +47,7 @@ context "Resque Hooks" do
     assert_equal(2, counter)
   end
 
-  test 'it calls after_fork after each job' do
+  it 'it calls after_fork after each job' do
     counter = 0
 
     Resque.after_fork { counter += 1 }
@@ -58,28 +58,28 @@ context "Resque Hooks" do
     assert_equal(2, counter)
   end
 
-  test 'it calls before_first_fork before forking' do
+  it 'it calls before_first_fork before forking' do
     Resque.before_first_fork { assert(!$called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
     @worker.work(0)
   end
 
-  test 'it calls before_fork before forking' do
+  it 'it calls before_fork before forking' do
     Resque.before_fork { assert(!$called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
     @worker.work(0)
   end
 
-  test 'it calls after_fork after forking' do
+  it 'it calls after_fork after forking' do
     Resque.after_fork { assert($called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
     @worker.work(0)
   end
 
-  test 'it registeres multiple before_first_forks' do
+  it 'it registeres multiple before_first_forks' do
     first = false
     second = false
 
@@ -92,7 +92,7 @@ context "Resque Hooks" do
     assert(first && second)
   end
 
-  test 'it registers multiple before_forks' do
+  it 'it registers multiple before_forks' do
     first = false
     second = false
 
@@ -105,7 +105,7 @@ context "Resque Hooks" do
     assert(first && second)
   end
 
-  test 'it registers multiple after_forks' do
+  it 'it registers multiple after_forks' do
     first = false
     second = false
 
