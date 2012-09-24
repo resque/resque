@@ -4,6 +4,7 @@ gemspec
 
 group :development do
   gem 'rake'
+  gem 'sdoc'
 end
 
 group :test do
