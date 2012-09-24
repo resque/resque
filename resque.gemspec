@@ -9,13 +9,10 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath", "Terence Lee" ]
 
-  s.files             = %w( README.md Rakefile LICENSE.txt HISTORY.md )
-  s.files            += Dir.glob("lib/**/*")
-  s.files            += Dir.glob("bin/**/*")
-  s.files            += Dir.glob("man/**/*")
-  s.files            += Dir.glob("test/**/*")
-  s.files            += Dir.glob("tasks/**/*")
-  s.executables       = [ "resque", "resque-web" ]
+  s.files         = `git ls-files`.split($/)
+  s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
+  s.test_files    = s.files.grep(%r{^(test|spec|features)/})
+  s.require_paths = ["lib"]
 
   s.extra_rdoc_files  = [ "LICENSE.txt", "README.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
