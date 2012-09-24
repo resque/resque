@@ -85,41 +85,46 @@ module Resque
   # changes you make will be permanent for the lifespan of the
   # worker.
   #
-  # Call with a block to set the hook.
-  # Call with no arguments to return the hook.
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
   def before_first_fork(&block)
-    block ? (@before_first_fork = block) : @before_first_fork
+    block ? register_hook(:before_first_fork, block) : hooks(:before_first_fork)
   end
 
-  # Set a proc that will be called in the parent process before the
-  # worker forks for the first time.
-  attr_writer :before_first_fork
+  # Register a before_first_fork proc.
+  def before_first_fork=(block)
+    register_hook(:before_first_fork, block)
+  end
 
   # The `before_fork` hook will be run in the **parent** process
   # before every job, so be careful- any changes you make will be
   # permanent for the lifespan of the worker.
   #
-  # Call with a block to set the hook.
-  # Call with no arguments to return the hook.
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
   def before_fork(&block)
-    block ? (@before_fork = block) : @before_fork
+    block ? register_hook(:before_fork, block) : hooks(:before_fork)
   end
 
-  # Set the before_fork proc.
-  attr_writer :before_fork
+  # Register a before_fork proc.
+  def before_fork=(block)
+    register_hook(:before_fork, block)
+  end
 
   # The `after_fork` hook will be run in the child process and is passed
   # the current job. Any changes you make, therefore, will only live as
   # long as the job currently being processed.
   #
-  # Call with a block to set the hook.
-  # Call with no arguments to return the hook.
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
   def after_fork(&block)
-    block ? (@after_fork = block) : @after_fork
+    block ? register_hook(:after_fork, block) : hooks(:after_fork)
   end
 
-  # Set the after_fork proc.
-  attr_writer :after_fork
+  # Register an after_fork proc.
+  def after_fork=(block)
+    register_hook(:after_fork, block)
+  end
 
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
@@ -402,6 +407,30 @@ module Resque
     redis.keys("*").map do |key|
       key.sub("#{redis.namespace}:", '')
     end
+  end
+
+  private
+
+  # Register a new proc as a hook. If the block is nil this is the
+  # equivalent of removing all hooks of the given name.
+  #
+  # `name` is the hook that the block should be registered with.
+  def register_hook(name, block)
+    return clear_hooks(name) if block.nil?
+
+    @hooks ||= {}
+    @hooks[name] ||= []
+    @hooks[name] << block
+  end
+
+  # Clear all hooks given a hook name.
+  def clear_hooks(name)
+    @hooks && @hooks[name] = []
+  end
+
+  # Retrieve all hooks of a given name.
+  def hooks(name)
+    (@hooks && @hooks[name]) || []
   end
 end
 
