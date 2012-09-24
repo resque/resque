@@ -47,7 +47,7 @@ module Resque
         if index == 0
           backtrace
         else
-          backtrace.first(index.to_i)
+          backtrace.first(index)
         end
       end
     end
