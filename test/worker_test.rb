@@ -376,6 +376,19 @@ context "Resque::Worker" do
     workerA.work(0)
     assert $BEFORE_FORK_CALLED
   end
+  
+  test "Will not call a before_fork hook when the worker can't fork" do
+    Resque.redis.flushall
+    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+    workerA.cant_fork = true
+
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
+  end
 
   test "very verbose works in the afternoon" do
     begin
@@ -406,6 +419,19 @@ context "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $AFTER_FORK_CALLED
+  end
+
+  test "Will not call an after_fork hook when the worker can't fork" do
+    Resque.redis.flushall
+    $AFTER_FORK_CALLED = false
+    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+    workerA.cant_fork = true
+
+    assert !$AFTER_FORK_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert !$AFTER_FORK_CALLED
   end
 
   test "returns PID of running process" do
