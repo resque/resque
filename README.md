@@ -1002,7 +1002,7 @@ Meta
 * Bugs: <https://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
-* Gems: <http://gemcutter.org/gems/resque>
+* Gems: <http://rubygems.org/gems/resque>
 
 This project uses [Semantic Versioning][sv].
 
