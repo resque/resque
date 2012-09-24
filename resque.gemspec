@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
 
-  s.extra_rdoc_files  = [ "LICENSE.txt", "README.md" ]
+  s.extra_rdoc_files  = [ "LICENSE.txt", "HISTORY.md", "README.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
   s.add_dependency "redis-namespace", "~> 1.0"
