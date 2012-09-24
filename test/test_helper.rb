@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'timeout'
 require 'bundler/setup'
 
 $dir = File.dirname(File.expand_path(__FILE__))
