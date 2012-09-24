@@ -16,7 +16,6 @@ require 'bundler/gem_tasks'
 #
 # Setup
 #
-
 $LOAD_PATH.unshift 'lib'
 require 'resque/tasks'
 
@@ -28,10 +27,7 @@ end
 #
 # Tests
 #
-
 require 'rake/testtask'
-
-task :default => :test
 
 Rake::TestTask.new do |test|
   test.verbose = true
@@ -39,6 +35,7 @@ Rake::TestTask.new do |test|
   test.libs << "lib"
   test.test_files = FileList['test/**/*_test.rb']
 end
+task :default => :test
 
 if command? :kicker
   desc "Launch Kicker (like autotest)"
@@ -52,13 +49,11 @@ end
 #
 # Install
 #
-
 task :install => [ 'redis:install', 'dtach:install' ]
 
 
 #
 # Documentation
 #
-
 require 'yard'
 YARD::Rake::YardocTask.new
