@@ -60,4 +60,5 @@ task :install => [ 'redis:install', 'dtach:install' ]
 # Documentation
 #
 
-require 'sdoc_helpers'
+require 'yard'
+YARD::Rake::YardocTask.new

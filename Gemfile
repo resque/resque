@@ -4,7 +4,12 @@ gemspec
 
 group :development do
   gem 'rake'
-  gem 'sdoc'
+  gem 'yard'
+end
+
+group :documentation do
+  gem 'rdoc'
+  gem 'redcarpet'
 end
 
 group :test do
