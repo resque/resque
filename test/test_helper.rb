@@ -5,7 +5,6 @@ require 'bundler/setup'
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 $TESTING = true
-require 'mocha'
 require 'minitest/unit'
 require 'minitest/spec'
 require 'test/unit'
