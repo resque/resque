@@ -7,7 +7,7 @@ STALE_EXEMPTIONS = ["imports"]
 Thread.new do
   loop do
     begin
-      lines = `ps -e -o pid,command | grep [r]esque`.split("\n")
+      lines = `ps -e -o pid,command | grep [r]esque`.split($/)
       lines.each do |line|
         parts   = line.split(' ')
         next if parts[-2] != "at"

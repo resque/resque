@@ -31,7 +31,7 @@ at_exit do
 
   exit_code = MiniTest::Unit.new.run(ARGV)
 
-  processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
+  processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
   pids = processes.map { |process| process.split(" ")[0] }
   puts "Killing test redis server..."
   pids.each { |pid| Process.kill("TERM", pid.to_i) }
