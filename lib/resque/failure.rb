@@ -31,9 +31,10 @@ module Resque
     # Returns the current backend class. If none has been set, falls
     # back to `Resque::Failure::Redis`
     def self.backend
-      return @backend if @backend
-      require 'resque/failure/redis'
-      @backend = Failure::Redis
+      @backend ||= begin
+                     require 'resque/failure/redis'
+                     Failure::Redis
+                   end
     end
 
     # Returns the int count of how many failures we have seen.
@@ -74,25 +75,28 @@ module Resque
     # Requeues all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.requeue_queue(queue)
-      i=0
-      while job = Resque::Failure.all(i)
+      index = 0
+
+      while job = Resque::Failure.all(index)
         if job['queue'] == queue
-          Resque::Failure.requeue(i)
-        end  
-        i+=1
+          Resque::Failure.requeue(index)
+        end
+
+        index += 1
       end
     end
 
     # Removes all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.remove_queue(queue)
-      i=0
-      while job = Resque::Failure.all(i)
+      index = 0
+
+      while job = Resque::Failure.all(index)
         if job['queue'] == queue
           # This will remove the failure from the array so do not increment the index.
-          Resque::Failure.remove(i)
+          Resque::Failure.remove(index)
         else
-          i+=1    
+          index +=1
         end
       end
     end

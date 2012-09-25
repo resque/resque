@@ -21,6 +21,7 @@ module Resque
       queues.each do |queue|
         key = @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:" : ""
         key += queue.redis_name
+
         @queue_hash[key] = queue
       end
     end
@@ -33,8 +34,6 @@ module Resque
     def pop(non_block = false)
       if non_block
         synchronize do
-          value = nil
-
           @queues.each do |queue|
             begin
               return [queue, queue.pop(true)]
@@ -45,12 +44,15 @@ module Resque
           raise ThreadError
         end
       else
-        queue_names = @queues.map {|queue| queue.redis_name }
+        queue_names = @queues.map { |queue| queue.redis_name }
+
         if queue_names.any?
           synchronize do
             value = @redis.blpop(*(queue_names + [1])) until value
+
             queue_name, payload = value
-          queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+            queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+
             [queue, queue.decode(payload)]
           end
         else
@@ -65,13 +67,15 @@ module Resque
     # the timeout expires.
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
+
       if queue_names.any?
         queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
-        return unless payload
 
-        synchronize do
-          queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
-          [queue, queue.decode(payload)]
+        if payload
+          synchronize do
+            queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+            [queue, queue.decode(payload)]
+          end
         end
       else
         Kernel.sleep(timeout)
