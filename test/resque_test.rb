@@ -276,6 +276,16 @@ describe "Resque" do
     end
   end
 
+  it "inlining jobs in inline job" do
+    begin
+      Resque.inline = true
+      Resque.enqueue(NestedJob)
+      assert_equal 0, Resque.size(:ivar)
+    ensure
+      Resque.inline = false
+    end
+  end
+
   it 'treats symbols and strings the same' do
     assert_equal Resque.queue(:people), Resque.queue('people')
   end

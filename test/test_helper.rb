@@ -76,6 +76,13 @@ class SomeIvarJob < SomeJob
   @queue = :ivar
 end
 
+class NestedJob
+  @queue = :nested
+  def self.perform
+    Resque.enqueue(SomeIvarJob, 20, '/tmp')
+  end
+end
+
 class SomeMethodJob < SomeJob
   def self.queue
     :method
