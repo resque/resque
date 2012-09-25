@@ -40,7 +40,7 @@ module Resque
     it "recovers from blowed-up jobs" do
       Resque.consumer_timeout = 1
       @tp = ThreadedConsumerPool.new(@read, 1)
-      @write << RaiseJob.new
+      @write << FailingJob.new
       @write << Actionable.new
 
       @tp.start
