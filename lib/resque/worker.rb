@@ -1,3 +1,5 @@
+require 'time'
+
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
   # the worker will fork off a child to process each job. This ensures
