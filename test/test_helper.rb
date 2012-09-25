@@ -161,14 +161,18 @@ class Time
   self.fake_time = nil
 end
 
-def capture_stderr
-  # The output stream must be an IO-like object. In this case we capture it in
-  # an in-memory IO object so we can return the string value. You can assign any
-  # IO object here.
-  previous_stderr, $stderr = $stderr, StringIO.new
+# From minitest/unit
+def capture_io
+  require 'stringio'
+
+  orig_stdout, orig_stderr         = $stdout, $stderr
+  captured_stdout, captured_stderr = StringIO.new, StringIO.new
+  $stdout, $stderr                 = captured_stdout, captured_stderr
+
   yield
-  $stderr.string
+
+  return captured_stdout.string, captured_stderr.string
 ensure
-  # Restore the previous value of stderr (typically equal to STDERR).
-  $stderr = previous_stderr
+  $stdout = orig_stdout
+  $stderr = orig_stderr
 end

@@ -149,7 +149,7 @@ module Resque
           else
             unregister_signal_handlers if will_fork? && term_child
             procline "Processing #{job.queue} since #{Time.now.to_i}"
-            redis.client.reconnect # Don't share connection with parent
+            reconnect
             perform(job, &block)
             exit! if will_fork?
           end
@@ -164,8 +164,9 @@ module Resque
         end
       end
 
-    ensure
       unregister_worker
+    rescue Exception => exception
+      unregister_worker(exception)
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -216,6 +217,24 @@ module Resque
       log "Error reserving job: #{e.inspect}"
       log e.backtrace.join("\n")
       raise e
+    end
+
+    # Reconnect to Redis to avoid sharing a connection with the parent,
+    # retry up to 3 times with increasing delay before giving up.
+    def reconnect
+      tries = 0
+      begin
+        redis.client.reconnect
+      rescue Redis::BaseConnectionError
+        if (tries += 1) <= 3
+          log "Error reconnecting to Redis; retrying"
+          sleep(tries)
+          retry
+        else
+          log "Error reconnecting to Redis; quitting"
+          raise
+        end
+      end
     end
 
     # Returns a list of queues to use when searching for a job.
@@ -425,7 +444,7 @@ module Resque
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
-    def unregister_worker
+    def unregister_worker(exception = nil)
       # If we're still processing a job, make sure it gets logged as a
       # failure.
       if (hash = processing) && !hash.empty?
@@ -433,7 +452,7 @@ module Resque
         # Ensure the proper worker is attached to this job, even if
         # it's not the precise instance that died.
         job.worker = self
-        job.fail(DirtyExit.new)
+        job.fail(exception || DirtyExit.new)
       end
 
       redis.srem(:workers, self)
