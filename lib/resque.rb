@@ -123,23 +123,31 @@ module Resque
 
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
   def before_pause(&block)
-    @before_pause = block if block_given?
-    @before_pause
+    block ? register_hook(:before_pause, block) : hooks(:before_pause)
   end
 
-  # Set the after_pause proc.
-  attr_writer :before_pause
+  # Register a before_pause proc.
+  def before_pause=(block)
+    register_hook(:before_pause, block)
+  end
 
   # The `after_pause` hook will be run in the parent process after the
-  # worker has paused (via SIGCONT).
+  # worker has unpaused (via SIGCONT).
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
   def after_pause(&block)
-    @after_pause = block if block_given?
-    @after_pause
+    block ? register_hook(:after_pause, block) : hooks(:after_pause)
   end
 
-  # Set the after_continue proc.
-  attr_writer :after_pause
+  # Register an after_pause proc.
+  def after_pause=(block)
+    register_hook(:after_pause, block)
+  end
 
   def to_s
     "Resque Client connected to #{redis_id}"
