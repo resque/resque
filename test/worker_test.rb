@@ -409,7 +409,7 @@ context "Resque::Worker" do
     end
   end
 
-  test "Will call an after_fork hook after forking" do
+  test "Will call an after_fork hook if we're forking" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
@@ -418,7 +418,7 @@ context "Resque::Worker" do
     assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert $AFTER_FORK_CALLED
+    assert $AFTER_FORK_CALLED == workerA.will_fork?
   end
 
   test "Will not call an after_fork hook when the worker can't fork" do
