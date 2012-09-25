@@ -27,7 +27,7 @@ describe "Resque::Worker" do
   end
 
   it "unavailable job definition reports exception and message" do
-    Resque::Job.create(:jobs, 'NoJobDefinition') 
+    Resque::Job.create(:jobs, 'NoJobDefinition')
     @worker.work(0)
     assert_equal 1, Resque::Failure.count, 'failure not reported'
     assert_equal('NameError', Resque::Failure.all['exception'])
@@ -502,86 +502,6 @@ describe "Resque::Worker" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
-  end
-
-  it "tries to reconnect three times before giving up" do
-    begin
-      class Redis::Client
-        alias_method :original_reconnect, :reconnect
-
-        def reconnect
-          raise Redis::BaseConnectionError
-        end
-      end
-
-      class Resque::Worker
-        alias_method :original_sleep, :sleep
-
-        def sleep(duration = nil)
-          # noop
-        end
-      end
-
-      @worker.very_verbose = true
-      stdout, stderr = capture_io { @worker.work(0) }
-
-      assert_equal 3, stdout.scan(/retrying/).count
-      assert_equal 1, stdout.scan(/quitting/).count
-    ensure
-      class Redis::Client
-        alias_method :reconnect, :original_reconnect
-      end
-
-      class Resque::Worker
-        alias_method :sleep, :original_sleep
-      end
-    end
-  end
-
-  it "will call before_pause before it is paused" do
-    before_pause_called = false
-    captured_worker = nil
-
-    Resque.before_pause do |worker|
-      before_pause_called = true
-      captured_worker = worker
-    end
-
-    @worker.pause_processing
-
-    assert !before_pause_called
-
-    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
-
-    @worker.work(0)
-
-    t.join
-
-    assert before_pause_called
-    assert_equal @worker, captured_worker
-  end
-
-  it "will call after_pause after it is paused" do
-    after_pause_called = false
-    captured_worker = nil
-
-    Resque.after_pause do |worker|
-      after_pause_called = true
-      captured_worker = worker
-    end
-
-    @worker.pause_processing
-
-    assert !after_pause_called
-
-    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
-
-    @worker.work(0)
-
-    t.join
-
-    assert after_pause_called
-    assert_equal @worker, captured_worker
   end
 
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
