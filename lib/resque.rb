@@ -132,8 +132,10 @@ module Resque
     block ? register_hook(:before_pause, block) : hooks(:before_pause)
   end
 
-  # Set the after_pause proc.
-  attr_writer :before_pause
+  # Register a before_pause proc.
+  def before_pause=(block)
+    register_hook(:before_pause, block)
+  end
 
   # The `after_pause` hook will be run in the parent process after the
   # worker has paused (via SIGCONT).
@@ -141,8 +143,10 @@ module Resque
     block ? register_hook(:after_pause, block) : hooks(:after_pause)
   end
 
-  # Set the after_continue proc.
-  attr_writer :after_pause
+  # Register an after_pause proc.
+  def after_pause=(block)
+    register_hook(:after_pause, block)
+  end
 
   def to_s
     "Resque Client connected to #{redis_id}"
