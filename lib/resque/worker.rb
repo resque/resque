@@ -149,7 +149,7 @@ module Resque
           else
             unregister_signal_handlers if will_fork? && term_child
             procline "Processing #{job.queue} since #{Time.now.to_i}"
-            redis.client.reconnect # Don't share connection with parent
+            reconnect
             perform(job, &block)
             exit! if will_fork?
           end
@@ -217,6 +217,24 @@ module Resque
       log "Error reserving job: #{e.inspect}"
       log e.backtrace.join("\n")
       raise e
+    end
+
+    # Reconnect to Redis to avoid sharing a connection with the parent,
+    # retry up to 3 times with increasing delay before giving up.
+    def reconnect
+      tries = 0
+      begin
+        redis.client.reconnect
+      rescue Redis::BaseConnectionError
+        if (tries += 1) <= 3
+          log "Error reconnecting to Redis; retrying"
+          sleep(tries)
+          retry
+        else
+          log "Error reconnecting to Redis; quitting"
+          raise
+        end
+      end
     end
 
     # Returns a list of queues to use when searching for a job.
