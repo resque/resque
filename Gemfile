@@ -14,8 +14,7 @@ end
 
 group :test do
   gem "rack-test", "~> 0.5"
-  gem "yajl-ruby", :platforms => :mri
-  gem "json", "~>1.5.3", :platforms => [:jruby, :rbx]
+  gem "json"
   gem "i18n"
   gem "minitest"
 end

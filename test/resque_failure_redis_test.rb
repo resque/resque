@@ -19,11 +19,6 @@ describe "Resque::Failure::Redis" do
   end
 
   it 'cleans up bad strings before saving the failure, in order to prevent errors on the resque UI' do
-    # test assumption: the bad string should not be able to round trip though JSON
-    assert_raises(MultiJson::DecodeError, JSON::GeneratorError) {
-      MultiJson.decode(MultiJson.encode(@bad_string))
-    }
-
     @redis_backend.save
     Resque::Failure::Redis.all # should not raise an error
   end

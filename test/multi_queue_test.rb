@@ -2,7 +2,7 @@ require "test_helper"
 
 describe "Resque::MultiQueue" do
   let(:redis) { Resque.redis }
-  let(:coder) { Resque::MultiJsonCoder.new }
+  let(:coder) { Resque::JsonCoder.new }
 
   before do
     redis.flushall

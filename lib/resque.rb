@@ -15,7 +15,7 @@ require 'resque/plugin'
 require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
-require 'resque/multi_json_coder'
+require 'resque/json_coder'
 
 require 'resque/vendor/utf8_util'
 
@@ -55,9 +55,9 @@ module Resque
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
-  # This defaults to MultiJson for backwards compatibilty.
+  # This defaults to JSON for backwards compatibilty.
   def coder
-    @coder ||= MultiJsonCoder.new
+    @coder ||= JsonCoder.new
   end
   attr_writer :coder
 
