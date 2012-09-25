@@ -610,6 +610,44 @@ context "Resque::Worker" do
         end
       end
 
+      stdout, stderr = capture_io do
+        Resque.logger = Logger.new($stdout)
+        @worker.work(0)
+      end
+
+      assert_equal 3, stdout.scan(/retrying/).count
+      assert_equal 1, stdout.scan(/quitting/).count
+    ensure
+      class Redis::Client
+        alias_method :reconnect, :original_reconnect
+      end
+
+      class Resque::Worker
+        alias_method :sleep, :original_sleep
+      end
+    end
+  end
+
+  test "will call before_pause before it is paused" do
+    before_pause_called = false
+    captured_worker = nil
+    begin
+      class Redis::Client
+        alias_method :original_reconnect, :reconnect
+
+        def reconnect
+          raise Redis::BaseConnectionError
+        end
+      end
+
+      class Resque::Worker
+        alias_method :original_sleep, :sleep
+
+        def sleep(duration = nil)
+          # noop
+        end
+      end
+
       class DummyLogger
         attr_reader :messages
 

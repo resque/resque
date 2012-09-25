@@ -240,6 +240,24 @@ module Resque
       end
     end
 
+    # Reconnect to Redis to avoid sharing a connection with the parent,
+    # retry up to 3 times with increasing delay before giving up.
+    def reconnect
+      tries = 0
+      begin
+        redis.client.reconnect
+      rescue Redis::BaseConnectionError
+        if (tries += 1) <= 3
+          log "Error reconnecting to Redis; retrying"
+          sleep(tries)
+          retry
+        else
+          log "Error reconnecting to Redis; quitting"
+          raise
+        end
+      end
+    end
+
     # Returns a list of queues to use when searching for a job.
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
