@@ -1,6 +1,6 @@
 module Resque
   class Consumer
-    POISON = Object.new # :nodoc:
+    POISON = :poison # :nodoc:
 
     class Latch # :nodoc:
       def initialize(count = 1)
