@@ -30,8 +30,8 @@ module Resque
     attr_reader :payload
 
     def initialize(queue, payload)
-      @queue = queue
-      @payload = payload
+      @queue             = queue
+      @payload           = payload
       @failure_hooks_ran = false
     end
 
@@ -45,8 +45,10 @@ module Resque
 
       if Resque.inline?
         # Instantiating a Resque::Job and calling perform on it so callbacks run
-        # decode(encode(args)) to ensure that args are normalized in the same manner as a non-inline job
-        new(:inline, {'class' => klass, 'args' => decode(encode(args))}).perform
+        # decode(encode(args)) to ensure that args are normalized in the same
+        # manner as a non-inline job
+        payload = {'class' => klass, 'args' => decode(encode(args))}
+        new(:inline, payload).perform
       else
         Resque.push(queue, 'class' => klass.to_s, 'args' => args)
       end
@@ -77,8 +79,8 @@ module Resque
     # depending on the size of your queue, as it loads all jobs into
     # a Ruby array before processing.
     def self.destroy(queue, klass, *args)
-      klass = klass.to_s
-      queue = "queue:#{queue}"
+      klass     = klass.to_s
+      queue     = "queue:#{queue}"
       destroyed = 0
 
       if args.empty?
@@ -88,7 +90,8 @@ module Resque
           end
         end
       else
-        destroyed += redis.lrem(queue, 0, encode('class' => klass, 'args' => args))
+        payload = encode('class' => klass, 'args' => args)
+        destroyed += redis.lrem(queue, 0, payload)
       end
 
       destroyed
@@ -97,8 +100,9 @@ module Resque
     # Given a string queue name, returns an instance of Resque::Job
     # if any jobs are available. If not, returns nil.
     def self.reserve(queue)
-      return unless payload = Resque.pop(queue)
-      new(queue, payload)
+      if (payload = Resque.pop(queue))
+        new(queue, payload)
+      end
     end
 
     # Attempts to perform the work represented by this job instance.
@@ -106,7 +110,7 @@ module Resque
     # arguments given in the payload.
     def perform
       job = payload_class
-      job_args = args || []
+      job_args = (args || [])
       job_was_performed = false
 
       begin
@@ -142,6 +146,7 @@ module Resque
               end
             end
           end
+
           stack.call
         end
 
@@ -152,10 +157,9 @@ module Resque
 
         # Return true if the job was performed
         return job_was_performed
-
-      # If an exception occurs during the job execution, look for an
-      # on_failure hook then re-raise.
       rescue Object => e
+        # If an exception occurs during the job execution, look for an
+        # on_failure hook then re-raise.
         run_failure_hooks(e)
         raise e
       end
@@ -182,11 +186,13 @@ module Resque
     # the Failure module.
     def fail(exception)
       run_failure_hooks(exception) if has_payload_class?
-      Failure.create \
+
+      Failure.create(
         :payload   => payload,
         :exception => exception,
         :worker    => worker,
         :queue     => queue
+      )
     end
 
     # Creates an identical job, essentially placing this job back on
@@ -197,15 +203,14 @@ module Resque
 
     # String representation
     def inspect
-      obj = @payload
-      "(Job{%s} | %s | %s)" % [ @queue, obj['class'], obj['args'].inspect ]
+      "(Job{#{@queue}} | #{@payload['class']} | #{@payload['args'].inspect})"
     end
 
     # Equality
     def ==(other)
-      queue == other.queue &&
-        payload_class == other.payload_class &&
-        args == other.args
+      (queue == other.queue) &&
+        (payload_class == other.payload_class) &&
+        (args == other.args)
     end
 
     def before_hooks
@@ -226,8 +231,13 @@ module Resque
 
     def run_failure_hooks(exception)
       begin
-        job_args = args || []
-        failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
+        job_args = (args || [])
+
+        unless @failure_hooks_ran
+          failure_hooks.each do |hook|
+            payload_class.send(hook, exception, *job_args)
+          end
+        end
       ensure
         @failure_hooks_ran = true
       end

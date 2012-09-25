@@ -38,20 +38,27 @@ module Resque
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
-      end
-      namespace ||= :resque
 
+        redis = Redis.new(
+          :host => host,
+          :port => port,
+          :db   => db,
+
+          :thread_safe => true
+        )
+      end
+
+      namespace ||= :resque
       @redis = Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
       @redis = server
     else
       @redis = Redis::Namespace.new(:resque, :redis => server)
     end
-    @queues = Hash.new { |h,name|
-      h[name] = Resque::Queue.new(name, @redis, coder)
-    }
+
+    @queues = Hash.new do |hash,name|
+      hash[name] = Resque::Queue.new(name, @redis, coder)
+    end
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
@@ -65,7 +72,12 @@ module Resque
   # create a new one.
   def redis
     return @redis if @redis
-    self.redis = Redis.respond_to?(:connect) ? Redis.connect(:thread_safe => true) : "localhost:6379"
+
+    self.redis = if Redis.respond_to?(:connect)
+                   Redis.connect(:thread_safe => true)
+                 else
+                   "localhost:6379"
+                 end
     self.redis
   end
 
@@ -124,7 +136,7 @@ module Resque
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
   def before_pause(&block)
-    @before_pause = block if block_given?
+    @before_pause = block if block
     @before_pause
   end
 
@@ -134,7 +146,7 @@ module Resque
   # The `after_pause` hook will be run in the parent process after the
   # worker has paused (via SIGCONT).
   def after_pause(&block)
-    @after_pause = block if block_given?
+    @after_pause = block if block
     @after_pause
   end
 
@@ -150,7 +162,7 @@ module Resque
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
   # The 'inline' is false Resque jobs will be put in queue regularly.
-  alias :inline? :inline
+  alias inline? inline
 
   #
   # queue manipulation
@@ -182,7 +194,6 @@ module Resque
     begin
       queue(queue).pop(true)
     rescue ThreadError
-      nil
     end
   end
 
@@ -201,17 +212,17 @@ module Resque
   # To get the 3rd page of a 30 item, paginatied list one would use:
   #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
-    queue(queue).slice start, count
+    queue(queue).slice(start, count)
   end
 
   # Does the dirty work of fetching a range of items from a Redis list
   # and converting them into Ruby objects.
   def list_range(key, start = 0, count = 1)
     if count == 1
-      decode redis.lindex(key, start)
+      decode(redis.lindex(key, start))
     else
       Array(redis.lrange(key, start, start+count-1)).map do |item|
-        decode item
+        decode(item)
       end
     end
   end
@@ -271,7 +282,8 @@ module Resque
     before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
       klass.send(hook, *args)
     end
-    return nil if before_hooks.any? { |result| result == false }
+
+    return if before_hooks.any? { |result| result == false }
 
     Job.create(queue, klass, *args)
 
@@ -314,6 +326,7 @@ module Resque
     before_hooks = Plugin.before_dequeue_hooks(klass).collect do |hook|
       klass.send(hook, *args)
     end
+
     return if before_hooks.any? { |result| result == false }
 
     Job.destroy(queue_from_class(klass), klass, *args)
@@ -347,7 +360,7 @@ module Resque
   def validate(klass, queue = nil)
     queue ||= queue_from_class(klass)
 
-    if !queue
+    unless queue
       raise NoQueueError.new("Jobs must be placed onto a queue.")
     end
 
@@ -384,14 +397,14 @@ module Resque
 
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
-    return {
-      :pending   => queues.inject(0) { |m,k| m + size(k) },
-      :processed => Stat[:processed],
-      :queues    => queues.size,
-      :workers   => workers.size.to_i,
-      :working   => working.size,
-      :failed    => Stat[:failed],
-      :servers   => [redis_id],
+    {
+      :pending      => queues.inject(0) { |m,k| m + size(k) },
+      :processed    => Stat[:processed],
+      :queues       => queues.size,
+      :workers      => workers.size.to_i,
+      :working      => working.size,
+      :failed       => Stat[:failed],
+      :servers      => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     }
   end

@@ -46,9 +46,10 @@ module Resque
       end
 
       names = camel_cased_word.split('::')
-      names.shift if names.empty? || names.first.empty?
+      names.shift if (names.empty? || names.first.empty?)
 
       constant = Object
+
       names.each do |name|
         args = Module.method(:const_get).arity != 1 ? [false] : []
 
@@ -58,6 +59,7 @@ module Resque
           constant = constant.const_missing(name)
         end
       end
+
       constant
     end
   end

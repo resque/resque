@@ -29,7 +29,7 @@ module Resque
 
     # Increments a stat by one.
     def <<(stat)
-      incr stat
+      incr(stat)
     end
 
     # For a string stat name, decrements the stat by one.
@@ -42,7 +42,7 @@ module Resque
 
     # Decrements a stat by one.
     def >>(stat)
-      decr stat
+      decr(stat)
     end
 
     # Removes a stat from Redis, effectively setting it to 0.
