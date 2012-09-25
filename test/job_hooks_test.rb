@@ -252,6 +252,8 @@ end
 
 
 describe "Resque::Job before_enqueue" do
+  before{ Resque.redis.flushall }
+
   include PerformJob
 
   class ::BeforeEnqueueJob
