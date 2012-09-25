@@ -25,7 +25,7 @@ module Resque
     before do
       @write  = Queue.new(:foo)
       @read  = Queue.new(:foo, Resque.pool)
-      @tp = ThreadedPool.new(@read, 5)
+      @tp = ThreadedConsumerPool.new(@read, 5)
     end
 
     it "processes work" do
@@ -39,7 +39,7 @@ module Resque
 
     it "recovers from blowed-up jobs" do
       Resque.consumer_timeout = 1
-      @tp = ThreadedPool.new(@read, 1)
+      @tp = ThreadedConsumerPool.new(@read, 1)
       @write << RaiseJob.new
       @write << Actionable.new
 
