@@ -133,6 +133,8 @@ module Resque
       c = Consumer.new(q, 1)
       t = Thread.new { c.consume }
 
+      Timeout.timeout(1) { sleep(0.1) while t.status }
+
       assert_equal 1, q.length
       assert_equal 0, Actionable.ran.length
     end
