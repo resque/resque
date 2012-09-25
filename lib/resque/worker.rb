@@ -548,7 +548,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
-      `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split("\n").select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
+      `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
     end
 
     # Find Resque worker pids on Linux and OS X.
@@ -571,7 +571,7 @@ module Resque
        active_worker_pids = []
        output = %x[#{command}]  # output format of ps must be ^<PID> <COMMAND WITH ARGS>
        raise 'System call for ps command failed. Please make sure that you have a compatible ps command in the path!' unless $?.success?
-       output.split("\n").each{|line| 
+       output.split($/).each{|line| 
         next unless line =~ /resque/i
         next if line =~ /resque-web/
         active_worker_pids.push line.split(' ')[0]
