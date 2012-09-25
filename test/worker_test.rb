@@ -473,6 +473,40 @@ context "Resque::Worker" do
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
+  test "tries to reconnect three times before giving up" do
+    begin
+      class Redis::Client
+        alias_method :original_reconnect, :reconnect
+
+        def reconnect
+          raise Redis::BaseConnectionError
+        end
+      end
+
+      class Resque::Worker
+        alias_method :original_sleep, :sleep
+
+        def sleep(duration = nil)
+          # noop
+        end
+      end
+
+      @worker.very_verbose = true
+      stdout, stderr = capture_io { @worker.work(0) }
+
+      assert_equal 3, stdout.scan(/retrying/).count
+      assert_equal 1, stdout.scan(/quitting/).count
+    ensure
+      class Redis::Client
+        alias_method :reconnect, :original_reconnect
+      end
+
+      class Resque::Worker
+        alias_method :sleep, :original_sleep
+      end
+    end
+  end
+
   if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
     test "old signal handling is the default" do
       rescue_time = nil
