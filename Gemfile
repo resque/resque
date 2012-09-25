@@ -15,6 +15,5 @@ end
 group :test do
   gem "rack-test", "~> 0.5"
   gem "json"
-  gem "i18n"
   gem "minitest"
 end
