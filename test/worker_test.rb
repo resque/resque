@@ -428,6 +428,9 @@ context "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $AFTER_FORK_CALLED == workerA.will_fork?
+    # The assert above isn't very interesting,
+    # will_fork? is always false.
+    assert !workerA.will_fork?
   end
 
   test "Will not call an after_fork hook when the worker can't fork" do
