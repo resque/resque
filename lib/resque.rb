@@ -47,7 +47,7 @@ module Resque
 
   def create_pool(server = Resque.server, size = 5, timeout = nil)
     @server = server
-    @redis  = create_connection
+    @redis  = create_connection(server)
     @pool   = ConnectionPool.new(@redis, size, timeout)
     @queues = Hash.new { |h,name|
       h[name] = Resque::Queue.new(name, @pool, coder)
