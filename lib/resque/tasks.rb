@@ -24,6 +24,7 @@ namespace :resque do
           abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
       Process.daemon(true)
+      worker.reset_pid
     end
 
     worker.log "Starting worker #{worker}"
