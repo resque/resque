@@ -30,14 +30,63 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
-
 The Blog Post
 -------------
 
 For the backstory, philosophy, and history of Resque's beginnings,
 please see [the blog post][0].
 
+Table Of Contents
+-----------------
 
+   * [Overview](#section_Overview)
+   * [Jobs](#section_Jobs)
+      * [Persistence](#section_Jobs_Persistence)
+      * [send_later / async](#section_Jobs_send_later_async)
+      * [Failure](#section_Jobs_Failure)
+   * [Workers](#section_Workers)
+      * [Logging](#section_Workers_Logging)
+      * [Process IDs](#section_Workers_Process_IDs)
+      * [Running in the background](#section_Workers_Running_in_the_background)
+      * [Polling frequency](#section_Workers_Polling_frequency)
+      * [Priorities and Queue Lists](#section_Workers_Priorities_and_Queue_Lists)
+      * [Running All Queues](#section_Workers_Running_All_Queues)
+      * [Running Multiple Workers](#section_Workers_Running_Multiple_Workers)
+      * [Forking](#section_Workers_Forking)
+      * [Parents and Children](#section_Workers_Parents_and_Children)
+      * [Signals](#section_Workers_Signals)
+      * [Mysql::Error: MySQL server has gone away](#section_Workers_Mysql_Error_MySQL_server_has_gone_away)
+   * [The Front End](#section_The_Front_End)
+      * [Standalone](#section_The_Front_End_Standalone)
+      * [Using the front end for failure review](#section_Using_The_Front_End_For_Review)
+      * [Passenger](#section_The_Front_End_Passenger)
+      * [Rack::URLMap](#section_The_Front_End_Rack_URLMap)
+      * [Rails 3](#section_The_Front_End_Rails_3)
+   * [Resque vs DelayedJob](#section_Resque_vs_DelayedJob)
+   * [Installing Redis](#section_Installing_Redis)
+      * [Homebrew](#section_Installing_Redis_Homebrew)
+      * [View Resque](#section_Installing_Redis_Via_Resque)
+   * [Resque Dependencies](#section_Resque_Dependencies)
+   * [Installing Resque](#section_Installing_Resque)
+      * [In a Rack app, as a gem](#section_Installing_Resque_In_a_Rack_app_as_a_gem)
+      * [In a Rails 2.x app, as a gem](#section_Installing_Resque_In_a_Rails_2_x_app_as_a_gem)
+      * [In a Rails 2.x app, as a plugin](#section_Installing_Resque_In_a_Rails_2_x_app_as_a_plugin)
+      * [In a Rails 3 app, as a gem](#section_Installing_Resque_In_a_Rails_3_app_as_a_gem)
+   * [Configuration](#section_Configuration)
+   * [Plugins and Hooks](#section_Plugins_and_Hooks)
+   * [Namespaces](#section_Namespaces)
+   * [Demo](#section_Demo)
+   * [Monitoring](#section_Monitoring)
+      * [god](#section_Monitoring_god)
+      * [monit](#section_Monitoring_monit)
+   * [Questions](#section_Questions)
+   * [Development](#section_Development)
+   * [Contributing](#section_Contributing)
+   * [Mailing List](#section_Mailing_List)
+   * [Meta](#section_Meta)
+   * [Author](#section_Author)
+
+<a name='section_Overview'></a>
 Overview
 --------
 
@@ -107,6 +156,7 @@ multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
 
+<a name='section_Jobs'></a>
 Jobs
 ----
 
@@ -133,6 +183,7 @@ sense. You could easily be spidering sites and sticking data which
 needs to be crunched later into a queue.
 
 
+<a name='section_Jobs_Persistence'></a>
 ### Persistence
 
 Jobs are persisted to queues as JSON objects. Let's take our `Archive`
@@ -177,7 +228,12 @@ pull from the DB or cache.
 If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
+Note that if you queue a job with a hash as an argument the hash
+will have its keys stringified when decoded. If you use ActiveSupport
+you can call `symbolize_keys!` on the hash to symbolize the keys again
+or you can access the values using strings as keys.
 
+<a name='section_Jobs_send_later_async'></a>
 ### send_later / async
 
 Want something like DelayedJob's `send_later` or the ability to use
@@ -187,6 +243,7 @@ directory for goodies.
 We plan to provide first class `async` support in a future release.
 
 
+<a name='section_Jobs_Failure'></a>
 ### Failure
 
 If a job raises an exception, it is logged and handed off to the
@@ -199,6 +256,7 @@ Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
 
 
+<a name='section_Workers'></a>
 Workers
 -------
 
@@ -249,6 +307,7 @@ We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
 
+<a name='section_Workers_Logging'></a>
 ### Logging
 
 Workers support basic logging to STDOUT. If you start them with the
@@ -258,6 +317,7 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
+<a name='section_Workers_Process_IDs'></a>
 ### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque
@@ -265,6 +325,7 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
     $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
 
+<a name='section_Workers_Running_in_the_background'></a>
 ### Running in the background
 
 (Only supported with ruby >= 1.9). There are scenarios where it's helpful for
@@ -275,6 +336,7 @@ worker is started.
     $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
         rake environment resque:work
 
+<a name='section_Workers_Polling_frequency'></a>
 ### Polling frequency
 
 You can pass an INTERVAL option which is a float representing the polling frequency. 
@@ -282,6 +344,7 @@ The default is 5 seconds, but for a semi-active app you may want to use a smalle
 
     $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
 
+<a name='section_Workers_Priorities_and_Queue_Lists'></a>
 ### Priorities and Queue Lists
 
 Resque doesn't support numeric priorities but instead uses the order
@@ -317,6 +380,7 @@ And workers on our specialized archive machine with this command:
     $ QUEUE=archive rake resque:work
 
 
+<a name='section_Workers_Running_All_Queues'></a>
 ### Running All Queues
 
 If you want your workers to work off of every queue, including new
@@ -327,6 +391,7 @@ queues created on the fly, you can use a splat:
 Queues will be processed in alphabetical order.
 
 
+<a name='section_Workers_Running_Multiple_Workers'></a>
 ### Running Multiple Workers
 
 At GitHub we use god to start and stop multiple workers. A sample god
@@ -342,6 +407,7 @@ This will spawn five Resque workers, each in its own thread. Hitting
 ctrl-c should be sufficient to stop them all.
 
 
+<a name='section_Workers_Forking'></a>
 ### Forking
 
 On certain platforms, when a Resque worker reserves a job it
@@ -384,6 +450,7 @@ complicated.
 Workers instead handle their own state.
 
 
+<a name='section_Workers_Parents_and_Children'></a>
 ### Parents and Children
 
 Here's a parent / child pair doing some work:
@@ -405,6 +472,7 @@ waiting for work on:
     92099 resque: Waiting for file_serve,warm_cache
 
 
+<a name='section_Workers_Signals'></a>
 ### Signals
 
 Resque workers respond to a few different signals:
@@ -427,13 +495,15 @@ If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
 then `CONT` to start it again.
 
+<a name='section_Workers_Mysql_Error_MySQL_server_has_gone_away'></a>
 ### Mysql::Error: MySQL server has gone away
 
 If your workers remain idle for too long they may lose their MySQL
 connection. If that happens we recommend using [this
-Gist](http://gist.github.com/238999).
+Gist](https://gist.github.com/238999).
 
 
+<a name='section_The_Front_End'></a>
 The Front End
 -------------
 
@@ -442,6 +512,7 @@ your queue.
 
 ![The Front End](https://img.skitch.com/20110528-pc67a8qsfapgjxf5gagxd92fcu.png)
 
+<a name='section_The_Front_End_Standalone'></a>
 ### Standalone
 
 If you've installed Resque as a gem running the front end standalone is easy:
@@ -465,6 +536,21 @@ or set the Redis connection string if you need to do something like select a dif
 
     $ resque-web -p 8282 -r localhost:6379:2
 
+<a name='section_Using_The_Front_End_For_Review'></a>
+
+### Using The front end for failures review
+
+Using the front end to review what's happening in the queue
+-----------------------------------------------------------
+After using Resque for a while, you may have quite a few failed jobs.
+Reviewing them by going over pages when showing 20 a page can be a bit hard.
+
+You can change the param in the url (in the failed view only for now), just add per_page=100 and you will see 100 per page.
+for example: http://www.your_domain.com/resque/failed?start=20&per_page=200.
+
+
+<a name='section_The_Front_End_Passenger'></a>
+
 ### Passenger
 
 Using Passenger? Resque ships with a `config.ru` you can use. See
@@ -473,6 +559,7 @@ Phusion's guide:
 Apache: <http://www.modrails.com/documentation/Users%20guide%20Apache.html#_deploying_a_rack_based_ruby_application>
 Nginx: <http://www.modrails.com/documentation/Users%20guide%20Nginx.html#deploying_a_rack_app>
 
+<a name='section_The_Front_End_Rack_URLMap'></a>
 ### Rack::URLMap
 
 If you want to load Resque on a subpath, possibly alongside other
@@ -489,6 +576,7 @@ run Rack::URLMap.new \
 Check `examples/demo/config.ru` for a functional example (including
 HTTP basic auth).
 
+<a name='section_The_Front_End_Rails_3'></a>
 ### Rails 3
 
 You can also mount Resque on a subpath in your existing Rails 3 app by adding `require 'resque/server'` to the top of your routes file or in an initializer then adding this to `routes.rb`:
@@ -497,7 +585,20 @@ You can also mount Resque on a subpath in your existing Rails 3 app by adding `r
 mount Resque::Server.new, :at => "/resque"
 ```
 
+If you use Devise, the following will integrate with your existing admin authentication (assuming you have an Admin Devise scope):
 
+``` ruby
+resque_constraint = lambda do |request|
+  request.env['warden'].authenticate!({ :scope => :admin })
+end
+constraints resque_constraint do
+  mount Resque::Server.new, :at => "/resque"
+end
+```
+
+
+
+<a name='section_Resque_vs_DelayedJob'></a>
 Resque vs DelayedJob
 --------------------
 
@@ -544,6 +645,7 @@ In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
 
+<a name='section_Installing_Redis'></a>
 Installing Redis
 ----------------
 
@@ -552,6 +654,7 @@ Resque requires Redis 0.900 or higher.
 Resque uses Redis' lists for its queues. It also stores worker state
 data in Redis.
 
+<a name='section_Installing_Redis_Homebrew'></a>
 #### Homebrew
 
 If you're on OS X, Homebrew is the simplest way to install Redis:
@@ -561,6 +664,7 @@ If you're on OS X, Homebrew is the simplest way to install Redis:
 
 You now have a Redis daemon running on 6379.
 
+<a name='section_Installing_Redis_Via_Resque'></a>
 #### Via Resque
 
 Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
@@ -585,6 +689,7 @@ The demo is probably the best way to figure out how to put the parts
 together. But, it's not that hard.
 
 
+<a name='section_Resque_Dependencies'></a>
 Resque Dependencies
 -------------------
 
@@ -592,9 +697,11 @@ Resque Dependencies
     $ bundle install
 
 
+<a name='section_Installing_Resque'></a>
 Installing Resque
 -----------------
 
+<a name='section_Installing_Resque_In_a_Rack_app_as_a_gem'></a>
 ### In a Rack app, as a gem
 
 First install the gem.
@@ -629,6 +736,7 @@ Alternately you can define a `resque:setup` hook in your Rakefile if you
 don't want to load your app every time rake runs.
 
 
+<a name='section_Installing_Resque_In_a_Rails_2_x_app_as_a_gem'></a>
 ### In a Rails 2.x app, as a gem
 
 First install the gem.
@@ -660,6 +768,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name='section_Installing_Resque_In_a_Rails_2_x_app_as_a_plugin'></a>
 ### In a Rails 2.x app, as a plugin
 
     $ ./script/plugin install git://github.com/defunkt/resque
@@ -675,6 +784,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name='section_Installing_Resque_In_a_Rails_3_app_as_a_gem'></a>
 ### In a Rails 3 app, as a gem
 
 First include it in your Gemfile.
@@ -709,6 +819,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
+<a name='section_Configuration'></a>
 Configuration
 -------------
 
@@ -729,11 +840,16 @@ appropriately.
 
 Here's our `config/resque.yml`:
 
-    development: localhost:6379
-    test: localhost:6379
-    staging: redis1.se.github.com:6379
-    fi: localhost:6379
-    production: redis1.ae.github.com:6379
+``` yaml
+development: localhost:6379
+test: localhost:6379:1
+staging: redis1.se.github.com:6379
+fi: localhost:6379
+production: redis1.ae.github.com:6379
+```
+
+Note that separated Redis database should be used for test environment
+So that you can flush it and without impacting development environment
 
 And our initializer:
 
@@ -760,17 +876,19 @@ Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 ```
 
 
+<a name='section_Plugins_and_Hooks'></a>
 Plugins and Hooks
 -----------------
 
 For a list of available plugins see
-<http://wiki.github.com/defunkt/resque/plugins>.
+<https://wiki.github.com/defunkt/resque/plugins>.
 
 If you'd like to write your own plugin, or want to customize Resque
 using hooks (such as `Resque.after_fork`), see
-[docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
+[docs/HOOKS.md](https://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
 
 
+<a name='section_Namespaces'></a>
 Namespaces
 ----------
 
@@ -792,6 +910,7 @@ We recommend sticking this in your initializer somewhere after Redis
 is configured.
 
 
+<a name='section_Demo'></a>
 Demo
 ----
 
@@ -801,15 +920,18 @@ processed in the background.
 Try it out by looking at the README, found at `examples/demo/README.markdown`.
 
 
+<a name='section_Monitoring'></a>
 Monitoring
 ----------
 
+<a name='section_Monitoring_god'></a>
 ### god
 
 If you're using god to monitor Resque, we have provided example
 configs in `examples/god/`. One is for starting / stopping workers,
 the other is for killing workers that have been running too long.
 
+<a name='section_Monitoring_monit'></a>
 ### monit
 
 If you're using monit, `examples/monit/resque.monit` is provided free
@@ -817,6 +939,7 @@ of charge. This is **not** used by GitHub in production, so please
 send patches for any tweaks or improvements you can make to it.
 
 
+<a name='section_Questions'></a>
 Questions
 ---------
 
@@ -824,6 +947,7 @@ Please add them to the [FAQ](https://github.com/defunkt/resque/wiki/FAQ) or
 ask on the Mailing List. The Mailing List is explained further below
 
 
+<a name='section_Development'></a>
 Development
 -----------
 
@@ -857,6 +981,7 @@ Feel free to ping the mailing list with your problem and we'll try to
 sort it out.
 
 
+<a name='section_Contributing'></a>
 Contributing
 ------------
 
@@ -867,10 +992,11 @@ Once you've made your great commits:
 1. [Fork][1] Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
-4. Create a [Pull Request](http://help.github.com/pull-requests/) from your branch
+4. Create a [Pull Request](https://help.github.com/pull-requests/) from your branch
 5. That's it!
 
 
+<a name='section_Mailing_List'></a>
 Mailing List
 ------------
 
@@ -881,28 +1007,30 @@ including unsubscribe information.
 The archive can be found at <http://librelist.com/browser/resque/>.
 
 
+<a name='section_Meta'></a>
 Meta
 ----
 
 * Code: `git clone git://github.com/defunkt/resque.git`
-* Home: <http://github.com/defunkt/resque>
-* Docs: <http://defunkt.github.com/resque/>
-* Bugs: <http://github.com/defunkt/resque/issues>
+* Home: <https://github.com/defunkt/resque>
+* Docs: <http://rubydoc.info/gems/resque/frames>
+* Bugs: <https://github.com/defunkt/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
-* Gems: <http://gemcutter.org/gems/resque>
+* Gems: <http://rubygems.org/gems/resque>
 
 This project uses [Semantic Versioning][sv].
 
 
+<a name='section_Author'></a>
 Author
 ------
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
-[0]: http://github.com/blog/542-introducing-resque
-[1]: http://help.github.com/forking/
-[2]: http://github.com/defunkt/resque/issues
+[0]: https://github.com/blog/542-introducing-resque
+[1]: https://help.github.com/forking/
+[2]: https://github.com/defunkt/resque/issues
 [sv]: http://semver.org/
-[rs]: http://github.com/defunkt/redis-namespace
-[cb]: http://wiki.github.com/defunkt/resque/contributing
+[rs]: https://github.com/defunkt/redis-namespace
+[cb]: https://wiki.github.com/defunkt/resque/contributing

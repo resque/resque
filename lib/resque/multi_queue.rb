@@ -11,15 +11,19 @@ module Resque
 
     ###
     # Create a new MultiQueue using the +queues+ from the +redis+ connection
-    def initialize(queues, pool = Resque.pool)
+    def initialize(queues, redis, pool = Resque.pool)
       super()
 
       @queues     = queues # since ruby 1.8 doesn't have Ordered Hashes
       @queue_hash = {}
+      @redis      = redis
       @pool       = pool
 
       queues.each do |queue|
-        @queue_hash[queue.redis_name] = queue
+        key = @redis.is_a?(Redis::Namespace) ? "#{@redis.namespace}:" : ""
+        key += queue.redis_name
+        @queue_hash[key] = queue
+        
       end
     end
 
@@ -44,11 +48,15 @@ module Resque
         end
       else
         queue_names = @queues.map {|queue| queue.redis_name }
-        synchronize do
-          value = @pool.with_connection {|pool| pool.blpop(*(queue_names + [:timeout => 1])) } until value
-          queue_name, payload = value
-          queue = @queue_hash[queue_name]
-          [queue, queue.decode(payload)]
+        if queue_names.any?
+          synchronize do
+            value = @pool.with_connection {|pool| pool.blpop(*(queue_names + [:timeout => 1])) } until value
+            queue_name, payload = value
+            queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+            [queue, queue.decode(payload)]
+          end
+        else
+          Kernel.sleep # forever
         end
       end
     end
@@ -59,12 +67,17 @@ module Resque
     # the timeout expires.
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
-      queue_name, payload = @pool.with_connection {|pool| pool.blpop(*(queue_names + [:timeout => timeout])) }
-      return unless payload
+      if queue_names.any?
+        queue_name, payload = @pool.with_connection {|pool| pool.blpop(*(queue_names + [:timeout => timeout])) }
+        return unless payload
 
-      synchronize do
-        queue = @queue_hash[queue_name]
-        [queue, queue.decode(payload)]
+        synchronize do
+          queue = @queue_hash["#{@redis.namespace}:#{queue_name}"]
+          [queue, queue.decode(payload)]
+        end
+      else
+        Kernel.sleep(timeout)
+        nil
       end
     end
   end

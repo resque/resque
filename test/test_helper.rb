@@ -1,15 +1,15 @@
 require 'rubygems'
 
-$dir = File.dirname(File.expand_path(__FILE__))
-$LOAD_PATH.unshift $dir + '/../lib'
-$TESTING = true
+require 'timeout'
+require 'bundler/setup'
+require 'redis/namespace'
 require 'minitest/unit'
 require 'minitest/spec'
-require 'mocha'
-require 'timeout'
 
-require 'redis/namespace'
+$dir = File.dirname(File.expand_path(__FILE__))
+$LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
+$TESTING = true
 
 #
 # make sure we can run redis
@@ -32,13 +32,9 @@ Thread.abort_on_exception = true
 at_exit do
   next if $!
 
-  if defined?(MiniTest)
-    exit_code = MiniTest::Unit.new.run(ARGV)
-  else
-    exit_code = Test::Unit::AutoRunner.run
-  end
+  exit_code = MiniTest::Unit.new.run(ARGV)
 
-  processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
+  processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
   pids = processes.map { |process| process.split(" ")[0] }
   puts "Killing test redis server..."
   pids.each { |pid| Process.kill("TERM", pid.to_i) }
@@ -82,6 +78,13 @@ end
 
 class SomeIvarJob < SomeJob
   @queue = :ivar
+end
+
+class NestedJob
+  @queue = :nested
+  def self.perform
+    Resque.enqueue(SomeIvarJob, 20, '/tmp')
+  end
 end
 
 class SomeMethodJob < SomeJob

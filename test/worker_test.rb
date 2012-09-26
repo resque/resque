@@ -25,6 +25,14 @@ describe "Resque::Worker" do
     assert_equal('Extra Bad job!', Resque::Failure.all['error'])
   end
 
+  it "unavailable job definition reports exception and message" do
+    Resque::Job.create(:jobs, 'NoJobDefinition') 
+    @worker.work(0)
+    assert_equal 1, Resque::Failure.count, 'failure not reported'
+    assert_equal('NameError', Resque::Failure.all['exception'])
+    assert_match('uninitialized constant', Resque::Failure.all['error'])
+  end
+
   it "does not allow exceptions from failure backend to escape" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
@@ -32,11 +40,20 @@ describe "Resque::Worker" do
     end
   end
 
-  it "fails uncompleted jobs on exit" do
+  it "fails uncompleted jobs with DirtyExit by default on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
+    assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
+  end
+
+  it "fails uncompleted jobs with worker exception on exit" do
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    @worker.working_on(job)
+    @worker.unregister_worker(StandardError.new)
+    assert_equal 1, Resque::Failure.count
+    assert_equal('StandardError', Resque::Failure.all['exception'])
   end
 
   class ::SimpleJobWithFailureHandling
@@ -166,6 +183,15 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
     assert_equal 0, Resque.size(:beer)
+  end
+
+  it "preserves order with a wildcard in the middle of a list" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:bulk, GoodJob)
+
+    worker = Resque::Worker.new(:beer, "*", :bulk)
+
+    assert_equal %w( beer critical jobs bulk ), worker.queues
   end
 
   it "processes * queues in alphabetical order" do
@@ -396,6 +422,16 @@ describe "Resque::Worker" do
 #     assert_equal 1, $BEFORE_FORK_CALLED
   end
 
+  it "Passes the worker to the before_first_fork hook" do
+    $BEFORE_FORK_WORKER = nil
+    Resque.before_first_fork = Proc.new { |w| $BEFORE_FORK_WORKER = w.id }
+    workerA = Resque::Worker.new(:jobs)
+
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert_equal workerA.id, $BEFORE_FORK_WORKER
+  end
+
   it "Will call a before_fork hook before forking" do
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -440,7 +476,7 @@ describe "Resque::Worker" do
   it "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
-  
+
   it "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
@@ -465,6 +501,86 @@ describe "Resque::Worker" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+  end
+
+  it "tries to reconnect three times before giving up" do
+    begin
+      class Redis::Client
+        alias_method :original_reconnect, :reconnect
+
+        def reconnect
+          raise Redis::BaseConnectionError
+        end
+      end
+
+      class Resque::Worker
+        alias_method :original_sleep, :sleep
+
+        def sleep(duration = nil)
+          # noop
+        end
+      end
+
+      @worker.very_verbose = true
+      stdout, stderr = capture_io { @worker.work(0) }
+
+      assert_equal 3, stdout.scan(/retrying/).count
+      assert_equal 1, stdout.scan(/quitting/).count
+    ensure
+      class Redis::Client
+        alias_method :reconnect, :original_reconnect
+      end
+
+      class Resque::Worker
+        alias_method :sleep, :original_sleep
+      end
+    end
+  end
+
+  it "will call before_pause before it is paused" do
+    before_pause_called = false
+    captured_worker = nil
+
+    Resque.before_pause do |worker|
+      before_pause_called = true
+      captured_worker = worker
+    end
+
+    @worker.pause_processing
+
+    assert !before_pause_called
+
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert before_pause_called
+    assert_equal @worker, captured_worker
+  end
+
+  it "will call after_pause after it is paused" do
+    after_pause_called = false
+    captured_worker = nil
+
+    Resque.after_pause do |worker|
+      after_pause_called = true
+      captured_worker = worker
+    end
+
+    @worker.pause_processing
+
+    assert !after_pause_called
+
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0)
+
+    t.join
+
+    assert after_pause_called
+    assert_equal @worker, captured_worker
   end
 
   [SignalException, Resque::TermException].each do |exception|
@@ -540,3 +656,4 @@ describe "Resque::Worker" do
     end
   end
 end
+

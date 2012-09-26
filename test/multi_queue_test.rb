@@ -1,21 +1,26 @@
 require "test_helper"
 
-describe "Resque::MulitQueue" do
+describe "Resque::MultiQueue" do
   let(:redis) { Resque.redis }
   let(:pool)  { Resque.pool }
-  let(:coder) { Resque::MultiJsonCoder.new }
+  let(:coder) { Resque::JsonCoder.new }
 
   it "poll times out and returns nil" do
     foo   = Resque::Queue.new 'foo', pool
     bar   = Resque::Queue.new 'bar', pool
-    queue = Resque::MultiQueue.new([foo, bar], pool)
+    queue = Resque::MultiQueue.new([foo, bar], redis, pool)
+    assert_nil queue.poll(1)
+  end
+
+  it "poll is a no-op when queues are empty" do
+    queue = Resque::MultiQueue.new([], redis)
     assert_nil queue.poll(1)
   end
 
   it "blocks on pop" do
     foo   = Resque::Queue.new 'foo', pool, coder
     bar   = Resque::Queue.new 'bar', pool, coder
-    queue = Resque::MultiQueue.new([foo, bar], pool)
+    queue = Resque::MultiQueue.new([foo, bar], redis, pool)
     t     = Thread.new { queue.pop }
 
     job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
@@ -27,7 +32,7 @@ describe "Resque::MulitQueue" do
   it "nonblocking pop works" do
     foo   = Resque::Queue.new 'foo', pool, coder
     bar   = Resque::Queue.new 'bar', pool, coder
-    queue = Resque::MultiQueue.new([foo, bar], pool)
+    queue = Resque::MultiQueue.new([foo, bar], redis, pool)
 
     job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
     bar << job
@@ -38,7 +43,7 @@ describe "Resque::MulitQueue" do
   it "nonblocking pop doesn't block" do
     foo   = Resque::Queue.new 'foo', pool, coder
     bar   = Resque::Queue.new 'bar', pool, coder
-    queue = Resque::MultiQueue.new([foo, bar], pool)
+    queue = Resque::MultiQueue.new([foo, bar], redis, pool)
 
     assert_raises ThreadError do
       queue.pop(true)
@@ -48,7 +53,7 @@ describe "Resque::MulitQueue" do
   it "blocks forever on pop" do
     foo   = Resque::Queue.new 'foo', pool, coder
     bar   = Resque::Queue.new 'bar', pool, coder
-    queue = Resque::MultiQueue.new([foo, bar], pool)
+    queue = Resque::MultiQueue.new([foo, bar], redis, pool)
     assert_raises Timeout::Error do
       Timeout::timeout(2) { queue.pop }
     end
@@ -59,7 +64,7 @@ describe "Resque::MulitQueue" do
     bar    = Resque::Queue.new 'bar', pool, coder
     baz    = Resque::Queue.new 'baz', pool, coder
     queues = [foo, bar, baz]
-    queue  = Resque::MultiQueue.new(queues, pool)
+    queue  = Resque::MultiQueue.new(queues, redis, pool)
     job    = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
 
     queues.each {|q| q << job }
@@ -77,7 +82,7 @@ describe "Resque::MulitQueue" do
     bar    = Resque::Queue.new 'bar', pool, coder
     baz    = Resque::Queue.new 'baz', pool, coder
     queues = [foo, bar, baz]
-    queue  = Resque::MultiQueue.new(queues, pool)
+    queue  = Resque::MultiQueue.new(queues, redis, pool)
     job    = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
 
     queues.each {|q| q << job }
@@ -88,5 +93,12 @@ describe "Resque::MulitQueue" do
     end
 
     assert_equal processed_queues, queues
+  end
+
+  it "blocking pop is a no-op if queues are empty" do
+    queue = Resque::MultiQueue.new([], redis)
+    assert_raises Timeout::Error do
+      Timeout.timeout(2) { queue.pop }
+    end
   end
 end

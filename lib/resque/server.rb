@@ -14,11 +14,7 @@ module Resque
 
     set :views,  "#{dir}/server/views"
 
-    if respond_to? :public_folder
-      set :public_folder, "#{dir}/server/public"
-    else
-      set :public, "#{dir}/server/public"
-    end
+    set :public_folder, "#{dir}/server/public"
 
     set :static, true
 
@@ -28,6 +24,10 @@ module Resque
 
       def current_section
         url_path request.path_info.sub('/','').split('/')[0].downcase
+      end
+
+      def current_subtab
+        url_path request.path_info.sub('/','').split('/')[0, 2].join('/').downcase
       end
 
       def current_page
@@ -44,7 +44,7 @@ module Resque
       end
 
       def class_if_current(path = '')
-        'class="current"' if current_page[0, path.size] == path
+        'class="current"' if [current_section, current_subtab].include?(path)
       end
 
       def tab(name)
@@ -69,6 +69,8 @@ module Resque
           Resque.redis.get(key).length
         when 'zset'
           Resque.redis.zcard(key)
+        when 'hash'
+          Resque.redis.hlen(key)
         end
       end
 
@@ -84,6 +86,8 @@ module Resque
           [Resque.redis.get(key)]
         when 'zset'
           Resque.redis.zrange(key, start, start + 20)
+        when 'hash'
+          Resque.redis.hgetall(key)
         end
       end
 

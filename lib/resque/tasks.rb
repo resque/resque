@@ -5,7 +5,7 @@ namespace :resque do
   task :setup
 
   desc "Start a Resque worker"
-  task :work => [ :preload, :setup ] do
+  task :work => [:pidfile, :setup] do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
@@ -26,10 +26,6 @@ namespace :resque do
       Process.daemon(true)
     end
 
-    if ENV['PIDFILE']
-      File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
-    end
-
     worker.log "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
@@ -46,17 +42,5 @@ namespace :resque do
     end
 
     threads.each { |thread| thread.join }
-  end
-
-  # Preload app files if this is Rails
-  task :preload => :setup do
-    if defined?(Rails) && Rails.respond_to?(:application)
-      # Rails 3
-      Rails.application.eager_load!
-    elsif defined?(Rails::Initializer)
-      # Rails 2.3
-      $rails_rake_task = false
-      Rails::Initializer.run :load_application_classes
-    end
   end
 end

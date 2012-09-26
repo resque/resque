@@ -1,9 +1,21 @@
+require 'rubygems'
+
+begin
+  require 'bundler/setup'
+rescue LoadError => e
+  warn e.message
+  warn "Run `gem install bundler` to install Bundler"
+  exit -1
+end
+
+#
+# Bundler
+#
+require 'bundler/gem_tasks'
+
 #
 # Setup
 #
-
-load 'lib/tasks/redis.rake'
-
 $LOAD_PATH.unshift 'lib'
 require 'resque/tasks'
 
@@ -15,10 +27,7 @@ end
 #
 # Tests
 #
-
 require 'rake/testtask'
-
-task :default => :test
 
 Rake::TestTask.new do |test|
   test.verbose = true
@@ -26,6 +35,7 @@ Rake::TestTask.new do |test|
   test.libs << "lib"
   test.test_files = FileList['test/**/*_test.rb']
 end
+task :default => :test
 
 if command? :kicker
   desc "Launch Kicker (like autotest)"
@@ -39,32 +49,12 @@ end
 #
 # Install
 #
-
 task :install => [ 'redis:install', 'dtach:install' ]
 
 
 #
 # Documentation
 #
-
-begin
-  require 'sdoc_helpers'
-rescue LoadError
-end
-
-
-#
-# Publishing
-#
-
-desc "Push a new version to Gemcutter"
-task :publish do
-  require 'resque/version'
-
-  sh "gem build resque.gemspec"
-  sh "gem push resque-#{Resque::Version}.gem"
-  sh "git tag v#{Resque::Version}"
-  sh "git push origin v#{Resque::Version}"
-  sh "git push origin master"
-  sh "git clean -fd"
-end
+require 'yard'
+YARD::Rake::YardocTask.new
+task :docs => :yard

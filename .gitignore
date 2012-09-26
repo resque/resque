@@ -1,1 +1,4 @@
 Gemfile.lock
+doc/
+test/dump.rdb
+test/dump-cluster.rdb
