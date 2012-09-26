@@ -42,7 +42,7 @@ describe "Resque::Worker" do
     end
   end
 
-  it "xxx does not raise exception for completed jobs" do
+  it "does not raise exception for completed jobs" do
     if worker_pid = Kernel.fork
       Process.waitpid(worker_pid)
       assert_equal 0, Resque::Failure.count
@@ -56,7 +56,7 @@ describe "Resque::Worker" do
     end
   end
 
-  it "yyy executes at_exit hooks" do
+  it "executes at_exit hooks on exit" do
     tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
     FileUtils.rm_f tmpfile
 
