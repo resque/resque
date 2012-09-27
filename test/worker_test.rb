@@ -457,7 +457,7 @@ describe "Resque::Worker" do
       @worker.very_verbose = true
       @worker.log("some log text")
 
-      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, last_puts
+      assert_match /\[15:44:33 2011-03-02\] \d+: some log text/, last_puts
     ensure
       Time.fake_time = nil
     end

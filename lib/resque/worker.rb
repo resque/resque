@@ -611,7 +611,7 @@ module Resque
     def log(message)
       if verbose || very_verbose
         time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "** [#{time}] #$$: #{message}"
+        puts "[#{time}] #$$: #{message}"
       end
     end
 

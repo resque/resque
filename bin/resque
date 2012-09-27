@@ -37,14 +37,14 @@ parser = OptionParser.new do |opts|
 end
 
 def kill(worker)
-  abort "** resque kill WORKER_ID" if worker.nil?
+  abort "Please pass an id: resque kill WORKER_ID" if worker.nil?
   pid = worker.split(':')[1].to_i
 
   begin
     Process.kill("KILL", pid)
-    puts "** killed #{worker}"
+    puts "killed #{worker}"
   rescue Errno::ESRCH
-    puts "** worker #{worker} not running"
+    puts "worker #{worker} not running"
   end
 
   remove worker
