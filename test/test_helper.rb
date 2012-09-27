@@ -113,6 +113,12 @@ class BadFailureBackend < Resque::Failure::Base
   end
 end
 
+class JobWithNoQueue
+  def self.perform
+    "I don't have a queue."
+  end
+end
+
 def with_failure_backend(failure_backend, &block)
   previous_backend = Resque::Failure.backend
   Resque::Failure.backend = failure_backend

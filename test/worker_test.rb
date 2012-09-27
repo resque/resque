@@ -34,6 +34,12 @@ describe "Resque::Worker" do
     assert_match('uninitialized constant', Resque::Failure.all['error'])
   end
 
+  it "validates jobs before enquing them." do
+    assert_raises Resque::NoQueueError do
+      Resque.enqueue(JobWithNoQueue)
+    end
+  end
+
   it "does not allow exceptions from failure backend to escape" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
