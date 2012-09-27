@@ -21,6 +21,9 @@ module Resque
 
     def stop
       @consumers.each { |c| c.shutdown }
+    end
+
+    def join
       @threads.each { |t| t.join }
     end
   end

@@ -28,6 +28,10 @@ module Resque
       @tp = ThreadedConsumerPool.new(@read, 5)
     end
 
+    after do
+      @tp.join
+    end
+
     it "processes work" do
       Resque.consumer_timeout = 1
       5.times { @write << Actionable.new }
