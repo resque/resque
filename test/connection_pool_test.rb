@@ -2,6 +2,18 @@ require "test_helper"
 
 module Resque
   describe ConnectionPool do
+    it "with_conneciton does not deadlock on checkout exceptions" do
+      cp = Class.new(ConnectionPool) {
+        def checkout
+          raise "omg"
+        end
+      }.new(REDIS_URL, 5)
+      e = assert_raises(RuntimeError) do
+        cp.with_connection { }
+      end
+      assert_equal 'omg', e.message
+    end
+
     it "takes a URL" do
       cp = ConnectionPool.new(REDIS_URL, 5)
       assert_equal 5, cp.size
