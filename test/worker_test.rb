@@ -124,7 +124,7 @@ describe "Resque::Worker" do
 
   it "strips whitespace from queue names" do
     queues = "critical, high, low".split(',')
-    worker = Resque::Worker.new(*queues)
+    worker = Resque::Worker.new(queues)
     assert_equal %w( critical high low ), worker.queues
   end
 
@@ -132,7 +132,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high)
+    worker = Resque::Worker.new([:critical, :high])
 
     worker.process
     assert_equal 1, Resque.size(:high)
@@ -161,7 +161,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high, "*")
+    worker = Resque::Worker.new([:critical, :high, "*"])
 
     worker.work(0)
     assert_equal 0, Resque.size(:high)
@@ -176,7 +176,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, "*", :high)
+    worker = Resque::Worker.new([:critical, "*", :high])
 
     worker.work(0)
     assert_equal 0, Resque.size(:high)
@@ -189,7 +189,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:bulk, GoodJob)
 
-    worker = Resque::Worker.new(:beer, "*", :bulk)
+    worker = Resque::Worker.new([:beer, "*", :bulk])
 
     assert_equal %w( beer critical jobs bulk ), worker.queues
   end
@@ -232,7 +232,7 @@ describe "Resque::Worker" do
   end
 
   it "complains if no queues are given" do
-    assert_raises Resque::NoQueueError do
+    assert_raises ArgumentError do
       Resque::Worker.new
     end
   end
@@ -384,7 +384,7 @@ describe "Resque::Worker" do
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     workerA.register_worker
 
-    workerB = Resque::Worker.new(:high, :low)
+    workerB = Resque::Worker.new([:high, :low])
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
     workerB.register_worker
 

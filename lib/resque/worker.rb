@@ -61,7 +61,7 @@ module Resque
     def self.find(worker_id)
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
-        worker = new(*queues)
+        worker = new(queues)
         worker.to_s = worker_id
         worker
       else
@@ -91,21 +91,10 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues.map { |queue| queue.to_s.strip }
+    def initialize(queues)
+      @queues = [queues].flatten.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
-      validate_queues
-    end
-
-    # A worker must be given a queue, otherwise it won't know what to
-    # do with itself.
-    #
-    # You probably never need to call this.
-    def validate_queues
-      if @queues.nil? || @queues.empty?
-        raise NoQueueError.new("Please give each worker at least one queue.")
-      end
     end
 
     # This is the main workhorse method. Called on a Worker instance,
