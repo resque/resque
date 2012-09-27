@@ -228,3 +228,41 @@ describe "Resque::Plugin ordering on_failure" do
     assert_equal [:perform, "oh no", "oh no plugin"], history
   end
 end
+
+
+context "Resque::Plugin with hook_methods defined" do
+  include PerformJob
+
+  module SomePlugin
+    def before_perform1(history)
+      history << :before_perform1
+    end
+    def after_perform(history)
+      history << :after_perform
+    end
+  end
+
+  module FasterHooksPlugin
+    def hooks() @hooks || [] end
+  end
+
+  class ::TestHookMethodsPerformJob
+    extend SomePlugin
+    extend FasterHooksPlugin
+
+    @hooks = ['before_perform', 'after_perform']
+
+    def self.perform(history)
+      history << :perform
+    end
+    def self.before_perform(history)
+      history << :before_perform
+    end
+  end
+
+  test "only hook_methods defined in the job are executed" do
+    result = perform_job(TestHookMethodsPerformJob, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal [:before_perform, :perform, :after_perform], history
+  end
+end

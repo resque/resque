@@ -151,3 +151,24 @@ Modules are even better because jobs can use many of them.
         ...
       end
     end
+
+If job performance is a big issue for you (you run many short running jobs) then
+consider extending all your jobs with this plugin:
+
+    module FasterHooks
+      def hooks() @hooks || [] end
+    end
+
+that way the Object#methods method won't be called when Resque wants to find hooks
+(see Resque::Plugins module) but the hooks variable (with hoook methods) you declare
+will be searched for hooks.
+
+    class MyJob
+      extend FasterHooks
+      @hooks = ['around_preform_lock'] # This is only needed when you
+                                       # use any hook (i.e. via plugins)
+
+      def self.perform(*args)
+        ...
+      end
+    end
