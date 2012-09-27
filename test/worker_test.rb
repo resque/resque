@@ -477,6 +477,12 @@ describe "Resque::Worker" do
     assert_equal @worker.id.split(":")[1].to_i, @worker.pid
   end
 
+  it "registers itself in the workers list" do
+    worker = Resque::Worker.new(:aaron)
+    worker.register_worker
+    assert_includes Resque::Worker.all, worker
+  end
+
   it "requeue failed queue" do
     queue = 'good_job'
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})

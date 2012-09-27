@@ -401,7 +401,7 @@ module Resque
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
         next if known_workers.include?(pid)
-        log! "Pruning dead worker: #{worker}"
+        log! "Pruning dead worker: #{worker.id}"
         worker.unregister_worker
       end
     end
@@ -409,7 +409,7 @@ module Resque
     # Registers ourself as a worker. Useful when entering the worker
     # lifecycle on startup.
     def register_worker
-      redis.sadd(:workers, self)
+      redis.sadd(:workers, id)
       started!
     end
 
@@ -437,12 +437,12 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
-      redis.srem(:workers, self)
-      redis.del("worker:#{self}")
-      redis.del("worker:#{self}:started")
+      redis.srem(:workers, id)
+      redis.del("worker:#{id}")
+      redis.del("worker:#{id}:started")
 
-      Stat.clear("processed:#{self}")
-      Stat.clear("failed:#{self}")
+      Stat.clear("processed:#{id}")
+      Stat.clear("failed:#{id}")
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
@@ -452,51 +452,51 @@ module Resque
         :queue   => job.queue,
         :run_at  => Time.now.rfc2822,
         :payload => job.payload
-      redis.set("worker:#{self}", data)
+      redis.set("worker:#{id}", data)
     end
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
       processed!
-      redis.del("worker:#{self}")
+      redis.del("worker:#{id}")
     end
 
     # How many jobs has this worker processed? Returns an int.
     def processed
-      Stat["processed:#{self}"]
+      Stat["processed:#{id}"]
     end
 
     # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
-      Stat << "processed:#{self}"
+      Stat << "processed:#{id}"
     end
 
     # How many failed jobs has this worker seen? Returns an int.
     def failed
-      Stat["failed:#{self}"]
+      Stat["failed:#{id}"]
     end
 
     # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
-      Stat << "failed:#{self}"
+      Stat << "failed:#{id}"
     end
 
     # What time did this worker start? Returns an instance of `Time`
     def started
-      redis.get "worker:#{self}:started"
+      redis.get "worker:#{id}:started"
     end
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.rfc2822)
+      redis.set("worker:#{id}:started", Time.now.rfc2822)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
     def job
-      decode(redis.get("worker:#{self}")) || {}
+      decode(redis.get("worker:#{id}")) || {}
     end
     alias_method :processing, :job
 
@@ -513,7 +513,7 @@ module Resque
     # Returns a symbol representing the current worker state,
     # which can be either :working or :idle
     def state
-      redis.exists("worker:#{self}") ? :working : :idle
+      redis.exists("worker:#{id}") ? :working : :idle
     end
 
     # Is this worker the same as another worker?
