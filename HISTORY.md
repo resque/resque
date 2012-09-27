@@ -1,3 +1,7 @@
+## Unreleased
+
+* Changed failures retry process to requeue. (@KensoDev #703)
+
 ## 1.21.0 (2012-07-02)
 
 * Add a flag to make sure failure hooks are only ran once (jakemack, #546)

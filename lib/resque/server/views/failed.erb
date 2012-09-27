@@ -10,7 +10,7 @@
   <input type='submit' name='' value='Clear Failed Jobs' id="clear-failed-jobs" />
 </form>
 <form method="POST" action="<%=u 'failed/requeue/all'%>">
-  <input type='submit' name='' value='Retry Failed Jobs' id="retry-failed-jobs"  />
+  <input type='submit' name='' value='Requeue Failed Jobs' id="retry-failed-jobs"  />
 </form>
 <%end%>
 
@@ -35,7 +35,7 @@
             </div>
           <% else %>
             <div class='controls'>
-              <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Retry</a>
+              <a href="<%= u "failed/requeue/#{start + index - 1}" %>" rel="retry">Requeue</a>
               or
               <a href="<%= u "failed/remove/#{start + index - 1}" %>" rel="remove">Remove</a>
             </div>
