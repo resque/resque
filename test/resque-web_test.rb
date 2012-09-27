@@ -1,6 +1,6 @@
 require 'test_helper'
 require 'resque/server/test_helper'
- 
+
 # Root path test
 describe "on GET to /" do
   before { get "/" }
@@ -33,7 +33,7 @@ describe "on GET to /failed" do
   should_respond_with_success
 end
 
-# Stats 
+# Stats
 describe "on GET to /stats/resque" do
   before { get "/stats/resque" }
 

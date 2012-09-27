@@ -62,7 +62,7 @@ module Resque
     def self.requeue(index)
       backend.requeue(index)
     end
-    
+
     def self.requeue_to(index, queue_name)
       backend.requeue(index, queue_name)
     end
@@ -70,7 +70,7 @@ module Resque
     def self.remove(index)
       backend.remove(index)
     end
-    
+
     # Requeues all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.requeue_queue(queue)
@@ -78,7 +78,7 @@ module Resque
       while job = Resque::Failure.all(i)
         if job['queue'] == queue
           Resque::Failure.requeue(i)
-        end  
+        end
         i+=1
       end
     end
@@ -92,7 +92,7 @@ module Resque
           # This will remove the failure from the array so do not increment the index.
           Resque::Failure.remove(i)
         else
-          i+=1    
+          i+=1
         end
       end
     end

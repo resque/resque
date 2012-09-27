@@ -27,7 +27,7 @@ describe "Resque::Worker" do
   end
 
   it "unavailable job definition reports exception and message" do
-    Resque::Job.create(:jobs, 'NoJobDefinition') 
+    Resque::Job.create(:jobs, 'NoJobDefinition')
     @worker.work(0)
     assert_equal 1, Resque::Failure.count, 'failure not reported'
     assert_equal('NameError', Resque::Failure.all['exception'])

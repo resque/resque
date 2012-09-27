@@ -15,12 +15,12 @@ module Demo
       out << '<input type="submit" value="Create New Job"/>'
       out << '&nbsp;&nbsp;<a href="/resque/">View Resque</a>'
       out << '</form>'
-      
+
        out << "<form action='/failing' method='POST''>"
        out << '<input type="submit" value="Create Failing New Job"/>'
        out << '&nbsp;&nbsp;<a href="/resque/">View Resque</a>'
        out << '</form>'
-      
+
       out << "</body></html>"
       out
     end
@@ -29,8 +29,8 @@ module Demo
       Resque.enqueue(Job, params)
       redirect "/"
     end
-    
-    post '/failing' do 
+
+    post '/failing' do
       Resque.enqueue(FailingJob, params)
       redirect "/"
     end

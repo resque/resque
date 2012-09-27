@@ -44,11 +44,11 @@ module Resque
       # A URL where someone can go to view failures.
       def self.url
       end
-      
+
       # Clear all failure objects
       def self.clear
       end
-      
+
       def self.requeue(index)
       end
 
