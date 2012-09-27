@@ -854,14 +854,14 @@ So that you can flush it and without impacting development environment
 And our initializer:
 
 ``` ruby
-rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
-rails_env = ENV['RAILS_ENV'] || 'development'
+rails_root = Rails.root || File.dirname(__FILE__) + '/../..'
+rails_env = Rails.env || 'development'
 
 resque_config = YAML.load_file(rails_root + '/config/resque.yml')
 Resque.redis = resque_config[rails_env]
 ```
 
-Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
+Easy peasy! Why not just use `Rails.root` and `Rails.env`? Because
 this way we can tell our Sinatra app about the config file:
 
     $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
@@ -872,7 +872,7 @@ Also, you could disable jobs queueing by setting 'inline' attribute.
 For example, if you want to run all jobs in the same process for cucumber, try:
 
 ``` ruby
-Resque.inline = ENV['RAILS_ENV'] == "cucumber"
+Resque.inline = Rails.env.cucumber?
 ```
 
 
