@@ -24,8 +24,6 @@ module Resque
 
     attr_accessor :term_timeout
 
-    attr_writer :to_s
-
     # Returns an array of all worker objects.
     def self.all
       Array(redis.smembers(:workers)).map { |id| find(id) }.compact
@@ -34,7 +32,7 @@ module Resque
     # Returns an array of all worker objects currently processing
     # jobs.
     def self.working
-      names = all
+      names = all.map(&:id)
       return [] unless names.any?
 
       names.map! { |name| "worker:#{name}" }
@@ -62,7 +60,7 @@ module Resque
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
         worker = new(queues)
-        worker.to_s = worker_id
+        worker.id = worker_id
         worker
       else
         nil
@@ -95,6 +93,7 @@ module Resque
       @queues = [queues].flatten.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @id = nil
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -517,19 +516,20 @@ module Resque
 
     # Is this worker the same as another worker?
     def ==(other)
-      to_s == other.to_s
+      id == other.id
     end
 
     def inspect
-      "#<Worker #{to_s}>"
+      "#<Worker #{id}>"
     end
+
+    attr_writer :id
 
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
-    def to_s
-      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
+    def id
+      @id ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
     end
-    alias_method :id, :to_s
 
     def hostname
       Socket.gethostname

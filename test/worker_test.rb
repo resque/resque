@@ -228,7 +228,7 @@ describe "Resque::Worker" do
   end
 
   it "has a unique id" do
-    assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
+    assert_equal "#{Socket.gethostname}:#{$$}:jobs", @worker.id
   end
 
   it "complains if no queues are given" do
@@ -474,7 +474,7 @@ describe "Resque::Worker" do
   end
 
   it "returns PID of running process" do
-    assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
+    assert_equal @worker.id.split(":")[1].to_i, @worker.pid
   end
 
   it "requeue failed queue" do
