@@ -36,7 +36,7 @@ describe "Resque" do
   end
 
   it "can grab jobs off a queue" do
-    Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
+    Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
 
     job = Resque.reserve(:jobs)
 
@@ -47,7 +47,7 @@ describe "Resque" do
   end
 
   it "can re-queue jobs" do
-    Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
+    Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
 
     job = Resque.reserve(:jobs)
     job.recreate
@@ -108,7 +108,7 @@ describe "Resque" do
 
   it "jobs can it for equality" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
-    assert Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
 
     assert Resque::Job.create(:jobs, 'SomeMethodJob', 20, '/tmp')
