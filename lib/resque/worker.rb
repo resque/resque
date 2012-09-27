@@ -78,6 +78,8 @@ module Resque
       redis.sismember(:workers, worker_id)
     end
 
+    attr_accessor :id
+
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
     # queue given for a job. If none is found, it will check the
@@ -90,10 +92,10 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(queues)
-      @queues = [queues].flatten.map { |queue| queue.to_s.strip }
+      @queues   = [queues].flatten.map { |queue| queue.to_s.strip }
       @shutdown = nil
-      @paused = nil
-      @id = nil
+      @paused   = nil
+      @id       = "#{hostname}:#{pid}:#{@queues.join(',')}"
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -517,18 +519,6 @@ module Resque
     # Is this worker the same as another worker?
     def ==(other)
       id == other.id
-    end
-
-    def inspect
-      "#<Worker #{id}>"
-    end
-
-    attr_writer :id
-
-    # The string representation is the same as the id for this worker
-    # instance. Can be used with `Worker.find`.
-    def id
-      @id ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
     end
 
     def hostname
