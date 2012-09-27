@@ -35,7 +35,10 @@ module Resque
         item = all(index)
         item['retried_at'] = Time.now.rfc2822
         Resque.redis.lset(:failed, index, Resque.encode(item))
-        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        
+        Plugin.run_enqueue_hooks(item['payload']['class'], *item['payload']['args']) do
+          Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        end
       end
 
       def self.requeue_to(index, queue_name)
