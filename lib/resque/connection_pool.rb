@@ -1,3 +1,5 @@
+require 'timeout'
+
 module Resque
   class ConnectionPool
     attr_reader :size
