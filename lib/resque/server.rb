@@ -192,13 +192,14 @@ module Resque
 
     post "/failed/requeue/all" do
       Resque::Failure.count.times do |num|
-        Resque::Failure.requeue(num)
+        Resque::Failure.requeue_and_remove(num)
       end
       redirect u('failed')
     end
 
     get "/failed/requeue/:index/?" do
-      Resque::Failure.requeue(params[:index])
+      Resque::Failure.requeue_and_remove(params[:index])
+
       if request.xhr?
         return Resque::Failure.all(params[:index])['retried_at']
       else
