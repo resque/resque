@@ -22,10 +22,46 @@ module Resque
       end
     end
 
+    class TermJob
+      LATCHES = {}
+
+      @@termed = []
+
+      def self.clear
+        @@termed = []
+      end
+
+      def self.termed
+        @@termed
+      end
+
+      attr_reader :latch_id
+
+      def initialize(latch)
+        @latch_id          = latch.object_id
+        LATCHES[@latch_id] = latch
+      end
+
+      def == other
+        return super unless other.is_a?(TermJob)
+        @latch_id == other.latch_id
+      end
+
+      def run
+        begin
+          LATCHES[@latch_id].release
+          sleep
+        rescue Resque::TermException
+          @@termed << self
+        end
+      end
+    end
+
     before do
       @write  = Queue.new(:foo)
       @read  = Queue.new(:foo, Resque.pool)
       @tp = ThreadedConsumerPool.new(@read, 5)
+      TermJob.clear
     end
 
     after do
@@ -53,5 +89,35 @@ module Resque
       assert @write.empty?
     end
 
+    it "terms the consumers" do
+      @tp   = ThreadedConsumerPool.new(@read, 1)
+      latch = Consumer::Latch.new
+      job   = TermJob.new latch
+      @write << job
+
+      @tp.start
+      latch.await # sleep until latch#release is called
+      @tp.term
+      @tp.stop
+      @tp.join
+
+      assert_equal job, TermJob.termed.first
+      assert @read.empty?
+    end
+
+    it "kills running jobs" do
+      @tp = ThreadedConsumerPool.new(@read, 1)
+      latch = Consumer::Latch.new
+      job = TermJob.new latch
+      @write << job
+
+      @tp.start
+      latch.await
+      @tp.kill
+      @tp.join
+
+      assert TermJob.termed.empty?
+      assert @read.empty?
+    end
   end
 end

@@ -26,5 +26,13 @@ module Resque
     def join
       @threads.each { |t| t.join }
     end
+
+    def term
+      @threads.each { |t| t.raise(TermException.new("SIGTERM")) }
+    end
+
+    def kill
+      @threads.each { |t| t.kill }
+    end
   end
 end
