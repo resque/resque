@@ -64,10 +64,6 @@ module Resque
       TermJob.clear
     end
 
-    after do
-      @tp.join
-    end
-
     it "processes work" do
       Resque.consumer_timeout = 1
       5.times { @write << Actionable.new }
@@ -87,6 +83,7 @@ module Resque
       sleep 1
       @tp.stop
       assert @write.empty?
+      @tp.join
     end
 
     it "terms the consumers" do
@@ -118,6 +115,29 @@ module Resque
 
       assert TermJob.termed.empty?
       assert @read.empty?
+    end
+
+    it "pauses and resumes" do
+      paused = []
+      resumed = []
+
+      @tp = Class.new(ThreadedConsumerPool) {
+        define_method(:build_consumer) { |q|
+          super(q).extend(Module.new {
+            define_method(:pause) { paused << self; super() }
+            define_method(:resume) { resumed << self; super() }
+          })
+        }
+      }.new(@read, 1)
+
+      @tp.start
+      @tp.pause
+      assert_equal 1, paused.length
+
+      @tp.resume
+      assert_equal 1, resumed.length
+      @tp.stop
+      @tp.join
     end
   end
 end

@@ -1,6 +1,5 @@
 module Resque
   class ThreadedConsumerPool
-
     def initialize(queue, size)
       @queue = queue
       @size  = size
@@ -8,12 +7,11 @@ module Resque
       @consumers = []
     end
 
-
     def start
       stop
       @consumers.clear
       @threads = @size.times.map {
-        c = Consumer.new(@queue)
+        c = build_consumer @queue
         @consumers << c
         Thread.new { c.consume }
       }
@@ -33,6 +31,20 @@ module Resque
 
     def kill
       @threads.each { |t| t.kill }
+    end
+
+    def pause
+      @consumers.each { |c| c.pause }
+    end
+
+    def resume
+      @consumers.each { |c| c.resume }
+    end
+
+    private
+
+    def build_consumer(queue)
+      Consumer.new queue
     end
   end
 end
