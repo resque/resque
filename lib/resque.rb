@@ -1,3 +1,4 @@
+require 'logger'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -16,12 +17,21 @@ require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/json_coder'
+require 'resque/consumer'
+require 'resque/threaded_consumer_pool'
+require 'resque/connection_pool'
+require 'resque/sized_stack'
 
 require 'resque/vendor/utf8_util'
 
 module Resque
   include Helpers
   extend self
+
+  @consumer_timeout = 5
+  class << self
+    attr_accessor :consumer_timeout
+  end
 
   # Accepts:
   #   1. A 'hostname:port' String
@@ -31,6 +41,20 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
+    STDERR.puts "WARNING: `Resque.redis=` is deprecated. Please use `Resque.create_pool` instead"
+    create_pool(server)
+  end
+
+  def create_pool(server = Resque.server, size = 5, timeout = nil)
+    @server = server
+    @redis  = create_connection(server)
+    @pool   = ConnectionPool.new(@redis, size, timeout)
+    @queues = Hash.new { |h,name|
+      h[name] = Resque::Queue.new(name, @pool, coder)
+    }
+  end
+
+  def create_connection(server = Resque.server)
     case server
     when String
       if server =~ /redis\:\/\//
@@ -38,20 +62,32 @@ module Resque
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
+        redis = create_redis(host, port, db)
       end
       namespace ||= :resque
 
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
+      Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
-      @redis = server
+      Redis::Namespace.new(server.namespace,
+        :redis => create_redis(server.client.host, server.client.port, server.client.db))
     else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
+      Redis::Namespace.new(:resque,
+        :redis => create_redis(server.client.host, server.client.port, server.client.db))
     end
-    @queues = Hash.new { |h,name|
-      h[name] = Resque::Queue.new(name, @redis, coder)
-    }
+  end
+
+  def create_redis(host, port, db)
+    logger = Logger.new(STDOUT)
+    logger.level = Logger::WARN
+    Redis.new(:host        => host,
+              :port        => port,
+              :db          => db,
+              :thread_safe => true,
+              :logger      => logger)
+  end
+
+  def server
+    @server
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
@@ -65,8 +101,14 @@ module Resque
   # create a new one.
   def redis
     return @redis if @redis
-    self.redis = Redis.respond_to?(:connect) ? Redis.connect(:thread_safe => true) : "localhost:6379"
-    self.redis
+    redis = Redis.respond_to?(:connect) ? Redis.connect(:thread_safe => true) : "localhost:6379"
+    create_pool(redis)
+    @redis
+  end
+
+  def pool
+    return @pool if @pool
+    @pool = Resque::ConnectionPool.new(Resque.redis)
   end
 
   def redis_id

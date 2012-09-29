@@ -2,8 +2,7 @@ require 'test_helper'
 
 describe "Resque::Worker" do
   before do
-    Resque.redis = Resque.redis # reset state in Resque object
-    Resque.redis.flushall
+    Resque.create_pool(Resque.redis) # reset state in Resque object
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
@@ -131,7 +130,7 @@ describe "Resque::Worker" do
 
   it "strips whitespace from queue names" do
     queues = "critical, high, low".split(',')
-    worker = Resque::Worker.new(*queues)
+    worker = Resque::Worker.new(queues)
     assert_equal %w( critical high low ), worker.queues
   end
 
@@ -139,7 +138,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high)
+    worker = Resque::Worker.new([:critical, :high])
 
     worker.process
     assert_equal 1, Resque.size(:high)
@@ -168,7 +167,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high, "*")
+    worker = Resque::Worker.new([:critical, :high, "*"])
 
     worker.work(0)
     assert_equal 0, Resque.size(:high)
@@ -183,7 +182,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, "*", :high)
+    worker = Resque::Worker.new([:critical, "*", :high])
 
     worker.work(0)
     assert_equal 0, Resque.size(:high)
@@ -196,7 +195,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:bulk, GoodJob)
 
-    worker = Resque::Worker.new(:beer, "*", :bulk)
+    worker = Resque::Worker.new([:beer, "*", :bulk])
 
     assert_equal %w( beer critical jobs bulk ), worker.queues
   end
@@ -235,11 +234,11 @@ describe "Resque::Worker" do
   end
 
   it "has a unique id" do
-    assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
+    assert_equal "#{Socket.gethostname}:#{$$}:jobs", @worker.id
   end
 
   it "complains if no queues are given" do
-    assert_raises Resque::NoQueueError do
+    assert_raises ArgumentError do
       Resque::Worker.new
     end
   end
@@ -391,7 +390,7 @@ describe "Resque::Worker" do
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     workerA.register_worker
 
-    workerB = Resque::Worker.new(:high, :low)
+    workerB = Resque::Worker.new([:high, :low])
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
     workerB.register_worker
 
@@ -481,7 +480,13 @@ describe "Resque::Worker" do
   end
 
   it "returns PID of running process" do
-    assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
+    assert_equal @worker.id.split(":")[1].to_i, @worker.pid
+  end
+
+  it "registers itself in the workers list" do
+    worker = Resque::Worker.new(:aaron)
+    worker.register_worker
+    assert_includes Resque::Worker.all, worker
   end
 
   it "requeue failed queue" do
@@ -590,77 +595,77 @@ describe "Resque::Worker" do
     assert_equal @worker, captured_worker
   end
 
-  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
-    [SignalException, Resque::TermException].each do |exception|
-      {
-        'cleanup occurs in allotted time' => nil,
-        'cleanup takes too long' => 2
-      }.each do |scenario,rescue_time|
-        it "SIGTERM when #{scenario} while catching #{exception}" do
-          begin
-            eval("class LongRunningJob; @@exception = #{exception}; end")
-            class LongRunningJob
-              @queue = :long_running_job
+  [SignalException, Resque::TermException].each do |exception|
+    {
+      'cleanup occurs in allotted time' => nil,
+      'cleanup takes too long' => 2
+    }.each do |scenario,rescue_time|
+      it "SIGTERM when #{scenario} while catching #{exception}" do
+        skip if jruby?
+        begin
+          eval("class LongRunningJob; @@exception = #{exception}; end")
+          class LongRunningJob
+            @queue = :long_running_job
 
-              def self.perform( run_time, rescue_time=nil )
-                Resque.redis.client.reconnect # get its own connection
-                Resque.redis.rpush( 'sigterm-test:start', Process.pid )
-                sleep run_time
-                Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
-              rescue @@exception => e
-                Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
-                sleep rescue_time unless rescue_time.nil?
-              ensure
-                Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
-              end
+            def self.perform( run_time, rescue_time=nil )
+              Resque.redis.client.reconnect # get its own connection
+              Resque.redis.rpush( 'sigterm-test:start', Process.pid )
+              sleep run_time
+              Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
+            rescue @@exception => e
+              Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
+              sleep rescue_time unless rescue_time.nil?
+            ensure
+              Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
             end
-
-            Resque.enqueue( LongRunningJob, 5, rescue_time )
-
-            worker_pid = Kernel.fork do
-              # ensure we actually fork
-              $TESTING = false
-              # reconnect since we just forked
-              Resque.redis.client.reconnect
-
-              worker = Resque::Worker.new(:long_running_job)
-              worker.term_timeout = 1
-
-              worker.work(0)
-              exit!
-            end
-
-            # ensure the worker is started
-            start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
-            refute_nil start_status
-            child_pid = start_status[1].to_i
-            assert_operator child_pid, :>, 0
-
-            # send signal to abort the worker
-            Process.kill('TERM', worker_pid)
-            Process.waitpid(worker_pid)
-
-            # wait to see how it all came down
-            result = Resque.redis.blpop( 'sigterm-test:result', 5 )
-            refute_nil result
-            assert !result[1].start_with?('Finished Normally'), 'Job Finished normally. Sleep not long enough?'
-            assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
-
-            # ensure that the child pid is no longer running
-            child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-            assert !child_still_running
-
-            # see if post-cleanup occurred. This should happen IFF the rescue_time is less than the term_timeout
-            post_cleanup_occurred = Resque.redis.lpop( 'sigterm-test:final' )
-            assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?' if rescue_time.nil?
-            assert !post_cleanup_occurred, 'post cleanup occurred. SIGKILL sent too late?' unless rescue_time.nil?
-
-          ensure
-            remaining_keys = Resque.redis.keys('sigterm-test:*') || []
-            Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
           end
+
+          Resque.enqueue( LongRunningJob, 5, rescue_time )
+
+          worker_pid = Kernel.fork do
+            # ensure we actually fork
+            $TESTING = false
+            # reconnect since we just forked
+            Resque.redis.client.reconnect
+
+            worker = Resque::Worker.new(:long_running_job)
+            worker.term_timeout = 1
+
+            worker.work(0)
+            exit!
+          end
+
+          # ensure the worker is started
+          start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
+          refute_nil start_status
+          child_pid = start_status[1].to_i
+          assert_operator child_pid, :>, 0
+
+          # send signal to abort the worker
+          Process.kill('TERM', worker_pid)
+          Process.waitpid(worker_pid)
+
+          # wait to see how it all came down
+          result = Resque.redis.blpop( 'sigterm-test:result', 5 )
+          refute_nil result
+          assert !result[1].start_with?('Finished Normally'), 'Job Finished normally. Sleep not long enough?'
+          assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
+
+          # ensure that the child pid is no longer running
+          child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
+          assert !child_still_running
+
+          # see if post-cleanup occurred. This should happen IFF the rescue_time is less than the term_timeout
+          post_cleanup_occurred = Resque.redis.lpop( 'sigterm-test:final' )
+          assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?' if rescue_time.nil?
+          assert !post_cleanup_occurred, 'post cleanup occurred. SIGKILL sent too late?' unless rescue_time.nil?
+
+        ensure
+          remaining_keys = Resque.redis.keys('sigterm-test:*') || []
+          Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
         end
       end
     end
   end
 end
+

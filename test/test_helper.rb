@@ -1,4 +1,5 @@
 require 'rubygems'
+
 require 'timeout'
 require 'bundler/setup'
 require 'redis/namespace'
@@ -26,6 +27,8 @@ end
 # kill it when they end
 #
 
+Thread.abort_on_exception = true
+
 at_exit do
   next if $!
 
@@ -45,11 +48,12 @@ if ENV.key? 'RESQUE_DISTRIBUTED'
   `redis-server #{$dir}/redis-test.conf`
   `redis-server #{$dir}/redis-test-cluster.conf`
   r = Redis::Distributed.new(['redis://localhost:9736', 'redis://localhost:9737'])
-  Resque.redis = Redis::Namespace.new :resque, :redis => r
+  Resque.create_pool Redis::Namespace.new(:resque, :redis => r)
 else
   puts "Starting redis for testing at localhost:9736..."
   `redis-server #{$dir}/redis-test.conf`
-  Resque.redis = 'localhost:9736'
+  REDIS_URL    = 'localhost:9736'
+  Resque.redis = REDIS_URL
 end
 
 
@@ -127,6 +131,7 @@ ensure
   Resque::Failure.backend = previous_backend
 end
 
+require 'time'
 class Time
   # Thanks, Timecop
   class << self
@@ -140,4 +145,14 @@ class Time
   end
 
   self.fake_time = nil
+end
+
+def jruby?
+  defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+end
+
+class MiniTest::Spec
+  def setup
+    Resque.redis.flushall
+  end
 end

@@ -14,10 +14,6 @@ describe "Resque::Queue" do
     end
   end
 
-  before do
-    Resque.redis.flushall
-  end
-
   it "generates a redis_name" do
     assert_equal "queue:foo", q.redis_name
   end
@@ -27,6 +23,24 @@ describe "Resque::Queue" do
     x = Thing.new
     queue.push x
     assert_equal x, queue.pop
+  end
+
+  it "blocks on poll" do
+    read, write = pipe
+
+    t = Thread.new { read.poll(5) }
+    x = Thing.new
+    write.push x
+
+    assert_equal [read, x], t.join.value
+  end
+
+  it "returns nil on poll when timing out" do
+    queue = q
+
+    t = Thread.new { queue.poll(1) }
+    sleep 1.1
+    assert_nil t.join.value
   end
 
   it "blocks on pop" do
@@ -126,6 +140,10 @@ describe "Resque::Queue" do
   end
 
   def q
-    Resque::Queue.new 'foo', Resque.redis
+    Resque::Queue.new 'foo'
+  end
+
+  def pipe
+    [Resque::Queue.new('foo'), Resque::Queue.new('foo')]
   end
 end

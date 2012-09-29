@@ -24,8 +24,6 @@ module Resque
 
     attr_accessor :term_timeout
 
-    attr_writer :to_s
-
     # Returns an array of all worker objects.
     def self.all
       Array(redis.smembers(:workers)).map { |id| find(id) }.compact
@@ -34,7 +32,7 @@ module Resque
     # Returns an array of all worker objects currently processing
     # jobs.
     def self.working
-      names = all
+      names = all.map(&:id)
       return [] unless names.any?
 
       names.map! { |name| "worker:#{name}" }
@@ -61,8 +59,8 @@ module Resque
     def self.find(worker_id)
       if exists? worker_id
         queues = worker_id.split(':')[-1].split(',')
-        worker = new(*queues)
-        worker.to_s = worker_id
+        worker = new(queues)
+        worker.id = worker_id
         worker
       else
         nil
@@ -80,6 +78,8 @@ module Resque
       redis.sismember(:workers, worker_id)
     end
 
+    attr_accessor :id
+
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
     # queue given for a job. If none is found, it will check the
@@ -91,21 +91,11 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues.map { |queue| queue.to_s.strip }
+    def initialize(queues)
+      @queues   = [queues].flatten.map { |queue| queue.to_s.strip }
       @shutdown = nil
-      @paused = nil
-      validate_queues
-    end
-
-    # A worker must be given a queue, otherwise it won't know what to
-    # do with itself.
-    #
-    # You probably never need to call this.
-    def validate_queues
-      if @queues.nil? || @queues.empty?
-        raise NoQueueError.new("Please give each worker at least one queue.")
-      end
+      @paused   = nil
+      @id       = "#{hostname}:#{pid}:#{@queues.join(',')}"
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -207,8 +197,8 @@ module Resque
     def reserve(interval = 5.0)
       interval = interval.to_i
       multi_queue = MultiQueue.new(
-        queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
-        Resque.redis)
+        queues.map {|queue| Queue.new(queue, Resque.pool, Resque.coder) },
+        Resque.pool)
 
       if interval < 1
         begin
@@ -411,7 +401,7 @@ module Resque
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
         next if known_workers.include?(pid)
-        log! "Pruning dead worker: #{worker}"
+        log! "Pruning dead worker: #{worker.id}"
         worker.unregister_worker
       end
     end
@@ -419,7 +409,7 @@ module Resque
     # Registers ourself as a worker. Useful when entering the worker
     # lifecycle on startup.
     def register_worker
-      redis.sadd(:workers, self)
+      redis.sadd(:workers, id)
       started!
     end
 
@@ -447,12 +437,12 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
-      redis.srem(:workers, self)
-      redis.del("worker:#{self}")
-      redis.del("worker:#{self}:started")
+      redis.srem(:workers, id)
+      redis.del("worker:#{id}")
+      redis.del("worker:#{id}:started")
 
-      Stat.clear("processed:#{self}")
-      Stat.clear("failed:#{self}")
+      Stat.clear("processed:#{id}")
+      Stat.clear("failed:#{id}")
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
@@ -462,51 +452,51 @@ module Resque
         :queue   => job.queue,
         :run_at  => Time.now.rfc2822,
         :payload => job.payload
-      redis.set("worker:#{self}", data)
+      redis.set("worker:#{id}", data)
     end
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
       processed!
-      redis.del("worker:#{self}")
+      redis.del("worker:#{id}")
     end
 
     # How many jobs has this worker processed? Returns an int.
     def processed
-      Stat["processed:#{self}"]
+      Stat["processed:#{id}"]
     end
 
     # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
-      Stat << "processed:#{self}"
+      Stat << "processed:#{id}"
     end
 
     # How many failed jobs has this worker seen? Returns an int.
     def failed
-      Stat["failed:#{self}"]
+      Stat["failed:#{id}"]
     end
 
     # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
-      Stat << "failed:#{self}"
+      Stat << "failed:#{id}"
     end
 
     # What time did this worker start? Returns an instance of `Time`
     def started
-      redis.get "worker:#{self}:started"
+      redis.get "worker:#{id}:started"
     end
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.rfc2822)
+      redis.set("worker:#{id}:started", Time.now.rfc2822)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
     def job
-      decode(redis.get("worker:#{self}")) || {}
+      decode(redis.get("worker:#{id}")) || {}
     end
     alias_method :processing, :job
 
@@ -523,24 +513,13 @@ module Resque
     # Returns a symbol representing the current worker state,
     # which can be either :working or :idle
     def state
-      redis.exists("worker:#{self}") ? :working : :idle
+      redis.exists("worker:#{id}") ? :working : :idle
     end
 
     # Is this worker the same as another worker?
     def ==(other)
-      to_s == other.to_s
+      id == other.id
     end
-
-    def inspect
-      "#<Worker #{to_s}>"
-    end
-
-    # The string representation is the same as the id for this worker
-    # instance. Can be used with `Worker.find`.
-    def to_s
-      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
-    end
-    alias_method :id, :to_s
 
     def hostname
       Socket.gethostname
