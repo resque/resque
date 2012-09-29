@@ -22,7 +22,7 @@ body { padding:0; margin:0; }
 #main h1 { margin:10px 0; font-size:190%; font-weight:bold; color:#ce1212;}
 #main h2 { margin:10px 0; font-size:130%;}
 #main table { width:100%; margin:10px 0;}
-#main table tr td, #main table tr th { border:1px solid #ccc; padding:6px;}
+#main table tr td, #main table tr th { border:1px solid #ccc; padding:6px; word-break:break-word;}
 #main table tr th { background:#efefef; color:#888; font-size:80%; font-weight:bold;}
 #main table tr td.no-data { text-align:center; padding:40px 0; color:#999; font-style:italic; font-size:130%;}
 #main a { color:#111;}
