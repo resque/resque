@@ -280,11 +280,13 @@ module Resque
     end
     return if before_hooks.any? { |result| result == false }
 
-    Job.destroy(queue_from_class(klass), klass, *args)
+    destroyed = Job.destroy(queue_from_class(klass), klass, *args)
 
     Plugin.after_dequeue_hooks(klass).each do |hook|
       klass.send(hook, *args)
     end
+    
+    destroyed
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a

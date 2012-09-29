@@ -80,9 +80,9 @@ context "Resque" do
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
     assert_equal 5, Resque.size(:ivar)
 
-    assert Resque.dequeue(SomeIvarJob, 30, '/tmp')
+    assert_equal 1, Resque.dequeue(SomeIvarJob, 30, '/tmp')
     assert_equal 4, Resque.size(:ivar)
-    assert Resque.dequeue(SomeIvarJob)
+    assert_equal 3, Resque.dequeue(SomeIvarJob)
     assert_equal 1, Resque.size(:ivar)
   end
 
