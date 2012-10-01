@@ -450,7 +450,7 @@ describe "Resque::Worker" do
     assert $BEFORE_FORK_CALLED
   end
   
-  test "Will not call a before_fork hook when the worker can't fork" do
+  it "Will not call a before_fork hook when the worker can't fork" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
