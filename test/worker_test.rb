@@ -447,7 +447,7 @@ describe "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert $BEFORE_FORK_CALLED
+    assert $BEFORE_FORK_CALLED == workerA.will_fork?
   end
   
   it "Will not call a before_fork hook when the worker can't fork" do

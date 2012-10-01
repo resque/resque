@@ -44,7 +44,7 @@ describe "Resque Hooks" do
 
     assert_equal(0, counter)
     @worker.work(0)
-    assert_equal(2, counter)
+    assert_equal(@worker.will_fork? ? 2 : 0, counter)
   end
 
   it 'calls after_fork after each job if forking' do
@@ -102,7 +102,12 @@ describe "Resque Hooks" do
 
     assert(!first && !second)
     @worker.work(0)
-    assert(first && second)
+
+    if @worker.will_fork?
+      assert(first && second)
+    else
+      assert(!first && !second)
+    end
   end
 
   it 'registers multiple after_forks' do
