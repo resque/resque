@@ -257,7 +257,7 @@ module Resque
       
       # Only run before_fork hooks if we're actually going to fork
       # (after checking @cant_fork)
-      run_hook :before_fork, job
+      run_hook :before_fork, job if will_fork?
 
       begin
         # IronRuby doesn't support `Kernel.fork` yet
