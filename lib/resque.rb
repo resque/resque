@@ -1,3 +1,4 @@
+require 'logger'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -65,6 +66,9 @@ module Resque
       redis.client.id
     end
   end
+
+  # Set or retrieve the current logger object
+  attr_accessor :logger
 
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
@@ -369,3 +373,5 @@ module Resque
   end
 end
 
+# Log to STDOUT by default
+Resque.logger = Logger.new(STDOUT)
