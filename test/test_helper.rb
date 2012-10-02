@@ -176,3 +176,11 @@ ensure
   $stdout = orig_stdout
   $stderr = orig_stderr
 end
+
+# Log to log/test.log
+def reset_logger
+  $test_logger ||= Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
+  Resque.logger = $test_logger
+end
+
+reset_logger

@@ -1,15 +1,15 @@
 require 'test_helper'
 require 'minitest/mock'
 
-context "Resque.logger" do
+context "Resque::Logger" do
+  teardown { reset_logger }
+
   test "sets and receives the active logger" do
     my_logger = Object.new
     Resque.logger = my_logger
     assert_equal my_logger, Resque.logger
   end
-end
 
-context "Resque::Logger" do
   %w(debug info error fatal).each do |severity|
     test "logs #{severity} messages" do
       message       = "test message"

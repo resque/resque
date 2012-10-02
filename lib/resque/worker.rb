@@ -7,8 +7,9 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
+    extend  Resque::Helpers
     include Resque::Helpers
-    extend Resque::Helpers
+    include Resque::Logger
 
     # Whether the worker should log basic info to STDOUT
     attr_accessor :verbose
@@ -606,19 +607,8 @@ module Resque
       log! $0
     end
 
-    # Log a message to STDOUT if we are verbose or very_verbose.
-    def log(message)
-      if verbose
-        puts "*** #{message}"
-      elsif very_verbose
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "** [#{time}] #$$: #{message}"
-      end
-    end
-
-    # Logs a very verbose message to STDOUT.
-    def log!(message)
-      log message if very_verbose
-    end
+    # Log a message to Resque.logger
+    alias_method :log,  :info
+    alias_method :log!, :debug
   end
 end
