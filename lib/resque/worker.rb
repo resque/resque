@@ -14,7 +14,7 @@ module Resque
     attr_accessor :verbose
 
     # Whether the worker should log lots of info to STDOUT
-    attr_accessor  :very_verbose
+    attr_accessor :very_verbose
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
