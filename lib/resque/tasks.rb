@@ -5,7 +5,7 @@ namespace :resque do
   task :setup
 
   desc "Start a Resque worker"
-  task :work => [:pidfile, :setup] do
+  task :work => :setup do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
