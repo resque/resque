@@ -1,4 +1,5 @@
 require 'redis/namespace'
+require 'redis/retry'
 
 require 'resque/version'
 
@@ -31,24 +32,8 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
-    case server
-    when String
-      if server =~ /redis\:\/\//
-        redis = Redis.connect(:url => server, :thread_safe => true)
-      else
-        server, namespace = server.split('/', 2)
-        host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
-      end
-      namespace ||= :resque
+    @redis = wrap_redis_with_retry( init_redis( server ) )
 
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
-    when Redis::Namespace
-      @redis = server
-    else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
-    end
     @queues = Hash.new { |h,name|
       h[name] = Resque::Queue.new(name, @redis, coder)
     }
@@ -274,7 +259,6 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue_to(queue, klass, *args)
-    validate(klass, queue)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
     before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
       klass.send(hook, *args)
@@ -431,14 +415,36 @@ module Resque
     @hooks && @hooks[name] = []
   end
 
-  # Retrieve all hooks
-  def hooks
-    @hooks || {}
-  end
-
   # Retrieve all hooks of a given name.
   def hooks(name)
     (@hooks && @hooks[name]) || []
+  end
+
+  def init_redis(server)
+    case server
+    when String
+      if server =~ /redis\:\/\//
+        redis = Redis.new(:url => server, :thread_safe => true)
+      else
+        server, namespace = server.split('/', 2)
+        host, port, db = server.split(':')
+        redis = wrap_redis_with_retry(
+          Redis.new(:host => host, :port => port, :thread_safe => true, :db => db)
+        )
+      end
+      namespace ||= :resque
+
+      Redis::Namespace.new(namespace, :redis => redis)
+    when Redis::Namespace
+      server
+    else
+      Redis::Namespace.new(:resque, :redis => server)
+    end
+  end
+
+  def wrap_redis_with_retry(redis)
+    return redis if redis.is_a?(Redis::Retry)
+    Redis::Retry.new(:tries => 3, :wait => 5, :redis => redis)
   end
 end
 
