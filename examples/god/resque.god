@@ -11,8 +11,8 @@ num_workers.times do |num|
     w.env      = {"QUEUE"=>"critical,high,low", "RAILS_ENV"=>rails_env}
     w.start    = "/usr/bin/rake -f #{rails_root}/Rakefile environment resque:work"
 
-    w.uid = 'git'
-    w.gid = 'git'
+    w.uid = 'deploy'
+    w.gid = 'deploy'
 
     # restart if memory gets too high
     w.transition(:up, :restart) do |on|
