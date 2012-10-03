@@ -1,12 +1,12 @@
 require 'rubygems'
+require 'bundler/setup'
+require 'minitest/autorun'
+require 'redis/namespace'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
-$TESTING = true
-require 'minitest/unit'
-
-require 'redis/namespace'
 require 'resque'
+$TESTING = true
 
 begin
   require 'leftright'
@@ -30,21 +30,12 @@ end
 # kill it when they end
 #
 
-at_exit do
-  next if $!
-
-  if defined?(MiniTest)
-    exit_code = MiniTest::Unit.new.run(ARGV)
-  else
-    exit_code = Test::Unit::AutoRunner.run
-  end
-
+MiniTest::Unit.after_tests do
   processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
   pids = processes.map { |process| process.split(" ")[0] }
   puts "Killing test redis server..."
   pids.each { |pid| Process.kill("TERM", pid.to_i) }
   system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
-  exit exit_code
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
