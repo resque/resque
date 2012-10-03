@@ -1,7 +1,7 @@
 require 'test_helper'
 require 'minitest/mock'
 
-context "Resque::Logger" do
+context "Resque::Logging" do
   teardown { reset_logger }
 
   test "sets and receives the active logger" do
@@ -17,7 +17,7 @@ context "Resque::Logger" do
       mock_logger.expect severity.to_sym, nil, [message]
       Resque.logger = mock_logger
 
-      Resque::Logger.send severity, message
+      Resque::Logging.send severity, message
       mock_logger.verify
     end
   end

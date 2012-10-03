@@ -9,7 +9,7 @@ module Resque
   class Worker
     extend  Resque::Helpers
     include Resque::Helpers
-    include Resque::Logger
+    include Resque::Logging
 
     # Whether the worker should log basic info to STDOUT
     attr_accessor :verbose
