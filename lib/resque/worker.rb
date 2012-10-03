@@ -11,12 +11,6 @@ module Resque
     include Resque::Helpers
     include Resque::Logging
 
-    # Whether the worker should log basic info to STDOUT
-    attr_accessor :verbose
-
-    # Whether the worker should log lots of info to STDOUT
-    attr_accessor :very_verbose
-
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
@@ -610,5 +604,22 @@ module Resque
     # Log a message to Resque.logger
     alias_method :log,  :info
     alias_method :log!, :debug
+    
+    # Deprecated legacy methods for controlling the logging threshhold
+    # Use Resque.logger.level now, e.g.:
+    #
+    #     Resque.logger.level = Logger::DEBUG
+    #
+    def verbose; logger_severity_deprecation_warning; end
+    def very_verbose; logger_severity_deprecation_warning; end
+    def verbose=(_); logger_severity_deprecation_warning; end
+    def very_verbose=(_); logger_severity_deprecation_warning; end
+    
+    def logger_severity_deprecation_warning
+      return if $warned_logger_severity_deprecation
+      puts "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
+      $warned_logger_severity_deprecation = true
+      nil
+    end
   end
 end

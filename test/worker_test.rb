@@ -486,8 +486,6 @@ context "Resque::Worker" do
         alias_method :fatal, :info
       end
 
-      @worker.very_verbose = true
-
       Resque.logger = DummyLogger.new
       begin
         @worker.work(0)
