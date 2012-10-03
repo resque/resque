@@ -11,5 +11,5 @@ group :test do
   gem "hoptoad_notifier"
   gem "airbrake"
   gem "i18n"
-  gem "minitest", :platforms => :ruby_18
+  gem "minitest"
 end
