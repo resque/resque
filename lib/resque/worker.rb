@@ -7,14 +7,9 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
+    extend  Resque::Helpers
     include Resque::Helpers
-    extend Resque::Helpers
-
-    # Whether the worker should log basic info to STDOUT
-    attr_accessor :verbose
-
-    # Whether the worker should log lots of info to STDOUT
-    attr_accessor  :very_verbose
+    include Resque::Logging
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
@@ -606,19 +601,26 @@ module Resque
       log! $0
     end
 
-    # Log a message to STDOUT if we are verbose or very_verbose.
-    def log(message)
-      if verbose
-        puts "*** #{message}"
-      elsif very_verbose
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "** [#{time}] #$$: #{message}"
-      end
-    end
-
-    # Logs a very verbose message to STDOUT.
-    def log!(message)
-      log message if very_verbose
+    # Log a message to Resque.logger
+    alias_method :log,  :info
+    alias_method :log!, :debug
+    
+    # Deprecated legacy methods for controlling the logging threshhold
+    # Use Resque.logger.level now, e.g.:
+    #
+    #     Resque.logger.level = Logger::DEBUG
+    #
+    def verbose; logger_severity_deprecation_warning; end
+    def very_verbose; logger_severity_deprecation_warning; end
+    def verbose=(_); logger_severity_deprecation_warning; end
+    def very_verbose=(_); logger_severity_deprecation_warning; end
+    
+    def logger_severity_deprecation_warning
+      return if $warned_logger_severity_deprecation
+      puts "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
+      puts "Called from: #{caller[0..5].join("\n\t")}"
+      $warned_logger_severity_deprecation = true
+      nil
     end
   end
 end
