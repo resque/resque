@@ -1,4 +1,6 @@
-require 'test_helper'
+# ability to run this test stand alone
+# through ruby test/worker_test.rb
+require_relative 'test_helper'
 
 describe "Resque::Worker" do
   before do
