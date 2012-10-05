@@ -1,6 +1,7 @@
 module Resque
   # Include this module in classes you wish to have logging facilities
   module Logging
+    module_function
 
     # Thunk to the logger's own log method (if configured)
     def self.log(severity, message)
