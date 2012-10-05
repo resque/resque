@@ -399,22 +399,81 @@ context "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
+  test "setting verbose to true" do
+    @worker.verbose = true
+
+    assert @worker.verbose
+    assert !@worker.very_verbose
+  end
+
+  test "setting verbose to false" do
+    @worker.verbose = false
+
+    assert !@worker.verbose
+    assert !@worker.very_verbose
+  end
+
+  test "setting very_verbose to true" do
+    @worker.very_verbose = true
+
+    assert !@worker.verbose
+    assert @worker.very_verbose
+  end
+
+  test "setting setting verbose to true and then very_verbose to false" do
+    @worker.very_verbose = true
+    @worker.verbose      = true
+    @worker.very_verbose = false
+
+    assert @worker.verbose
+    assert !@worker.very_verbose
+  end
+
+  test "verbose prints out logs" do
+    messages        = StringIO.new
+    Resque.logger   = Logger.new(messages)
+    @worker.verbose = true
+
+    begin
+      @worker.log("omghi mom")
+    ensure
+      reset_logger
+    end
+
+    assert_equal "*** omghi mom", messages.string
+  end
+
+  test "unsetting verbose works" do
+    messages        = StringIO.new
+    Resque.logger   = Logger.new(messages)
+    @worker.verbose = true
+    @worker.verbose = false
+
+    begin
+      @worker.log("omghi mom")
+    ensure
+      reset_logger
+    end
+
+    assert_equal "", messages.string
+  end
+
   test "very verbose works in the afternoon" do
+    messages        = StringIO.new
+    Resque.logger   = Logger.new(messages)
+
     begin
       require 'time'
       last_puts = ""
       Time.fake_time = Time.parse("15:44:33 2011-03-02")
 
-      @worker.extend(Module.new {
-        define_method(:puts) { |thing| last_puts = thing }
-      })
-
       @worker.very_verbose = true
       @worker.log("some log text")
 
-      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, last_puts
+      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, messages.string
     ensure
       Time.fake_time = nil
+      reset_logger
     end
   end
 

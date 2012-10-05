@@ -610,11 +610,41 @@ module Resque
     #
     #     Resque.logger.level = Logger::DEBUG
     #
-    def verbose; logger_severity_deprecation_warning; end
-    def very_verbose; logger_severity_deprecation_warning; end
-    def verbose=(_); logger_severity_deprecation_warning; end
-    def very_verbose=(_); logger_severity_deprecation_warning; end
-    
+    def verbose
+      logger_severity_deprecation_warning
+      @verbose
+    end
+
+    def very_verbose
+      logger_severity_deprecation_warning
+      @very_verbose
+    end
+
+    def verbose=(value);
+      logger_severity_deprecation_warning
+
+      if value && !very_verbose
+        Resque.logger.formatter = VerboseFormatter.new
+      elsif !value
+        Resque.logger.formatter = QuietFormatter.new
+      end
+
+      @verbose = value
+    end
+
+    def very_verbose=(value)
+      logger_severity_deprecation_warning
+      if value
+        Resque.logger.formatter = VeryVerboseFormatter.new
+      elsif !value && verbose
+        Resque.logger.formatter = VerboseFormatter.new
+      else
+        Resque.logger.formatter = QuietFormatter.new
+      end
+
+      @very_verbose = value
+    end
+
     def logger_severity_deprecation_warning
       return if $warned_logger_severity_deprecation
       puts "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
