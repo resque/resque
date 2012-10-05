@@ -91,6 +91,9 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      # log to STDOUT if no logger is set
+      Resque.logger = Logger.new(STDOUT) unless Resque.logger
+      Resque.logger.formatter = QuietFormatter.new
       validate_queues
     end
 
