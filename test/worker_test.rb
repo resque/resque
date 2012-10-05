@@ -718,5 +718,18 @@ context "Resque::Worker" do
         end
       end
     end
+
+    test "displays warning when not using term_child" do
+      stdout, stderr = capture_io { @worker.work(0) }
+
+      assert stderr.match(/^WARNING:/)
+    end
+
+    test "it does not display warning when using term_child" do
+      @worker.term_child = "1"
+      stdout, stderr = capture_io { @worker.work(0) }
+
+      assert !stderr.match(/^WARNING:/)
+    end
   end
 end
