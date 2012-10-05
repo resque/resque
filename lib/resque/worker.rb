@@ -605,8 +605,14 @@ module Resque
     end
 
     # Log a message to Resque.logger
-    alias_method :log,  :info
-    alias_method :log!, :debug
+    # can't use alias_method since info/debug are private methods
+    def log(message)
+      info(message)
+    end
+
+    def log!(message)
+      debug(message)
+    end
     
     # Deprecated legacy methods for controlling the logging threshhold
     # Use Resque.logger.level now, e.g.:
