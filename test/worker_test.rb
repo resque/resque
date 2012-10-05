@@ -399,6 +399,25 @@ context "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
+  test "very verbose works in the afternoon" do
+    begin
+      require 'time'
+      last_puts = ""
+      Time.fake_time = Time.parse("15:44:33 2011-03-02")
+
+      @worker.extend(Module.new {
+        define_method(:puts) { |thing| last_puts = thing }
+      })
+
+      @worker.very_verbose = true
+      @worker.log("some log text")
+
+      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, last_puts
+    ensure
+      Time.fake_time = nil
+    end
+  end
+
   test "Will call an after_fork hook if we're forking" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
