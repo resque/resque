@@ -2,6 +2,8 @@ source :rubygems
 
 gemspec
 
+# gem "sys-proctable", ">= 0.9.2", :git => "git://github.com/djberg96/sys-proctable.git", :require => "sys/proctable"
+
 group :development do
   gem 'rake'
   gem 'yard'
