@@ -462,6 +462,19 @@ describe "Resque::Worker" do
     workerA.work(0)
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
+  
+  it "Will not call a before_fork hook when the worker can't fork" do
+    Resque.redis.flushall
+    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+    workerA.cant_fork = true
+
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
+  end
 
   it "very verbose works in the afternoon" do
     begin
@@ -492,6 +505,19 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
     assert $AFTER_FORK_CALLED == workerA.will_fork?
+  end
+
+  it "Will not call an after_fork hook when the worker can't fork" do
+    Resque.redis.flushall
+    $AFTER_FORK_CALLED = false
+    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+    workerA.cant_fork = true
+
+    assert !$AFTER_FORK_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert !$AFTER_FORK_CALLED
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
