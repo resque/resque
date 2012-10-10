@@ -10,4 +10,7 @@ module Resque
 
   # Raised when child process is TERM'd so job can rescue this to do shutdown work.
   class TermException < SignalException; end
+
+  # Raised when the Queue used by the ThreadedExecutorPool gets a job after it's been shutdown
+  class RejectedJob < StandardError; end
 end
