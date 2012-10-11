@@ -39,14 +39,14 @@ class ProcessList
   # Find Resque worker pids on Linux and OS X.
   #
   def self.linux_worker_pids
-    plist = ps.select{|p| p.uid == Process.uid }.map {|p| "#{p.pid} #{p.psargs}" }.join("\n")
+    plist = ps.select{|p| p.uid == Process.uid }.map {|p| "#{p.pid} #{p.cmdline}" }.join("\n")
     get_worker_pids(plist)
   end
 
   # Find Resque worker pids on Solaris.
   #
   def self.solaris_worker_pids
-    plist = ps.select{|p| p.uid == Process.uid }.map {|p| "#{p.pid} #{p.cmdline}" }.join("\n")
+    plist = ps.select{|p| p.uid == Process.uid }.map {|p| "#{p.pid} #{p.psargs}" }.join("\n")
     get_worker_pids(plist)
   end
 
