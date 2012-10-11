@@ -26,7 +26,7 @@ namespace :resque do
       Process.daemon(true)
     end
 
-    worker.log "Starting worker #{worker}"
+    Resque.logger.info "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end

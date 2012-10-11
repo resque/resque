@@ -130,7 +130,7 @@ module Resque
         pause if should_pause?
 
         if job = reserve(interval)
-          log "got: #{job.inspect}"
+          Resque.logger.info "got: #{job.inspect}"
           job.worker = self
           working_on job
 
@@ -154,7 +154,7 @@ module Resque
           @child = nil
         else
           break if interval.zero?
-          log! "Timed out after #{interval} seconds"
+          Resque.logger.debug "Timed out after #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
         end
       end
@@ -182,15 +182,15 @@ module Resque
         run_hook :after_fork, job if will_fork?
         job.perform
       rescue Object => e
-        log "#{job.inspect} failed: #{e.inspect}"
+        Resque.logger.info "#{job.inspect} failed: #{e.inspect}"
         begin
           job.fail(e)
         rescue Object => e
-          log "Received exception when reporting failure: #{e.inspect}"
+          Resque.logger.info "Received exception when reporting failure: #{e.inspect}"
         end
         failed!
       else
-        log "done: #{job.inspect}"
+        Resque.logger.info "done: #{job.inspect}"
       ensure
         yield job if block_given?
       end
@@ -214,7 +214,7 @@ module Resque
         queue, job = multi_queue.poll(interval.to_i)
       end
 
-      log! "Found job on #{queue}"
+      Resque.logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if queue && job
     end
 
@@ -226,11 +226,11 @@ module Resque
         redis.client.reconnect
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
-          log "Error reconnecting to Redis; retrying"
+          Resque.logger.info "Error reconnecting to Redis; retrying"
           sleep(tries)
           retry
         else
-          log "Error reconnecting to Redis; quitting"
+          Resque.logger.info "Error reconnecting to Redis; quitting"
           raise
         end
       end
@@ -244,11 +244,11 @@ module Resque
         redis.client.reconnect
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
-          log "Error reconnecting to Redis; retrying"
+          Resque.logger.info "Error reconnecting to Redis; retrying"
           sleep(tries)
           retry
         else
-          log "Error reconnecting to Redis; quitting"
+          Resque.logger.info "Error reconnecting to Redis; quitting"
           raise
         end
       end
@@ -326,7 +326,7 @@ module Resque
         warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
-      log! "Registered signals"
+      Resque.logger.debug "Registered signals"
     end
 
     def unregister_signal_handlers
@@ -344,7 +344,7 @@ module Resque
     # Schedule this worker for shutdown. Will finish processing the
     # current job.
     def shutdown
-      log 'Exiting...'
+      Resque.logger.info 'Exiting...'
       @shutdown = true
     end
 
@@ -365,20 +365,20 @@ module Resque
     def kill_child
       if @child
         unless Process.waitpid(@child, Process::WNOHANG)
-          log! "Sending TERM signal to child #{@child}"
+          Resque.logger.debug "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
           (term_timeout.to_f * 10).round.times do |i|
             sleep(0.1)
             return if Process.waitpid(@child, Process::WNOHANG)
           end
-          log! "Sending KILL signal to child #{@child}"
+          Resque.logger.debug "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
         else
-          log! "Child #{@child} already quit."
+          Resque.logger.debug "Child #{@child} already quit."
         end
       end
     rescue SystemCallError
-      log! "Child #{@child} already quit and reaped."
+      Resque.logger.debug "Child #{@child} already quit and reaped."
     end
 
     # are we paused?
@@ -390,7 +390,7 @@ module Resque
     def pause
       rd, wr = IO.pipe
       trap('CONT') {
-        log "CONT received; resuming job processing"
+        Resque.logger.info "CONT received; resuming job processing"
         @paused = false
         wr.write 'x'
         wr.close
@@ -404,7 +404,7 @@ module Resque
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
     def pause_processing
-      log "USR2 received; pausing job processing"
+      Resque.logger.info "USR2 received; pausing job processing"
       @paused = true
     end
 
@@ -425,7 +425,7 @@ module Resque
         host, pid, queues = worker.id.split(':')
         next unless host == hostname
         next if known_workers.include?(pid)
-        log! "Pruning dead worker: #{worker}"
+        Resque.logger.debug "Pruning dead worker: #{worker}"
         worker.unregister_worker
       end
     end
@@ -442,7 +442,7 @@ module Resque
       return unless hooks = Resque.send(name)
       msg = "Running #{name} hooks"
       msg << " with #{args.inspect}" if args.any?
-      log msg
+      Resque.logger.info msg
 
       hooks.each do |hook|
         args.any? ? hook.call(*args) : hook.call
@@ -622,65 +622,7 @@ module Resque
     #   resque-VERSION: STRING
     def procline(string)
       $0 = "resque-#{Resque::Version}: #{string}"
-      log! $0
-    end
-
-    # Log a message to Resque.logger
-    # can't use alias_method since info/debug are private methods
-    def log(message)
-      info(message)
-    end
-
-    def log!(message)
-      debug(message)
-    end
-
-    # Deprecated legacy methods for controlling the logging threshhold
-    # Use Resque.logger.level now, e.g.:
-    #
-    #     Resque.logger.level = Logger::DEBUG
-    #
-    def verbose
-      logger_severity_deprecation_warning
-      @verbose
-    end
-
-    def very_verbose
-      logger_severity_deprecation_warning
-      @very_verbose
-    end
-
-    def verbose=(value);
-      logger_severity_deprecation_warning
-
-      if value && !very_verbose
-        Resque.logger.formatter = VerboseFormatter.new
-      elsif !value
-        Resque.logger.formatter = QuietFormatter.new
-      end
-
-      @verbose = value
-    end
-
-    def very_verbose=(value)
-      logger_severity_deprecation_warning
-      if value
-        Resque.logger.formatter = VeryVerboseFormatter.new
-      elsif !value && verbose
-        Resque.logger.formatter = VerboseFormatter.new
-      else
-        Resque.logger.formatter = QuietFormatter.new
-      end
-
-      @very_verbose = value
-    end
-
-    def logger_severity_deprecation_warning
-      return if $warned_logger_severity_deprecation
-      Kernel.warn "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
-      Kernel.warn "Called from: #{caller[0..5].join("\n\t")}"
-      $warned_logger_severity_deprecation = true
-      nil
+      Resque.logger.debug $0
     end
   end
 end
