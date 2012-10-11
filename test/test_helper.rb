@@ -2,8 +2,7 @@ require 'rubygems'
 require 'timeout'
 require 'bundler/setup'
 require 'redis/namespace'
-require 'minitest/unit'
-require 'minitest/spec'
+require 'minitest/autorun'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
@@ -26,17 +25,12 @@ end
 # kill it when they end
 #
 
-at_exit do
-  next if $!
-
-  exit_code = MiniTest::Unit.new.run(ARGV)
-
+MiniTest::Unit.after_tests do
   processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
   pids = processes.map { |process| process.split(" ")[0] }
   puts "Killing test redis server..."
   pids.each { |pid| Process.kill("TERM", pid.to_i) }
   system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
-  exit exit_code
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
@@ -143,3 +137,27 @@ class Time
 
   self.fake_time = nil
 end
+
+# From minitest/unit
+def capture_io
+  require 'stringio'
+
+  orig_stdout, orig_stderr         = $stdout, $stderr
+  captured_stdout, captured_stderr = StringIO.new, StringIO.new
+  $stdout, $stderr                 = captured_stdout, captured_stderr
+
+  yield
+
+  return captured_stdout.string, captured_stderr.string
+ensure
+  $stdout = orig_stdout
+  $stderr = orig_stderr
+end
+
+# Log to log/test.log
+def reset_logger
+  $test_logger ||= Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
+  Resque.logger = $test_logger
+end
+
+reset_logger

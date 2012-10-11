@@ -1,3 +1,4 @@
+require 'logger'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -9,6 +10,10 @@ require 'resque/failure/base'
 
 require 'resque/helpers'
 require 'resque/stat'
+require 'resque/logging'
+require 'resque/log_formatters/quiet_formatter'
+require 'resque/log_formatters/verbose_formatter'
+require 'resque/log_formatters/very_verbose_formatter'
 require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
@@ -79,6 +84,9 @@ module Resque
       redis.client.id
     end
   end
+
+  # Set or retrieve the current logger object
+  attr_accessor :logger
 
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
@@ -444,3 +452,6 @@ module Resque
   end
 end
 
+# Log to STDOUT by default
+Resque.logger           = Logger.new(STDOUT)
+Resque.logger.formatter = Resque::QuietFormatter.new

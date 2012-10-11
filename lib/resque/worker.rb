@@ -9,14 +9,9 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
+    extend  Resque::Helpers
     include Resque::Helpers
-    extend Resque::Helpers
-
-    # Whether the worker should log basic info to STDOUT
-    attr_accessor :verbose
-
-    # Whether the worker should log lots of info to STDOUT
-    attr_accessor  :very_verbose
+    include Resque::Logging
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
@@ -221,6 +216,24 @@ module Resque
 
       log! "Found job on #{queue}"
       Job.new(queue.name, job) if queue && job
+    end
+
+    # Reconnect to Redis to avoid sharing a connection with the parent,
+    # retry up to 3 times with increasing delay before giving up.
+    def reconnect
+      tries = 0
+      begin
+        redis.client.reconnect
+      rescue Redis::BaseConnectionError
+        if (tries += 1) <= 3
+          log "Error reconnecting to Redis; retrying"
+          sleep(tries)
+          retry
+        else
+          log "Error reconnecting to Redis; quitting"
+          raise
+        end
+      end
     end
 
     # Reconnect to Redis to avoid sharing a connection with the parent,
@@ -612,17 +625,62 @@ module Resque
       log! $0
     end
 
-    # Log a message to STDOUT if we are verbose or very_verbose.
+    # Log a message to Resque.logger
+    # can't use alias_method since info/debug are private methods
     def log(message)
-      if verbose || very_verbose
-        time = Time.now.strftime('%H:%M:%S %Y-%m-%d')
-        puts "[#{time}] #$$: #{message}"
-      end
+      info(message)
     end
 
-    # Logs a very verbose message to STDOUT.
     def log!(message)
-      log message if very_verbose
+      debug(message)
+    end
+
+    # Deprecated legacy methods for controlling the logging threshhold
+    # Use Resque.logger.level now, e.g.:
+    #
+    #     Resque.logger.level = Logger::DEBUG
+    #
+    def verbose
+      logger_severity_deprecation_warning
+      @verbose
+    end
+
+    def very_verbose
+      logger_severity_deprecation_warning
+      @very_verbose
+    end
+
+    def verbose=(value);
+      logger_severity_deprecation_warning
+
+      if value && !very_verbose
+        Resque.logger.formatter = VerboseFormatter.new
+      elsif !value
+        Resque.logger.formatter = QuietFormatter.new
+      end
+
+      @verbose = value
+    end
+
+    def very_verbose=(value)
+      logger_severity_deprecation_warning
+      if value
+        Resque.logger.formatter = VeryVerboseFormatter.new
+      elsif !value && verbose
+        Resque.logger.formatter = VerboseFormatter.new
+      else
+        Resque.logger.formatter = QuietFormatter.new
+      end
+
+      @very_verbose = value
+    end
+
+    def logger_severity_deprecation_warning
+      return if $warned_logger_severity_deprecation
+      Kernel.warn "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
+      Kernel.warn "Called from: #{caller[0..5].join("\n\t")}"
+      $warned_logger_severity_deprecation = true
+      nil
     end
   end
 end

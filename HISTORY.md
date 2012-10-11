@@ -2,6 +2,13 @@
 
 * Changed failures retry process to requeue. (@KensoDev #703)
 
+## 1.23.0 (2012-10-01)
+
+* don't run `before_fork` hook if Resque can't fork (@kjwierenga, @tarcieri, #672, #697)
+* don't run `after_fork` hook if Resque can't fork (@kjwierenga, @tarcieri, #672, #697)
+* retry connecting to redis up to 3 times (@trevorturk, #693)
+* pass exceptions raised by the worker into the Failure backend (@trevorturk, #693)
+
 ## 1.22.0 (2012-08-21)
 
 * unregister signal handlers in child process when ENV["TERM_CHILD"] is set (@dylanasmith, #621)
