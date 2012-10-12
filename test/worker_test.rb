@@ -689,5 +689,28 @@ describe "Resque::Worker" do
         end
       end
     end
+
+    class SuicidalJob
+      @queue = :jobs
+
+      def self.perform
+        Process.kill('KILL', Process.pid)
+      end
+
+      def self.on_failure_store_exception(exc, *args)
+        @@failure_exception = exc
+      end
+    end
+
+    it "will notify failure hooks when a job is killed by a signal" do
+      begin
+        $TESTING = false
+        Resque.enqueue(SuicidalJob)
+        @worker.work(0)
+        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
+      ensure
+        $TESTING = true
+      end
+    end
   end
 end
