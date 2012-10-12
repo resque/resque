@@ -142,12 +142,13 @@ module Resque
             rescue SystemCallError
               nil
             end
+            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             unregister_signal_handlers if will_fork?
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             reconnect
             perform(job, &block)
-            exit! if will_fork?
+            exit!(true) if will_fork?
           end
 
           done_working
