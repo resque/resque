@@ -707,7 +707,7 @@ describe "Resque::Worker" do
         $TESTING = false
         Resque.enqueue(SuicidalJob)
         @worker.work(0)
-        assert_equal Resque::DirtyExit, SuicidalJob.class_variable_get(:@@failure_exception).class
+        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
       ensure
         $TESTING = true
       end
