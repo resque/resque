@@ -463,7 +463,7 @@ module Resque
     def working_on(job)
       data = encode \
         :queue   => job.queue,
-        :run_at  => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
+        :run_at  => Time.now.utc.iso8601,
         :payload => job.payload
       redis.set("worker:#{self}", data)
     end
