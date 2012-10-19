@@ -21,24 +21,30 @@ module Resque
         Resque.redis.llen(:failed).to_i
       end
 
-      def self.all(start = 0, count = 1)
-        Resque.list_range(:failed, start, count)
+      def self.all(offset = 0, limit = 1)
+        Resque.list_range(:failed, offset, limit)
+      end
+
+      def self.each(offset = 0, limit = self.count)
+        Array(all(offset, limit)).each_with_index do |item, i|
+          yield offset + i, item
+        end
       end
 
       def self.clear
         Resque.redis.del(:failed)
       end
 
-      def self.requeue(index)
-        item = all(index)
+      def self.requeue(id)
+        item = all(id)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(:failed, index, Resque.encode(item))
+        Resque.redis.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.remove(index)
+      def self.remove(id)
         id = rand(0xffffff)
-        Resque.redis.lset(:failed, index, id)
+        Resque.redis.lset(:failed, id, id)
         Resque.redis.lrem(:failed, 1, id)
       end
 
