@@ -37,8 +37,12 @@ module Resque
       end
 
       # Returns a paginated array of failure objects.
-      def self.all(start = 0, count = 1)
+      def self.all(offset = 0, limit = 1)
         []
+      end
+
+      # Iterate across failed objects
+      def self.each(offset = 0, limit = self.count)
       end
 
       # A URL where someone can go to view failures.

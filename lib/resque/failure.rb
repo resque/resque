@@ -43,10 +43,15 @@ module Resque
 
     # Returns an array of all the failures, paginated.
     #
-    # `start` is the int of the first item in the page, `count` is the
+    # `offset` is the int of the first item in the page, `limit` is the
     # number of items to return.
-    def self.all(start = 0, count = 1)
-      backend.all(start, count)
+    def self.all(offset = 0, limit = 1)
+      backend.all(offset, limit)
+    end
+
+    # Iterate across all failures with the given options
+    def self.each(offset = 0, limit = self.count, &block)
+      backend.each(offset, limit, &block)
     end
 
     # The string url of the backend's web interface, if any.
