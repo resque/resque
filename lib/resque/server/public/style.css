@@ -23,7 +23,7 @@ body { padding:0; margin:0; }
 #main h2 { margin:10px 0; font-size:130%;}
 #main table { width:100%; margin:10px 0;}
 #main table tr td, #main table tr th { border:1px solid #ccc; padding:6px;}
-#main table tr th { background:#efefef; color:#888; font-size:80%; font-weight:bold;}
+#main table tr th { background:#efefef; color:#888; font-size:15px; font-weight:bold;}
 #main table tr td.no-data { text-align:center; padding:40px 0; color:#999; font-style:italic; font-size:130%;}
 #main a { color:#111;}
 #main p { margin:5px 0;}
@@ -45,6 +45,7 @@ body { padding:0; margin:0; }
 #main table.workers td.where { width:25%;}
 #main table.workers td.queues { width:35%;}
 #main .queue-tag { background:#b1d2e9; padding:2px; margin:0 3px; font-size:80%; text-decoration:none; text-transform:uppercase; font-weight:bold; color:#3274a2; -webkit-border-radius:4px; -moz-border-radius:4px;}
+#main .queue-tag a { color: #3274A2; text-decoration: none; }
 #main table.workers td.queues.queue { width:10%;}
 #main table.workers td.process { width:35%;}
 #main table.workers td.process span.waiting { color:#999; font-size:90%;}
