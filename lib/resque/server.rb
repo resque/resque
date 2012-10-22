@@ -181,6 +181,14 @@ module Resque
       end
     end
 
+    get "/failed/:queue" do
+      if Resque::Failure.url
+        redirect Resque::Failure.url
+      else
+        show :failed
+      end
+    end
+
     post "/failed/clear" do
       Resque::Failure.clear
       redirect u('failed')

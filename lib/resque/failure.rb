@@ -32,26 +32,31 @@ module Resque
     # back to `Resque::Failure::Redis`
     def self.backend
       return @backend if @backend
-      require 'resque/failure/redis'
-      @backend = Failure::Redis
+      require 'resque/failure/redis_multi_queue'
+      @backend = Failure::RedisMultiQueue
+    end
+
+    # Returns an array of all the failed queues in the system
+    def self.queues
+      backend.queues
     end
 
     # Returns the int count of how many failures we have seen.
-    def self.count
-      backend.count
+    def self.count(queue = nil)
+      backend.count(queue)
     end
 
     # Returns an array of all the failures, paginated.
     #
     # `offset` is the int of the first item in the page, `limit` is the
     # number of items to return.
-    def self.all(offset = 0, limit = 1)
-      backend.all(offset, limit)
+    def self.all(offset = 0, limit = 1, queue = nil)
+      backend.all(offset, limit, queue)
     end
 
     # Iterate across all failures with the given options
-    def self.each(offset = 0, limit = self.count, &block)
-      backend.each(offset, limit, &block)
+    def self.each(offset = 0, limit = self.count, queue = nil, &block)
+      backend.each(offset, limit, queue, &block)
     end
 
     # The string url of the backend's web interface, if any.

@@ -1,12 +1,12 @@
 <%# FIXME: HELP ME I NEED HELPERS!!!! %>
 <% date_format = "%Y/%m/%d %T %z" %>
 <% failures    = Resque::Failure %>
-<% size        = failures.count %>
+<% size        = failures.count(params[:queue]) %>
 <% per_page    = 20 %>
 <% start_at    = params[:start].to_i %>
 <% end_at      = start_at + per_page > size ? size : start_at + per_page %>
 
-<h1>Failed Jobs</h1>
+<h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %></h1>
 <% unless size.zero? %>
 <form method="POST" action="<%=u 'failed/clear'%>">
   <input type='submit' name='' value='Clear Failed Jobs' />
@@ -19,7 +19,7 @@
 <p class='sub'>Showing <%= start_at %> to <%= end_at %> of <b><%= size %></b> jobs</p>
 
 <ul class='failed'>
-  <% failures.each(start_at, per_page) do |id, job| %>
+  <% failures.each(start_at, per_page, params[:queue]) do |id, job| %>
     <li>
       <dl>
         <% if job.nil? %>

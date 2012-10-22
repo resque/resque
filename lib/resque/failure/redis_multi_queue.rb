@@ -2,7 +2,7 @@ module Resque
   module Failure
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
-    class Redis < Base
+    class RedisMultiQueue < Base
       def save
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
@@ -14,21 +14,25 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(:failed, data)
+        Resque.redis.rpush(failure_queue_name(queue), data)
       end
 
-      def self.count(queue = :failed)
-        raise ArgumentError, "invalid queue: #{queue}" unless queue.to_s == "failed"
-        Resque.redis.llen(:failed).to_i
-      end
-
-      def self.queues
-        [:failed]
+      def self.count(queue = nil)
+        if queue
+          Resque.redis.llen(queue).to_i
+        else
+          total = 0
+          queues.each { |q| total += count(q) }
+          total
+        end
       end
 
       def self.all(offset = 0, limit = 1, queue = :failed)
-        raise ArgumentError, "invalid queue: #{queue}" unless queue.to_s == "failed"
-        Resque.list_range(:failed, offset, limit)
+        Resque.list_range(queue, offset, limit)
+      end
+
+      def self.queues
+        Array(Resque.redis.smembers(:failed_queues))
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed)
@@ -57,6 +61,13 @@ module Resque
       def filter_backtrace(backtrace)
         index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
         backtrace.first(index.to_i)
+      end
+
+      # Obtain the queue name for a given payload
+      def failure_queue_name(queue_name)
+        name = "#{queue_name}_failed"
+        Resque.redis.sadd(:failed_queues, name)
+        name
       end
     end
   end
