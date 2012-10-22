@@ -8,7 +8,7 @@
   <% Resque::Failure.queues.sort.each do |queue| %>
 	  <tr>
 	    <th><b class="queue-tag"><a href="/failed/<%= queue %>"><%= queue %></a></b></th>
-	    <th style="width:75px;" class="failed"></th>
+	    <th style="width:75px;" class="center"><%= Resque::Failure.count(queue) %></th>
 	  </tr>
 
 	  <%# FIXME: plz 2 be helpering this? %>

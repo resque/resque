@@ -8,7 +8,7 @@
 <% end_at      = start_at + per_page > size ? size : start_at + per_page %>
 
 <% if multiple && !params[:queue] %>
-<h1>All Failed Queues</h1>
+<h1>All Failed Queues: <%= Resque::Failure.queues.size %> total</h1>
 <% else %>
 <h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %></h1>
 <% end %>
