@@ -84,3 +84,7 @@ body { padding:0; margin:0; }
 #main form {float:right; margin-top:-10px;margin-left:10px;}
 
 #main .time a.toggle_format {text-decoration:none;}
+
+#failed tr.total {background-color: #FFECEC; color: #D37474;}
+#failed td.center {text-align: center;}
+#failed .failed_class { padding-left: 20px; font-size:12px; }
