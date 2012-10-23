@@ -45,6 +45,18 @@ module Resque
       end
     end
 
+    # Obtain the failure queue name for a given job queue
+    def self.failure_queue_name(job_queue_name)
+      name = "#{job_queue_name}_failed"
+      Resque.redis.sadd(:failed_queues, name)
+      name
+    end
+
+    # Obtain the job queue name for a given failure queue
+    def self.job_queue_name(failure_queue_name)
+      failure_queue_name.sub(/_failed$/, '')
+    end
+
     # Returns an array of all the failed queues in the system
     def self.queues
       backend.queues

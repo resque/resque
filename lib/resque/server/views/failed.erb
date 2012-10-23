@@ -14,11 +14,11 @@
 <% end %>
 
 <% unless size.zero? %>
-<form method="POST" action="<%=u 'failed/clear'%>">
-  <input type='submit' name='' value='Clear Failed Jobs' />
+<form method="POST" action="/failed<%= "/" + params[:queue] if params[:queue] %>/clear">
+  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" />
 </form>
-<form method="POST" action="<%=u 'failed/requeue/all'%>">
-  <input type='submit' name='' value='Retry Failed Jobs' />
+<form method="POST" action="/failed<%= "/" + params[:queue] if params[:queue] %>/requeue/all">
+  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" />
 </form>
 <% end %>
 

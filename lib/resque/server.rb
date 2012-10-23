@@ -201,6 +201,11 @@ module Resque
       redirect u('failed')
     end
 
+    post "/failed/:queue/requeue/all" do
+      Resque::Failure.requeue_queue Resque::Failure.job_queue_name(params[:queue])
+      redirect url_path("/failed/#{params[:queue]}")
+    end
+
     get "/failed/requeue/:index/?" do
       Resque::Failure.requeue(params[:index])
       if request.xhr?
