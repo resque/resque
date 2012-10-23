@@ -40,8 +40,8 @@
       <td class='size'><%= resque.size queue %></td>
     </tr>
     <% end %>
-    <% Resque::Failure.queues.sort_by { |q| q.to_s }.each do |queue| %>
-    <tr class="<%= Resque::Failure.count(queue).zero? ? "failed" : "failure" %>">
+    <% Resque::Failure.queues.sort_by { |q| q.to_s }.each_with_index do |queue, i| %>
+    <tr class="<%= Resque::Failure.count(queue).zero? ? "failed" : "failure" %><%= " first_failure" if i.zero? %>">
       <td class='queue failed'><a class="queue" href="<%= u "failed/#{queue}" %>"><%= queue %></a></td>
       <td class='size'><%= Resque::Failure.count(queue) %></td>
     </tr>
