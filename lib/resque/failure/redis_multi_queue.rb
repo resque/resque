@@ -43,8 +43,8 @@ module Resque
         end
       end
 
-      def self.clear
-        Resque.redis.del(:failed)
+      def self.clear(queue = :failed)
+        Resque.redis.del(queue)
       end
 
       def self.requeue(id, queue = :failed)

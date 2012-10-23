@@ -86,16 +86,16 @@ module Resque
     end
 
     # Clear all failure jobs
-    def self.clear
-      backend.clear
+    def self.clear(queue = nil)
+      backend.clear(queue)
     end
 
-    def self.requeue(index)
-      backend.requeue(index)
+    def self.requeue(id)
+      backend.requeue(id)
     end
 
-    def self.remove(index)
-      backend.remove(index)
+    def self.remove(id)
+      backend.remove(id)
     end
     
     # Requeues all failed jobs in a specific queue.

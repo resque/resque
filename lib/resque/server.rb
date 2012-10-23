@@ -194,6 +194,11 @@ module Resque
       redirect u('failed')
     end
 
+    post "/failed/:queue/clear" do
+      Resque::Failure.clear params[:queue]
+      redirect u('failed')
+    end
+
     post "/failed/requeue/all" do
       Resque::Failure.count.times do |num|
         Resque::Failure.requeue(num)
