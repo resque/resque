@@ -17,8 +17,8 @@ module Resque
         Resque.redis.rpush(:failed, data)
       end
 
-      def self.count(queue = :failed)
-        raise ArgumentError, "invalid queue: #{queue}" unless queue.to_s == "failed"
+      def self.count(queue = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
         Resque.redis.llen(:failed).to_i
       end
 
@@ -26,8 +26,8 @@ module Resque
         [:failed]
       end
 
-      def self.all(offset = 0, limit = 1, queue = :failed)
-        raise ArgumentError, "invalid queue: #{queue}" unless queue.to_s == "failed"
+      def self.all(offset = 0, limit = 1, queue = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
         Resque.list_range(:failed, offset, limit)
       end
 

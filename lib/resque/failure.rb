@@ -32,8 +32,17 @@ module Resque
     # back to `Resque::Failure::Redis`
     def self.backend
       return @backend if @backend
-      require 'resque/failure/redis_multi_queue'
-      @backend = Failure::RedisMultiQueue
+
+      case ENV['FAILURE_BACKEND']
+      when 'redis_multi_queue'
+        require 'resque/failure/redis_multi_queue'
+        @backend = Failure::RedisMultiQueue
+      when 'redis', nil
+        require 'resque/failure/redis'
+        @backend = Failure::Redis
+      else
+        raise ArgumentError, "invalid failure backend: #{FAILURE_BACKEND}"
+      end
     end
 
     # Returns an array of all the failed queues in the system
