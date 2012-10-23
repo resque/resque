@@ -14,7 +14,7 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(failure_queue_name(queue), data)
+        Resque.redis.rpush(self.class.failure_queue_name(queue), data)
       end
 
       def self.count(queue = nil)
@@ -47,29 +47,38 @@ module Resque
         Resque.redis.del(:failed)
       end
 
-      def self.requeue(id)
+      def self.requeue(id, queue = :failed)
         item = all(id)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(:failed, id, Resque.encode(item))
+        Resque.redis.lset(queue, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.remove(id)
-        id = rand(0xffffff)
-        Resque.redis.lset(:failed, id, id)
-        Resque.redis.lrem(:failed, 1, id)
+      def self.remove(id, queue = :failed)
+        sentinel = ""
+        Resque.redis.lset(queue, id, sentinel)
+        Resque.redis.lrem(queue, 1,  sentinel)
+      end
+
+      def self.requeue_queue(queue)
+        failure_queue = failure_queue_name(queue)
+        each(1, count(failure_queue), failure_queue) { |id, _| requeue(id, failure_queue) }
+      end
+
+      def self.remove_queue(queue)
+        Resque.redis.del(failure_queue_name(queue))
+      end
+
+            # Obtain the queue name for a given payload
+      def self.failure_queue_name(queue_name)
+        name = "#{queue_name}_failed"
+        Resque.redis.sadd(:failed_queues, name)
+        name
       end
 
       def filter_backtrace(backtrace)
         index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
         backtrace.first(index.to_i)
-      end
-
-      # Obtain the queue name for a given payload
-      def failure_queue_name(queue_name)
-        name = "#{queue_name}_failed"
-        Resque.redis.sadd(:failed_queues, name)
-        name
       end
     end
   end

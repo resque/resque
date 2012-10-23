@@ -49,9 +49,29 @@ module Resque
       end
 
       def self.remove(id)
-        id = rand(0xffffff)
-        Resque.redis.lset(:failed, id, id)
-        Resque.redis.lrem(:failed, 1, id)
+        sentinel = ""
+        Resque.redis.lset(:failed, id, sentinel)
+        Resque.redis.lrem(:failed, 1,  sentinel)
+      end
+
+      def self.requeue_queue(queue)
+        i = 0
+        while job = all(i)
+           requeue(i) if job['queue'] == queue
+           i += 1
+        end
+      end
+
+      def self.remove_queue(queue)
+        i = 0
+        while job = all(i)
+          if job['queue'] == queue
+            # This will remove the failure from the array so do not increment the index.
+            remove(i)
+          else
+            i += 1
+          end
+        end
       end
 
       def filter_backtrace(backtrace)
