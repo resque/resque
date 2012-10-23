@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath", "Terence Lee" ]
 
-  s.files         = `git ls-files`.split($/)
+  s.files         = `git ls-files`.split($/).reject! {|x| x =~ /test\//}
   s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
