@@ -37,7 +37,8 @@ module Resque
         end
       end
 
-      def self.clear
+      def self.clear(queue = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
         Resque.redis.del(:failed)
       end
 
