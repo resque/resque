@@ -15,7 +15,6 @@
 	  <%
     classes = Hash.new(0)
     Resque::Failure.each(0, Resque::Failure.count(queue), queue) do |_, item|
-      p item
       classes[item['payload']['class'] || "<nil>"] += 1
     end
 	  %>
