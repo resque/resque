@@ -10,6 +10,8 @@ end
 
 module Resque
   class Server < Sinatra::Base
+    require 'resque/server/helpers'
+
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"

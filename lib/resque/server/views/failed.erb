@@ -1,19 +1,10 @@
-<%# FIXME: HELP ME I NEED HELPERS!!!! %>
-<% date_format = "%Y/%m/%d %T %z" %>
-<% failures    = Resque::Failure %>
-<% multiple    = Resque::Failure.queues.size > 1 %>
-<% size        = failures.count(params[:queue]) %>
-<% per_page    = 20 %>
-<% start_at    = params[:start].to_i %>
-<% end_at      = start_at + per_page > size ? size : start_at + per_page %>
-
-<% if multiple && !params[:queue] %>
+<% if failed_multiple_queues? && !params[:queue] %>
 <h1>All Failed Queues: <%= Resque::Failure.queues.size %> total</h1>
 <% else %>
 <h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %></h1>
 <% end %>
 
-<% unless size.zero? %>
+<% unless failed_size.zero? %>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/clear" %>">
   <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" />
 </form>
@@ -22,13 +13,13 @@
 </form>
 <% end %>
 
-<% if multiple && !params[:queue] %>
+<% if failed_multiple_queues? && !params[:queue] %>
 <%= partial :failed_queues_overview %>
 <% else %>
-<p class='sub'>Showing <%= start_at %> to <%= end_at %> of <b><%= size %></b> jobs</p>
+<p class='sub'>Showing <%= failed_start_at %> to <%= failed_end_at %> of <b><%= failed_size %></b> jobs</p>
 
 <ul class='failed'>
-  <% failures.each(start_at, per_page, params[:queue]) do |id, job| %>
+  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue]) do |id, job| %>
     <li>
       <dl>
         <% if job.nil? %>
@@ -37,7 +28,7 @@
         <% else %>
         <dt>Worker</dt>
         <dd>
-          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime(date_format) %></span></b>
+          <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime(failed_date_format) %></span></b>
           <% if job['retried_at'] %>
             <div class='retried'>
               Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(date_format) %></span></b>
@@ -82,5 +73,5 @@
   <% end %>
 </ul>
 
-<%= partial :next_more, :start => start_at, :size => size %>
+<%= partial :next_more, :start => failed_start_at, :size => failed_size %>
 <% end %>

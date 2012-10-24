@@ -11,14 +11,7 @@
 	    <th style="width:75px;" class="center"><%= Resque::Failure.count(queue) %></th>
 	  </tr>
 
-	  <%# FIXME: plz 2 be helpering this? %>
-	  <%
-    classes = Hash.new(0)
-    Resque::Failure.each(0, Resque::Failure.count(queue), queue) do |_, item|
-      classes[item['payload']['class'] || "<nil>"] += 1
-    end
-	  %>
-    <% classes.sort.each do |k, v| %>
+    <% failed_class_counts(queue).sort_by { |name,_| name }.each do |k, v| %>
     <tr id="<%= k %>">
       <td>
         <a href="/failed/<%= "#{queue}?class=#{k}" %>"><span class="failed failed_class"><%= k %></span></a>
