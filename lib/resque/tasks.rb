@@ -60,4 +60,19 @@ namespace :resque do
       Rails::Initializer.run :load_application_classes
     end
   end
+
+  namespace :failures do
+    desc "Sort the 'failed' queue for the redis_multi_queue failure backend"
+    task :sort do
+      require 'resque'
+      require 'resque/failure/redis'
+
+      warn "Sorting #{Resque::Failure.count} failures..."
+      Resque::Failure.each(0, Resque::Failure.count) do |_, failure|
+        data = Resque.encode(failure)
+        Resque.redis.rpush(Resque::Failure.failure_queue_name(failure['queue']), data)
+      end
+      warn "done!"
+    end
+  end
 end
