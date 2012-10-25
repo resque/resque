@@ -2,7 +2,7 @@ module Resque
   module Failure
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
-    class Redis < Base
+    class RedisMultiQueue < Base
       def save
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
@@ -14,74 +14,67 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(:failed, data)
+        Resque.redis.rpush(Resque::Failure.failure_queue_name(queue), data)
       end
 
       def self.count(queue = nil, class_name = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
-
-        if class_name
-          n = 0
-          each(0, count(queue), queue, class_name) { n += 1 } 
-          n
+        if queue
+          if class_name
+            n = 0
+            each(0, count(queue), queue, class_name) { n += 1 } 
+            n
+          else
+            Resque.redis.llen(queue).to_i
+          end
         else
-          Resque.redis.llen(:failed).to_i
+          total = 0
+          queues.each { |q| total += count(q) }
+          total
         end
       end
 
-      def self.queues
-        [:failed]
+      def self.all(offset = 0, limit = 1, queue = :failed)
+        Resque.list_range(queue, offset, limit)
       end
 
-      def self.all(offset = 0, limit = 1, queue = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
-        Resque.list_range(:failed, offset, limit)
+      def self.queues
+        Array(Resque.redis.smembers(:failed_queues))
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
-        Array(all(offset, limit, queue)).each_with_index do |item, i|
+        items = all(offset, limit, queue)
+        items = [items] unless items.is_a? Array
+        items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
             yield offset + i, item
           end
         end
       end
 
-      def self.clear(queue = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
-        Resque.redis.del(:failed)
+      def self.clear(queue = :failed)
+        Resque.redis.del(queue)
       end
 
-      def self.requeue(id)
-        item = all(id)
+      def self.requeue(id, queue = :failed)
+        item = all(id, 1, queue)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(:failed, id, Resque.encode(item))
+        Resque.redis.lset(queue, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.remove(id)
+      def self.remove(id, queue = :failed)
         sentinel = ""
-        Resque.redis.lset(:failed, id, sentinel)
-        Resque.redis.lrem(:failed, 1,  sentinel)
+        Resque.redis.lset(queue, id, sentinel)
+        Resque.redis.lrem(queue, 1,  sentinel)
       end
 
       def self.requeue_queue(queue)
-        i = 0
-        while job = all(i)
-           requeue(i) if job['queue'] == queue
-           i += 1
-        end
+        failure_queue = Resque::Failure.failure_queue_name(queue)
+        each(0, count(failure_queue), failure_queue) { |id, _| requeue(id, failure_queue) }
       end
 
       def self.remove_queue(queue)
-        i = 0
-        while job = all(i)
-          if job['queue'] == queue
-            # This will remove the failure from the array so do not increment the index.
-            remove(i)
-          else
-            i += 1
-          end
-        end
+        Resque.redis.del(Resque::Failure.failure_queue_name(queue))
       end
 
       def filter_backtrace(backtrace)

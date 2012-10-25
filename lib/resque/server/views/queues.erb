@@ -34,16 +34,18 @@
       <th>Name</th>
       <th>Jobs</th>
     </tr>
-    <% for queue in resque.queues.sort_by { |q| q.to_s } %>
+    <% resque.queues.sort_by { |q| q.to_s }.each do |queue| %>
     <tr>
       <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
       <td class='size'><%= resque.size queue %></td>
     </tr>
     <% end %>
-    <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
-      <td class='queue failed'><a class="queue" href="<%= u :failed %>">failed</a></td>
-      <td class='size'><%= Resque::Failure.count %></td>
+    <% Resque::Failure.queues.sort_by { |q| q.to_s }.each_with_index do |queue, i| %>
+    <tr class="<%= Resque::Failure.count(queue).zero? ? "failed" : "failure" %><%= " first_failure" if i.zero? %>">
+      <td class='queue failed'><a class="queue" href="<%= u "failed/#{queue}" %>"><%= queue %></a></td>
+      <td class='size'><%= Resque::Failure.count(queue) %></td>
     </tr>
+    <% end %>
   </table>
 
 <% end %>
