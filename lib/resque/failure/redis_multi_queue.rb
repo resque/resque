@@ -17,9 +17,15 @@ module Resque
         Resque.redis.rpush(Resque::Failure.failure_queue_name(queue), data)
       end
 
-      def self.count(queue = nil)
+      def self.count(queue = nil, class_name = nil)
         if queue
-          Resque.redis.llen(queue).to_i
+          if class_name
+            n = 0
+            each(0, count(queue), queue, class_name) { n += 1 } 
+            n
+          else
+            Resque.redis.llen(queue).to_i
+          end
         else
           total = 0
           queues.each { |q| total += count(q) }
@@ -35,11 +41,13 @@ module Resque
         Array(Resque.redis.smembers(:failed_queues))
       end
 
-      def self.each(offset = 0, limit = self.count, queue = :failed)
+      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
         items = all(offset, limit, queue)
         items = [items] unless items.is_a? Array
         items.each_with_index do |item, i|
-          yield offset + i, item
+          if !class_name || (item['payload'] && item['payload']['class'] == class_name)
+            yield offset + i, item
+          end
         end
       end
 

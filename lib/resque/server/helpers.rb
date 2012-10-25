@@ -13,11 +13,15 @@ Resque::Server.helpers do
   end
 
   def failed_size
-    @failed_size ||= Resque::Failure.count(params[:queue])
+    @failed_size ||= Resque::Failure.count(params[:queue], params[:class])
   end
 
   def failed_per_page
-    20
+    @failed_per_page = if params[:class]
+      failed_size  
+    else
+      20
+    end
   end
 
   def failed_start_at

@@ -1,7 +1,7 @@
 <% if failed_multiple_queues? && !params[:queue] %>
 <h1>All Failed Queues: <%= Resque::Failure.queues.size %> total</h1>
 <% else %>
-<h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %></h1>
+<h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %> <%= "with class '#{params[:class]}'" if params[:class] %></h1>
 <% end %>
 
 <% unless failed_size.zero? %>
@@ -19,7 +19,7 @@
 <p class='sub'>Showing <%= failed_start_at %> to <%= failed_end_at %> of <b><%= failed_size %></b> jobs</p>
 
 <ul class='failed'>
-  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue]) do |id, job| %>
+  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue], params[:class]) do |id, job| %>
     <li>
       <dl>
         <% if job.nil? %>
@@ -31,7 +31,7 @@
           <a href="<%= u(:workers, job['worker']) %>"><%= job['worker'].split(':')[0...2].join(':') %></a> on <b class='queue-tag'><%= job['queue'] %></b > at <b><span class="time"><%= Time.parse(job['failed_at']).strftime(failed_date_format) %></span></b>
           <% if job['retried_at'] %>
             <div class='retried'>
-              Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(date_format) %></span></b>
+              Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(failed_date_format) %></span></b>
               <a href="<%= u "failed/remove/#{id}" %>" class="remove" rel="remove">Remove</a>
             </div>
           <% else %>
@@ -73,5 +73,5 @@
   <% end %>
 </ul>
 
-<%= partial :next_more, :start => failed_start_at, :size => failed_size %>
+<%= partial :next_more, :start => failed_start_at, :size => failed_size unless params[:class] %>
 <% end %>

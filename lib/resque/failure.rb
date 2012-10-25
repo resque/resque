@@ -63,8 +63,8 @@ module Resque
     end
 
     # Returns the int count of how many failures we have seen.
-    def self.count(queue = nil)
-      backend.count(queue)
+    def self.count(queue = nil, class_name = nil)
+      backend.count(queue, class_name = nil)
     end
 
     # Returns an array of all the failures, paginated.
@@ -76,8 +76,8 @@ module Resque
     end
 
     # Iterate across all failures with the given options
-    def self.each(offset = 0, limit = self.count, queue = nil, &block)
-      backend.each(offset, limit, queue, &block)
+    def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, &block)
+      backend.each(offset, limit, queue, class_name, &block)
     end
 
     # The string url of the backend's web interface, if any.
