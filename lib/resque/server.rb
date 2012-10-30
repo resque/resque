@@ -10,6 +10,8 @@ end
 
 module Resque
   class Server < Sinatra::Base
+    require 'resque/server/helpers'
+
     dir = File.dirname(File.expand_path(__FILE__))
 
     set :views,  "#{dir}/server/views"
@@ -181,8 +183,21 @@ module Resque
       end
     end
 
+    get "/failed/:queue" do
+      if Resque::Failure.url
+        redirect Resque::Failure.url
+      else
+        show :failed
+      end
+    end
+
     post "/failed/clear" do
       Resque::Failure.clear
+      redirect u('failed')
+    end
+
+    post "/failed/:queue/clear" do
+      Resque::Failure.clear params[:queue]
       redirect u('failed')
     end
 
@@ -191,6 +206,11 @@ module Resque
         Resque::Failure.requeue(num)
       end
       redirect u('failed')
+    end
+
+    post "/failed/:queue/requeue/all" do
+      Resque::Failure.requeue_queue Resque::Failure.job_queue_name(params[:queue])
+      redirect url_path("/failed/#{params[:queue]}")
     end
 
     get "/failed/requeue/:index/?" do

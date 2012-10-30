@@ -23,7 +23,7 @@ body { padding:0; margin:0; }
 #main h2 { margin:10px 0; font-size:130%;}
 #main table { width:100%; margin:10px 0;}
 #main table tr td, #main table tr th { border:1px solid #ccc; padding:6px;}
-#main table tr th { background:#efefef; color:#888; font-size:80%; font-weight:bold;}
+#main table tr th { background:#efefef; color:#888; font-size:15px; font-weight:bold;}
 #main table tr td.no-data { text-align:center; padding:40px 0; color:#999; font-style:italic; font-size:130%;}
 #main a { color:#111;}
 #main p { margin:5px 0;}
@@ -33,9 +33,9 @@ body { padding:0; margin:0; }
 
 #main table.queues { width:40%;}
 #main table.queues td.queue { font-weight:bold; width:50%;}
-#main table.queues tr.failed td { border-top:2px solid; font-size:90%; }
-#main table.queues tr.failure td { background:#ffecec; border-top:2px solid #d37474; font-size:90%; color:#d37474;}
+#main table.queues tr.failure td { background:#ffecec; font-size:90%; color:#d37474;}
 #main table.queues tr.failure td a{ color:#d37474;}
+#main table.queues tr.first_failure td { border-top:2px solid #d37474; }
 
 #main table.jobs td.class { font-family:Monaco, "Courier New", monospace; font-size:90%; width:50%;}
 #main table.jobs td.args{ width:50%;}
@@ -45,6 +45,7 @@ body { padding:0; margin:0; }
 #main table.workers td.where { width:25%;}
 #main table.workers td.queues { width:35%;}
 #main .queue-tag { background:#b1d2e9; padding:2px; margin:0 3px; font-size:80%; text-decoration:none; text-transform:uppercase; font-weight:bold; color:#3274a2; -webkit-border-radius:4px; -moz-border-radius:4px;}
+#main .queue-tag a { color: #3274A2; text-decoration: none; }
 #main table.workers td.queues.queue { width:10%;}
 #main table.workers td.process { width:35%;}
 #main table.workers td.process span.waiting { color:#999; font-size:90%;}
@@ -84,3 +85,7 @@ body { padding:0; margin:0; }
 #main form {float:right; margin-top:-10px;margin-left:10px;}
 
 #main .time a.toggle_format {text-decoration:none;}
+
+#failed tr.total td {background-color: #FFECEC; color: #D37474; font-size: 15px; font-weight: bold;}
+#failed .center {text-align: center;}
+#failed .failed_class { padding-left: 20px; font-size:12px; }
