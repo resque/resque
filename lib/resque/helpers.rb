@@ -48,14 +48,15 @@ module Resque
           constant.const_get(name)
         else
           candidate = constant.const_get(name)
-          next candidate if constant.const_defined?(name, false)
+          args = Module.method(:const_defined?).arity != 1 ? [false] : []
+          next candidate if constant.const_defined?(name, *args)
           next candidate unless Object.const_defined?(name)
 
           # Go down the ancestors to check it it's owned
           # directly before we reach Object or the end of ancestors.
           constant = constant.ancestors.inject do |const, ancestor|
             break const    if ancestor == Object
-            break ancestor if ancestor.const_defined?(name, false)
+            break ancestor if ancestor.const_defined?(name, *args)
             const
           end
 
