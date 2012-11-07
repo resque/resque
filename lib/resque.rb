@@ -153,6 +153,36 @@ module Resque
     register_hook(:after_pause, block)
   end
 
+  # The `before_perform` hook will be run in the child process before
+  # the job code is performed. This hook will run before any
+  # Job.before_perform hook.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def before_perform(&block)
+    block ? register_hook(:before_perform, block) : hooks(:before_perform)
+  end
+
+  # Register an before_perform proc.
+  def before_perform=(block)
+    register_hook(:before_perform, block)
+  end
+
+  # The `after_perform` hook will be run in the child process after
+  # the job code has performed. This hook will run after any
+  # Job.after_perform hook.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def after_perform(&block)
+    block ? register_hook(:after_perform, block) : hooks(:after_perform)
+  end
+
+  # Register an after_perform proc.
+  def after_perform=(block)
+    register_hook(:after_perform, block)
+  end
+
   def to_s
     "Resque Client connected to #{redis_id}"
   end
