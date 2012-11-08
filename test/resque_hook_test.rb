@@ -7,6 +7,8 @@ describe "Resque Hooks" do
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
+    Resque.before_perform = nil
+    Resque.after_perform = nil
 
     @worker = Resque::Worker.new(:jobs)
 
@@ -23,6 +25,8 @@ describe "Resque Hooks" do
     assert_equal [], Resque.before_first_fork
     assert_equal [], Resque.before_fork
     assert_equal [], Resque.after_fork
+    assert_equal [], Resque.before_perform
+    assert_equal [], Resque.after_perform
   end
 
   it 'calls before_first_fork once' do
@@ -47,6 +51,17 @@ describe "Resque Hooks" do
     assert_equal(@worker.will_fork? ? 2 : 0, counter)
   end
 
+  it 'calls before_perform before each job' do
+    counter = 0
+
+    Resque.before_perform { counter += 1 }
+    2.times { Resque::Job.create(:jobs, CallNotifyJob) }
+
+    assert_equal(0, counter)
+    @worker.work(0)
+    assert_equal(2, counter)
+  end
+
   it 'calls after_fork after each job if forking' do
     counter = 0
 
@@ -56,6 +71,17 @@ describe "Resque Hooks" do
     assert_equal(0, counter)
     @worker.work(0)
     assert_equal(@worker.will_fork? ? 2 : 0, counter)
+  end
+
+  it 'calls after_perform after each job' do
+    counter = 0
+
+    Resque.after_perform { counter += 1 }
+    2.times { Resque::Job.create(:jobs, CallNotifyJob) }
+
+    assert_equal(0, counter)
+    @worker.work(0)
+    assert_equal(2, counter)
   end
 
   it 'calls before_first_fork before forking' do
@@ -163,4 +189,31 @@ describe "Resque Hooks" do
 
     assert(first && second)
   end
+
+  it 'registers multiple before_perform' do
+    first = false
+    second = false
+
+    Resque.before_perform { first = true }
+    Resque.before_perform { second = true }
+    Resque::Job.create(:jobs, CallNotifyJob)
+
+    assert(!first && !second)
+    @worker.work(0)
+    assert(first && second)
+  end
+
+  it 'registers multiple after_perform' do
+    first = false
+    second = false
+
+    Resque.after_perform { first = true }
+    Resque.after_perform { second = true }
+    Resque::Job.create(:jobs, CallNotifyJob)
+
+    assert(!first && !second)
+    @worker.work(0)
+    assert(first && second)
+  end
+
 end

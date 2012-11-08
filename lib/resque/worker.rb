@@ -181,7 +181,9 @@ module Resque
     def perform(job)
       begin
         run_hook :after_fork, job if will_fork?
+        run_hook :before_perform, job
         job.perform
+        run_hook :after_perform, job
       rescue Object => e
         Resque.logger.info "#{job.inspect} failed: #{e.inspect}"
         begin
