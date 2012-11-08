@@ -21,13 +21,41 @@ describe "Resque" do
     assert_equal 'namespace', Resque.redis.namespace
   end
 
-  it "redis= works correctly with a Redis::Namespace param" do
-    new_redis = Redis.new(:host => "localhost", :port => 9736)
-    new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
-    Resque.redis = new_namespace
-    assert_equal new_namespace, Resque.redis
+  it "init_redis works correctly with a redis instance" do
+    target_redis = Redis.new(:host => "localhost", :port => 9736)
+    initialized_redis = Resque.send(:init_redis, target_redis)
+    assert_equal target_redis, initialized_redis.redis
+    assert initialized_redis.is_a?(Redis::Namespace)
+  end
 
-    Resque.redis = 'localhost:9736/namespace'
+  it "init_redis works correctly with a Redis::Namespace param" do
+    new_redis = Redis.new(:host => "localhost", :port => 9736)
+    target_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
+    initialized_redis = Resque.send(:init_redis, target_namespace)
+    assert_equal target_namespace, initialized_redis
+    assert initialized_redis.is_a?(Redis::Namespace)
+  end
+
+  it "init_redis works correctly with a string hostname" do
+    target_server_hostname = 'localhost'
+    initialized_redis = Resque.send(:init_redis, target_server_hostname)
+    assert_equal target_server_hostname, initialized_redis.client.host
+    assert initialized_redis.is_a?(Redis::Namespace)
+  end
+
+  it "init_redis works correctly with a string url" do
+    target_server_url = 'redis://localhost:9736'
+    initialized_redis = Resque.send(:init_redis, target_server_url)
+    assert_equal 'localhost', initialized_redis.client.host
+    assert_equal 9736, initialized_redis.client.port
+    assert initialized_redis.is_a?(Redis::Namespace)
+  end
+
+  it "wrap_redis_with_retry wraps a redis instance" do
+    target_redis = Redis.new(:host => "localhost", :port => 9736)
+    wrapped_redis = Resque.send(:wrap_redis_with_retry, target_redis)
+    assert wrapped_redis.is_a?(Redis::Retry)
+    assert_equal target_redis, wrapped_redis.instance_variable_get(:@redis)
   end
 
   it "can put jobs on a queue" do

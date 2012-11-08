@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.rdoc_options      = ["--charset=UTF-8"]
 
   s.add_dependency "redis-namespace", "~> 1.0"
+  s.add_dependency "redis-retry",     "~> 0.1.0"
   s.add_dependency "vegas",           "~> 0.1.2"
   s.add_dependency "sinatra",         ">= 0.9.2"
   s.add_dependency "json"
