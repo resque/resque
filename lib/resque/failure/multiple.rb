@@ -23,8 +23,8 @@ module Resque
       end
 
       # The number of failures.
-      def self.count
-        classes.first.count
+      def self.count(*args)
+        classes.first.count(*args)
       end
 
       # Returns a paginated array of failure objects.
