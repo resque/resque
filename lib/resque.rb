@@ -213,7 +213,15 @@ module Resque
   # To get the 3rd page of a 30 item, paginatied list one would use:
   #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
-    queue(queue).slice start, count
+    result = queue(queue).slice(start, count)
+
+    if result.nil?
+      []
+    elsif result.respond_to?(:to_ary)
+      result.to_ary || [result]
+    else
+      [result]
+    end
   end
 
   # Does the dirty work of fetching a range of items from a Redis list

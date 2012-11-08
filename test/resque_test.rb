@@ -181,18 +181,18 @@ describe "Resque" do
   end
 
   it "can peek at a queue" do
-    assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
+    assert_equal([{ 'name' => 'chris' }], Resque.peek(:people))
     assert_equal 3, Resque.size(:people)
   end
 
   it "can peek multiple items on a queue" do
-    assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
+    assert_equal([{ 'name' => 'bob' }], Resque.peek(:people, 1, 1))
 
     assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
     assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
     assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
-    assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
-    assert_equal nil, Resque.peek(:people, 3)
+    assert_equal([{ 'name' => 'mark' }], Resque.peek(:people, 2, 1))
+    assert_equal [], Resque.peek(:people, 3)
     assert_equal [], Resque.peek(:people, 3, 2)
   end
 
