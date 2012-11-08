@@ -16,7 +16,9 @@ describe "Hoptoad and Airbrake failure class" do
 
     mock = Minitest::Mock.new
     mock.expect :notify_or_ignore, nil, [ exception,
-      { :parameters => { :payload_class => 'Object', :payload_args => '66' }} ]
+      { :parameters => { :payload_class => 'Object', :payload_args => '66' },
+        :component => 'resque',
+        :action => 'Object' } ]
     ThoughtbotFailure.klass = mock
 
     backend = ThoughtbotFailure.new(exception, worker, queue, payload)

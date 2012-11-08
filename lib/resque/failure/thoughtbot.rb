@@ -25,8 +25,16 @@ module Resque
           :parameters => {
             :payload_class => payload['class'].to_s,
             :payload_args => payload['args'].inspect
-          }
+          },
+          :component => 'resque',
+          :action => action
         )
+      end
+
+      def action
+        action = payload['class'].to_s
+        action = action.underscore if action.respond_to?(:underscore)
+        action
       end
     end
   end
