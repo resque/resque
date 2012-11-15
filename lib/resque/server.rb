@@ -192,7 +192,7 @@ module Resque
 
     post "/failed/requeue/all" do
       Resque::Failure.count.times do |num|
-        Resque::Failure.requeue_and_remove(num)
+        Resque::Failure.requeue_and_remove(0)
       end
       redirect u('failed')
     end
