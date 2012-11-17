@@ -525,7 +525,7 @@ module Resque
     end
     
     def will_fork?
-      !(@cant_fork || $TESTING)
+      !@cant_fork && !$TESTING && (ENV["FORK_PER_JOB"] != 'false')
     end
 
     # Returns a symbol representing the current worker state,
