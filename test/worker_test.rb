@@ -477,6 +477,24 @@ context "Resque::Worker" do
     end
   end
 
+  test "won't fork if ENV['FORK_PER_JOB'] is false" do
+    begin
+      $TESTING = false
+      workerA = Resque::Worker.new(:jobs)
+
+      if workerA.will_fork?
+        begin
+          ENV["FORK_PER_JOB"] = 'false'
+          assert !workerA.will_fork?
+        ensure
+          ENV["FORK_PER_JOB"] = 'true'
+        end
+      end
+    ensure
+      $TESTING = true
+    end
+  end
+
   test "Will call an after_fork hook if we're forking" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
