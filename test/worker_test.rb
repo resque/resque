@@ -485,7 +485,7 @@ context "Resque::Worker" do
       if workerA.will_fork?
         begin
           ENV["FORK_PER_JOB"] = 'false'
-          workerA.will_fork?.must_equal false
+          assert !workerA.will_fork?
         ensure
           ENV["FORK_PER_JOB"] = 'true'
         end
