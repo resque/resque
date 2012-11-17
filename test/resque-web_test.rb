@@ -57,3 +57,15 @@ describe "also works with slash at the end" do
 
   should_respond_with_success
 end
+
+describe "on POST to /failed/requeue/all" do
+  before {
+    add_failed_jobs
+    post "/failed/requeue/all"
+  }
+
+  it "should redirect to /failed and contain '0 jobs'" do
+    follow_redirect!
+    assert last_response.body.include?('<b>0</b> jobs')
+  end
+end
