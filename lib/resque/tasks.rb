@@ -41,4 +41,11 @@ namespace :resque do
 
     threads.each { |thread| thread.join }
   end
+
+  desc "Unregister workers missing a heartbeat after MINUTES_AGO (defaults to 5)"
+  task :unregister_dead_workers do
+    last_alive_at = Time.now.utc - ((ENV["MINUTES_AGO"].nil? ? 5 : ENV["MINUTES_AGO"].to_i) * 60)
+    Resque::Worker.unregister_dead_workers(last_alive_at)
+  end
+
 end

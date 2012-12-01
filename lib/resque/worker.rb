@@ -55,10 +55,7 @@ module Resque
     # Returns a single worker object. Accepts a string id.
     def self.find(worker_id)
       if exists? worker_id
-        queues = worker_id.split(':')[-1].split(',')
-        worker = new(*queues)
-        worker.to_s = worker_id
-        worker
+        from_worker_id worker_id
       else
         nil
       end
@@ -73,6 +70,21 @@ module Resque
     # worker exists
     def self.exists?(worker_id)
       redis.sismember(:workers, worker_id)
+    end
+
+    def self.from_worker_id(worker_id)
+      queues = worker_id.split(':')[-1].split(',')
+      worker = new(*queues)
+      worker.to_s = worker_id
+      worker
+    end
+
+    def self.unregister_dead_workers(last_alive_at=Time.now.utc - (5 * 60))
+      dead_workers = redis.zrangebyscore('workers:heartbeats', 0, last_alive_at.to_i)
+
+      dead_workers.each do |dead_worker|
+        from_worker_id(dead_worker).unregister_worker
+      end
     end
 
     # Workers should be initialized with an array of string queue
@@ -127,7 +139,10 @@ module Resque
       loop do
         break if shutdown?
 
-        pause if should_pause?
+        pause(interval) if should_pause?
+
+        register_worker
+        heartbeat
 
         if job = reserve(interval)
           Resque.logger.info "got: #{job.inspect}"
@@ -197,6 +212,10 @@ module Resque
       ensure
         yield job if block_given?
       end
+    end
+
+    def heartbeat
+      redis.zadd("workers:heartbeats", Time.now.utc.to_i, self)
     end
 
     # Attempts to grab a job off one of the provided queues. Returns
@@ -372,7 +391,7 @@ module Resque
     end
     alias :paused? :should_pause?
 
-    def pause
+    def pause(interval)
       rd, wr = IO.pipe
       trap('CONT') {
         Resque.logger.info "CONT received; resuming job processing"
@@ -381,8 +400,26 @@ module Resque
         wr.close
       }
       run_hook :before_pause, self
+
+      interval = interval.to_i
+      heartbeat_thread = Thread.start do
+        begin
+          while true
+            register_worker
+            heartbeat
+            sleep(interval)
+          end
+        rescue
+          # Do nothing
+        end
+      end
+
       rd.read 1
       rd.close
+
+      heartbeat_thread.raise("Done")
+      heartbeat_thread.join
+
       run_hook :after_pause, self
     end
 
@@ -447,6 +484,7 @@ module Resque
       end
 
       redis.srem(:workers, self)
+      redis.zrem("workers:heartbeats", self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
 
@@ -500,7 +538,8 @@ module Resque
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.rfc2822)
+      @time_started ||= Time.now.rfc2822
+      redis.setnx("worker:#{self}:started", @time_started)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.

@@ -721,5 +721,31 @@ describe "Resque::Worker" do
       Resque::Worker.constantize('Object::MissingConstant')
     end
   end
-  
+
+  it "updates a heartbeat" do
+    @worker.work(0) do
+      assert_equal 1, Resque.redis.zcard('workers:heartbeats')
+    end
+  end
+
+  it "updates a heartbeat while paused" do
+    @worker.pause_processing
+
+    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+    @worker.work(0) do
+      assert_equal 1, Resque.redis.zcard('workers:heartbeats')
+    end
+
+    t.join
+  end
+
+  it "unregisters workers without heartbeats" do
+    last_alive_at = Time.now.utc - (6 * 60)
+    Resque.redis.zadd('workers:heartbeats', last_alive_at.to_i, @worker.to_s)
+
+    Resque::Worker.unregister_dead_workers
+
+    assert_equal false, Resque::Worker.exists?(@worker.to_s)
+  end
 end
