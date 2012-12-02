@@ -13,6 +13,10 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
+  after do
+    Time.fake_time = nil
+  end
+
   it "can fail jobs" do
     Resque::Job.create(:jobs, BadJob)
     @worker.work(0)
@@ -590,7 +594,7 @@ describe "Resque::Worker" do
 
     t.join
 
-    assert before_pause_called
+    assert before_pause_called, "Before pause not called"
     assert_equal @worker, captured_worker
   end
 
@@ -613,7 +617,7 @@ describe "Resque::Worker" do
 
     t.join
 
-    assert after_pause_called
+    assert after_pause_called, "After paused not called"
     assert_equal @worker, captured_worker
   end
 
@@ -723,53 +727,51 @@ describe "Resque::Worker" do
   end
 
   it "updates a heartbeat" do
-    Time.fake_time = 11
+    fake_time = Time.now.utc - 60
+    Time.fake_time = fake_time
     @worker.work(0) do
-      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
+      assert_equal [[@worker.id, fake_time]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
     end
-
-    Time.fake_time = nil
   end
 
   it "updates a heartbeat while paused" do
     @worker.pause_processing
 
-    Time.fake_time = 11
+    fake_time = Time.now.utc - 60
+    Time.fake_time = fake_time
     t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
     @worker.work(0) do
-      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
+      assert_equal [[@worker.id, fake_time]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
     end
 
     t.join
-
-    Time.fake_time = nil
   end
 
   it "updates a heartbeat while performing a job" do
+    fake_time = Time.now.utc - 60
     class SleepyJob
       @queue = :jobs
       def self.perform
-       Time.fake_time = 11
-       sleep(0.1)
+        Time.fake_time = fake_time
+        sleep(0.1)
       end
     end
 
     Resque.enqueue(SleepyJob)
 
     @worker.work(0) do
-      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
+      assert_equal [[@worker.id, fake_time]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
     end
-
-    Time.fake_time = nil
   end
 
   it "unregisters workers without heartbeats" do
-    last_alive_at = Time.now.utc - (6 * 60)
+    last_alive_at = Time.now.utc.to_i - (6 * 60)
     Resque.redis.zadd('workers:heartbeats', last_alive_at.to_i, @worker.to_s)
 
     Resque::Worker.unregister_dead_workers
 
     assert_equal false, Resque::Worker.exists?(@worker.to_s)
   end
+
 end
