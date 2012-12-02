@@ -723,21 +723,45 @@ describe "Resque::Worker" do
   end
 
   it "updates a heartbeat" do
+    Time.fake_time = 11
     @worker.work(0) do
-      assert_equal 1, Resque.redis.zcard('workers:heartbeats')
+      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
     end
+
+    Time.fake_time = nil
   end
 
   it "updates a heartbeat while paused" do
     @worker.pause_processing
 
+    Time.fake_time = 11
     t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
 
     @worker.work(0) do
-      assert_equal 1, Resque.redis.zcard('workers:heartbeats')
+      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
     end
 
     t.join
+
+    Time.fake_time = nil
+  end
+
+  it "updates a heartbeat while performing a job" do
+    class SleepyJob
+      @queue = :jobs
+      def self.perform
+       Time.fake_time = 11
+       sleep(0.1)
+      end
+    end
+
+    Resque.enqueue(SleepyJob)
+
+    @worker.work(0) do
+      assert_equal [[@worker.id, 11]], Resque.redis.zrange('workers:heartbeats', 0, -1, :withscores => true)
+    end
+
+    Time.fake_time = nil
   end
 
   it "unregisters workers without heartbeats" do

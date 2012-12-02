@@ -141,7 +141,6 @@ module Resque
 
         pause(interval) if should_pause?
 
-        register_worker
         heartbeat
 
         if job = reserve(interval)
@@ -152,18 +151,26 @@ module Resque
           if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
+            heartbeat_while(interval) do
+              begin
+                Process.waitpid(@child)
+              rescue SystemCallError
+                nil
+              end
+              job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
             end
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             unregister_signal_handlers if will_fork?
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             reconnect
-            perform(job, &block)
-            exit!(true) if will_fork?
+            if will_fork?
+              perform(job, &block)
+              exit!(true)
+            else
+              heartbeat_while(interval) do
+                perform(job, &block)
+              end
+            end
           end
 
           done_working
@@ -215,7 +222,36 @@ module Resque
     end
 
     def heartbeat
+      register_worker
       redis.zadd("workers:heartbeats", Time.now.utc.to_i, self)
+    end
+
+    def heartbeat_while(interval)
+      start_heart_beating(interval)
+      yield
+    ensure
+      stop_heart_beating
+    end
+
+    def start_heart_beating(interval)
+      @heartbeat_thread = Thread.start do
+        begin
+          while true
+            heartbeat
+            sleep(interval)
+          end
+        rescue
+          nil
+        end
+      end
+    end
+
+    def stop_heart_beating
+      unless @heartbeat_thread.nil?
+        @heartbeat_thread.raise("Done")
+        @heartbeat_thread.join
+        @heartbeat_thread = nil
+      end
     end
 
     # Attempts to grab a job off one of the provided queues. Returns
@@ -401,24 +437,10 @@ module Resque
       }
       run_hook :before_pause, self
 
-      interval = interval.to_i
-      heartbeat_thread = Thread.start do
-        begin
-          while true
-            register_worker
-            heartbeat
-            sleep(interval)
-          end
-        rescue
-          # Do nothing
-        end
+      heartbeat_while(interval) do
+        rd.read 1
+        rd.close
       end
-
-      rd.read 1
-      rd.close
-
-      heartbeat_thread.raise("Done")
-      heartbeat_thread.join
 
       run_hook :after_pause, self
     end
