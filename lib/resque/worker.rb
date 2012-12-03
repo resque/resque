@@ -234,11 +234,13 @@ module Resque
     end
 
     def start_heart_beating(interval)
+      sleep_for = [interval, 5].max
+
       @heartbeat_thread = Thread.start do
         begin
           while true
             heartbeat
-            sleep(interval)
+            sleep(sleep_for)
           end
         rescue
           nil
