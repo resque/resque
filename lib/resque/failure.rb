@@ -18,7 +18,7 @@ module Resque
     end
 
     #
-    # Sets the current backend. Expects a class descendent of
+    # Sets the current backend. Expects a class descendant of
     # `Resque::Failure::Base`.
     #
     # Example use:
