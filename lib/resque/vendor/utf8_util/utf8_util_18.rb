@@ -81,7 +81,7 @@ module UTF8Util
 
   private
 
-  # Read another byte off the scanner oving the scan position forward one place
+  # Read another byte off the scanner moving the scan position forward one place
   #
   # Returns nothing.
   def self.check_next_sequence(scanner)

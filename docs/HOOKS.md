@@ -71,7 +71,7 @@ like this:
     end
 
 Once this hook is made available to your job (either by way of
-inheritence or `extend`), it will be run before the job's `perform`
+inheritance or `extend`), it will be run before the job's `perform`
 method is called. Hooks of each type are executed in alphabetical order,
 so `before_perform_a` will always be executed before `before_perform_b`.
 An unnamed hook (`before_perform`) will be executed first.
