@@ -1,10 +1,17 @@
 <% if  start - 20 >= 0 || start + 20 <= size %>
 <p class='pagination'>
   <% if start - 20 >= 0 %>
-    <a href="<%= current_page %>?start=<%= start - 20 %>" class='less'>&laquo; less</a>
+    &nbsp;<a href="<%= current_page %>?start=0" class='less separated-right'>&laquo;&laquo;</a>&nbsp;
+  <% end %>
+  <% if start - 20 >= 0 %>
+    &nbsp;<a href="<%= current_page %>?start=<%= start - 20 %>" class='less'>&laquo; less</a>&nbsp;
   <% end %>
   <% if start + 20 <= size %>
-    <a href="<%= current_page %>?start=<%= start + 20 %>" class='more'>more &raquo;</a>
+    <% page = (size % 20 == 0 ? (size-20) : ((size) - (size % 20)) )%>
+    &nbsp;<a href="<%= current_page %>?start=<%= page %>" class='more separated-left'>&raquo;&raquo;</a>
   <% end %>
+  <% if start + 20 <= size %>
+    &nbsp;<a href="<%= current_page %>?start=<%= start + 20 %>" class='more'>more &raquo;</a>&nbsp;
+  <% end %> 
 </p>
 <%end%>
