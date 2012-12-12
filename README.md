@@ -340,9 +340,10 @@ worker is started.
 ### Polling frequency
 
 You can pass an INTERVAL option which is a float representing the polling frequency. 
-The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+The default is 5 seconds, but for a semi-active app you may want to use a smaller
+(integer) value.
 
-    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
+    $ INTERVAL=1 QUEUE=file_serve rake environment resque:work
 
 <a name='section_Workers_Priorities_and_Queue_Lists'></a>
 ### Priorities and Queue Lists
