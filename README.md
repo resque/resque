@@ -1002,6 +1002,7 @@ Once you've made your great commits:
 Code Status
 ------------
 [![Build Status](https://travis-ci.org/defunkt/resque.png?branch=master)](https://travis-ci.org/defunkt/resque)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/defunkt/resque)
 
 
 <a name='section_Mailing_List'></a>
