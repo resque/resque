@@ -82,6 +82,7 @@ Table Of Contents
    * [Questions](#section_Questions)
    * [Development](#section_Development)
    * [Contributing](#section_Contributing)
+   * [Code Status](#section_Code_Status)
    * [Mailing List](#section_Mailing_List)
    * [Meta](#section_Meta)
    * [Author](#section_Author)
@@ -268,7 +269,7 @@ loop do
   if job = reserve
     job.process
   else
-    sleep 5 # Polling frequency = 5 
+    sleep 5 # Polling frequency = 5
   end
 end
 shutdown
@@ -339,7 +340,7 @@ worker is started.
 <a name='section_Workers_Polling_frequency'></a>
 ### Polling frequency
 
-You can pass an INTERVAL option which is a float representing the polling frequency. 
+You can pass an INTERVAL option which is a float representing the polling frequency.
 The default is 5 seconds, but for a semi-active app you may want to use a smaller
 (integer) value.
 
@@ -986,7 +987,7 @@ sort it out.
 Contributing
 ------------
 
-Read the [Contributing][cb] wiki page first. 
+Read the [Contributing][cb] wiki page first.
 
 Once you've made your great commits:
 
@@ -995,6 +996,12 @@ Once you've made your great commits:
 3. Push to your branch - `git push origin my_branch`
 4. Create a [Pull Request](https://help.github.com/pull-requests/) from your branch
 5. That's it!
+
+
+<a name='section_Code_status'></a>
+Code Status
+------------
+[![Build Status](https://travis-ci.org/defunkt/resque.png?branch=master)](https://travis-ci.org/defunkt/resque)
 
 
 <a name='section_Mailing_List'></a>
