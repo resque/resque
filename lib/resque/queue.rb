@@ -38,6 +38,7 @@ module Resque
         encoded_object = encode(object)
       rescue Resque::EncodeException => e
         Resque.logger.error "Invalid UTF-8 character in job: #{e.message}"
+        return
       end
 
       synchronize do
