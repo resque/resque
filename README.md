@@ -82,7 +82,7 @@ Table Of Contents
    * [Questions](#section_Questions)
    * [Development](#section_Development)
    * [Contributing](#section_Contributing)
-   * [Code Status](#section_Code_Status)
+   * [Code Status](#section_Code_status)
    * [Mailing List](#section_Mailing_List)
    * [Meta](#section_Meta)
    * [Author](#section_Author)
