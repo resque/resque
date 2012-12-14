@@ -28,18 +28,18 @@ module Resque
       end
 
       # Returns a paginated array of failure objects.
-      def self.all(start = 0, count = 1)
-        classes.first.all(start,count)
+      def self.all(*args)
+        classes.first.all(*args)
       end
 
       # Iterate across failed objects
-      def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, &block)
-        classes.first.each(offset, limit, queue, class_name, &block)
+      def self.each(*args, &block)
+        classes.first.each(*args, &block)
       end
 
       # A URL where someone can go to view failures.
-      def self.url
-        classes.first.url
+      def self.url(*args)
+        classes.first.url(*args)
       end
 
       # Clear all failure objects
