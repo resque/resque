@@ -34,8 +34,15 @@ module Resque
     def push object
       raise QueueDestroyed if destroyed?
 
+      begin
+        encoded_object = encode(object)
+      rescue Resque::EncodeException => e
+        Resque.logger.error "Invalid UTF-8 character in job: #{e.message}"
+        return
+      end
+
       synchronize do
-        @redis.rpush @redis_name, encode(object)
+        @redis.rpush @redis_name, encoded_object
       end
     end
 

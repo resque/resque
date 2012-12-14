@@ -536,20 +536,6 @@ describe "Resque::Worker" do
         end
       end
 
-      class DummyLogger
-        attr_reader :messages
-
-        def initialize
-          @messages = []
-        end
-
-        def info(message); @messages << message; end
-        alias_method :debug, :info
-        alias_method :warn,  :info
-        alias_method :error, :info
-        alias_method :fatal, :info
-      end
-
       Resque.logger = DummyLogger.new
       begin
         @worker.work(0)

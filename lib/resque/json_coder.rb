@@ -4,7 +4,11 @@ require 'json'
 module Resque
   class JsonCoder < Coder
     def encode(object)
-      JSON.dump object
+      begin
+        JSON.dump object
+      rescue Encoding::UndefinedConversionError => e
+        raise EncodeException, e.message, e.backtrace
+      end
     end
 
     def decode(object)
