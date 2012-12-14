@@ -43,8 +43,8 @@ module Resque
       end
 
       # Clear all failure objects
-      def self.clear
-        classes.first.clear
+      def self.clear(*args)
+        classes.first.clear(*args)
       end
 
       def self.requeue(*args)
