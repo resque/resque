@@ -31,6 +31,13 @@ context "Resque::Worker" do
       @worker.perform job
     end
   end
+  
+  test "register 'run_at' time on UTC timezone in ISO8601 format" do
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    now = Time.now.utc.iso8601
+    @worker.working_on(job)
+    assert_equal now, @worker.processing['run_at']
+  end
 
   test "fails uncompleted jobs with DirtyExit by default on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
