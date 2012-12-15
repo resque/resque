@@ -3,7 +3,7 @@ require 'resque/failure/redis'
 
 context "Resque::Failure::Redis" do
   setup do
-    @bad_string    = [39, 250, 141, 168, 138, 191, 52, 211, 159, 86, 93, 95, 39].map { |c| c.chr }.join
+    @bad_string    = [39, 52, 127, 86, 93, 95, 39].map { |c| c.chr }.join
     exception      = StandardError.exception(@bad_string)
     worker         = Resque::Worker.new(:test)
     queue          = "queue"
