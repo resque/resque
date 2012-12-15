@@ -47,7 +47,7 @@ describe "Resque::Worker" do
     end
   end
   
-  test "register 'run_at' time on UTC timezone in ISO8601 format" do
+  it "register 'run_at' time on UTC timezone in ISO8601 format" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601
     @worker.working_on(job)
