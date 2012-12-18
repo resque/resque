@@ -18,6 +18,7 @@ require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/json_coder'
+require 'resque/process_list'
 
 require 'resque/vendor/utf8_util'
 
