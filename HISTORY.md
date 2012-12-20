@@ -1,3 +1,14 @@
+## 1.24.0.pre (YYYY-MM-DD)
+
+* Optional RedisMultiQueue failure backend, can be enabled with
+  FAILURE_BACKEND=redis_multi_queue env var (@tarcieri)
+* resque:failures:sort rake task will migrate an existing "failed" queue into
+  separate failure queues per job queue, allowing an easy migration to
+  the RedisMultiQueue failure backend (@tarcieri)
+* Disable forking completely with FORK_PER_JOB=false env var (@tarcieri)
+* Report a failure when processes are killed with signals (@dylanahsmith)
+* Changed failures retry process to requeue. (@KensoDev #703)
+
 ## 1.23.0 (2012-10-01)
 
 * don't run `before_fork` hook if Resque can't fork (@kjwierenga, @tarcieri, #672, #697)
