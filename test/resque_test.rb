@@ -199,7 +199,7 @@ context "Resque" do
   test "knows what queues it is managing" do
     assert_equal %w( people ), Resque.queues
     Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), Resque.queues
+    assert_equal %w( cars people ).sort, Resque.queues.sort
   end
 
   test "queues are always a list" do
@@ -209,7 +209,7 @@ context "Resque" do
 
   test "can delete a queue" do
     Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), Resque.queues
+    assert_equal %w( cars people ).sort, Resque.queues.sort
     Resque.remove_queue(:people)
     assert_equal %w( cars ), Resque.queues
     assert_equal nil, Resque.pop(:people)
