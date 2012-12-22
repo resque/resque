@@ -251,7 +251,7 @@ If a job raises an exception, it is logged and handed off to the
 `Resque::Failure` module. Failures are logged either locally in Redis
 or using some different backend.
 
-For example, Resque ships with Hoptoad support.
+For example, Resque ships with support for Hoptoad and Honeybadger.
 
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
