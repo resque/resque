@@ -163,7 +163,7 @@ describe "Resque" do
     it "rescues jobs with invalid UTF-8 characters" do
       Resque.logger = DummyLogger.new
       begin
-        Resque.enqueue(SomeMethodJob, "Invalid UTF-8 character \xFF")
+        Resque.enqueue(SomeMethodJob, "Invalid UTF-8 character \xFF".force_encoding("ascii-8bit"))
         messages = Resque.logger.messages
       rescue Exception => e
         assert false, e.message
