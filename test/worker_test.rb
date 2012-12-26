@@ -42,38 +42,41 @@ describe "Resque::Worker" do
     end
   end
 
-  it "does not raise exception for completed jobs" do
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert_equal 0, Resque::Failure.count
-    else
-      # ensure we actually fork
-      $TESTING = false
-      Resque.redis.client.reconnect
-      worker = Resque::Worker.new(:jobs)
-      worker.work(0)
-      exit
-    end
-  end
+  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
 
-  it "executes at_exit hooks on exit" do
-    tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
-    FileUtils.rm_f tmpfile
-
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
-      assert_equal "at_exit", File.open(tmpfile).read.strip
-    else
-      # ensure we actually fork
-      $TESTING = false
-      Resque.redis.client.reconnect
-      Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
-      worker = Resque::Worker.new(:at_exit_jobs)
-      worker.work(0)
-      exit
+    it "does not raise exception for completed jobs" do
+      if worker_pid = Kernel.fork
+        Process.waitpid(worker_pid)
+        assert_equal 0, Resque::Failure.count
+      else
+        # ensure we actually fork
+        $TESTING = false
+        Resque.redis.client.reconnect
+        worker = Resque::Worker.new(:jobs)
+        worker.work(0)
+        exit
+      end
     end
 
+    it "executes at_exit hooks on exit" do
+      tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
+      FileUtils.rm_f tmpfile
+
+      if worker_pid = Kernel.fork
+        Process.waitpid(worker_pid)
+        assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
+        assert_equal "at_exit", File.open(tmpfile).read.strip
+      else
+        # ensure we actually fork
+        $TESTING = false
+        Resque.redis.client.reconnect
+        Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
+        worker = Resque::Worker.new(:at_exit_jobs)
+        worker.work(0)
+        exit
+      end
+
+    end
   end
 
   it "fails uncompleted jobs with DirtyExit by default on exit" do
