@@ -1,3 +1,4 @@
+# coding: US-ASCII
 require 'test_helper'
 
 describe "Resque" do
