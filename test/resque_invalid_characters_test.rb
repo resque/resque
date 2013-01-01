@@ -1,4 +1,5 @@
 # coding: US-ASCII
+# This test treat ascii-8bit, so this is split from test/resque_test.rb
 require 'test_helper'
 
 describe "Resque" do
