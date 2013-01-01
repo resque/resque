@@ -5,10 +5,6 @@ require 'test_helper'
 describe "Resque" do
   before do
     Resque.redis.flushall
-
-    Resque.push(:people, { 'name' => 'chris' })
-    Resque.push(:people, { 'name' => 'bob' })
-    Resque.push(:people, { 'name' => 'mark' })
     @original_redis = Resque.redis
   end
 
