@@ -3,3 +3,4 @@ doc/
 test/dump.rdb
 test/dump-cluster.rdb
 .bundle
+*.rbc

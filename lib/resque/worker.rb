@@ -134,7 +134,17 @@ module Resque
           job.worker = self
           working_on job
 
-          if @child = fork(job)
+          thread = Thread.new do
+            fork or begin
+              unregister_signal_handlers if !@cant_fork
+              procline "Processing #{job.queue} since #{Time.now.to_i}"
+              reconnect
+              perform(job, &block)
+              exit unless @cant_fork
+            end
+          end
+
+          if @child = thread.value
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -142,13 +152,6 @@ module Resque
             rescue SystemCallError
               nil
             end
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
-          else
-            unregister_signal_handlers if will_fork?
-            procline "Processing #{job.queue} since #{Time.now.to_i}"
-            reconnect
-            perform(job, &block)
-            exit!(true) if will_fork?
           end
 
           done_working
