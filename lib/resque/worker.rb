@@ -133,14 +133,12 @@ module Resque
           Resque.logger.info "got: #{job.inspect}"
           job.worker = self
           working_on job
-          register_signal_for_child
 
           if @child = fork(job) do
               unregister_signal_handlers
               procline "Processing #{job.queue} since #{Time.now.to_i}"
               reconnect
               perform(job, &block)
-              Process.kill('USR2',Process.ppid)
             end
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
@@ -149,7 +147,7 @@ module Resque
             rescue SystemCallError
               nil
             end
-            job.fail(DirtyExit.new($?.to_s)) unless @child_exited
+            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             reconnect
@@ -315,15 +313,6 @@ module Resque
       end
 
       Resque.logger.debug "Registered signals"
-    end
-
-    def register_signal_for_child
-      @child_exited = false
-      trap('USR2') { @child_exited = true }
-    end
-
-    def unregister_signal_for_child
-      trap('USR2') { pause_processing }
     end
 
     def unregister_signal_handlers
