@@ -55,10 +55,7 @@ module Resque
     # Returns a single worker object. Accepts a string id.
     def self.find(worker_id)
       if exists? worker_id
-        queues = worker_id.split(':')[-1].split(',')
-        worker = new(*queues)
-        worker.to_s = worker_id
-        worker
+        from_worker_id worker_id
       else
         nil
       end
@@ -73,6 +70,21 @@ module Resque
     # worker exists
     def self.exists?(worker_id)
       redis.sismember(:workers, worker_id)
+    end
+
+    def self.from_worker_id(worker_id)
+      queues = worker_id.split(':')[-1].split(',')
+      worker = new(*queues)
+      worker.to_s = worker_id
+      worker
+    end
+
+    def self.unregister_dead_workers(last_alive_at=Time.now.utc - (5 * 60))
+      dead_workers = redis.zrangebyscore('workers:heartbeats', 0, last_alive_at.to_i)
+
+      dead_workers.each do |dead_worker|
+        from_worker_id(dead_worker).unregister_worker
+      end
     end
 
     # Workers should be initialized with an array of string queue
@@ -127,7 +139,9 @@ module Resque
       loop do
         break if shutdown?
 
-        pause if should_pause?
+        pause(interval) if should_pause?
+
+        heartbeat
 
         if job = reserve(interval)
           Resque.logger.info "got: #{job.inspect}"
@@ -137,18 +151,26 @@ module Resque
           if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
-            begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
+            heartbeat_while(interval) do
+              begin
+                Process.waitpid(@child)
+              rescue SystemCallError
+                nil
+              end
+              job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
             end
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             unregister_signal_handlers if will_fork?
             procline "Processing #{job.queue} since #{Time.now.to_i}"
             reconnect
-            perform(job, &block)
-            exit!(true) if will_fork?
+            if will_fork?
+              perform(job, &block)
+              exit!(true)
+            else
+              heartbeat_while(interval) do
+                perform(job, &block)
+              end
+            end
           end
 
           done_working
@@ -196,6 +218,41 @@ module Resque
         Resque.logger.info "done: #{job.inspect}"
       ensure
         yield job if block_given?
+      end
+    end
+
+    def heartbeat
+      register_worker
+      redis.zadd("workers:heartbeats", Time.now.utc.to_i, self)
+    end
+
+    def heartbeat_while(interval)
+      start_heart_beating(interval)
+      yield
+    ensure
+      stop_heart_beating
+    end
+
+    def start_heart_beating(interval)
+      sleep_for = [interval, 5].max
+
+      @heartbeat_thread = Thread.start do
+        begin
+          while true
+            heartbeat
+            sleep(sleep_for)
+          end
+        rescue
+          nil
+        end
+      end
+    end
+
+    def stop_heart_beating
+      unless @heartbeat_thread.nil?
+        @heartbeat_thread.raise("Done")
+        @heartbeat_thread.join
+        @heartbeat_thread = nil
       end
     end
 
@@ -372,7 +429,7 @@ module Resque
     end
     alias :paused? :should_pause?
 
-    def pause
+    def pause(interval)
       rd, wr = IO.pipe
       trap('CONT') {
         Resque.logger.info "CONT received; resuming job processing"
@@ -381,8 +438,12 @@ module Resque
         wr.close
       }
       run_hook :before_pause, self
-      rd.read 1
-      rd.close
+
+      heartbeat_while(interval) do
+        rd.read 1
+        rd.close
+      end
+
       run_hook :after_pause, self
     end
 
@@ -447,6 +508,7 @@ module Resque
       end
 
       redis.srem(:workers, self)
+      redis.zrem("workers:heartbeats", self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
 
@@ -500,7 +562,8 @@ module Resque
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.rfc2822)
+      @time_started ||= Time.now.rfc2822
+      redis.setnx("worker:#{self}:started", @time_started)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
