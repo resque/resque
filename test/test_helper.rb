@@ -8,6 +8,7 @@ $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
 $TESTING = true
+$TEST_PID=Process.pid
 
 #
 # make sure we can run redis
@@ -26,11 +27,13 @@ end
 #
 
 MiniTest::Unit.after_tests do
-  processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
-  pids = processes.map { |process| process.split(" ")[0] }
-  puts "Killing test redis server..."
-  pids.each { |pid| Process.kill("TERM", pid.to_i) }
-  system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
+  if Process.pid == $TEST_PID
+    processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
+    pids = processes.map { |process| process.split(" ")[0] }
+    puts "Killing test redis server..."
+    pids.each { |pid| Process.kill("TERM", pid.to_i) }
+    system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
+  end
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
@@ -105,6 +108,15 @@ end
 class GoodJob
   def self.perform(name)
     "Good job, #{name}"
+  end
+end
+
+class AtExitJob
+  def self.perform(filename)
+    at_exit do
+      File.open(filename, "w") {|file| file.puts "at_exit"}
+    end
+    "at_exit job"
   end
 end
 
