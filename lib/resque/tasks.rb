@@ -24,6 +24,10 @@ namespace :resque do
       Process.daemon(true)
     end
 
+    if ENV['PIDFILE']
+      File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
+    end
+
     Resque.logger.info "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
