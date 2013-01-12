@@ -486,6 +486,10 @@ Resque workers respond to a few different signals:
 * `CONT` - Start to process new jobs again after a USR2
 
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
+For example, to quit all workers:
+
+    $ ps -e -o pid,command | grep [r]esque-[0-9] | cut -d ' ' -f 1 | xargs -L1 kill -s QUIT
+
 
 If you want to kill a stale or stuck child, use `USR1`. Processing
 will continue as normal unless the child was not found. In that case
