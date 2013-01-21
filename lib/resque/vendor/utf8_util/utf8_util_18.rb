@@ -1,7 +1,7 @@
 require 'strscan'
 
 module UTF8Util
-  HIGH_BIT_RANGE = /[\x80-\xff]/
+  HIGH_BIT_RANGE = /[\x80-\xff]/n
 
   # Check if this String is valid UTF-8
   #
