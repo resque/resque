@@ -177,6 +177,21 @@ module Resque
       redirect u('queues')
     end
 
+    post "/workers/:id/remove" do
+      worker = Resque::Worker.find(params[:id])
+      if worker
+        worker.unregister_worker
+        host, _ = worker.to_s.split(':')
+        if worker_hosts.keys.include?(host)
+          redirect u("workers/#{host}")
+        else
+          redirect u('workers')
+        end
+      else
+        redirect u('workers')
+      end
+    end
+
     get "/failed/?" do
       if Resque::Failure.url
         redirect Resque::Failure.url
