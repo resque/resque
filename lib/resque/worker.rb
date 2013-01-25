@@ -150,7 +150,7 @@ module Resque
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
-            reconnect
+            reconnect unless @cant_fork
             perform(job, &block)
           end
           done_working
