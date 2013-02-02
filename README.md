@@ -588,7 +588,7 @@ HTTP basic auth).
 You can also mount Resque on a subpath in your existing Rails 3 app by adding `require 'resque/server'` to the top of your routes file or in an initializer then adding this to `routes.rb`:
 
 ``` ruby
-mount Resque::Server.new, :at => "/resque"
+mount Resque::Server, :at => "/resque"
 ```
 
 If you use Devise, the following will integrate with your existing admin authentication (assuming you have an Admin Devise scope):
@@ -598,7 +598,7 @@ resque_constraint = lambda do |request|
   request.env['warden'].authenticate!({ :scope => :admin })
 end
 constraints resque_constraint do
-  mount Resque::Server.new, :at => "/resque"
+  mount Resque::Server, :at => "/resque"
 end
 ```
 
