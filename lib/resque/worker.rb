@@ -600,7 +600,7 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
-      lines = `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split($/)
+      lines = `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap).split($/)
       
       lines.select! { |line| line =~ /^PID:/}
       lines.collect!{ |line| line.gsub /PID:\s+/, '' }
