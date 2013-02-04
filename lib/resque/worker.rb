@@ -599,10 +599,15 @@ module Resque
       end
     end
 
-    # Find Resque worker pids on Linux and OS X.
-    #
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
+    def windows_worker_pids
+      tasklist_output = `tasklist /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap)
+      tasklist_output.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
+    end
+
+    # Find Resque worker pids on Linux and OS X.
+    #
     def linux_worker_pids
       `ps -A -o pid,command | grep "[r]esque" | grep -v "resque-web"`.split("\n").map do |line|
         line.split(' ')[0]
