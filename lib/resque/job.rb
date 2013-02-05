@@ -228,6 +228,7 @@ module Resque
       begin
         job_args = args || []
         failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
+      rescue
       ensure
         @failure_hooks_ran = true
       end
