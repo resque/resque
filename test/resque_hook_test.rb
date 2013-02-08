@@ -40,6 +40,15 @@ describe "Resque Hooks" do
     assert_equal(1, counter)
   end
 
+  it 'calls before_first_fork with worker' do
+    trapped_worker = nil
+
+    Resque.before_first_fork { |worker| trapped_worker = worker }
+
+    @worker.work(0)
+    assert_equal(@worker, trapped_worker)
+  end
+
   it 'calls before_fork before each job' do
     counter = 0
 
