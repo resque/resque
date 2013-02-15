@@ -162,6 +162,8 @@ module Resque
 
       unregister_worker
     rescue Exception => exception
+      log "Failed to start worker : #{exception.inspect}"
+
       unregister_worker(exception)
     end
 
