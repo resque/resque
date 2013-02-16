@@ -86,6 +86,23 @@ describe "Resque" do
     assert_equal 1, Resque.size(:ivar)
   end
 
+  it "can find queued jobs by way of an ivar" do
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 30, '/tmp')
+
+    expected_jobs = [
+      Resque::Job.new(:ivar, {'class' => SomeIvarJob, 'args' => [20, '/tmp']}),
+      Resque::Job.new(:ivar, {'class' => SomeIvarJob, 'args' => [30, '/tmp']})
+    ]
+
+    assert_equal expected_jobs, Resque.queued(SomeIvarJob)
+    assert_equal 2, Resque.queued(SomeIvarJob).size
+    assert_equal 1, Resque.queued(SomeIvarJob, 20, '/tmp').size
+    assert_equal 1, Resque.queued(SomeIvarJob, 30, '/tmp').size
+    assert_equal 1, Resque.queued(SomeMethodJob, 20, '/tmp').size
+  end
+
   it "jobs have a nice #inspect" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     job = Resque.reserve(:jobs)

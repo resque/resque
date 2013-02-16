@@ -376,6 +376,22 @@ module Resque
     destroyed
   end
 
+  # This method will return an array of `Resque::Job` object in a queue.
+  # It assumes the class you're passing it is a real Ruby class (not
+  # a string or reference) which either:
+  #
+  #   a) has a @queue ivar set
+  #   b) responds to `queue`
+  #
+  # If either of those conditions are met, it will use the value obtained
+  # from performing one of the above operations to determine the queue.
+  #
+  # If no queue can be inferred this method will raise a `Resque::NoQueueError`
+
+  def queued(klass, *args)
+    Job.queued(queue_from_class(klass), klass, *args)
+  end
+
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
