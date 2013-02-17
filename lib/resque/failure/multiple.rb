@@ -23,8 +23,8 @@ module Resque
       end
 
       # The number of failures.
-      def self.count
-        classes.first.count
+      def self.count(*args)
+        classes.first.count(*args)
       end
 
       # Returns a paginated array of failure objects.
@@ -48,6 +48,10 @@ module Resque
 
       def self.remove(index)
         classes.each { |klass| klass.remove(index) }
+      end
+
+      def self.each(offset, limit, queue, class_name, &block)
+        classes.first.each(offset, limit, queue, class_name, &block)
       end
     end
   end
