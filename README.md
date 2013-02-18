@@ -488,7 +488,7 @@ Resque workers respond to a few different signals:
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
 For example, to quit all workers:
 
-    $ ps -e -o pid,command | grep [r]esque-[0-9] | cut -d ' ' -f 1 | xargs -L1 kill -s QUIT
+    $ ps -e -o pid,command | grep [r]esque-[0-9] | sed 's/^\s*//g' | cut -d ' ' -f 1 | xargs -L1 kill -s QUIT
 
 
 If you want to kill a stale or stuck child, use `USR1`. Processing
