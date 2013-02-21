@@ -120,7 +120,6 @@ module Resque
     # a Ruby array.
     def self.queued(queue, klass, *args)
       klass = klass.to_s
-      queued = []
 
       redis.lrange("queue:#{queue}", 0, -1).inject([]) do |memo, string|
         decoded = decode(string)
