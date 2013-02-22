@@ -65,7 +65,6 @@ Table Of Contents
    * [Resque vs DelayedJob](#section_Resque_vs_DelayedJob)
    * [Installing Redis](#section_Installing_Redis)
       * [Homebrew](#section_Installing_Redis_Homebrew)
-      * [View Resque](#section_Installing_Redis_Via_Resque)
    * [Resque Dependencies](#section_Resque_Dependencies)
    * [Installing Resque](#section_Installing_Resque)
       * [In a Rack app, as a gem](#section_Installing_Resque_In_a_Rack_app_as_a_gem)
@@ -669,31 +668,6 @@ If you're on OS X, Homebrew is the simplest way to install Redis:
     $ redis-server /usr/local/etc/redis.conf
 
 You now have a Redis daemon running on 6379.
-
-<a name='section_Installing_Redis_Via_Resque'></a>
-#### Via Resque
-
-Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
-install and run Redis for you:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ rake redis:install dtach:install
-    $ rake redis:start
-
-Or, if you don't have admin access on your machine:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ PREFIX=<your_prefix> rake redis:install dtach:install
-    $ rake redis:start
-
-You now have Redis running on 6379. Wait a second then hit ctrl-\ to
-detach and keep it running in the background.
-
-The demo is probably the best way to figure out how to put the parts
-together. But, it's not that hard.
-
 
 <a name='section_Resque_Dependencies'></a>
 Resque Dependencies
