@@ -447,7 +447,7 @@ context "Resque::Worker" do
       reset_logger
     end
 
-    assert_equal "*** omghi mom", messages.string
+    assert_equal "*** omghi mom\n", messages.string
   end
 
   test "unsetting verbose works" do
