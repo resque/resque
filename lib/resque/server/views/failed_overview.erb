@@ -14,9 +14,12 @@
 	<%= count %>
       </td>
       <td>
-	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
-	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
-	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+        <form method="POST" action="<%= u 'failed/overview/action' %>" >
+           <input type="hidden" name="class" value="<%= klass %>" />
+           <input type='submit' name='action' value='remove' />
+           <input type='submit' name='action' value='requeue' />
+           <input type='submit' name='action' value='both' />
+        </form>
       </td>
     </tr>
   <% end %>
@@ -37,9 +40,13 @@
 	<%= count %>
       </td>
       <td>
-	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
-	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
-	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+        <form method="POST" action="<%= u 'failed/overview/action' %>" >
+           <input type="hidden" name="class" value="<%= klass %>" />
+           <input type="hidden" name="exception" value="<%= exception %>" />
+           <input type='submit' name='action' value='remove' />
+           <input type='submit' name='action' value='requeue' />
+           <input type='submit' name='action' value='both' />
+        </form>
       </td>
     </tr>
   <% end %>
@@ -60,9 +67,13 @@
 	<%= count %>
       </td>
       <td>
-	<a href="<%= u 'failed/overview/remove', params %>">remove</a>
-	<a href="<%= u 'failed/overview/requeue', params %>">requeue</a>
-	<a href="<%= u 'failed/overview/requeue_and_remove', params %>">both</a>
+        <form method="POST" action="<%= u 'failed/overview/action' %>" >
+           <input type="hidden" name="class" value="<%= klass %>" />
+           <input type="hidden" name="smart" value="<%= smart %>" />
+           <input type='submit' name='action' value='remove' />
+           <input type='submit' name='action' value='requeue' />
+           <input type='submit' name='action' value='both' />
+        </form>
       </td>
     </tr>
   <% end %>
