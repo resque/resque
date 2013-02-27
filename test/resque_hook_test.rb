@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'tempfile'
 
 describe "Resque Hooks" do
   before do
@@ -48,14 +49,27 @@ describe "Resque Hooks" do
   end
 
   it 'it calls after_fork after each job' do
-    counter = 0
+    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
+    # exit!(true) will be called in Worker#work; to share state, use a tempfile
+    file = Tempfile.new("resque_after_fork")
 
-    Resque.after_fork { counter += 1 }
-    2.times { Resque::Job.create(:jobs, CallNotifyJob) }
+    begin
+      File.open(file, "w") {|f| f.write(0)}
+      Resque.after_fork do
+        val = File.read(file).strip.to_i
+        File.open(file, "w") {|f| f.write(val + 1)}
+      end
+      2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
-    assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(2, counter)
+      val = File.read(file).strip.to_i
+      assert_equal(0, val)
+      @worker.stubs(:will_fork?).returns(true)
+      @worker.work(0)
+      val = File.read(file).strip.to_i
+      assert_equal(2, val)
+    ensure
+      file.delete
+    end
   end
 
   it 'it calls before_first_fork before forking' do
@@ -79,7 +93,7 @@ describe "Resque Hooks" do
     @worker.work(0)
   end
 
-  it 'it registeres multiple before_first_forks' do
+  it 'it registers multiple before_first_forks' do
     first = false
     second = false
 
@@ -106,15 +120,34 @@ describe "Resque Hooks" do
   end
 
   it 'it registers multiple after_forks' do
-    first = false
-    second = false
+    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
+    # exit!(true) will be called in Worker#work; to share state, use a tempfile
+    file = Tempfile.new("resque_after_fork_first")
+    file2 = Tempfile.new("resque_after_fork_second")
+    begin
+      File.open(file, "w") {|f| f.write(1)}
+      File.open(file2, "w") {|f| f.write(2)}
 
-    Resque.after_fork { first = true }
-    Resque.after_fork { second = true }
-    Resque::Job.create(:jobs, CallNotifyJob)
+      Resque.after_fork do
+        val = File.read(file).strip.to_i
+        File.open(file, "w") {|f| f.write(val + 1)}
+      end
 
-    assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+      Resque.after_fork do
+        val = File.read(file2).strip.to_i
+        File.open(file2, "w") {|f| f.write(val + 1)}
+      end
+      Resque::Job.create(:jobs, CallNotifyJob)
+
+      @worker.stubs(:will_fork?).returns(true)
+      @worker.work(0)
+      val = File.read(file).strip.to_i
+      val2 = File.read(file2).strip.to_i
+      assert_equal(val, 2)
+      assert_equal(val2, 3)
+    ensure
+      file.delete
+      file2.delete
+    end
   end
 end
