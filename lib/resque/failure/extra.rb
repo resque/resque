@@ -85,12 +85,19 @@ module Resque
         count
       end
 
+      # requeue re-adds the job to the failed jobs with a retried-at attribute
+      # This is slow for large jobs, this function skips this step
+      def fast_requeue(index)
+        item = all(index)
+        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+      end
+
       def mark_for_remove(index)
         Resque.redis.lset(:failed, index, 'marked_for_remove')
       end
 
       def requeue_and_remove(index)
-        requeue(index)
+        fast_requeue(index)
         mark_for_remove(index)
       end
 

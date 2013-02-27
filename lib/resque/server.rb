@@ -187,7 +187,7 @@ module Resque
     end
 
     post "/failed/overview/action/?" do
-      action = Hash['requeue', :requeue,
+      action = Hash['requeue', :fast_requeue,
                     'remove',  :mark_for_remove,
                     'both',    :requeue_and_remove][params[:action]]
       raise 'No action!' if action.nil?
