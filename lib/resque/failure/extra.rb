@@ -66,14 +66,14 @@ module Resque
       # opts['action'] = :requeue || :mark_for_remove || :requeue_and_remove
       def action_by(opts={}, &block)
         action = opts.delete(:action).to_sym || :requeue
-
+        arg = opts.delete(:arg)
         count = 0
         each(opts) { |job, idx|
           # TODO removeme
           fetched = Resque.decode(Resque.redis.lindex('failed', idx))
           raise "not-equal" if job != fetched
 
-          self.send(action, idx)
+          self.send(action, idx, arg)
           $stdout.puts [action, idx].inspect
           count += 1
         }
@@ -87,17 +87,18 @@ module Resque
 
       # requeue re-adds the job to the failed jobs with a retried-at attribute
       # This is slow for large jobs, this function skips this step
-      def fast_requeue(index)
+      def fast_requeue(index, queue=nil)
         item = all(index)
-        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        queue ||= item['queue']
+        Job.create(queue, item['payload']['class'], *item['payload']['args'])
       end
 
-      def mark_for_remove(index)
+      def mark_for_remove(index, _=nil)
         Resque.redis.lset(:failed, index, 'marked_for_remove')
       end
 
-      def requeue_and_remove(index)
-        fast_requeue(index)
+      def requeue_and_remove(index, queue=nil)
+        fast_requeue(index, queue)
         mark_for_remove(index)
       end
 

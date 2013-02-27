@@ -191,10 +191,14 @@ module Resque
                     'remove',  :mark_for_remove,
                     'both',    :requeue_and_remove][params[:action]]
       raise 'No action!' if action.nil?
+
+      queue = params[:queue] if params[:queue] && !params[:queue].empty?
+
       Resque::Failure.backend.action_by(:class => params[:class],
                                         :exception => params[:exception],
                                         :smart => params[:smart],
-                                        :action => action)
+                                        :action => action,
+                                        :arg => queue)
 
       redirect u('failed/overview')
     end
