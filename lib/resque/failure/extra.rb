@@ -79,10 +79,14 @@ module Resque
         }
 
         # We can now delete all marked for delete items
-        Resque.redis.lrem(:failed, 0, 'marked_for_remove')
+        delete_marked
 
         $stdout.puts [:count, count].inspect
         count
+      end
+
+      def delete_marked
+        Resque.redis.lrem(:failed, 0, 'marked_for_remove')
       end
 
       # requeue re-adds the job to the failed jobs with a retried-at attribute
