@@ -22,6 +22,19 @@ module Resque
 
     set :static, true
 
+    # If an failure action is not completed (takes more than 30s)
+    # it might leave not deleted jobs. This will cause decode errors
+    # in subsequent requests. We handle this here by deleting them.
+    #
+    set :show_exceptions, Proc.new { :after_handler if development? }
+
+    error ::Resque::Helpers::DecodeException do |e|
+      return if e.message !~ /marked_for_remove/
+
+      deleted = Resque::Failure.backend.delete_marked
+      "We had #{deleted} pending jobs marked for deletion which are now cleared, Try refreshing..."
+    end
+
     helpers do
       include Rack::Utils
       alias_method :h, :escape_html
