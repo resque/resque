@@ -1,6 +1,7 @@
 <% start = params[:start].to_i %>
 <% per_page = (params[:per_page].to_i > 0) ? params[:per_page].to_i : 20 %>
 <% failed = Resque::Failure.all(start, per_page) %>
+<% size = Resque::Failure.count %>
 <% index = 0 %>
 <% date_format = "%Y/%m/%d %T %z" %>
 
@@ -14,7 +15,7 @@
 </form>
 <%end%>
 
-<p class='sub'>Showing <%=start%> to <%= start + per_page %> of <b><%= size = Resque::Failure.count %></b> jobs</p>
+<%= partial :page_range, :start => start, :size => size, :per_page => per_page %>
 
 <ul class='failed'>
   <%for job in failed%>

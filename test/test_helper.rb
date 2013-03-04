@@ -2,13 +2,13 @@ require 'rubygems'
 require 'timeout'
 require 'bundler/setup'
 require 'redis/namespace'
-require 'minitest/unit'
-require 'minitest/spec'
+require 'minitest/autorun'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
 $TESTING = true
+$TEST_PID=Process.pid
 
 #
 # make sure we can run redis
@@ -26,17 +26,14 @@ end
 # kill it when they end
 #
 
-at_exit do
-  next if $!
-
-  exit_code = MiniTest::Unit.new.run(ARGV)
-
-  processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
-  pids = processes.map { |process| process.split(" ")[0] }
-  puts "Killing test redis server..."
-  pids.each { |pid| Process.kill("TERM", pid.to_i) }
-  system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
-  exit exit_code
+MiniTest::Unit.after_tests do
+  if Process.pid == $TEST_PID
+    processes = `ps -A -o pid,command | grep [r]edis-test`.split($/)
+    pids = processes.map { |process| process.split(" ")[0] }
+    puts "Killing test redis server..."
+    pids.each { |pid| Process.kill("TERM", pid.to_i) }
+    system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
+  end
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
@@ -52,6 +49,19 @@ else
   Resque.redis = 'localhost:9736'
 end
 
+class DummyLogger
+  attr_reader :messages
+
+  def initialize
+    @messages = []
+  end
+
+  def info(message); @messages << message; end
+  alias_method :debug, :info
+  alias_method :warn,  :info
+  alias_method :error, :info
+  alias_method :fatal, :info
+end
 
 ##
 # Helper to perform job classes
@@ -101,6 +111,15 @@ class GoodJob
   end
 end
 
+class AtExitJob
+  def self.perform(filename)
+    at_exit do
+      File.open(filename, "w") {|file| file.puts "at_exit"}
+    end
+    "at_exit job"
+  end
+end
+
 class BadJobWithSyntaxError
   def self.perform
     raise SyntaxError, "Extra Bad job!"
@@ -143,3 +162,11 @@ class Time
 
   self.fake_time = nil
 end
+
+# Log to log/test.log
+def reset_logger
+  $test_logger ||= Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
+  Resque.logger = $test_logger
+end
+
+reset_logger

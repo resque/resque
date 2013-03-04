@@ -108,10 +108,27 @@ describe "Resque" do
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
     assert_equal 5, Resque.size(:ivar)
 
-    assert Resque.dequeue(SomeIvarJob, 30, '/tmp')
+    assert_equal 1, Resque.dequeue(SomeIvarJob, 30, '/tmp')
     assert_equal 4, Resque.size(:ivar)
-    assert Resque.dequeue(SomeIvarJob)
+    assert_equal 3, Resque.dequeue(SomeIvarJob)
     assert_equal 1, Resque.size(:ivar)
+  end
+
+  it "can find queued jobs by way of an ivar" do
+    assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(SomeIvarJob, 30, '/tmp')
+
+    expected_jobs = [
+      Resque::Job.new(:ivar, {'class' => SomeIvarJob, 'args' => [20, '/tmp']}),
+      Resque::Job.new(:ivar, {'class' => SomeIvarJob, 'args' => [30, '/tmp']})
+    ]
+
+    assert_equal expected_jobs, Resque.queued(SomeIvarJob)
+    assert_equal 2, Resque.queued(SomeIvarJob).size
+    assert_equal 1, Resque.queued(SomeIvarJob, 20, '/tmp').size
+    assert_equal 1, Resque.queued(SomeIvarJob, 30, '/tmp').size
+    assert_equal 1, Resque.queued(SomeMethodJob, 20, '/tmp').size
   end
 
   it "jobs have a nice #inspect" do
@@ -185,6 +202,23 @@ describe "Resque" do
       Resque.validate(SomeJob)
     end
   end
+  
+  if defined?(RUBY_ENGINE) && RUBY_ENGINE != "rbx"
+    # See https://github.com/defunkt/resque/issues/769
+    it "rescues jobs with invalid UTF-8 characters" do
+      Resque.logger = DummyLogger.new
+      begin
+        Resque.enqueue(SomeMethodJob, "Invalid UTF-8 character \xFF")
+        messages = Resque.logger.messages
+      rescue Exception => e
+        assert false, e.message
+      ensure
+        reset_logger
+      end
+      message = "Invalid UTF-8 character in job: \"\\xFF\" from ASCII-8BIT to UTF-8"
+      assert_includes messages, message
+    end
+  end
 
   it "can put items on a queue" do
     assert Resque.push(:people, { 'name' => 'jon' })
@@ -209,25 +243,25 @@ describe "Resque" do
   end
 
   it "can peek at a queue" do
-    assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
+    assert_equal([{ 'name' => 'chris' }], Resque.peek(:people))
     assert_equal 3, Resque.size(:people)
   end
 
   it "can peek multiple items on a queue" do
-    assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
+    assert_equal([{ 'name' => 'bob' }], Resque.peek(:people, 1, 1))
 
     assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
     assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
     assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
-    assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
-    assert_equal nil, Resque.peek(:people, 3)
+    assert_equal([{ 'name' => 'mark' }], Resque.peek(:people, 2, 1))
+    assert_equal [], Resque.peek(:people, 3)
     assert_equal [], Resque.peek(:people, 3, 2)
   end
 
   it "knows what queues it is managing" do
     assert_equal %w( people ), Resque.queues
     Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), Resque.queues
+    assert_equal %w( cars people ), Resque.queues.sort
   end
 
   it "queues are always a list" do
@@ -237,7 +271,7 @@ describe "Resque" do
 
   it "can delete a queue" do
     Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ), Resque.queues
+    assert_equal %w( cars people ), Resque.queues.sort
     Resque.remove_queue(:people)
     assert_equal %w( cars ), Resque.queues
     assert_equal nil, Resque.pop(:people)

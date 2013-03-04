@@ -65,7 +65,6 @@ Table Of Contents
    * [Resque vs DelayedJob](#section_Resque_vs_DelayedJob)
    * [Installing Redis](#section_Installing_Redis)
       * [Homebrew](#section_Installing_Redis_Homebrew)
-      * [View Resque](#section_Installing_Redis_Via_Resque)
    * [Resque Dependencies](#section_Resque_Dependencies)
    * [Installing Resque](#section_Installing_Resque)
       * [In a Rack app, as a gem](#section_Installing_Resque_In_a_Rack_app_as_a_gem)
@@ -82,6 +81,7 @@ Table Of Contents
    * [Questions](#section_Questions)
    * [Development](#section_Development)
    * [Contributing](#section_Contributing)
+   * [Code Status](#section_Code_status)
    * [Mailing List](#section_Mailing_List)
    * [Meta](#section_Meta)
    * [Author](#section_Author)
@@ -250,7 +250,7 @@ If a job raises an exception, it is logged and handed off to the
 `Resque::Failure` module. Failures are logged either locally in Redis
 or using some different backend.
 
-For example, Resque ships with Hoptoad support.
+For example, Resque ships with Airbrake support.
 
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
@@ -268,7 +268,7 @@ loop do
   if job = reserve
     job.process
   else
-    sleep 5 # Polling frequency = 5 
+    sleep 5 # Polling frequency = 5
   end
 end
 shutdown
@@ -339,10 +339,11 @@ worker is started.
 <a name='section_Workers_Polling_frequency'></a>
 ### Polling frequency
 
-You can pass an INTERVAL option which is a float representing the polling frequency. 
-The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+You can pass an INTERVAL option which is a float representing the polling frequency.
+The default is 5 seconds, but for a semi-active app you may want to use a smaller
+(integer) value.
 
-    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
+    $ INTERVAL=1 QUEUE=file_serve rake environment resque:work
 
 <a name='section_Workers_Priorities_and_Queue_Lists'></a>
 ### Priorities and Queue Lists
@@ -484,6 +485,10 @@ Resque workers respond to a few different signals:
 * `CONT` - Start to process new jobs again after a USR2
 
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
+For example, to quit all workers:
+
+    $ ps -e -o pid,command | grep [r]esque-[0-9] | sed 's/^\s*//g' | cut -d ' ' -f 1 | xargs -L1 kill -s QUIT
+
 
 If you want to kill a stale or stuck child, use `USR1`. Processing
 will continue as normal unless the child was not found. In that case
@@ -582,7 +587,7 @@ HTTP basic auth).
 You can also mount Resque on a subpath in your existing Rails 3 app by adding `require 'resque/server'` to the top of your routes file or in an initializer then adding this to `routes.rb`:
 
 ``` ruby
-mount Resque::Server.new, :at => "/resque"
+mount Resque::Server, :at => "/resque"
 ```
 
 If you use Devise, the following will integrate with your existing admin authentication (assuming you have an Admin Devise scope):
@@ -592,7 +597,7 @@ resque_constraint = lambda do |request|
   request.env['warden'].authenticate!({ :scope => :admin })
 end
 constraints resque_constraint do
-  mount Resque::Server.new, :at => "/resque"
+  mount Resque::Server, :at => "/resque"
 end
 ```
 
@@ -663,31 +668,6 @@ If you're on OS X, Homebrew is the simplest way to install Redis:
     $ redis-server /usr/local/etc/redis.conf
 
 You now have a Redis daemon running on 6379.
-
-<a name='section_Installing_Redis_Via_Resque'></a>
-#### Via Resque
-
-Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
-install and run Redis for you:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ rake redis:install dtach:install
-    $ rake redis:start
-
-Or, if you don't have admin access on your machine:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ PREFIX=<your_prefix> rake redis:install dtach:install
-    $ rake redis:start
-
-You now have Redis running on 6379. Wait a second then hit ctrl-\ to
-detach and keep it running in the background.
-
-The demo is probably the best way to figure out how to put the parts
-together. But, it's not that hard.
-
 
 <a name='section_Resque_Dependencies'></a>
 Resque Dependencies
@@ -985,7 +965,7 @@ sort it out.
 Contributing
 ------------
 
-Read the [Contributing][cb] wiki page first. 
+Read the [Contributing][cb] wiki page first.
 
 Once you've made your great commits:
 
@@ -994,6 +974,13 @@ Once you've made your great commits:
 3. Push to your branch - `git push origin my_branch`
 4. Create a [Pull Request](https://help.github.com/pull-requests/) from your branch
 5. That's it!
+
+
+<a name='section_Code_status'></a>
+Code Status
+------------
+[![Build Status](https://travis-ci.org/defunkt/resque.png?branch=master)](https://travis-ci.org/defunkt/resque)
+[![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/defunkt/resque)
 
 
 <a name='section_Mailing_List'></a>

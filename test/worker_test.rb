@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'tmpdir'
 
 describe "Resque::Worker" do
   before do
@@ -44,6 +45,50 @@ describe "Resque::Worker" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
       @worker.perform job
+    end
+  end
+  
+  it "register 'run_at' time on UTC timezone in ISO8601 format" do
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    now = Time.now.utc.iso8601
+    @worker.working_on(job)
+    assert_equal now, @worker.processing['run_at']
+  end
+
+  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
+
+    it "does not raise exception for completed jobs" do
+      if worker_pid = Kernel.fork
+        Process.waitpid(worker_pid)
+        assert_equal 0, Resque::Failure.count
+      else
+        # ensure we actually fork
+        $TESTING = false
+        Resque.redis.client.reconnect
+        worker = Resque::Worker.new(:jobs)
+        worker.work(0)
+        exit
+      end
+    end
+
+    it "executes at_exit hooks on exit" do
+      tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
+      FileUtils.rm_f tmpfile
+
+      if worker_pid = Kernel.fork
+        Process.waitpid(worker_pid)
+        assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
+        assert_equal "at_exit", File.open(tmpfile).read.strip
+      else
+        # ensure we actually fork
+        $TESTING = false
+        Resque.redis.client.reconnect
+        Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
+        worker = Resque::Worker.new(:at_exit_jobs)
+        worker.work(0)
+        exit
+      end
+
     end
   end
 
@@ -384,7 +429,7 @@ describe "Resque::Worker" do
       assert_equal nil, found
     end
   end
-
+  
   it "cleans up dead worker info on start (crash recovery)" do
     # first we fake out two dead workers
     workerA = Resque::Worker.new(:jobs)
@@ -463,25 +508,6 @@ describe "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
-  it "very verbose works in the afternoon" do
-    begin
-      require 'time'
-      last_puts = ""
-      Time.fake_time = Time.parse("15:44:33 2011-03-02")
-
-      @worker.extend(Module.new {
-        define_method(:puts) { |thing| last_puts = thing }
-      })
-
-      @worker.very_verbose = true
-      @worker.log("some log text")
-
-      assert_match /\[15:44:33 2011-03-02\] \d+: some log text/, last_puts
-    ensure
-      Time.fake_time = nil
-    end
-  end
-
   it "Will call an after_fork hook after forking" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
@@ -555,11 +581,16 @@ describe "Resque::Worker" do
         end
       end
 
-      @worker.very_verbose = true
-      stdout, stderr = capture_io { @worker.work(0) }
+      Resque.logger = DummyLogger.new
+      begin
+        @worker.work(0)
+        messages = Resque.logger.messages
+      ensure
+        reset_logger
+      end
 
-      assert_equal 3, stdout.scan(/retrying/).count
-      assert_equal 1, stdout.scan(/quitting/).count
+      assert_equal 3, messages.grep(/retrying/).count
+      assert_equal 1, messages.grep(/quitting/).count
     ensure
       class Redis::Client
         alias_method :reconnect, :original_reconnect
@@ -689,5 +720,37 @@ describe "Resque::Worker" do
         end
       end
     end
+
+    class SuicidalJob
+      @queue = :jobs
+
+      def self.perform
+        Process.kill('KILL', Process.pid)
+      end
+
+      def self.on_failure_store_exception(exc, *args)
+        @@failure_exception = exc
+      end
+    end
+
+    it "will notify failure hooks when a job is killed by a signal" do
+      begin
+        $TESTING = false
+        Resque.enqueue(SuicidalJob)
+        @worker.work(0)
+        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
+      ensure
+        $TESTING = true
+      end
+    end
   end
+  
+  it "constantizes" do
+    assert_same Kernel, Resque::Worker.constantize(:Kernel)
+    assert_same MiniTest::Unit::TestCase, Resque::Worker.constantize('MiniTest::Unit::TestCase')
+    assert_raises NameError do
+      Resque::Worker.constantize('Object::MissingConstant')
+    end
+  end
+  
 end

@@ -94,6 +94,43 @@ module Resque
       destroyed
     end
 
+    # Find jobs from a queue. Expects a string queue name, a
+    # string class name, and, optionally, args.
+    #
+    # Returns the list of jobs queued.
+    #
+    # If no args are provided, it will return all jobs of the class
+    # provided.
+    #
+    # That is, for these two jobs:
+    #
+    # { 'class' => 'UpdateGraph', 'args' => ['defunkt'] }
+    # { 'class' => 'UpdateGraph', 'args' => ['mojombo'] }
+    #
+    # The following call will find both:
+    #
+    #   Resque::Job.queued(queue, 'UpdateGraph')
+    #
+    # Whereas specifying args will only find the 2nd job:
+    #
+    #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
+    #
+    # This method can be potentially very slow and memory intensive,
+    # depending on the size of your queue, as it loads all jobs into
+    # a Ruby array.
+    def self.queued(queue, klass, *args)
+      klass = klass.to_s
+
+      redis.lrange("queue:#{queue}", 0, -1).inject([]) do |memo, string|
+        decoded = decode(string)
+        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
+          memo << new(queue, decoded)
+        end
+
+        memo
+      end
+    end
+
     # Given a string queue name, returns an instance of Resque::Job
     # if any jobs are available. If not, returns nil.
     def self.reserve(queue)
@@ -228,6 +265,7 @@ module Resque
       begin
         job_args = args || []
         failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
+      rescue
       ensure
         @failure_hooks_ran = true
       end

@@ -12,8 +12,6 @@ namespace :resque do
 
     begin
       worker = Resque::Worker.new(*queues)
-      worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
-      worker.very_verbose = ENV['VVERBOSE']
       worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
     rescue Resque::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
@@ -26,7 +24,7 @@ namespace :resque do
       Process.daemon(true)
     end
 
-    worker.log "Starting worker #{worker}"
+    Resque.logger.info "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
