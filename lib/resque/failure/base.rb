@@ -32,7 +32,7 @@ module Resque
       end
 
       # The number of failures.
-      def self.count(queue = nil)
+      def self.count(queue = nil, class_name = nil)
         0
       end
 
