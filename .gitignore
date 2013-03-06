@@ -1,3 +1,4 @@
+.rbx
 Gemfile.lock
 test/dump.rdb
 test/dump-cluster.rdb
