@@ -320,6 +320,33 @@ describe "Resque" do
     end
   end
 
+  it "inlining jobs with block" do
+    Resque.inline do
+      Resque.enqueue(SomeIvarJob, 20, '/tmp')
+    end
+    assert_equal 0, Resque.size(:ivar)
+    assert !Resque.inline?
+  end
+
+  it "inline block sets inline to false after exception" do
+    assert_raises StandardError do
+      Resque.inline do
+        raise StandardError
+      end
+    end
+    assert !Resque.inline?
+  end
+
+  it "inline without block is alias to inline?" do
+    begin
+      assert_equal Resque.inline?, Resque.inline
+      Resque.inline = true
+      assert_equal Resque.inline?, Resque.inline
+    ensure
+      Resque.inline = false
+    end
+  end
+
   it 'treats symbols and strings the same' do
     assert_equal Resque.queue(:people), Resque.queue('people')
   end

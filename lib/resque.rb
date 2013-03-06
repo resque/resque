@@ -187,12 +187,25 @@ module Resque
     "Resque Client connected to #{redis_id}"
   end
 
-  attr_accessor :inline
-
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
   # The 'inline' is false Resque jobs will be put in queue regularly.
-  alias :inline? :inline
+  attr_writer :inline
+
+  def inline(&block)
+    block ? inline_block(&block) : inline?
+  end
+
+  def inline_block
+    self.inline = true
+    yield
+  ensure
+    self.inline = false
+  end
+
+  def inline?
+    @inline
+  end
 
   #
   # queue manipulation
