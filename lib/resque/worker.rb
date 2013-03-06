@@ -329,9 +329,13 @@ module Resque
 
     # Schedule this worker for shutdown. Will finish processing the
     # current job.
-    def shutdown
+    #
+    # If passed true, mark the shutdown in Redis to signal a remote shutdown
+    def shutdown(remote = false)
       Resque.logger.info 'Exiting...'
+
       @shutdown = true
+      redis.set("worker:#{self}:shutdown", true) if remote
     end
 
     # Kill the child and shutdown immediately.
@@ -342,7 +346,7 @@ module Resque
 
     # Should this worker shutdown as soon as current job is finished?
     def shutdown?
-      @shutdown
+      @shutdown || redis.get("worker:#{self}:shutdown")
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -450,6 +454,7 @@ module Resque
       redis.srem(:workers, self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
+      redis.del("worker:#{self}:shutdown")
 
       Stat.clear("processed:#{self}")
       Stat.clear("failed:#{self}")
