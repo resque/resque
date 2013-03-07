@@ -2,11 +2,18 @@ require 'resque/coder'
 require 'json'
 
 module Resque
+  # Sweet jruby --1.8 hax.
+  if defined?(Encoding)
+    ENCODING_EXCEPTION = Encoding::UndefinedConversionError
+  else
+    ENCODING_EXCEPTION = JSON::GeneratorError
+  end
+
   class JsonCoder < Coder
     def encode(object)
       begin
         JSON.dump object
-      rescue Encoding::UndefinedConversionError => e
+      rescue ENCODING_EXCEPTION => e
         raise EncodeException, e.message, e.backtrace
       end
     end

@@ -24,8 +24,7 @@ describe "Resque" do
       ensure
         reset_logger
       end
-      message = "Invalid UTF-8 character in job: \"\\xFF\" from ASCII-8BIT to UTF-8"
-      assert_includes messages, message
+      assert_match /Invalid UTF-8 character/, messages.first
     end
   end
 end
