@@ -567,11 +567,15 @@ describe "Resque::Worker" do
   end
 
   it "tries to reconnect three times before giving up" do
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+      skip "JRuby doesn't fork."
+    end
     begin
       class Redis::Client
         alias_method :original_reconnect, :reconnect
 
         def reconnect
+          puts "IN RECONNECT"
           raise Redis::BaseConnectionError
         end
       end
