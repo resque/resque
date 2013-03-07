@@ -558,6 +558,9 @@ describe "Resque::Worker" do
   end
 
   it "reconnects to redis after fork" do
+    if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
+      skip "JRuby doesn't fork."
+    end
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
