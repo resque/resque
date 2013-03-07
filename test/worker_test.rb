@@ -573,7 +573,6 @@ describe "Resque::Worker" do
         alias_method :original_reconnect, :reconnect
 
         def reconnect
-          puts "IN RECONNECT"
           raise Redis::BaseConnectionError
         end
       end
