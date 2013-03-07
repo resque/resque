@@ -55,7 +55,7 @@ describe "Resque::Worker" do
     assert_equal now, @worker.processing['run_at']
   end
 
-  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
+  unless jruby?
 
     it "does not raise exception for completed jobs" do
       if worker_pid = Kernel.fork
@@ -558,18 +558,16 @@ describe "Resque::Worker" do
   end
 
   it "reconnects to redis after fork" do
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
-      skip "JRuby doesn't fork."
-    end
+    skip "JRuby doesn't fork." if jruby?
+
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     @worker.work(0)
     refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
   it "tries to reconnect three times before giving up" do
-    if defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
-      skip "JRuby doesn't fork."
-    end
+    skip "JRuby doesn't fork." if jruby?
+
     begin
       class Redis::Client
         alias_method :original_reconnect, :reconnect
@@ -655,7 +653,7 @@ describe "Resque::Worker" do
     assert_equal @worker, captured_worker
   end
 
-  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
+  unless jruby?
     [SignalException, Resque::TermException].each do |exception|
       {
         'cleanup occurs in allotted time' => nil,
