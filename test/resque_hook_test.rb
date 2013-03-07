@@ -54,18 +54,18 @@ describe "Resque Hooks" do
     file = Tempfile.new("resque_after_fork")
 
     begin
-      File.open(file, "w") {|f| f.write(0)}
+      File.open(file.path, "w") {|f| f.write(0)}
       Resque.after_fork do
         val = File.read(file).strip.to_i
-        File.open(file, "w") {|f| f.write(val + 1)}
+        File.open(file.path, "w") {|f| f.write(val + 1)}
       end
       2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
-      val = File.read(file).strip.to_i
+      val = File.read(file.path).strip.to_i
       assert_equal(0, val)
       @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
-      val = File.read(file).strip.to_i
+      val = File.read(file.path).strip.to_i
       assert_equal(2, val)
     ensure
       file.delete
@@ -125,24 +125,24 @@ describe "Resque Hooks" do
     file = Tempfile.new("resque_after_fork_first")
     file2 = Tempfile.new("resque_after_fork_second")
     begin
-      File.open(file, "w") {|f| f.write(1)}
-      File.open(file2, "w") {|f| f.write(2)}
+      File.open(file.path, "w") {|f| f.write(1)}
+      File.open(file2.path, "w") {|f| f.write(2)}
 
       Resque.after_fork do
-        val = File.read(file).strip.to_i
-        File.open(file, "w") {|f| f.write(val + 1)}
+        val = File.read(file.path).strip.to_i
+        File.open(file.path, "w") {|f| f.write(val + 1)}
       end
 
       Resque.after_fork do
-        val = File.read(file2).strip.to_i
-        File.open(file2, "w") {|f| f.write(val + 1)}
+        val = File.read(file2.path).strip.to_i
+        File.open(file2.path, "w") {|f| f.write(val + 1)}
       end
       Resque::Job.create(:jobs, CallNotifyJob)
 
       @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
-      val = File.read(file).strip.to_i
-      val2 = File.read(file2).strip.to_i
+      val = File.read(file.path).strip.to_i
+      val2 = File.read(file2.path).strip.to_i
       assert_equal(val, 2)
       assert_equal(val2, 3)
     ensure
