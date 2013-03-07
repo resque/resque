@@ -1,4 +1,4 @@
-html { background:#efefef; font-family:Arial, Verdana, sans-serif; font-size:13px; }
+html { background:#efefef; font-family:Arial, Verdana, sans-serif; font-size:10pt; }
 body { padding:0; margin:0; }
 
 .header { background:#000; padding:8px 5% 0 5%; border-bottom:1px solid #444;border-bottom:5px solid #ce1212;}
@@ -86,3 +86,15 @@ body { padding:0; margin:0; }
 #main form {float:right; margin-top:-10px;margin-left:10px;}
 
 #main .time a.toggle_format {text-decoration:none;}
+
+@media only screen and (max-device-width: 480px) {
+  .header { padding:0px; }
+  .header ul { overflow: auto; }
+  .header ul li { display:block; float:left; width:50%; }
+  .header ul li a { display:block; color:#fff; text-decoration:none; margin:0px; padding:8px; -webkit-border-radius:0px; -moz-border-radius:0px; }
+  
+  #main h1 { font-size:1.2em; }
+  #main h2 { font-size:1.1em;}
+
+  .subnav { padding-left:5px; padding-right:5px;}
+}

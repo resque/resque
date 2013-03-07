@@ -187,12 +187,25 @@ module Resque
     "Resque Client connected to #{redis_id}"
   end
 
-  attr_accessor :inline
-
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
   # The 'inline' is false Resque jobs will be put in queue regularly.
-  alias :inline? :inline
+  attr_writer :inline
+
+  def inline(&block)
+    block ? inline_block(&block) : inline?
+  end
+
+  def inline_block
+    self.inline = true
+    yield
+  ensure
+    self.inline = false
+  end
+
+  def inline?
+    @inline
+  end
 
   #
   # queue manipulation
@@ -374,6 +387,22 @@ module Resque
     end
     
     destroyed
+  end
+
+  # This method will return an array of `Resque::Job` object in a queue.
+  # It assumes the class you're passing it is a real Ruby class (not
+  # a string or reference) which either:
+  #
+  #   a) has a @queue ivar set
+  #   b) responds to `queue`
+  #
+  # If either of those conditions are met, it will use the value obtained
+  # from performing one of the above operations to determine the queue.
+  #
+  # If no queue can be inferred this method will raise a `Resque::NoQueueError`
+
+  def queued(klass, *args)
+    Job.queued(queue_from_class(klass), klass, *args)
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a

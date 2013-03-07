@@ -13,6 +13,7 @@
       <th>Processed</th>
       <th>Failed</th>
       <th>Processing</th>
+      <th>&nbsp;</th>
     </tr>
     <tr>
       <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
@@ -32,6 +33,11 @@
         <% else %>
           <span class='waiting'>Waiting for a job...</span>
         <% end %>
+      </td>
+      <td>
+        <form method="POST" action="<%=u "/workers/#{worker}/remove" %>" class='remove-worker'>
+          <input type='submit' name='' value='Remove Worker' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+        </form>
       </td>
     </tr>
   </table>
@@ -56,6 +62,7 @@
       <th>Where</th>
       <th>Queues</th>
       <th>Processing</th>
+      <th>&nbsp;</th>
     </tr>
     <% for worker in (workers = workers.sort_by { |w| w.to_s }) %>
     <tr class="<%=state = worker.state%>">
@@ -73,6 +80,11 @@
         <% else %>
           <span class='waiting'>Waiting for a job...</span>
         <% end %>
+      </td>
+      <td>
+        <form method="POST" action="<%=u "/workers/#{worker}/remove" %>" class='remove-worker'>
+          <input type='submit' name='' value='Remove Worker' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+        </form>
       </td>
     </tr>
     <% end %>

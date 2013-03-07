@@ -134,7 +134,12 @@ module Resque
           job.worker = self
           working_on job
 
-          if @child = fork(job)
+          if @child = fork(job) do
+              unregister_signal_handlers
+              procline "Processing #{job.queue} since #{Time.now.to_i}"
+              reconnect
+              perform(job, &block)
+            end
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -144,13 +149,10 @@ module Resque
             end
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
-            unregister_signal_handlers if will_fork?
             procline "Processing #{job.queue} since #{Time.now.to_i}"
-            reconnect
+            reconnect unless @cant_fork
             perform(job, &block)
-            exit!(true) if will_fork?
           end
-
           done_working
           @child = nil
         else
@@ -164,7 +166,6 @@ module Resque
     rescue Exception => exception
       unregister_worker(exception)
     end
-
     # DEPRECATED. Processes a single job. If none is given, it will
     # try to produce one. Usually run in the child.
     def process(job = nil, &block)
@@ -250,7 +251,7 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork(job)
+    def fork(job,&block)
       return if @cant_fork
       
       # Only run before_fork hooks if we're actually going to fork
@@ -260,7 +261,7 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork if will_fork?
+          Kernel.fork &block if will_fork?
         else
           raise NotImplementedError
         end
@@ -328,9 +329,13 @@ module Resque
 
     # Schedule this worker for shutdown. Will finish processing the
     # current job.
-    def shutdown
+    #
+    # If passed true, mark the shutdown in Redis to signal a remote shutdown
+    def shutdown(remote = false)
       Resque.logger.info 'Exiting...'
+
       @shutdown = true
+      redis.set("worker:#{self}:shutdown", true) if remote
     end
 
     # Kill the child and shutdown immediately.
@@ -341,7 +346,7 @@ module Resque
 
     # Should this worker shutdown as soon as current job is finished?
     def shutdown?
-      @shutdown
+      @shutdown || redis.get("worker:#{self}:shutdown")
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -449,6 +454,7 @@ module Resque
       redis.srem(:workers, self)
       redis.del("worker:#{self}")
       redis.del("worker:#{self}:started")
+      redis.del("worker:#{self}:shutdown")
 
       Stat.clear("processed:#{self}")
       Stat.clear("failed:#{self}")
@@ -559,7 +565,7 @@ module Resque
     def worker_pids
       if RUBY_PLATFORM =~ /solaris/
         solaris_worker_pids
-      elsif RUBY_PLATFORM =~ /mingw32/
+      elsif RUBY_PLATFORM =~ /mingw32/ || RUBY_PLATFORM =~ /cygwin/
         windows_worker_pids
       else
         linux_worker_pids
