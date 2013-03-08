@@ -23,18 +23,18 @@ module Resque
       end
 
       # The number of failures.
-      def self.count(queue = nil, class_name = nil)
-        classes.first.count(queue, class_name)
+      def self.count(*args)
+        classes.first.count(*args)
       end
 
       # Returns a paginated array of failure objects.
-      def self.all(start = 0, count = 1)
-        classes.first.all(start,count)
+      def self.all(*args)
+        classes.first.all(*args)
       end
 
       # Iterate across failed objects
-      def self.each(offset, limit, queue = nil, class_name = nil, &block)
-        classes.first.each(offset, limit, queue, class_name, &block)
+      def self.each(*args)
+        classes.first.each(*args)
       end
 
       # A URL where someone can go to view failures.
