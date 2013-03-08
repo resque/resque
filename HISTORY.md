@@ -19,6 +19,7 @@
   the RedisMultiQueue failure backend (@tarcieri)
 * Disable forking completely with FORK_PER_JOB=false env var (@tarcieri)
 * Report a failure when processes are killed with signals (@dylanahsmith)
+* Enable registering of multiple Resque hooks (@panthomakos, @jonhyman)
 
 ## 1.23.0 (2012-10-01)
 
