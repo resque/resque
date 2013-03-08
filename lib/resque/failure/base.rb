@@ -47,7 +47,7 @@ module Resque
       end
 
       # Iterate across failed objects
-      def self.each(offset = 0, limit = self.count)
+      def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil)
       end
 
       # A URL where someone can go to view failures.
