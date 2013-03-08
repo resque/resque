@@ -49,6 +49,7 @@ describe "Resque Hooks" do
   end
 
   it 'it calls after_fork after each job' do
+    skip("TRAAAVIS!!!!") if RUBY_VERSION == "1.8.7"
     # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
     # exit!(true) will be called in Worker#work; to share state, use a tempfile
     file = Tempfile.new("resque_after_fork")
