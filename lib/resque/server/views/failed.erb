@@ -24,5 +24,5 @@
   <% end %>
 </ul>
 
-<%= partial :next_more, :start => failed_start_at, :size => failed_size unless params[:class] %>
+<%= partial :next_more, :start => failed_start_at, :size => failed_size, :per_page => failed_per_page %>
 <% end %>
