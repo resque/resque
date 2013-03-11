@@ -78,7 +78,7 @@ body { padding:0; margin:0; }
 #main ul.failed li dl dd.error a {font-family:Monaco, "Courier New", monospace; font-size:90%; }
 #main ul.failed li dl dd.error pre { margin-top:3px; line-height:1.3;}
 
-#main p.pagination { background:#efefef; padding:10px; overflow:hidden;}
+#main p.pagination { background:#efefef; padding:10px; overflow:hidden; text-align:center}
 #main p.pagination a.less { float:left;}
 #main p.pagination a.more { float:right;}
 
