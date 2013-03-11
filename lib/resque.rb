@@ -40,8 +40,13 @@ module Resque
       else
         server, namespace = server.split('/', 2)
         host, port, db = server.split(':')
-        redis = Redis.new(:host => host, :port => port,
-          :thread_safe => true, :db => db)
+
+        redis = Redis.new(
+          :host => host,
+          :port => port,
+          :db => db,
+          :thread_safe => true,
+        )
       end
       namespace ||= :resque
 
@@ -51,9 +56,9 @@ module Resque
     else
       @redis = Redis::Namespace.new(:resque, :redis => server)
     end
-    @queues = Hash.new { |h,name|
+    @queues = Hash.new do |h,name|
       h[name] = Resque::Queue.new(name, @redis, coder)
-    }
+    end
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
@@ -67,8 +72,12 @@ module Resque
   # create a new one.
   def redis
     return @redis if @redis
-    self.redis = Redis.respond_to?(:connect) ? Redis.connect(:thread_safe => true) : "localhost:6379"
-    self.redis
+
+    self.redis = if Redis.respond_to?(:connect) 
+      Redis.connect(:thread_safe => true)
+    else
+      "localhost:6379"
+    end
   end
 
   def redis_id
@@ -271,10 +280,10 @@ module Resque
   # and converting them into Ruby objects.
   def list_range(key, start = 0, count = 1)
     if count == 1
-      decode redis.lindex(key, start)
+      decode(redis.lindex(key, start))
     else
       Array(redis.lrange(key, start, start+count-1)).map do |item|
-        decode item
+        decode(item)
       end
     end
   end
@@ -429,7 +438,7 @@ module Resque
   def validate(klass, queue = nil)
     queue ||= queue_from_class(klass)
 
-    if !queue
+    unless queue
       raise NoQueueError.new("Jobs must be placed onto a queue.")
     end
 
@@ -466,7 +475,7 @@ module Resque
 
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
-    return {
+    {
       :pending   => queues.inject(0) { |m,k| m + size(k) },
       :processed => Stat[:processed],
       :queues    => queues.size,

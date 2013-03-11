@@ -19,7 +19,7 @@ namespace :resque do
 
     if ENV['BACKGROUND']
       unless Process.respond_to?('daemon')
-          abort "env var BACKGROUND is set, which requires ruby >= 1.9"
+        abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
       Process.daemon(true)
     end

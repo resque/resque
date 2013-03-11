@@ -42,7 +42,7 @@ module Resque
         end
       rescue Redis::Distributed::CannotDistribute
         names.each do |name|
-          value = redis.get name
+          value = redis.get(name)
           reportedly_working[name] = value unless value.nil? || value.empty?
         end
       end
@@ -54,7 +54,7 @@ module Resque
 
     # Returns a single worker object. Accepts a string id.
     def self.find(worker_id)
-      if exists? worker_id
+      if exists?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
         worker = new(*queues)
         worker.to_s = worker_id
@@ -204,9 +204,12 @@ module Resque
     # nil if no job can be found.
     def reserve(interval = 5.0)
       interval = interval.to_i
-      multi_queue = MultiQueue.new(
-        queues.map {|queue| Queue.new(queue, Resque.redis, Resque.coder) },
-        Resque.redis)
+
+      new_queues = queues.map do |queue|
+        Queue.new(queue, Resque.redis, Resque.coder)
+      end
+
+      multi_queue = MultiQueue.new(new_queues, Resque.redis)
 
       if interval < 1
         begin
@@ -219,7 +222,7 @@ module Resque
       end
 
       Resque.logger.debug "Found job on #{queue}"
-      Job.new(queue.name, job) if queue && job
+      Job.new(queue.name, job) if (queue && job)
     end
 
     # Reconnect to Redis to avoid sharing a connection with the parent,
@@ -246,7 +249,13 @@ module Resque
     # can be placed after a splat to ensure execution after all other dynamic
     # queues.
     def queues
-      @queues.map {|queue| queue == "*" ? (Resque.queues - @queues).sort : queue }.flatten.uniq
+      @queues.map do |queue|
+        if queue == "*"
+          Resque.queues - @queues).sort
+        else
+          queue
+        end
+      end.flatten.uniq
     end
 
     # Not every platform supports fork. Here we do our magic to
@@ -577,7 +586,10 @@ module Resque
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
-      `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
+      lines = `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.split($/)
+      
+      lines.select! { |line| line =~ /^PID:/}
+      lines.collect!{ |line| line.gsub /PID:\s+/, '' }
     end
 
     # Find Resque worker pids on Linux and OS X.
@@ -598,13 +610,18 @@ module Resque
     # machine. Useful when pruning dead workers on startup.
     def get_worker_pids(command)
        active_worker_pids = []
+
        output = %x[#{command}]  # output format of ps must be ^<PID> <COMMAND WITH ARGS>
+
        raise 'System call for ps command failed. Please make sure that you have a compatible ps command in the path!' unless $?.success?
-       output.split($/).each{|line|
+
+       output.split($/).each do |line|
         next unless line =~ /resque/i
         next if line =~ /resque-web/
+
         active_worker_pids.push line.split(' ')[0]
-       }
+       end
+
        active_worker_pids
     end
 
