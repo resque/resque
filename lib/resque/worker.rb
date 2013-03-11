@@ -251,7 +251,7 @@ module Resque
     def queues
       @queues.map do |queue|
         if queue == "*"
-          Resque.queues - @queues).sort
+          (Resque.queues - @queues).sort
         else
           queue
         end

@@ -5,8 +5,9 @@ require 'resque/version'
 
 require 'resque/errors'
 
-require 'resque/failure'
 require 'resque/failure/base'
+require 'resque/failure'
+require 'resque/failure/redis'
 
 require 'resque/helpers'
 require 'resque/stat'
@@ -45,7 +46,7 @@ module Resque
           :host => host,
           :port => port,
           :db => db,
-          :thread_safe => true,
+          :thread_safe => true
         )
       end
       namespace ||= :resque

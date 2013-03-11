@@ -1,5 +1,3 @@
-require 'resque/failure/redis'
-
 module Resque
   # The Failure module provides an interface for working with different
   # failure backends.
@@ -103,3 +101,4 @@ module Resque
     end
   end
 end
+
