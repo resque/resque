@@ -1,5 +1,8 @@
 ## unreleased
 
+* Web UI: Fix regression that caused the failure tab to break when using certain failure backends (@kjg)
+* Web UI: Add page list to queues (@ql)
+
 ## 1.23.1 (2013-3-7)
 
 * JRuby and Rubinius are 'allow failure' on CI. This is largely due to Travis
