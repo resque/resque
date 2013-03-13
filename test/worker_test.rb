@@ -1,4 +1,5 @@
 require 'test_helper'
+require 'tmpdir'
 
 context "Resque::Worker" do
   setup do
@@ -31,7 +32,41 @@ context "Resque::Worker" do
       @worker.perform job
     end
   end
-  
+
+  test "does not raise exception for completed jobs" do
+    if worker_pid = Kernel.fork
+      Process.waitpid(worker_pid)
+      assert_equal 0, Resque::Failure.count
+    else
+      # ensure we actually fork
+      $TESTING = false
+      Resque.redis.client.reconnect
+      worker = Resque::Worker.new(:jobs)
+      worker.work(0)
+      exit
+    end
+  end
+
+  test "executes at_exit hooks" do
+    tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
+    FileUtils.rm_f tmpfile
+
+    if worker_pid = Kernel.fork
+      Process.waitpid(worker_pid)
+      assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
+      assert_equal "at_exit", File.open(tmpfile).read.strip
+    else
+      # ensure we actually fork
+      $TESTING = false
+      Resque.redis.client.reconnect
+      Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
+      worker = Resque::Worker.new(:at_exit_jobs)
+      worker.work(0)
+      exit
+    end
+
+  end
+
   test "register 'run_at' time on UTC timezone in ISO8601 format" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601

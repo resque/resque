@@ -119,6 +119,15 @@ class GoodJob
   end
 end
 
+class AtExitJob
+  def self.perform(filename)
+    at_exit do
+      File.open(filename, "w") {|file| file.puts "at_exit"}
+    end
+    "at_exit job"
+  end
+end
+
 class BadJobWithSyntaxError
   def self.perform
     raise SyntaxError, "Extra Bad job!"
