@@ -55,7 +55,7 @@ module Resque
       end
       
       # Clear all failure objects
-      def self.clear
+      def self.clear(*args)
       end
       
       def self.requeue(index)

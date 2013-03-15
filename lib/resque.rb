@@ -412,7 +412,7 @@ module Resque
 
     @hooks ||= {}
     @hooks[name] ||= []
-    
+
     if block.is_a? Array
       @hooks[name].concat block
     else
