@@ -13,7 +13,7 @@ module Resque
           klass.configure(&block)
         end
 
-        def count
+        def count(queue = nil, class_name = nil)
           # We can't get the total # of errors from Hoptoad so we fake it
           # by asking Resque how many errors it has seen.
           Stat[:failed]

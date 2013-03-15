@@ -136,7 +136,7 @@ module Resque
 
           if @child = fork(job) do
               unregister_signal_handlers
-              procline "Processing #{job.queue} since #{Time.now.to_i}"
+              procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
               reconnect
               perform(job, &block)
             end
@@ -262,7 +262,7 @@ module Resque
     # determine if yours does.
     def fork(job,&block)
       return if @cant_fork
-      
+
       # Only run before_fork hooks if we're actually going to fork
       # (after checking @cant_fork)
       run_hook :before_fork, job if will_fork?
@@ -317,6 +317,7 @@ module Resque
         trap('QUIT') { shutdown   }
         trap('USR1') { kill_child }
         trap('USR2') { pause_processing }
+        trap('CONT') { unpause_processing }
       rescue ArgumentError
         warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
@@ -535,7 +536,7 @@ module Resque
     end
     
     def will_fork?
-      !(@cant_fork || $TESTING)
+      !@cant_fork && !$TESTING && (ENV["FORK_PER_JOB"] != 'false')
     end
 
     # Returns a symbol representing the current worker state,

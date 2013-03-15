@@ -31,20 +31,53 @@ module Resque
     # Returns the current backend class. If none has been set, falls
     # back to `Resque::Failure::Redis`
     def self.backend
-      @backend ||= Failure::Redis
+      return @backend if @backend
+
+      case ENV['FAILURE_BACKEND']
+      when 'redis_multi_queue'
+        require 'resque/failure/redis_multi_queue'
+        @backend = Failure::RedisMultiQueue
+      when 'redis', nil
+        require 'resque/failure/redis'
+        @backend = Failure::Redis
+      else
+        raise ArgumentError, "invalid failure backend: #{FAILURE_BACKEND}"
+      end
+    end
+
+    # Obtain the failure queue name for a given job queue
+    def self.failure_queue_name(job_queue_name)
+      name = "#{job_queue_name}_failed"
+      Resque.redis.sadd(:failed_queues, name)
+      name
+    end
+
+    # Obtain the job queue name for a given failure queue
+    def self.job_queue_name(failure_queue_name)
+      failure_queue_name.sub(/_failed$/, '')
+    end
+
+    # Returns an array of all the failed queues in the system
+    def self.queues
+      backend.queues
     end
 
     # Returns the int count of how many failures we have seen.
-    def self.count
-      backend.count
+    def self.count(queue = nil, class_name = nil)
+      backend.count(queue, class_name)
     end
 
     # Returns an array of all the failures, paginated.
     #
-    # `start` is the int of the first item in the page, `count` is the
+    # `offset` is the int of the first item in the page, `limit` is the
     # number of items to return.
-    def self.all(start = 0, count = 1)
-      backend.all(start, count)
+    def self.all(offset = 0, limit = 1, queue = nil)
+      backend.all(offset, limit, queue)
+    end
+
+    # Iterate across all failures with the given options
+    def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, &block)
+      backend.each(offset, limit, queue, class_name, &block)
     end
 
     # The string url of the backend's web interface, if any.
@@ -53,51 +86,37 @@ module Resque
     end
 
     # Clear all failure jobs
-    def self.clear
-      backend.clear
+    def self.clear(queue = nil)
+      backend.clear(queue)
     end
 
-    def self.requeue(index)
-      backend.requeue(index)
+    def self.requeue(id)
+      backend.requeue(id)
     end
 
-    def self.requeue_and_remove(index)
-      backend.requeue(index)
-      backend.remove(index)
+    def self.requeue_and_remove(id)
+      backend.requeue(id)
+      backend.remove(id)
     end
 
-    def self.requeue_to(index, queue_name)
-      backend.requeue(index, queue_name)
+    def self.requeue_to(id, queue_name)
+      backend.requeue_to(id, queue_name)
     end
 
-    def self.remove(index)
-      backend.remove(index)
+    def self.remove(id)
+      backend.remove(id)
     end
 
     # Requeues all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.requeue_queue(queue)
-      index = 0
-      while job = Resque::Failure.all(index)
-        if job['queue'] == queue
-          Resque::Failure.requeue(index)
-        end
-        index += 1
-      end
+      backend.requeue_queue(queue)
     end
 
     # Removes all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.remove_queue(queue)
-      index = 0
-      while job = Resque::Failure.all(index)
-        if job['queue'] == queue
-          # This will remove the failure from the array so do not increment the index.
-          Resque::Failure.remove(index)
-        else
-          index += 1
-        end
-      end
+      backend.remove_queue(queue)
     end
   end
 end
