@@ -120,6 +120,17 @@ describe "Resque Hooks" do
     assert(first && second)
   end
 
+  it 'flattens hooks on assignment' do
+    first = false
+    second = false
+    Resque.before_fork = [Proc.new { first = true }, Proc.new { second = true }]
+    Resque::Job.create(:jobs, CallNotifyJob)
+
+    assert(!first && !second)
+    @worker.work(0)
+    assert(first && second)
+  end
+
   it 'it registers multiple after_forks' do
     # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
     # exit!(true) will be called in Worker#work; to share state, use a tempfile
