@@ -33,8 +33,8 @@ module Resque
       end
 
       # Iterate across failed objects
-      def self.each(*args)
-        classes.first.each(*args)
+      def self.each(*args, &block)
+        classes.first.each(*args, &block)
       end
 
       # A URL where someone can go to view failures.
