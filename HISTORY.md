@@ -1,5 +1,20 @@
-## 1.24.0.pre (YYYY-MM-DD)
+## unreleased
 
+* Web UI: Fix regression that caused the failure tab to break when using certain failure backends (@kjg)
+* Web UI: Add page list to queues (@ql)
+
+## 1.23.1 (2013-3-7)
+
+* JRuby and Rubinius are 'allow failure' on CI. This is largely due to Travis
+  weridness and flaky tests.
+* Fix link from "queues" view to "failed" view when there's only one failed
+  queue (trliner)
+* Making all the failure backends have the same method signature for duck
+  typing purposes (jonhyman)
+* Fix log formatters not appending a new line (flavorpill)
+* redirect unauthorized resque-web polling requests to root url (trliner)
+* Disable forking with FORK_PER_JOB=false (@tarcieri)
+* Various resque-web fixes (@tarcieri)
 * Optional RedisMultiQueue failure backend, can be enabled with
   FAILURE_BACKEND=redis_multi_queue env var (@tarcieri)
 * resque:failures:sort rake task will migrate an existing "failed" queue into
@@ -7,6 +22,7 @@
   the RedisMultiQueue failure backend (@tarcieri)
 * Disable forking completely with FORK_PER_JOB=false env var (@tarcieri)
 * Report a failure when processes are killed with signals (@dylanahsmith)
+* Enable registering of multiple Resque hooks (@panthomakos, @jonhyman)
 
 ## 1.23.0 (2012-10-01)
 
