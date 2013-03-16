@@ -2,6 +2,8 @@
 
 * Web UI: Fix regression that caused the failure tab to break when using certain failure backends (@kjg)
 * Web UI: Add page list to queues (@ql)
+* Web UI: Fix regression that caused the failure tab to break when clicking on "clear all failures" under certain failure backends, #859 (@jonhyman)
+* Fix regression for Resque hooks where Resque would error out if you assigned multiple hooks using an array, #859 (@jonhyman)
 
 ## 1.23.1 (2013-3-7)
 
