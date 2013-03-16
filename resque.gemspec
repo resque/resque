@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "LICENSE.txt", "CHANGELOG.md", "README.md", "CONTRIBUTING.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
+  s.add_dependency "thor",            "~> 0.17"
   s.add_dependency "redis-namespace", "~> 1.0"
   s.add_dependency "json"
   s.add_dependency "mono_logger", "~> 1.0"
