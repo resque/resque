@@ -507,7 +507,9 @@ module Resque
 
     @hooks ||= {}
     @hooks[name] ||= []
-    @hooks[name] << block
+
+    block = Array(block)
+    @hooks[name].concat(block)
   end
 
   # Clear all hooks given a hook name.
@@ -515,14 +517,13 @@ module Resque
     @hooks && @hooks[name] = []
   end
 
-  # Retrieve all hooks
-  def hooks
-    @hooks || {}
-  end
-
-  # Retrieve all hooks of a given name.
-  def hooks(name)
-    (@hooks && @hooks[name]) || []
+  # Retrieve all hooks of a given name, or all hooks if name.nil?
+  def hooks(name = nil)
+    if name
+      (@hooks && @hooks[name]) || []
+    else
+      @hooks || {}
+    end
   end
 end
 
