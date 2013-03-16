@@ -1,0 +1,24 @@
+<table id="failed">
+<tbody>
+  <tr class="total">
+    <td class='queue'>Total Failed</td>
+    <td class='center'><%= Resque::Failure.count %></td>
+  </tr>
+
+  <% Resque::Failure.queues.sort.each do |queue| %>
+	  <tr>
+	    <th><b class="queue-tag"><a href="/failed/<%= queue %>"><%= queue %></a></b></th>
+	    <th style="width:75px;" class="center"><%= Resque::Failure.count(queue) %></th>
+	  </tr>
+
+    <% failed_class_counts(queue).sort_by { |name,_| name }.each do |k, v| %>
+    <tr id="<%= k %>">
+      <td>
+        <a href="/failed/<%= "#{queue}?class=#{k}" %>"><span class="failed failed_class"><%= k %></span></a>
+      </td>
+      <td style="text-align: center;" class="failed<%= (v.to_i > 1000) ? '_many' : '' %>"><%= v %></td>
+    </tr>
+	  <% end %>
+  <% end %>
+</tbody>
+</table>

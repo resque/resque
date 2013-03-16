@@ -19,36 +19,78 @@ module Resque
         Resque.redis.rpush(:failed, data)
       end
 
-      def self.count
-        Resque.redis.llen(:failed).to_i
+      def self.count(queue = nil, class_name = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
+
+        if class_name
+          n = 0
+          each(0, count(queue), queue, class_name) { n += 1 } 
+          n
+        else
+          Resque.redis.llen(:failed).to_i
+        end
       end
 
-      def self.all(start = 0, count = 1)
-        Resque.list_range(:failed, start, count)
+      def self.queues
+        [:failed]
       end
 
-      def self.clear
+      def self.all(offset = 0, limit = 1, queue = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
+        Resque.list_range(:failed, offset, limit)
+      end
+
+      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
+        Array(all(offset, limit, queue)).each_with_index do |item, i|
+          if !class_name || (item['payload'] && item['payload']['class'] == class_name)
+            yield offset + i, item
+          end
+        end
+      end
+
+      def self.clear(queue = nil)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
         Resque.redis.del(:failed)
       end
 
-      def self.requeue(index)
-        item = all(index)
+      def self.requeue(id)
+        item = all(id)
         item['retried_at'] = Time.now.rfc2822
-        Resque.redis.lset(:failed, index, Resque.encode(item))
+        Resque.redis.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.requeue_to(index, queue_name)
-        item = all(index)
-        item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(:failed, index, Resque.encode(item))
+      def self.requeue_to(id, queue_name)
+        item = all(id)
+        item['retried_at'] = Time.now.rfc2822
+        Resque.redis.lset(:failed, id, Resque.encode(item))
         Job.create(queue_name, item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.remove(index)
-        id = rand(0xffffff)
-        Resque.redis.lset(:failed, index, id)
-        Resque.redis.lrem(:failed, 1, id)
+      def self.remove(id)
+        sentinel = ""
+        Resque.redis.lset(:failed, id, sentinel)
+        Resque.redis.lrem(:failed, 1,  sentinel)
+      end
+
+      def self.requeue_queue(queue)
+        i = 0
+        while job = all(i)
+           requeue(i) if job['queue'] == queue
+           i += 1
+        end
+      end
+
+      def self.remove_queue(queue)
+        i = 0
+        while job = all(i)
+          if job['queue'] == queue
+            # This will remove the failure from the array so do not increment the index.
+            remove(i)
+          else
+            i += 1
+          end
+        end
       end
 
       def filter_backtrace(backtrace)
