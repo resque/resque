@@ -4,7 +4,6 @@ module Resque
   class CLI < Thor
 
     desc "work QUEUE", "Start processing jobs."
-
     method_option :pid,       :aliases => ["-p"], :type => :string
     method_option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     method_option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
