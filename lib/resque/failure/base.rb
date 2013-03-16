@@ -47,7 +47,7 @@ module Resque
       end
 
       # Iterate across failed objects
-      def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil)
+      def self.each(*args)
       end
 
       # A URL where someone can go to view failures.
@@ -55,7 +55,7 @@ module Resque
       end
       
       # Clear all failure objects
-      def self.clear
+      def self.clear(*args)
       end
       
       def self.requeue(index)

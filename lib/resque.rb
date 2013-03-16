@@ -412,7 +412,9 @@ module Resque
 
     @hooks ||= {}
     @hooks[name] ||= []
-    @hooks[name] << block
+
+    block = Array(block)
+    @hooks[name].concat(block)
   end
 
   # Clear all hooks given a hook name.
