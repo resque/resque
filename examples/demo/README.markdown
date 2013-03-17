@@ -22,7 +22,7 @@ pending jobs rising.
 Now in another shell terminal start the worker:
 
     $ cd resque/examples/demo
-    $ VERBOSE=true QUEUE=default,failing rake resque:work
+    $ QUEUEs=default,failing rake resque:work
 
 You should see the following output:
 
