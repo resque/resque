@@ -163,9 +163,9 @@ class Time
   self.fake_time = nil
 end
 
-# Log to log/test.log
+require 'tempfile'
 def reset_logger
-  $test_logger ||= Logger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
+  $test_logger ||= Logger.new(Tempfile.new("resque.log"))
   Resque.logger = $test_logger
 end
 
