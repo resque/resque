@@ -140,7 +140,7 @@ module Resque
               perform(job, &block)
               # Be sure to have the child exit or the child process can eat up huge amounts of swap space
               # See https://github.com/defunkt/resque/issues/862
-              exit!
+              exit
             end
 
             srand # Reseeding
