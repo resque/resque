@@ -2,9 +2,9 @@ require "resque"
 
 module Resque
   class CLI < Thor
-    class_option :config,    :aliases => ["-c"], :required => true
 
     desc "work QUEUE", "Start processing jobs."
+    method_option :require,   :aliases => ["-r"], :type => :string,  :default => "."
     method_option :pid,       :aliases => ["-p"], :type => :string
     method_option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     method_option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
@@ -14,9 +14,7 @@ module Resque
     def work(queue = "*")
       queues = queue.to_s.split(',')
 
-      load_config(options[:config])
-      worker_setup
-
+      load_enviroment(options[:require])
       worker = Resque::Worker.new(*queues)
 
       worker.term_timeout = options[:timeout]
@@ -73,19 +71,20 @@ module Resque
         load(File.expand_path(path))
       end
 
-      def worker_setup
-        preload_rails_env
-        Resque.config.worker_setup.call
-      end
-
-      def preload_rails_env
-        if defined?(Rails) && Rails.respond_to?(:application)
-          # Rails 3
-          Rails.application.eager_load!
-        elsif defined?(Rails::Initializer)
-          # Rails 2.3
-          $rails_rake_task = false
-          Rails::Initializer.run :load_application_classes
+      def load_enviroment(file)
+        if File.directory?(file)
+          require "rails"
+          require File.expand_path("#{file}/config/environment.rb")
+          if defined?(::Rails) && ::Rails.respond_to?(:application)
+            # Rails 3
+            ::Rails.application.eager_load!
+          elsif defined?(::Rails::Initializer)
+            # Rails 2.3
+            $rails_rake_task = false
+            ::Rails::Initializer.run :load_application_classes
+          end
+        else
+          require file
         end
       end
   end

@@ -4,7 +4,6 @@ require 'redis/namespace'
 require 'resque/version'
 require 'resque/config'
 
-require 'resque/config'
 require 'resque/errors'
 
 require 'resque/failure/base'
