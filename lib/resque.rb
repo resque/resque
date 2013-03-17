@@ -387,7 +387,7 @@ module Resque
       :queues    => queues.size,
       :workers   => workers.size.to_i,
       :working   => working.size,
-      :failed    => Stat[:failed],
+      :failed    => Resque.redis.llen(:failed).to_i,
       :servers   => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     }
