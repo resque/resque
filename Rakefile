@@ -29,13 +29,17 @@ end
 #
 require 'rake/testtask'
 
-Rake::TestTask.new do |test|
+Rake::TestTask.new
+
+Rake::TestTask.new(:legacy) do |test|
   test.verbose = true
-  test.libs << "test"
+  test.libs << "test/legacy"
   test.libs << "lib"
-  test.test_files = FileList['test/**/*_test.rb']
+  test.test_files = FileList['test/legacy/**/*_test.rb']
 end
-task :default => :test
+
+task :ci => [:test, :legacy]
+task :default => :ci
 
 if command? :kicker
   desc "Launch Kicker (like autotest)"
