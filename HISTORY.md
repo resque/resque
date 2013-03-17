@@ -4,6 +4,7 @@
 * Web UI: Add page list to queues (@ql)
 * Web UI: Fix regression that caused the failure tab to break when clicking on "clear all failures" under certain failure backends, #859 (@jonhyman)
 * Fix regression for Resque hooks where Resque would error out if you assigned multiple hooks using an array, #859 (@jonhyman)
+* Fix regression where a lot of short running jobs can drastically increase swap usage and peg CPU, #862 (@jonhyman)
 
 ## 1.23.1 (2013-3-7)
 

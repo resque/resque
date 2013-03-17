@@ -138,6 +138,9 @@ module Resque
               unregister_signal_handlers if term_child
               reconnect
               perform(job, &block)
+              # Be sure to have the child exit or the child process can eat up huge amounts of swap space
+              # See https://github.com/defunkt/resque/issues/862
+              exit!
             end
 
             srand # Reseeding
