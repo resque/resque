@@ -36,6 +36,37 @@ module Resque
       worker.work(options[:interval]) # interval, will block
     end
 
+    desc "kill WORKER", "Kills a worker"
+    def kill(worker)
+      pid = worker.split(':')[1].to_i
+
+      begin
+        Process.kill("KILL", pid)
+        puts "killed #{worker}"
+      rescue Errno::ESRCH
+        puts "worker #{worker} not running"
+      end
+
+      remove(worker)
+    end
+
+    desc "remove WORKER", "Removes a worker"
+    def remove(worker)
+      Resque.remove_worker(worker)
+      puts "Removed #{worker}"
+    end
+
+    desc "list", "Lists known workers"
+    def list
+      if Resque.workers.any?
+        Resque.workers.each do |worker|
+          puts "#{worker} (#{worker.state})"
+        end
+      else
+        puts "None"
+      end
+    end
+
     protected
 
       def load_config(path)
