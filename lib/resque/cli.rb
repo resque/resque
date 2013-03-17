@@ -4,13 +4,13 @@ module Resque
   class CLI < Thor
 
     desc "work QUEUE", "Start processing jobs."
-    method_option :require,   :aliases => ["-r"], :type => :string,  :default => "."
-    method_option :pid,       :aliases => ["-p"], :type => :string
-    method_option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
-    method_option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
-    method_option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
-    method_option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
-    method_option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
+    option :require,   :aliases => ["-R"], :type => :string,  :default => "."
+    option :pid,       :aliases => ["-p"], :type => :string
+    option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
+    option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
+    option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
+    option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
+    option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
     def work(queue = "*")
       queues = queue.to_s.split(',')
 
