@@ -9,8 +9,8 @@ module Resque
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
     option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
-    option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
-    option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
+    #option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
+    #option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
     def work(queue = "*")
       queues = queue.to_s.split(',')
 
