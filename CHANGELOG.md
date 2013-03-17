@@ -1,4 +1,4 @@
 ## 2.0.0 (unreleased)
 
-* No changes.
+* Removed resque-web. It now lives at resque/resque-web.
 
