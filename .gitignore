@@ -6,3 +6,4 @@ test/dump-cluster.rdb
 .bundle
 *.rbc
 pkg
+log
