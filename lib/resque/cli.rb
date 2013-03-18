@@ -68,7 +68,9 @@ module Resque
 
     protected
 
-      def load_enviroment(file)
+      def load_enviroment(file = nil)
+        return if file.nil?
+
         if File.directory?(file)
           require "rails"
           require File.expand_path("#{file}/config/environment.rb")
