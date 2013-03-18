@@ -34,7 +34,7 @@ namespace :resque do
       File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
     end
 
-    worker.log "Starting worker #{worker}"
+    Resque.logger.info "Starting worker #{worker}"
 
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
