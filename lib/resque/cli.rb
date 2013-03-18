@@ -81,7 +81,7 @@ module Resque
             ::Rails::Initializer.run :load_application_classes
           end
         else
-          require file
+          require File.expand_path(file)
         end
       end
   end
