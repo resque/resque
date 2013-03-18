@@ -8,42 +8,36 @@ namespace :resque do
   task :work => [ :preload, :setup ] do
     require 'resque'
 
-    queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    queues = Resque.config.queues
 
     begin
       worker = Resque::Worker.new(*queues)
-      if ENV['LOGGING'] || ENV['VERBOSE']
-        worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
-      end
-      if ENV['VVERBOSE']
-        worker.very_verbose = ENV['VVERBOSE']
-      end
-      worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
+      worker.term_timeout = Resque.config.resque_term_timeout
     rescue Resque::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
 
-    if ENV['BACKGROUND']
+    if Resque.config.background
       unless Process.respond_to?('daemon')
         abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
       Process.daemon(true)
     end
 
-    if ENV['PIDFILE']
-      File.open(ENV['PIDFILE'], 'w') { |f| f << worker.pid }
+    if Resque.config.pid_file
+      File.open(Resque.config.pid_file, 'w') { |f| f << worker.pid }
     end
 
     worker.log "Starting worker #{worker}"
 
-    worker.work(ENV['INTERVAL'] || 5) # interval, will block
+    worker.work(Resque.config.interval) # interval, will block
   end
 
   desc "Start multiple Resque workers. Should only be used in dev mode."
   task :workers do
     threads = []
 
-    ENV['COUNT'].to_i.times do
+    Resque.config.count.to_i.times do
       threads << Thread.new do
         system "rake resque:work"
       end

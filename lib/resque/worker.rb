@@ -534,9 +534,9 @@ module Resque
     def idle?
       state == :idle
     end
-    
+
     def will_fork?
-      !@cant_fork && !$TESTING && (ENV["FORK_PER_JOB"] != 'false')
+      !@cant_fork && !$TESTING && Resque.config.fork_per_job
     end
 
     # Returns a symbol representing the current worker state,
