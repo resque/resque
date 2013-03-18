@@ -5,7 +5,7 @@ module Resque
 
     desc "work", "Start processing jobs."
     option :queue,     :aliases => ["-q"], :type => :string,  :default => "*"
-    option :require,   :aliases => ["-R"], :type => :string,  :default => "."
+    option :require,   :aliases => ["-r"], :type => :string,  :default => "."
     option :pid,       :aliases => ["-p"], :type => :string
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
