@@ -68,10 +68,6 @@ module Resque
 
     protected
 
-      def load_config(path)
-        load(File.expand_path(path))
-      end
-
       def load_enviroment(file)
         if File.directory?(file)
           require "rails"
