@@ -3,7 +3,8 @@ require "resque"
 module Resque
   class CLI < Thor
 
-    desc "work QUEUE", "Start processing jobs."
+    desc "work", "Start processing jobs."
+    option :queue,     :aliases => ["-q"], :type => :string,  :default => "*"
     option :require,   :aliases => ["-R"], :type => :string,  :default => "."
     option :pid,       :aliases => ["-p"], :type => :string
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
@@ -11,8 +12,8 @@ module Resque
     option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
     #option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
     #option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
-    def work(queue = "*")
-      queues = queue.to_s.split(',')
+    def work
+      queues = options[:queue].to_s.split(',')
 
       load_enviroment(options[:require])
       worker = Resque::Worker.new(*queues)
