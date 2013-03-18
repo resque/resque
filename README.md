@@ -187,7 +187,7 @@ Coming soon.
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](https://github.com/defunkt/resque/blob/master/CONTRIBUTINGA.md).
+Please see [CONTRIBUTING.md](https://github.com/defunkt/resque/blob/master/CONTRIBUTING.md).
 
 ## Anything we missed?
 
