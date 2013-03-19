@@ -186,12 +186,7 @@ module Resque
         job.perform
         run_hook :after_perform, job
       rescue Object => e
-        Resque.logger.info "#{job.inspect} failed: #{e.inspect}"
-        begin
-          job.fail(e)
-        rescue Object => e
-          Resque.logger.info "Received exception when reporting failure: #{e.inspect}"
-        end
+        job.fail(e)
         failed!
       else
         Resque.logger.info "done: #{job.inspect}"

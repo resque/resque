@@ -223,12 +223,17 @@ module Resque
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
-      run_failure_hooks(exception) if has_payload_class?
-      Failure.create \
-        :payload   => payload,
-        :exception => exception,
-        :worker    => worker,
-        :queue     => queue
+      Resque.logger.info "#{inspect} failed: #{exception.inspect}"
+      begin
+        run_failure_hooks(exception) if has_payload_class?
+        Failure.create \
+          :payload   => payload,
+          :exception => exception,
+          :worker    => worker,
+          :queue     => queue
+      rescue Exception => e
+        Resque.logger.info "Received exception when reporting failure: #{e.inspect}"
+      end
     end
 
     # Creates an identical job, essentially placing this job back on
