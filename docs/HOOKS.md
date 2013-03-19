@@ -43,6 +43,10 @@ All worker hooks can also be set using a setter, e.g.
     Resque.after_fork = proc { puts "called" }
 
 
+Workers can also take advantage of running any code defined using Ruby's `at_exit` block by setting
+ENV["RUN_AT_EXIT_HOOKS"]=1. By default, this is turned off. Be advised that setting this value might execute
+code from gems which register their own `at_exit` hooks.
+
 Job Hooks
 ---------
 

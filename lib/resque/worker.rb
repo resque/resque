@@ -20,6 +20,10 @@ module Resque
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
+    # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
+    # registered in the application. Otherwise, forked workers exit with `exit!`
+    attr_accessor :run_at_exit_hooks
+
     attr_writer :to_s
 
     # Returns an array of all worker objects.
@@ -138,9 +142,7 @@ module Resque
               unregister_signal_handlers if term_child
               reconnect
               perform(job, &block)
-              # Be sure to have the child exit or the child process can eat up huge amounts of swap space
-              # See https://github.com/defunkt/resque/issues/862
-              exit
+              exit! unless run_at_exit_hooks
             end
 
             srand # Reseeding
