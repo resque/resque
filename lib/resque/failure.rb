@@ -33,7 +33,7 @@ module Resque
     def self.backend
       return @backend if @backend
 
-      case ENV['FAILURE_BACKEND']
+      case Resque.config.failure_backend
       when 'redis_multi_queue'
         require 'resque/failure/redis_multi_queue'
         @backend = Failure::RedisMultiQueue
@@ -41,7 +41,7 @@ module Resque
         require 'resque/failure/redis'
         @backend = Failure::Redis
       else
-        raise ArgumentError, "invalid failure backend: #{FAILURE_BACKEND}"
+        raise ArgumentError, "invalid failure backend: #{Resque.config.failure_backend}"
       end
     end
 
