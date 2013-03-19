@@ -4,7 +4,12 @@ require 'bundler/gem_tasks'
 require 'rake/testtask'
 require 'yard'
 
-Rake::TestTask.new
+Rake::TestTask.new do |test|
+  test.verbose = true
+  test.libs << "test/legacy"
+  test.libs << "lib"
+  test.test_files = FileList['test/resque/**/*_test.rb']
+end
 
 Rake::TestTask.new(:legacy) do |test|
   test.libs << "test/legacy"

@@ -5,7 +5,7 @@ module Resque
 
     desc "work", "Start processing jobs."
     option :queue,     :aliases => ["-q"], :type => :string,  :default => "*"
-    option :require,   :aliases => ["-r"], :type => :string,  :default => "."
+    option :require,   :aliases => ["-r"], :type => :string
     option :pid,       :aliases => ["-p"], :type => :string
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
@@ -71,7 +71,7 @@ module Resque
       def load_enviroment(file = nil)
         return if file.nil?
 
-        if File.directory?(file)
+        if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/application.rb"))
           require "rails"
           require File.expand_path("#{file}/config/environment.rb")
           if defined?(::Rails) && ::Rails.respond_to?(:application)
