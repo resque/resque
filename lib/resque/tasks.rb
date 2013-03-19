@@ -20,6 +20,7 @@ namespace :resque do
       end
       worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
       worker.term_child = ENV['TERM_CHILD']
+      worker.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
     rescue Resque::NoQueueError
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
