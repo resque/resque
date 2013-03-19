@@ -132,19 +132,15 @@ module Resque
           job.worker = self
           working_on job
 
-          if @child = fork(job) do
-              unregister_signal_handlers
-              procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
-              reconnect
-              perform(job, &block)
-            end
-            srand # Reseeding
-            procline "Forked #{@child} at #{Time.now.to_i}"
-            begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
-            end
+          @child = fork(job) do
+            unregister_signal_handlers
+            procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
+            reconnect
+            perform(job, &block)
+          end
+
+          if @child
+            wait_for_child(@child)
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             procline "Processing #{job.queue} since #{Time.now.to_i}"
@@ -164,6 +160,18 @@ module Resque
     rescue Exception => exception
       unregister_worker(exception)
     end
+
+    def wait_for_child(child)
+      srand # Reseeding
+      procline "Forked #{child} at #{Time.now.to_i}"
+      begin
+        Process.waitpid(child)
+      rescue SystemCallError
+        nil
+      end
+    end
+
+
     # DEPRECATED. Processes a single job. If none is given, it will
     # try to produce one. Usually run in the child.
     def process(job = nil, &block)
