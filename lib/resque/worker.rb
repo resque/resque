@@ -128,26 +128,7 @@ module Resque
         pause if should_pause?
 
         if job = reserve(interval)
-          Resque.logger.info "got: #{job.inspect}"
-          job.worker = self
-          working_on job
-
-          @child = fork(job) do
-            unregister_signal_handlers
-            procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
-            reconnect
-            perform(job, &block)
-          end
-
-          if @child
-            wait_for_child(@child)
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
-          else
-            procline "Processing #{job.queue} since #{Time.now.to_i}"
-            reconnect unless @cant_fork
-            perform(job, &block)
-          end
-          done_working
+          process_job(job, &block)
           @child = nil
         else
           break if interval.zero?
@@ -159,6 +140,29 @@ module Resque
       unregister_worker
     rescue Exception => exception
       unregister_worker(exception)
+    end
+
+    def process_job(job, &block)
+      Resque.logger.info "got: #{job.inspect}"
+      job.worker = self
+      working_on job
+
+      @child = fork(job) do
+        unregister_signal_handlers
+        procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
+        reconnect
+        perform(job, &block)
+      end
+
+      if @child
+        wait_for_child(@child)
+        job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
+      else
+        procline "Processing #{job.queue} since #{Time.now.to_i}"
+        reconnect unless @cant_fork
+        perform(job, &block)
+      end
+      done_working
     end
 
     def wait_for_child(child)
