@@ -25,6 +25,16 @@ module Resque
       end
     end
 
+    # Factory method, given a list of queues, give us a
+    # multiqueue
+    def self.from_queues(queues)
+      new_queues = queues.map do |queue|
+        Queue.new(queue, Resque.redis, Resque.coder)
+      end
+
+      new(new_queues, Resque.redis)
+    end
+
     # Pop an item off one of the queues.  This method will block until an item
     # is available. This method returns a tuple of the queue object and job.
     #

@@ -198,11 +198,7 @@ module Resque
     def reserve(interval = 5.0)
       interval = interval.to_i
 
-      new_queues = queues.map do |queue|
-        Queue.new(queue, Resque.redis, Resque.coder)
-      end
-
-      multi_queue = MultiQueue.new(new_queues, Resque.redis)
+      multi_queue = MultiQueue.from_queues(queues)
 
       if interval < 1
         begin
