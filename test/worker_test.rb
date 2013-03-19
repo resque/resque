@@ -47,7 +47,7 @@ context "Resque::Worker" do
     end
   end
 
-  test "executes at_exit hooks" do
+  test "executes at_exit hooks when configured with run_at_exit_hooks" do
     tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
     FileUtils.rm_f tmpfile
 
@@ -55,6 +55,26 @@ context "Resque::Worker" do
       Process.waitpid(worker_pid)
       assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
       assert_equal "at_exit", File.open(tmpfile).read.strip
+    else
+      # ensure we actually fork
+      $TESTING = false
+      Resque.redis.client.reconnect
+      Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
+      worker = Resque::Worker.new(:at_exit_jobs)
+      worker.run_at_exit_hooks = true
+      worker.work(0)
+      exit
+    end
+
+  end
+
+  test "does not execute at_exit hooks by default" do
+    tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
+    FileUtils.rm_f tmpfile
+
+    if worker_pid = Kernel.fork
+      Process.waitpid(worker_pid)
+      assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
       $TESTING = false
