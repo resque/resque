@@ -2,6 +2,7 @@ require 'logger'
 require 'redis/namespace'
 
 require 'resque/version'
+require 'resque/config'
 
 require 'resque/errors'
 
