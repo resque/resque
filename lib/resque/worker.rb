@@ -352,22 +352,34 @@ module Resque
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
     def kill_child
-      if @child
-        unless Process.waitpid(@child, Process::WNOHANG)
-          Resque.logger.debug "Sending TERM signal to child #{@child}"
-          Process.kill("TERM", @child)
-          (term_timeout.to_f * 10).round.times do |i|
-            sleep(0.1)
-            return if Process.waitpid(@child, Process::WNOHANG)
-          end
-          Resque.logger.debug "Sending KILL signal to child #{@child}"
-          Process.kill("KILL", @child)
-        else
-          Resque.logger.debug "Child #{@child} already quit."
-        end
+      return unless @child
+
+      if Process.waitpid(@child, Process::WNOHANG)
+        Resque.logger.debug "Child #{@child} already quit."
+        return
       end
+
+      signal_child("TERM", @child)
+
+      signal_child("KILL", @child) unless quit_gracefully?(@child)
     rescue SystemCallError
       Resque.logger.debug "Child #{@child} already quit and reaped."
+    end
+
+    # send a signal to a child, have it logged.
+    def signal_child(signal, child)
+      Resque.logger.debug "Sending #{signal} signal to child #{child}"
+      Process.kill(signal, child)
+    end
+
+    # has our child quit gracefully within the timeout limit?
+    def quit_gracefully?(child)
+      (term_timeout.to_f * 10).round.times do |i|
+        sleep(0.1)
+        return true if Process.waitpid(child, Process::WNOHANG)
+      end
+
+      false
     end
 
     # are we paused?
