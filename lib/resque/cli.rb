@@ -8,8 +8,8 @@ module Resque
     class_option :namespace, :aliases => ["-N"], :type => :string
 
     desc "work", "Start processing jobs."
-    option :queue,     :aliases => ["-q"], :type => :string,  :default => "*"
-    option :require,   :aliases => ["-r"], :type => :string
+    option :queues,    :aliases => ["-q"], :type => :string,  :default => "*"
+    option :require,   :aliases => ["-r"], :type => :string,  :default => "."
     option :pid,       :aliases => ["-p"], :type => :string
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
@@ -43,7 +43,6 @@ module Resque
     def kill(worker)
       load_config
 
-      before_action
       pid = worker.split(':')[1].to_i
 
       begin
@@ -80,15 +79,18 @@ module Resque
     protected
 
       def load_config
-        Resque.config = Resque::Config.new(YAML.load_file(File.expand_path(options[:config]))) if options[:config]
-        Resque.config.redis = options[:redis] if options[:redis]
-        Resque.config.namespace = options[:namespace] if options[:namespace]
+        opts = {}
+        if options[:config]
+          opts = YAML.load_file(File.expand_path(options[:config]))
+        end
+
+        Resque.config = opts.merge!(options)
       end
 
       def load_enviroment(file = nil)
         return if file.nil?
 
-        if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/application.rb"))
+        if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/environment.rb"))
           require "rails"
           require File.expand_path("#{file}/config/environment.rb")
           if defined?(::Rails) && ::Rails.respond_to?(:application)
