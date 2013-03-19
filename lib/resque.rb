@@ -20,6 +20,7 @@ require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/json_coder'
+require 'resque/redis_factory'
 
 require 'resque/vendor/utf8_util'
 
@@ -35,29 +36,8 @@ module Resque
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
   def redis=(server)
-    case server
-    when String
-      if server['redis://']
-        redis = Redis.connect(:url => server, :thread_safe => true)
-      else
-        server, namespace = server.split('/', 2)
-        host, port, db = server.split(':')
+    @redis = RedisFactory.from_server(server)
 
-        redis = Redis.new(
-          :host => host,
-          :port => port,
-          :db => db,
-          :thread_safe => true
-        )
-      end
-      namespace ||= :resque
-
-      @redis = Redis::Namespace.new(namespace, :redis => redis)
-    when Redis::Namespace
-      @redis = server
-    else
-      @redis = Redis::Namespace.new(:resque, :redis => server)
-    end
     @queues = Hash.new do |h,name|
       h[name] = Resque::Queue.new(name, @redis, coder)
     end
