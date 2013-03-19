@@ -1,6 +1,4 @@
 #!/usr/bin/env ruby
-
-require 'thor'
 require 'resque/cli'
 
 Resque::CLI.start(ARGV)

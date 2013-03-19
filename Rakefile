@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
 require 'bundler/gem_tasks'
+require 'resque/tasks'
 require 'rake/testtask'
 require 'yard'
 
