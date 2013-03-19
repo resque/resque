@@ -31,6 +31,14 @@ module Resque
 
   extend Forwardable
 
+  def self.config
+    @config ||= Config.new
+  end
+
+  def self.configure
+    yield config
+  end
+
   # Accepts:
   #   1. A 'hostname:port' String
   #   2. A 'hostname:port:db' String (to select the Redis db)
