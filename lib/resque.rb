@@ -1,6 +1,8 @@
 require 'mono_logger'
 require 'redis/namespace'
 
+require "core_ext/hash"
+
 require 'resque/version'
 require 'resque/config'
 
