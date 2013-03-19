@@ -14,8 +14,6 @@ module Resque
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
     option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
     option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
-    #option :verbose,   :aliases => ["-v"], :type => :boolean, :default => false
-    #option :vverbose,  :aliases => ["-vv"], :type => :boolean, :default => false
     def work
       load_config
 
@@ -23,8 +21,6 @@ module Resque
       worker = Resque::Worker.new(*Resque.config.queues)
 
       worker.term_timeout = Resque.config.timeout
-      #worker.verbose = options[:verbose]
-      #worker.very_verbose = options[:vverbose]
 
       if Resque.config.deamon
         Process.daemon(true)
