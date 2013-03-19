@@ -1,4 +1,5 @@
 require 'time'
+require 'resque/failure/each'
 
 module Resque
   module Failure
@@ -40,13 +41,7 @@ module Resque
         Resque.list_range(:failed, offset, limit)
       end
 
-      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
-        Array(all(offset, limit, queue)).each_with_index do |item, i|
-          if !class_name || (item['payload'] && item['payload']['class'] == class_name)
-            yield offset + i, item
-          end
-        end
-      end
+      include Each
 
       def self.clear(queue = nil)
         raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
