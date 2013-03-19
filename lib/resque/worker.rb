@@ -1,4 +1,5 @@
 require 'time'
+require 'redis/distributed'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -34,20 +35,17 @@ module Resque
 
       names.map! { |name| "worker:#{name}" }
 
-      reportedly_working = {}
-
-      begin
-        reportedly_working = redis.mapped_mget(*names).reject do |key, value|
-          value.nil? || value.empty?
-        end
-      rescue Redis::Distributed::CannotDistribute
-        names.each do |name|
-          value = redis.get(name)
-          reportedly_working[name] = value unless value.nil? || value.empty?
-        end
+      keys_values = if redis.kind_of?(Redis::Distributed)
+        Hash[*names.collect do |name|
+          [name, redis.get(name)]
+        end]
+      else
+        redis.mapped_mget(*names)
       end
 
-      reportedly_working.keys.map do |key|
+      keys_values.map do |key, value|
+        next if value.nil? || value.empty?
+
         find key.sub("worker:", '')
       end.compact
     end
