@@ -1,6 +1,8 @@
 require 'mono_logger'
 require 'redis/namespace'
 
+require "core_ext/hash"
+
 require 'resque/version'
 require 'resque/config'
 
@@ -30,6 +32,18 @@ module Resque
   extend self
 
   extend Forwardable
+
+  def self.config=(options = {})
+    @config = Config.new(options)
+  end
+
+  def self.config
+    @config ||= Config.new
+  end
+
+  def self.configure
+    yield config
+  end
 
   # Accepts:
   #   1. A 'hostname:port' String
