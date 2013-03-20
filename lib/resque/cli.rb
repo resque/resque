@@ -42,7 +42,7 @@ module Resque
 
       threads = []
 
-      options[:count].to_i.times do
+      Resque.config.count.to_i.times do
         threads << Thread.new do
           self.work
         end
