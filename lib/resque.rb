@@ -1,4 +1,4 @@
-require 'logger'
+require 'mono_logger'
 require 'redis/namespace'
 
 require 'resque/version'
@@ -429,5 +429,5 @@ module Resque
 end
 
 # Log to STDOUT by default
-Resque.logger           = Logger.new(STDOUT)
+Resque.logger           = MonoLogger.new(STDOUT)
 Resque.logger.formatter = Resque::QuietFormatter.new
