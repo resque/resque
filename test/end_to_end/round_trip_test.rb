@@ -22,7 +22,7 @@ describe "one full round trip" do
     it "shows a site" do
       visit '/'
 
-      assert_equal 'Hello world!', page.text
+      assert_equal 'Hello world!', page.body
     end
   end
 end
