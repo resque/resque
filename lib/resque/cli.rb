@@ -97,7 +97,7 @@ module Resque
             $rails_rake_task = false
             ::Rails::Initializer.run :load_application_classes
           end
-        else
+        elsif File.file?(file)
           require File.expand_path(file)
         end
       end
