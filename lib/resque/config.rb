@@ -1,20 +1,52 @@
+require "ostruct"
+
 module Resque
-  Config = Struct.new(:background, :count, :failure_backend, :fork_per_job,
-                      :interval, :pid_file, :queues, :resque_term_timeout)
+  class Config
+    attr_accessor :options
 
-  @config = Config.new(
-    ENV['BACKGROUND'],
-    ENV['COUNT'],
-    ENV['FAILURE_BACKEND'] || 'redis',
-    ENV['FORK_PER_JOB'].nil? || ENV['FORK_PER_JOB'] == 'true',
-    ENV['INTERVAL'] || 5,
-    ENV['PID_FILE'],
-    (ENV['QUEUES'] || ENV['QUEUE'] || '*').to_s.split(','),
-    ENV['RESCUE_TERM_TIMEOUT'] || 4.0
-  )
+    def initialize(options = {})
+      @options = {
+        :deamon => env(:background) || false,
+        :count => env(:count) || 5,
+        :failure_backend => env(:failure_backend) || "redis",
+        :fork_per_job => env(:fork_per_job).nil? || env(:fork_per_job) == "true",
+        :interval => env(:interval) || 5,
+        :pid => env(:pid_file) || nil,
+        :queues => (env(:queue) || env(:queues) || "*"),
+        :timeout => env(:rescue_term_timeout) || 4.0,
+        :require => nil
+      }.merge!(options.symbolize_keys!)
+    end
 
-  def self.config
-    yield @config if block_given?
-    @config
+    def timeout
+      @options[:timeout].to_f
+    end
+
+    def interval
+      @options[:interval].to_f
+    end
+
+    def queues
+      @options[:queues].to_s.split(',')
+    end
+
+    def method_missing(name)
+      name = name.to_sym
+      if @options.has_key?(name)
+        @options[name]
+      end
+    end
+
+    protected
+
+      def env(key)
+        key = key.to_s.upcase
+        if ENV.key?(key)
+          puts "DEPRECATION WARNING: Using ENV variables is deprecated and will be removed in Resque 2.1"
+          ENV[key]
+        else
+          nil
+        end
+      end
   end
 end
