@@ -88,6 +88,19 @@ module Resque
       end
     end
 
+    desc "sort_failures", "Sort the 'failed' queue for the redis_multi_queue failure backend"
+    def sort_failures
+      require 'resque/failure/redis'
+      load_config
+
+      warn "Sorting #{Resque::Failure.count} failures..."
+      Resque::Failure.each(0, Resque::Failure.count) do |_, failure|
+        data = Resque.encode(failure)
+        Resque.redis.rpush(Resque::Failure.failure_queue_name(failure['queue']), data)
+      end
+      warn "done!"
+    end
+
     protected
 
       def load_config
