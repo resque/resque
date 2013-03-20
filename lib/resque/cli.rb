@@ -35,6 +35,22 @@ module Resque
       worker.work(Resque.config.interval) # interval, will block
     end
 
+    desc "workers", "Start multiple Resque workers. Should only be used in dev mode."
+    option :count, :aliases => ["-n"], :type => :numeric, :default => 5
+    def workers
+      load_config
+
+      threads = []
+
+      options[:count].to_i.times do
+        threads << Thread.new do
+          self.work
+        end
+      end
+
+      threads.each { |thread| thread.join }
+    end
+
     desc "kill WORKER", "Kills a worker"
     def kill(worker)
       load_config
