@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency "redis-namespace", "~> 1.0"
   s.add_dependency "json"
+  s.add_dependency "mono_logger", "~> 1.0"
 
   s.description = %s{
     Resque is a Redis-backed Ruby library for creating background jobs,

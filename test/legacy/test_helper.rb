@@ -165,7 +165,7 @@ end
 
 require 'tempfile'
 def reset_logger
-  $test_logger ||= Logger.new(Tempfile.new("resque.log"))
+  $test_logger ||= MonoLogger.new(Tempfile.new("resque.log"))
   Resque.logger = $test_logger
 end
 
