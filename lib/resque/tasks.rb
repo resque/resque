@@ -7,11 +7,13 @@ namespace :resque do
 
   desc "Start a Resque worker"
   task :work => [ :preload, :setup ] do
+    puts "DEPRECATION WARNING: Rake tasks are depreacted. Use `resque work` instead"
     Resque::CLI.new.work
   end
 
   desc "Start multiple Resque workers. Should only be used in dev mode."
   task :workers do
+    puts "DEPRECATION WARNING: Rake tasks are depreacted. Use `resque workers` instead"
     Resque::CLI.new.workers
   end
 
@@ -30,6 +32,7 @@ namespace :resque do
   namespace :failures do
     desc "Sort the 'failed' queue for the redis_multi_queue failure backend"
     task :sort do
+      puts "DEPRECATION WARNING: Rake tasks are depreacted. Use `resque sort_failures` instead"
       Resque::CLI.new.sort_failures
     end
   end
