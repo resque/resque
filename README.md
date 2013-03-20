@@ -66,7 +66,8 @@ Then run `bundle`. If you're not using Bundler, just `gem install resque`.
 
 Resque is used by a large number of people, across a diverse set of codebases.
 There is no official requirement other than Ruby newer than 1.8.7. We of course
-reccomend Ruby 2.0.0, but test against many Rubies, as you can see from our [.travis.yml](https://github.com/defunkt/resque/blob/master/.travis.yml).
+reccomend Ruby 2.0.0, but test against many Rubies, as you can see from our
+[.travis.yml](https://github.com/defunkt/resque/blob/master/.travis.yml).
 
 We would love to support non-MRI Rubies, but they may have bugs. We would love
 some contributions to clear up failures on these Rubies, but they are set to
@@ -77,12 +78,15 @@ Rails 3.2 or 4.
 
 ### Backwards Compatibility
 
-Resque uses [SemVer](http://semver.org/), and takes it seriously.
+Resque uses [SemVer](http://semver.org/), and takes it seriously. If you find
+an interface regression, please [file an issue](https://defunkt/resque/issues)
+so that we can address it.
 
-If you have previously used Resque 1.23, and you wish to transition to 2.0,
-our old interface should work just fine. If you find a regression, please
-[file a bug](https://github.com/defunkt/resque/issues) and mention that you're
-using the older interface.
+If you have previously used Resque 1.23, the transition to 2.0 shouldn't be
+too painful: we've tried to upgrade _interfaces_ but leave _semantics_ largely
+in place. Check out
+[UPGRADING.md](https://github.com/defunkt/resque/blob/master/UPGRADING.md) for
+detailed examples of what needs to be done.
 
 ## Jobs
 
