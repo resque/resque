@@ -570,7 +570,7 @@ module Resque
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
     def to_s
-      @to_s ||= "#{hostname}:#{Process.pid}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{pid}:#{@queues.join(',')}"
     end
     alias_method :id, :to_s
 
@@ -580,7 +580,7 @@ module Resque
 
     # Returns Integer PID of running worker
     def pid
-      Process.pid
+      @pid ||= Process.pid
     end
 
     # Returns an Array of string pids of all the other workers on this
