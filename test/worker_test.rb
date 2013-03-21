@@ -762,8 +762,8 @@ context "Resque::Worker" do
         assert_nil result
 
         # ensure that the child pid is no longer running
-        child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-        assert !child_still_running
+        child_not_running = `ps -p #{child_pid.to_s} -o pid=`.empty?
+        assert child_not_running
       ensure
         remaining_keys = Resque.redis.keys('sigterm-test:*') || []
         Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
