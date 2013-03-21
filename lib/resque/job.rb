@@ -150,7 +150,12 @@ module Resque
     # arguments given in the payload.
     def perform
       begin
-        JobPerformer.new.perform(payload_class, args, before_hooks, around_hooks, after_hooks)
+        hooks = {
+          :before => before_hooks,
+          :around => around_hooks,
+          :after => after_hooks
+        }
+        JobPerformer.new.perform(payload_class, args, hooks)
       # If an exception occurs during the job execution, look for an
       # on_failure hook then re-raise.
       rescue Object => e
