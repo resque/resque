@@ -1,4 +1,5 @@
 require "ostruct"
+require "resque/core_ext/hash"
 
 module Resque
   class Config
@@ -15,7 +16,7 @@ module Resque
         :queues => (env(:queue) || env(:queues) || "*"),
         :timeout => env(:rescue_term_timeout) || 4.0,
         :require => nil
-      }.merge!(options)
+      }.merge!(options.symbolize_keys!)
     end
 
     def timeout
