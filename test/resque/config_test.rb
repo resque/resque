@@ -33,13 +33,13 @@ describe Resque::Config do
   end
 
   it "method missing" do
-    config = Resque::Config.new(foo: "bar")
+    config = Resque::Config.new(:foo => "bar")
     assert_equal config.options[:foo], "bar"
     assert_equal config.foo, "bar"
   end
 
   it "interval & time should be floats" do
-    config = Resque::Config.new(interval: "1", timeout: "2")
+    config = Resque::Config.new(:interval => "1", :timeout => "2")
 
     assert_equal config.interval, 1.0
     assert_equal config.timeout, 2.0
