@@ -1,5 +1,8 @@
 require 'test_helper'
-require 'minitest/mock'
+
+require 'resque/config'
+
+require 'minitest/autorun'
 
 describe Resque::Config do
   it "defaults" do
@@ -19,17 +22,29 @@ describe Resque::Config do
   end
 
   it "return config var from ENV if set" do
-    ENV["QUEUES"] = "high,failure"
-    config = Resque::Config.new
-    assert_equal config.queues, ["high", "failure"]
-    ENV.delete("QUEUES")
+    begin
+      ENV["QUEUES"] = "high,failure"
+
+      suppress_warnings do
+        config = Resque::Config.new
+        assert_equal config.queues, ["high", "failure"]
+      end
+    ensure
+      ENV.delete("QUEUES")
+    end
   end
 
   it "return config var from file (should overwrite ENV)" do
-    ENV["QUEUES"] = "low,archive"
-    config = Resque::Config.new({ "queue" => "low,archive" })
-    assert_equal config.queues, ["low", "archive"]
-    ENV.delete("QUEUES")
+    begin
+      ENV["QUEUES"] = "low,archive"
+
+      suppress_warnings do
+        config = Resque::Config.new({ "queue" => "low,archive" })
+        assert_equal config.queues, ["low", "archive"]
+      end
+    ensure
+      ENV.delete("QUEUES")
+    end
   end
 
   it "method missing" do

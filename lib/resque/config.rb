@@ -15,7 +15,7 @@ module Resque
         :queues => (env(:queue) || env(:queues) || "*"),
         :timeout => env(:rescue_term_timeout) || 4.0,
         :require => nil
-      }.merge!(options.symbolize_keys!)
+      }.merge!(options)
     end
 
     def timeout
@@ -42,7 +42,7 @@ module Resque
       def env(key)
         key = key.to_s.upcase
         if ENV.key?(key)
-          puts "DEPRECATION WARNING: Using ENV variables is deprecated and will be removed in Resque 2.1"
+          Kernel.warn "DEPRECATION WARNING: Using ENV variables is deprecated and will be removed in Resque 2.1"
           ENV[key]
         else
           nil

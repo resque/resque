@@ -7,7 +7,7 @@ require 'yard'
 
 Rake::TestTask.new do |test|
   test.verbose = true
-  test.libs << "test/legacy"
+  test.libs << "test/resque"
   test.libs << "lib"
   test.test_files = FileList['test/resque/**/*_test.rb']
 end
