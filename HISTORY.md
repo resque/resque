@@ -1,10 +1,28 @@
 ## unreleased
 
-* Web UI: Fix regression that caused the failure tab to break when using certain failure backends (@kjg)
+* No changes.
+
+## 1.24.0 (2013-3-21)
+
+* Web UI: Fix regression that caused the failure tab to break when using
+  certain failure backends (@kjg)
 * Web UI: Add page list to queues (@ql)
-* Web UI: Fix regression that caused the failure tab to break when clicking on "clear all failures" under certain failure backends, #859 (@jonhyman)
-* Fix regression for Resque hooks where Resque would error out if you assigned multiple hooks using an array, #859 (@jonhyman)
-* Adds ENV["RUN_AT_EXIT_HOOKS"] which when set to 1 causes any defined `at_exit` hooks to be run on the child when the forked process exits, #862 (@jonhyman)
+* Web UI: Fix regression that caused the failure tab to break when clicking on
+  "clear all failures" under certain failure backends, #859 (@jonhyman)
+* Fix regression for Resque hooks where Resque would error out if you assigned
+  multiple hooks using an array, #859 (@jonhyman)
+* Adds ENV["RUN_AT_EXIT_HOOKS"] which when set to 1 causes any defined
+  `at_exit` hooks to be run on the child when the forked process exits, #862
+  (@jonhyman)
+* Bump up redis-namespace to 1.2.
+* Remove multi_json, the JSON gem does the right thing everywhere now.
+* Documentation fixes with demo instructions.
+* Fixed encoding for worker PIDs on Windows (@kzgs)
+* Cache value of PID in an ivar. This way, if you try to look up worker PIDs
+  from some other process (such as the console), they will be correct.
+* Add a mutex-free logger. Ruby 2.0 does not allow you to use a mutex from
+  a signal handler, which can potentially cause deadlock. Now we're using
+  `mono_logger`, which has no locks.
 
 ## 1.23.1 (2013-3-7)
 
