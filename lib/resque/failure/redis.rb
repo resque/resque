@@ -21,7 +21,7 @@ module Resque
       end
 
       def self.count(queue = nil, class_name = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
+        check_queue(queue)
 
         if class_name
           n = 0
@@ -37,14 +37,14 @@ module Resque
       end
 
       def self.all(offset = 0, limit = 1, queue = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
+        check_queue(queue)
         Resque.list_range(:failed, offset, limit)
       end
 
       include Each
 
       def self.clear(queue = nil)
-        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s == "failed"
+        check_queue(queue)
         Resque.redis.del(:failed)
       end
 
@@ -86,6 +86,10 @@ module Resque
             i += 1
           end
         end
+      end
+
+      def self.check_queue(queue)
+        raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
       end
 
       def filter_backtrace(backtrace)
