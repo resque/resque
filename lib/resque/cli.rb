@@ -12,7 +12,7 @@ module Resque
     option :require,   :aliases => ["-r"], :type => :string,  :default => "."
     option :pid,       :aliases => ["-p"], :type => :string
     option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
-    option :deamon,    :aliases => ["-d"], :type => :boolean, :default => false
+    option :daemon,    :aliases => ["-d"], :type => :boolean, :default => false
     option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
     def work
       load_config
@@ -22,7 +22,7 @@ module Resque
 
       worker.term_timeout = Resque.config.timeout
 
-      if Resque.config.deamon
+      if Resque.config.daemon
         Process.daemon(true)
       end
 
