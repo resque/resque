@@ -709,8 +709,8 @@ describe "Resque::Worker" do
             assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
 
             # ensure that the child pid is no longer running
-            child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-            assert !child_still_running
+            child_not_running = `ps -p #{child_pid.to_s} -o pid=`.empty?
+            assert child_not_running
 
             # see if post-cleanup occurred. This should happen IFF the rescue_time is less than the term_timeout
             post_cleanup_occurred = Resque.redis.lpop( 'sigterm-test:final' )
