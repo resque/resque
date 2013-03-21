@@ -42,7 +42,9 @@ context "Resque::Worker" do
       $TESTING = false
       Resque.redis.client.reconnect
       worker = Resque::Worker.new(:jobs)
-      worker.work(0)
+      suppress_warnings do
+        worker.work(0)
+      end
       exit
     end
   end
@@ -62,7 +64,9 @@ context "Resque::Worker" do
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       worker.run_at_exit_hooks = true
-      worker.work(0)
+      suppress_warnings do
+        worker.work(0)
+      end
       exit
     end
 
@@ -81,7 +85,9 @@ context "Resque::Worker" do
       Resque.redis.client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
-      worker.work(0)
+      suppress_warnings do
+        worker.work(0)
+      end
       exit
     end
 
@@ -735,7 +741,9 @@ context "Resque::Worker" do
 
           worker = Resque::Worker.new(:long_running_job)
 
-          worker.work(0)
+          suppress_warnings do
+            worker.work(0)
+          end
           exit!
         end
 
@@ -838,9 +846,14 @@ context "Resque::Worker" do
     end
 
     test "displays warning when not using term_child" do
-      stdout, stderr = capture_io { @worker.work(0) }
+      begin
+        $TESTING = false
+        stdout, stderr = capture_io { @worker.work(0) }
 
-      assert stderr.match(/^WARNING:/)
+        assert stderr.match(/^WARNING:/)
+      ensure
+        $TESTING = true
+      end
     end
 
     test "it does not display warning when using term_child" do
@@ -866,7 +879,9 @@ context "Resque::Worker" do
       begin
         $TESTING = false
         Resque.enqueue(SuicidalJob)
-        @worker.work(0)
+        suppress_warnings do
+          @worker.work(0)
+        end
         assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
       ensure
         $TESTING = true
