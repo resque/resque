@@ -1,6 +1,6 @@
 ## unreleased
 
-* No changes.
+* Adds a default value for `per_page` on resque-server for plugins which add tabs (@jonhyman)
 
 ## 1.24.0 (2013-3-21)
 
