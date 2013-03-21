@@ -669,6 +669,7 @@ module Resque
     end
 
     def logger_severity_deprecation_warning
+      return if $TESTING
       return if $warned_logger_severity_deprecation
       Kernel.warn "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
       Kernel.warn "Called from: #{caller[0..5].join("\n\t")}"

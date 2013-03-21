@@ -890,28 +890,48 @@ context "Resque::Worker" do
   end
 
   test "displays warning when using verbose" do
-    stdout, stderr = capture_io { @worker.verbose }
+    begin
+      $TESTING = false
+      stdout, stderr = capture_io { @worker.verbose }
+    ensure
+      $TESTING = true
+    end
     $warned_logger_severity_deprecation = false
 
     assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using verbose=" do
-    stdout, stderr = capture_io { @worker.verbose = true }
+    begin
+      $TESTING = false
+      stdout, stderr = capture_io { @worker.verbose = true }
+    ensure
+      $TESTING = true
+    end
     $warned_logger_severity_deprecation = false
 
     assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose" do
-    stdout, stderr = capture_io { @worker.very_verbose }
+    begin
+      $TESTING = false
+      stdout, stderr = capture_io { @worker.very_verbose }
+    ensure
+      $TESTING = true
+    end
     $warned_logger_severity_deprecation = false
 
     assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose=" do
-    stdout, stderr = capture_io { @worker.very_verbose = true }
+    begin
+      $TESTING = false
+      stdout, stderr = capture_io { @worker.very_verbose = true }
+    ensure
+      $TESTING = true
+    end
     $warned_logger_severity_deprecation = false
 
     assert stderr.match(/WARNING:/)
