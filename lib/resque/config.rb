@@ -6,7 +6,7 @@ module Resque
 
     def initialize(options = {})
       @options = {
-        :deamon => env(:background) || false,
+        :daemon => env(:background) || false,
         :count => env(:count) || 5,
         :failure_backend => env(:failure_backend) || "redis",
         :fork_per_job => env(:fork_per_job).nil? || env(:fork_per_job) == "true",

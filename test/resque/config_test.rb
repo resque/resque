@@ -4,7 +4,7 @@ require 'minitest/mock'
 describe Resque::Config do
   it "defaults" do
     defaults = {
-      :deamon => false,
+      :daemon => false,
       :count => 5,
       :failure_backend => "redis",
       :fork_per_job => true,
