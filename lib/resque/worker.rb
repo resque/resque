@@ -1,3 +1,5 @@
+require 'time'
+
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
   # the worker will fork off a child to process each job. This ensures
@@ -223,7 +225,7 @@ module Resque
       log e.backtrace.join("\n")
       raise e
     end
-    
+
     # Reconnect to Redis to avoid sharing a connection with the parent,
     # retry up to 3 times with increasing delay before giving up.
     def reconnect
@@ -534,7 +536,7 @@ module Resque
     def idle?
       state == :idle
     end
-    
+
     def will_fork?
       !@cant_fork && !$TESTING && (ENV["FORK_PER_JOB"] != 'false')
     end
@@ -627,7 +629,7 @@ module Resque
     def log!(message)
       debug(message)
     end
-    
+
     # Deprecated legacy methods for controlling the logging threshhold
     # Use Resque.logger.level now, e.g.:
     #
