@@ -443,15 +443,49 @@ context "Resque::Worker" do
   end
 
   test "Will call a before_fork hook before forking" do
-    Resque.redis.flushall
-    $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
+    $TESTING = false
+    begin
+      Resque.redis.flushall
+      $BEFORE_FORK_CALLED = false
+      Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
 
-    assert !$BEFORE_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert $BEFORE_FORK_CALLED
+      assert !$BEFORE_FORK_CALLED
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      workerA.work(0)
+      assert $BEFORE_FORK_CALLED
+    ensure
+      $TESTING = true
+    end
+  end
+
+  test "Will run multiple jobs per fork if configured" do
+    skip("TRAAAVIS!!!!") if RUBY_VERSION == "1.8.7"
+    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
+    # exit!(true) will be called in Worker#work; to share state, use a tempfile
+    file = Tempfile.new("resque_multiple_jobs")
+
+    begin
+      Resque.redis.flushall
+      File.open(file.path, "w") {|f| f.write(0)}
+      Resque.after_fork do
+        val = File.read(file).strip.to_i
+        File.open(file.path, "w") {|f| f.write(val + 1)}
+      end
+      2.times { Resque::Job.create(:jobs, CallNotifyJob) }
+
+      val = File.read(file.path).strip.to_i
+      assert_equal(0, val)
+      @worker.jobs_per_fork = 2
+      @worker.stubs(:will_fork?).returns(true)
+      @worker.work(0)
+      val = File.read(file.path).strip.to_i
+      assert_equal(1, val)
+    ensure
+      file.delete
+      @worker.jobs_per_fork = 1
+      Resque.after_fork = nil
+    end
   end
   
   test "Will not call a before_fork hook when the worker can't fork" do
