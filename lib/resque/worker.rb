@@ -15,7 +15,7 @@ module Resque
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
     attr_writer :jobs_per_fork
-    attr_accessor :max_seconds_per_fork
+    attr_reader :max_seconds_per_fork
 
     attr_accessor :term_timeout
 
@@ -97,7 +97,6 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
-      @max_seconds_per_fork ||= 60
       validate_queues
     end
 
@@ -132,11 +131,11 @@ module Resque
       $0 = "resque: Starting"
       startup
 
-      # This loop will be run by both the parent process and, if jobs_per_fork > 1, the child process as well
+      # This loop will be run by the parent process and, if jobs_per_fork > 1, the child process as well
       loop do
         break if shutdown?
 
-        if not paused? and job = reserve
+        if not paused? and (job = reserve)
           log "got: #{job.inspect}"
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
@@ -184,6 +183,10 @@ module Resque
 
     def jobs_per_fork
       (@jobs_per_fork || 1).to_i
+    end
+
+    def max_seconds_per_fork
+      (@max_seconds_per_fork || 60).to_i
     end
 
     def is_parent_process?
@@ -296,7 +299,7 @@ module Resque
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
     def fork(job)
-      return if @cant_fork
+      return if @cant_fork || ENV["FORK_PER_JOB"] == 'false'
 
       # Only run before_fork hooks if we're actually going to fork
       # (after checking @cant_fork)
@@ -397,13 +400,17 @@ module Resque
     def shutdown
       log 'Exiting...'
       @shutdown = true
-      shutdown_child if @child
+      shutdown_child if is_parent_process?
     end
 
     # Need to tell the child to shutdown since it might be looping performing multiple jobs per fork
     # The TSTP signal is registered only in forked processes and calls this function
     def shutdown_child
-      Process.kill('TSTP', @child)
+      begin
+        Process.kill('TSTP', @child)
+      rescue Errno::ESRCH
+        nil
+      end
     end
 
     # Kill the child and shutdown immediately.
