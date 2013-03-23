@@ -88,6 +88,7 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @cant_fork = false
       validate_queues
     end
 
@@ -271,7 +272,7 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork &block if will_fork?
+          Kernel.fork(&block) if will_fork?
         else
           raise NotImplementedError
         end
@@ -435,7 +436,7 @@ module Resque
       all_workers = Worker.all
       known_workers = worker_pids unless all_workers.empty?
       all_workers.each do |worker|
-        host, pid, queues = worker.id.split(':')
+        host, pid, _ = worker.id.split(':')
         next unless host == hostname
         next if known_workers.include?(pid)
         Resque.logger.debug "Pruning dead worker: #{worker}"
@@ -601,9 +602,9 @@ module Resque
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
       lines = `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap).split($/)
-      
+
       lines.select! { |line| line =~ /^PID:/}
-      lines.collect!{ |line| line.gsub /PID:\s+/, '' }
+      lines.collect!{ |line| line.gsub(/PID:\s+/, '') }
     end
 
     # Find Resque worker pids on Linux and OS X.

@@ -20,9 +20,14 @@ module UTF8Util
     true
   end
 
+
   # Replace invalid UTF-8 character sequences with a replacement character
   #
   # Returns self as valid UTF-8.
+  class << self
+    remove_method(:clean!) if method_defined?(:clean!)
+  end
+
   def self.clean!(str)
     sc = StringScanner.new(str)
     while sc.skip_until(HIGH_BIT_RANGE)

@@ -43,8 +43,6 @@ module Resque
     def pop(non_block = false)
       if non_block
         synchronize do
-          value = nil
-
           @queues.each do |queue|
             begin
               return [queue, queue.pop(true)]

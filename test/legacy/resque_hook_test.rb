@@ -13,10 +13,12 @@ describe "Resque Hooks" do
     @worker = Resque::Worker.new(:jobs)
 
     $called = false
-
     class CallNotifyJob
-      def self.perform
-        $called = true
+      #warning: previous definition of perform was here
+      silence_warnings do
+        def self.perform
+          $called = true
+        end
       end
     end
   end
