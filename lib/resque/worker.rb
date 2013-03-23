@@ -16,6 +16,8 @@ module Resque
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
+    attr_writer :jobs_per_fork
+    attr_reader :max_seconds_per_fork
 
     attr_accessor :term_timeout
 
@@ -131,42 +133,38 @@ module Resque
       $0 = "resque: Starting"
       startup
 
+      # This loop will be run by the parent process and, if jobs_per_fork > 1, the child process as well
       loop do
         break if shutdown?
 
-        if not paused? and job = reserve
+        if not paused? and (job = reserve)
           log "got: #{job.inspect}"
-          job.worker = self
-          working_on job
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
-          if @child = fork(job) do
-              unregister_signal_handlers if term_child
-              reconnect
-              perform(job, &block)
-              exit! unless run_at_exit_hooks
-            end
 
-            srand # Reseeding
-            procline "Forked #{@child} at #{Time.now.to_i}"
-            begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
-            end
+          # Ensure that the child doesn't keep forking if jobs_per_fork > 1
+          if will_fork? && !is_child_process?
+            @child = fork(job)
+          end
+
+          if is_parent_process?
+            wait_for_child
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
-            reconnect
             perform(job, &block)
+            child_exit if is_child_process? && performed_job_quota?
           end
+
           done_working
-          @child = nil
         else
           break if interval.zero?
           log! "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
           sleep interval
         end
+
+        # Don't let the child keep living forever, kill it after a certain time
+        child_exit if is_child_process? && performed_job_quota?
       end
 
       unregister_worker
@@ -174,6 +172,49 @@ module Resque
       log "Failed to start worker : #{exception.inspect}"
 
       unregister_worker(exception)
+    end
+
+    def child_exit
+      exit! unless run_at_exit_hooks
+      exit
+    end
+
+    def performed_job_quota?
+      @processed >= jobs_per_fork || (Time.now - @forked_at) > max_seconds_per_fork
+    end
+
+    def jobs_per_fork
+      (@jobs_per_fork || 1).to_i
+    end
+
+    def max_seconds_per_fork
+      (@max_seconds_per_fork || 60).to_i
+    end
+
+    def is_parent_process?
+      @child
+    end
+
+    def is_child_process?
+      # Don't use !@child here because the parent might not have forked in which case @child is nil
+      @is_child_process
+    end
+
+    def register_child_signal_handlers
+      unregister_signal_handlers if term_child
+      # Let the parent process tell us to shutdown, used if jobs_per_fork > 1
+      trap('TSTP') { shutdown }
+    end
+
+    def wait_for_child
+      srand # Reseeding
+      procline "Forked #{@child} at #{Time.now.to_i}"
+      begin
+        Process.waitpid(@child)
+      rescue SystemCallError
+        nil
+      end
+      @child = nil
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -190,9 +231,12 @@ module Resque
 
     # Processes a given job in the child.
     def perform(job)
+      reconnect
+      job.worker = self
+      working_on job
       begin
-        run_hook :after_fork, job if will_fork?
         job.perform
+        @processed += 1 if is_child_process?
       rescue Object => e
         log "#{job.inspect} failed: #{e.inspect}"
         begin
@@ -229,9 +273,12 @@ module Resque
     # Reconnect to Redis to avoid sharing a connection with the parent,
     # retry up to 3 times with increasing delay before giving up.
     def reconnect
+      return if @reconnected
+
       tries = 0
       begin
         redis.client.reconnect
+        @reconnected = true
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
           log "Error reconnecting to Redis; retrying"
@@ -253,8 +300,8 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork(job,&block)
-      return if @cant_fork
+    def fork(job)
+      return if @cant_fork || ENV["FORK_PER_JOB"] == 'false'
 
       # Only run before_fork hooks if we're actually going to fork
       # (after checking @cant_fork)
@@ -263,7 +310,20 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork &block if will_fork?
+          child_pid = nil
+          if will_fork?
+            child_pid = Kernel.fork
+            if child_pid.nil?
+              # after_fork hook might access Resque.redis so make sure we have reconnected
+              reconnect
+              run_hook :after_fork, job
+              @is_child_process = true
+              @processed = 0
+              @forked_at = Time.now
+              register_child_signal_handlers
+            end
+            child_pid
+          end
         else
           raise NotImplementedError
         end
@@ -279,6 +339,8 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
+      # TODO - Should this even be here? What if JOBS_PER_FORK=false? The before_first_fork will get run even though
+      # no forking is going to be called
       run_hook :before_first_fork
       register_worker
 
@@ -340,6 +402,17 @@ module Resque
     def shutdown
       log 'Exiting...'
       @shutdown = true
+      shutdown_child if is_parent_process?
+    end
+
+    # Need to tell the child to shutdown since it might be looping performing multiple jobs per fork
+    # The TSTP signal is registered only in forked processes and calls this function
+    def shutdown_child
+      begin
+        Process.kill('TSTP', @child)
+      rescue Errno::ESRCH
+        nil
+      end
     end
 
     # Kill the child and shutdown immediately.
@@ -403,6 +476,7 @@ module Resque
     def pause_processing
       log "USR2 received; pausing job processing"
       @paused = true
+      shutdown_child if @child
     end
 
     # Start processing jobs again after a pause

@@ -1,6 +1,8 @@
 ## unreleased
 
 * Adds a default value for `per_page` on resque-server for plugins which add tabs (@jonhyman)
+* Adds support for multiple jobs per fork with ENV["JOBS_PER_FORK"]. You can also set the maximum time for a fork to
+live in your worker using ENV["MAX_SECONDS_PER_FORK"], which defaults to 60 seconds. (@jonhyman)
 
 ## 1.24.0 (2013-3-21)
 

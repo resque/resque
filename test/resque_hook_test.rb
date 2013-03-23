@@ -38,14 +38,19 @@ describe "Resque Hooks" do
   end
 
   it 'it calls before_fork before each job' do
-    counter = 0
+    $TESTING = false
+    begin
+      counter = 0
 
-    Resque.before_fork { counter += 1 }
-    2.times { Resque::Job.create(:jobs, CallNotifyJob) }
+      Resque.before_fork { counter += 1 }
+      2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
-    assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(2, counter)
+      assert_equal(0, counter)
+      @worker.work(0)
+      assert_equal(2, counter)
+    ensure
+      $TESTING = true
+    end
   end
 
   it 'it calls after_fork after each job' do
@@ -108,22 +113,27 @@ describe "Resque Hooks" do
   end
 
   it 'it registers multiple before_forks' do
-    first = false
-    second = false
+    $TESTING = false
+    begin
+      first = false
+      second = false
 
-    Resque.before_fork { first = true }
-    Resque.before_fork { second = true }
-    Resque::Job.create(:jobs, CallNotifyJob)
+      Resque.before_fork { first = true }
+      Resque.before_fork { second = true }
+      Resque::Job.create(:jobs, CallNotifyJob)
 
-    assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+      assert(!first && !second)
+      @worker.work(0)
+      assert(first && second)
+    ensure
+      $TESTING = true
+    end
   end
 
   it 'flattens hooks on assignment' do
     first = false
     second = false
-    Resque.before_fork = [Proc.new { first = true }, Proc.new { second = true }]
+    Resque.before_first_fork = [Proc.new { first = true }, Proc.new { second = true }]
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
