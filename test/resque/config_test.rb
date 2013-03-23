@@ -25,7 +25,7 @@ describe Resque::Config do
     begin
       ENV["QUEUES"] = "high,failure"
 
-      suppress_warnings do
+      silence_warnings do
         config = Resque::Config.new
         assert_equal config.queues, ["high", "failure"]
       end
@@ -38,7 +38,7 @@ describe Resque::Config do
     begin
       ENV["QUEUES"] = "low,archive"
 
-      suppress_warnings do
+      silence_warnings do
         config = Resque::Config.new({ "queue" => "low,archive" })
         assert_equal config.queues, ["low", "archive"]
       end
