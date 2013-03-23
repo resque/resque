@@ -73,8 +73,7 @@ describe "Resque::MultiQueue" do
     queues.each {|q| q << job }
 
     processed_queues = queues.map do
-      q, j = queue.pop
-      q
+      queue.pop[0]
     end
 
     assert_equal processed_queues, queues
@@ -91,8 +90,7 @@ describe "Resque::MultiQueue" do
     queues.each {|q| q << job }
 
     processed_queues = queues.map do
-      q, j = queue.pop(true)
-      q
+      queue.pop[0]
     end
 
     assert_equal processed_queues, queues

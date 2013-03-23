@@ -24,7 +24,7 @@ describe "Resque" do
       ensure
         reset_logger
       end
-      assert_match /Invalid UTF-8 character/, messages.first
+      assert_match(/Invalid UTF-8 character/, messages.first)
     end
   end
 end

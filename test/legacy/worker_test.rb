@@ -572,16 +572,21 @@ describe "Resque::Worker" do
       class Redis::Client
         alias_method :original_reconnect, :reconnect
 
-        def reconnect
-          raise Redis::BaseConnectionError
+        #warning: previous definition of reconnect was here
+        silence_warnings do
+          def reconnect
+            raise Redis::BaseConnectionError
+          end
         end
       end
 
       class Resque::Worker
         alias_method :original_sleep, :sleep
-
-        def sleep(duration = nil)
-          # noop
+        # warning: method redefined;
+        silence_warnings do
+          def sleep(duration = nil)
+            # noop
+          end
         end
       end
 
@@ -597,11 +602,17 @@ describe "Resque::Worker" do
       assert_equal 1, messages.grep(/quitting/).count
     ensure
       class Redis::Client
-        alias_method :reconnect, :original_reconnect
+        # warning: method redefined;
+        silence_warnings do
+          alias_method :reconnect, :original_reconnect
+        end
       end
 
       class Resque::Worker
-        alias_method :sleep, :original_sleep
+        #  warning: method redefined;
+        silence_warnings do
+          alias_method :sleep, :original_sleep
+        end
       end
     end
   end
@@ -664,16 +675,19 @@ describe "Resque::Worker" do
             class LongRunningJob
               @queue = :long_running_job
 
-              def self.perform( run_time, rescue_time=nil )
-                Resque.redis.client.reconnect # get its own connection
-                Resque.redis.rpush( 'sigterm-test:start', Process.pid )
-                sleep run_time
-                Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
-              rescue @@exception => e
-                Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
-                sleep rescue_time unless rescue_time.nil?
-              ensure
-                Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
+              #warning: previous definition of perform was here
+              silence_warnings do
+                def self.perform( run_time, rescue_time=nil )
+                  Resque.redis.client.reconnect # get its own connection
+                  Resque.redis.rpush( 'sigterm-test:start', Process.pid )
+                  sleep run_time
+                  Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
+                rescue @@exception => e
+                  Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
+                  sleep rescue_time unless rescue_time.nil?
+                ensure
+                  Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
+                end
               end
             end
 

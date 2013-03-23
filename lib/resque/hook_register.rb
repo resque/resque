@@ -1,5 +1,9 @@
 module Resque
   class HookRegister
+    def initialize
+      @hooks = {}
+    end
+
     # The `before_first_fork` hook will be run in the **parent** process
     # only once, before forking to run the first job. Be careful- any
     # changes you make will be permanent for the lifespan of the
