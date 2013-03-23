@@ -24,7 +24,7 @@ module Resque
     end
 
     def interval
-      @options[:interval].to_f
+      @options[:interval].to_i
     end
 
     def queues

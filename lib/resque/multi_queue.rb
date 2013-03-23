@@ -74,7 +74,7 @@ module Resque
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
       if queue_names.any?
-        queue_name, payload = @redis.blpop(*(queue_names + [timeout]))
+        queue_name, payload = @redis.blpop(*(queue_names + [timeout.to_i]))
         return unless payload
 
         synchronize do

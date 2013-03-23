@@ -505,9 +505,7 @@ module Resque
 
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
-    def reserve(interval = 5.0)
-      interval = interval.to_i
-
+    def reserve(interval = 5)
       multi_queue = MultiQueue.from_queues(queues)
 
       if interval < 1
@@ -517,7 +515,7 @@ module Resque
           queue, job = nil
         end
       else
-        queue, job = multi_queue.poll(interval.to_i)
+        queue, job = multi_queue.poll(interval)
       end
 
       Resque.logger.debug "Found job on #{queue}"
