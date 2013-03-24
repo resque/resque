@@ -138,13 +138,7 @@ module Resque
           working_on job
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
-          if @child = fork(job) do
-              unregister_signal_handlers if term_child
-              reconnect
-              perform(job, &block)
-              exit! unless run_at_exit_hooks
-            end
-
+          if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -154,8 +148,14 @@ module Resque
             end
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
+            unregister_signal_handlers if will_fork? && term_child
+
             reconnect
             perform(job, &block)
+
+            if will_fork?
+              run_at_exit_hooks ? exit : exit!
+            end
           end
           done_working
           @child = nil
@@ -251,7 +251,7 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork(job,&block)
+    def fork(job)
       return if @cant_fork
 
       # Only run before_fork hooks if we're actually going to fork
@@ -261,7 +261,7 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork &block if will_fork?
+          Kernel.fork if will_fork?
         else
           raise NotImplementedError
         end
