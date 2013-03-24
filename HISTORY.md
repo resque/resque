@@ -1,6 +1,8 @@
 ## unreleased
 
 * Adds a default value for `per_page` on resque-server for plugins which add tabs (@jonhyman)
+* Updates fork method so [resque-multi-job-forks](https://github.com/stulentsev/resque-multi-job-forks) monkey patching
+  works again. See discussion at https://github.com/defunkt/resque/pull/895 for more context (@jonhyman)
 
 ## 1.24.0 (2013-3-21)
 
