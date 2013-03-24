@@ -70,7 +70,7 @@ module Resque
   def redis
     return @redis if @redis
 
-    self.redis = if Redis.respond_to?(:connect) 
+    self.redis = if Redis.respond_to?(:connect)
       Redis.connect(:thread_safe => true)
     else
       "localhost:6379"
@@ -218,6 +218,7 @@ module Resque
 
   # Return the Resque::Queue object for a given name
   def queue(name)
+    redis unless @redis
     @queues[name.to_s]
   end
 
@@ -311,7 +312,7 @@ module Resque
     Plugin.after_dequeue_hooks(klass).each do |hook|
       klass.send(hook, *args)
     end
-    
+
     destroyed
   end
 
