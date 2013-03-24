@@ -12,12 +12,6 @@ namespace :resque do
 
     begin
       worker = Resque::Worker.new(*queues)
-      if ENV['LOGGING'] || ENV['VERBOSE']
-        worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
-      end
-      if ENV['VVERBOSE']
-        worker.very_verbose = ENV['VVERBOSE']
-      end
       worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
       worker.term_child = ENV['TERM_CHILD']
       worker.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
