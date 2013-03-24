@@ -2,7 +2,7 @@ require 'test_helper'
 require 'tmpdir'
 
 describe "Resque::Worker" do
-  before do
+  before :each do
     Resque.redis = Resque.redis # reset state in Resque object
     Resque.redis.flushall
 
@@ -12,6 +12,8 @@ describe "Resque::Worker" do
 
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    Resque::Worker.__send__(:public, :will_fork?)
+    Resque::Worker.__send__(:public, :reserve)
   end
 
   it "can fail jobs" do
@@ -47,12 +49,13 @@ describe "Resque::Worker" do
       @worker.perform job
     end
   end
-  
+
   it "register 'run_at' time on UTC timezone in ISO8601 format" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601
-    @worker.working_on(job)
-    assert_equal now, @worker.processing['run_at']
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    assert_equal now, registry.processing['run_at']
   end
 
   unless jruby?
@@ -85,6 +88,7 @@ describe "Resque::Worker" do
         Resque.redis.client.reconnect
         Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
         worker = Resque::Worker.new(:at_exit_jobs)
+        worker.run_at_exit_hooks = true
         worker.work(0)
         exit
       end
@@ -94,16 +98,18 @@ describe "Resque::Worker" do
 
   it "fails uncompleted jobs with DirtyExit by default on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
-    @worker.unregister_worker
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on(job)
+    registry.unregister
     assert_equal 1, Resque::Failure.count
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
-    @worker.unregister_worker(StandardError.new)
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    registry.unregister(StandardError.new)
     assert_equal 1, Resque::Failure.count
     assert_equal('StandardError', Resque::Failure.all['exception'])
   end
@@ -120,8 +126,9 @@ describe "Resque::Worker" do
 
   it "fails uncompleted jobs on exit, and calls failure hook" do
     job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
-    @worker.working_on(job)
-    @worker.unregister_worker
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    registry.unregister
     assert_equal 1, Resque::Failure.count
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
   end
@@ -322,7 +329,8 @@ describe "Resque::Worker" do
 
   it "records what it is working on" do
     @worker.work(0) do
-      task = @worker.job
+      registry = Resque::WorkerRegistry.new(@worker)
+      task = registry.job
       assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
       assert task['run_at']
       assert_equal 'jobs', task['queue']
@@ -331,7 +339,8 @@ describe "Resque::Worker" do
 
   it "clears its status when not working on anything" do
     @worker.work(0)
-    assert_equal Hash.new, @worker.job
+    registry = Resque::WorkerRegistry.new(@worker)
+    assert_equal Hash.new, registry.job
   end
 
   it "knows when it is working" do
@@ -416,10 +425,11 @@ describe "Resque::Worker" do
 
   it "can be found" do
     @worker.work(0) do
-      found = Resque::Worker.find(@worker.to_s)
+      found = Resque::WorkerRegistry.find(@worker.to_s)
       assert_equal @worker.to_s, found.to_s
       assert found.working?
-      assert_equal @worker.job, found.job
+      registry = Resque::WorkerRegistry.new(@worker)
+      assert_equal registry.job, found.job
     end
   end
 
@@ -429,16 +439,18 @@ describe "Resque::Worker" do
       assert_equal nil, found
     end
   end
-  
+
   it "cleans up dead worker info on start (crash recovery)" do
     # first we fake out two dead workers
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
-    workerA.register_worker
+    registry = Resque::WorkerRegistry.new(workerA)
+    registry.register
 
     workerB = Resque::Worker.new(:high, :low)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
-    workerB.register_worker
+    registry = Resque::WorkerRegistry.new(workerB)
+    registry.register
 
     assert_equal 2, Resque.workers.size
 
@@ -449,7 +461,7 @@ describe "Resque::Worker" do
   end
 
   it "worker_pids returns pids" do
-    known_workers = @worker.worker_pids
+    known_workers = Resque::ProcessCoordinator.new.worker_pids
     assert !known_workers.empty?
   end
 

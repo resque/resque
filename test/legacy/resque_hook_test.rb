@@ -10,6 +10,9 @@ describe "Resque Hooks" do
     Resque.before_perform = nil
     Resque.after_perform = nil
 
+    Resque::Worker.__send__(:public, :pause_processing)
+    Resque::Worker.__send__(:public, :will_fork?)
+
     @worker = Resque::Worker.new(:jobs)
 
     $called = false
