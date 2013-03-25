@@ -103,8 +103,10 @@ module Resque
     # B and you delete Queue A, pushing to Queue B will have unknown side
     # effects. Queue A will be marked destroyed, but Queue B will not.
     def destroy
-      @redis.del @redis_name
-      @redis.srem(:queues, @name)
+      @redis.pipelined do
+        @redis.del @redis_name
+        @redis.srem(:queues, @name)
+      end
       @destroyed = true
     end
 
