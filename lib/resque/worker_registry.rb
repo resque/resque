@@ -23,7 +23,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      Array(redis.smembers(REDIS_WORKERS_KEY)).map { |id| find(id) }.compact
+      redis.smembers(REDIS_WORKERS_KEY).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
