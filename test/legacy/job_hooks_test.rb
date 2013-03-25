@@ -245,7 +245,7 @@ describe "Resque::Job after_enqueue" do
     history = []
     @worker = Resque::Worker.new(:jobs)
     Resque.enqueue(AfterEnqueueJob, history)
-    @worker.work(0)
+    @worker.work
     assert_equal history, [:after_enqueue], "after_enqueue was not run"
   end
 end
@@ -280,7 +280,7 @@ describe "Resque::Job before_enqueue" do
     history = []
     @worker = Resque::Worker.new(:jobs)
     assert Resque.enqueue(BeforeEnqueueJob, history)
-    @worker.work(0)
+    @worker.work
     assert_equal history, [:before_enqueue], "before_enqueue was not run"
   end
 
@@ -309,7 +309,7 @@ describe "Resque::Job after_dequeue" do
     history = []
     @worker = Resque::Worker.new(:jobs)
     Resque.dequeue(AfterDequeueJob, history)
-    @worker.work(0)
+    @worker.work
     assert_equal history, [:after_dequeue], "after_dequeue was not run"
   end
 end
@@ -342,7 +342,7 @@ describe "Resque::Job before_dequeue" do
     history = []
     @worker = Resque::Worker.new(:jobs)
     Resque.dequeue(BeforeDequeueJob, history)
-    @worker.work(0)
+    @worker.work
     assert_equal history, [:before_dequeue], "before_dequeue was not run"
   end
 

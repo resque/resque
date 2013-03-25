@@ -69,7 +69,8 @@ module Resque
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
 
-    attr_accessor :term_timeout
+    # Config options
+    attr_accessor :options
 
     # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
     # registered in the application. Otherwise, forked workers exit with `exit!`
@@ -88,13 +89,15 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues.map { |queue| queue.to_s.strip }
+    def initialize(queues = [], options = {})
+      @options = { :timeout => 0, :interval => 0, :daemon => false, :pid => nil }.merge(options.symbolize_keys)
+      @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
       @cant_fork = false
       @reconnected = false
       @worker_registry = WorkerRegistry.new(self)
+
       validate_queues
     end
 
@@ -114,8 +117,8 @@ module Resque
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
-    def work(interval = 5.0, &block)
-      interval = Float(interval)
+    def work(&block)
+      interval = Float(options[:interval])
       startup
 
       loop do
@@ -213,7 +216,7 @@ module Resque
 
     # has our child quit gracefully within the timeout limit?
     def quit_gracefully?(child)
-      (term_timeout.to_f * 10).round.times do |i|
+      (options[:timeout].to_f * 10).round.times do |i|
         sleep(0.1)
         return true if Process.waitpid(child, Process::WNOHANG)
       end
@@ -361,6 +364,8 @@ module Resque
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
       procline "Starting"
+      daemonize if options[:daemonize]
+      pid_file(options[:pid]) if options[:pid]
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
@@ -370,6 +375,20 @@ module Resque
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
       $stdout.sync = true
+    end
+
+    # Daemonize process (ruby 1.9 only)
+    def daemonize
+      if Process.respond_to?(:daemon)
+        Process.daemon(true)
+      else
+        Kernel.warn "Running process as daemon requires ruby >= 1.9"
+      end
+    end
+
+    # Save worker's pid to file
+    def pid_file(path = nil)
+      File.open(path, 'w'){ |f| f << self.pid } if path
     end
 
     # Enables GC Optimizations if you're running REE.

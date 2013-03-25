@@ -17,22 +17,10 @@ module Resque
     def work
       load_config
 
-      load_enviroment(Resque.config.requirement)
-      worker = Resque::Worker.new(*Resque.config.queues)
+      load_enviroment(Resque.config.require)
 
-      worker.term_timeout = Resque.config.timeout
-
-      if Resque.config.daemon
-        Process.daemon(true)
-      end
-
-      if Resque.config.pid
-        File.open(Resque.config.pid, 'w') { |f| f << worker.pid }
-      end
-
-      Resque.logger.info "Starting worker #{worker}"
-
-      worker.work(Resque.config.interval) # interval, will block
+      worker = Resque::Worker.new(Resque.config.queues, Resque.config.options.slice(:timeout, :interval, :daemon, :pid))
+      worker.work
     end
 
     desc "workers", "Start multiple Resque workers. Should only be used in dev mode."
