@@ -169,8 +169,10 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
-    watch_queue(queue)
-    redis.rpush "queue:#{queue}", encode(item)
+    redis.pipelined do
+      watch_queue(queue)
+      redis.rpush "queue:#{queue}", encode(item)
+    end
   end
 
   # Pops a job off a queue. Queue name should be a string.
@@ -217,8 +219,10 @@ module Resque
 
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
-    redis.srem(:queues, queue.to_s)
-    redis.del("queue:#{queue}")
+    redis.pipelined do
+      redis.srem(:queues, queue.to_s)
+      redis.del("queue:#{queue}")
+    end
   end
 
   # Used internally to keep track of which queues we've created.
