@@ -40,14 +40,14 @@ describe "Resque::Job before_perform" do
   class ::BeforePerformJobAborts
     def self.before_perform_abort(history)
       history << :before_perform
-      raise Resque::Job::DontPerform
+      raise Resque::DontPerform
     end
     def self.perform(history)
       history << :perform
     end
   end
 
-  it "does not perform if before_perform raises Resque::Job::DontPerform" do
+  it "does not perform if before_perform raises Resque::DontPerform" do
     result = perform_job(BeforePerformJobAborts, history=[])
     assert_equal false, result, "perform returned false"
     assert_equal history, [:before_perform], "Only before_perform was run"

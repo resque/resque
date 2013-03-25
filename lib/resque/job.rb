@@ -1,5 +1,6 @@
 require 'resque/core_ext/string'
 
+require 'resque/errors'
 require 'resque/job_performer'
 
 module Resque
@@ -66,10 +67,6 @@ module Resque
         end
       end
     end
-
-    # Raise Resque::Job::DontPerform from a before_perform hook to
-    # abort the job.
-    DontPerform = Class.new(StandardError)
 
     # The worker object which is currently processing this job.
     attr_accessor :worker
