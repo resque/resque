@@ -436,8 +436,10 @@ module Resque
     # Registers ourself as a worker. Useful when entering the worker
     # lifecycle on startup.
     def register_worker
-      redis.sadd(:workers, self)
-      started!
+      redis.pipelined do
+        redis.sadd(:workers, self)
+        started!
+      end
     end
 
     # Runs a named hook, passing along any arguments.
@@ -464,12 +466,14 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
-      redis.srem(:workers, self)
-      redis.del("worker:#{self}")
-      redis.del("worker:#{self}:started")
+      redis.pipelined do
+        redis.srem(:workers, self)
+        redis.del("worker:#{self}")
+        redis.del("worker:#{self}:started")
 
-      Stat.clear("processed:#{self}")
-      Stat.clear("failed:#{self}")
+        Stat.clear("processed:#{self}")
+        Stat.clear("failed:#{self}")
+      end
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
@@ -485,8 +489,10 @@ module Resque
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
-      processed!
-      redis.del("worker:#{self}")
+      redis.pipelined do
+        processed!
+        redis.del("worker:#{self}")
+      end
     end
 
     # How many jobs has this worker processed? Returns an int.
