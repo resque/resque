@@ -1,3 +1,5 @@
+require 'resque/core_ext/string'
+
 require 'resque/job_performer'
 
 module Resque
@@ -11,7 +13,7 @@ module Resque
   # You can manually run a job using this code:
   #
   #   job = Resque::Job.reserve(:high)
-  #   klass = Resque::Job.constantize(job.payload['class'])
+  #   klass = job.payload['class'].to_s.constantize
   #   klass.perform(*job.payload['args'])
   class Job
     def redis
@@ -217,7 +219,7 @@ module Resque
 
     # Returns the actual class constant represented in this job's payload.
     def payload_class
-      @payload_class ||= constantize(@payload['class'])
+      @payload_class ||= @payload['class'].to_s.constantize
     end
 
     # Returns the payload class as a string without raising NameError

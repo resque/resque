@@ -796,12 +796,4 @@ describe "Resque::Worker" do
       end
     end
   end
-
-  it "constantizes" do
-    assert_same Kernel, Resque::Worker.constantize(:Kernel)
-    assert_same MiniTest::Unit::TestCase, Resque::Worker.constantize('MiniTest::Unit::TestCase')
-    assert_raises NameError do
-      Resque::Worker.constantize('Object::MissingConstant')
-    end
-  end
 end
