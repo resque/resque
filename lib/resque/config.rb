@@ -1,4 +1,3 @@
-require "ostruct"
 require "resque/core_ext/hash"
 
 module Resque
