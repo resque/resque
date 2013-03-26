@@ -287,7 +287,7 @@ module Resque
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
     def fork(job,&block)
-      return if @cant_fork
+      return unless will_fork?
 
       begin
         # IronRuby doesn't support `Kernel.fork` yet
@@ -446,7 +446,7 @@ module Resque
         wait_for_child
         job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
       else
-        reconnect unless @cant_fork
+        reconnect if will_fork?
         perform(job, &block)
       end
       done_working

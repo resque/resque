@@ -570,10 +570,14 @@ describe "Resque::Worker" do
 
   it "reconnects to redis after fork" do
     skip "JRuby doesn't fork." if jruby?
-
-    original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
+    file = Tempfile.new("reconnect")
+    proc = Proc.new { File.open(file.path, "w+") { |f| f.write("foo")} }
+    # Somewhat of a pain to test because the child will fork, so need to communicate across processes and not use
+    # Redis (since we're stubbing out reconnect...)
+    Resque.redis.client.stubs(:reconnect).returns(proc.call)
     @worker.work(0)
-    refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+    val = File.read(file.path)
+    assert_equal val, "foo"
   end
 
   it "tries to reconnect three times before giving up" do
@@ -586,6 +590,8 @@ describe "Resque::Worker" do
         #warning: previous definition of reconnect was here
         silence_warnings do
           def reconnect
+            val = File.exists?("reconnect_test.txt") ? File.read("reconnect_test.txt").to_i : 0
+            File.open("reconnect_test.txt", "w+") {|f| f.write(val + 1)}
             raise Redis::BaseConnectionError
           end
         end
@@ -601,17 +607,18 @@ describe "Resque::Worker" do
         end
       end
 
-      Resque.logger = DummyLogger.new
+      @worker.stubs(:will_fork?).returns(true)
+      # The 4th try gives up and throws an exception
       begin
         @worker.work(0)
-        messages = Resque.logger.messages
-      ensure
-        reset_logger
+      rescue
       end
 
-      assert_equal 3, messages.grep(/retrying/).count
-      assert_equal 1, messages.grep(/quitting/).count
+      val = File.read("reconnect_test.txt").to_i
+      assert_equal 4, val
     ensure
+      File.delete("reconnect_test.txt") if File.exists?("reconnect_test.txt")
+
       class Redis::Client
         # warning: method redefined;
         silence_warnings do
