@@ -18,4 +18,5 @@ group :test do
   gem "minitest"
   gem "sinatra"
   gem "capybara"
+  gem "mocha", :require => false
 end
