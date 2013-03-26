@@ -7,9 +7,5 @@ module Resque
     def initialize(options = {})
       @options = options
     end
-
-    def failure_backend
-      "redis"
-    end
   end
 end
