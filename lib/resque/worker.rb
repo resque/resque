@@ -90,7 +90,15 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(queues = [], options = {})
-      @options = { :timeout => 0, :interval => 0, :daemon => false, :pid => nil }.merge(options.symbolize_keys)
+      @options = {
+        :timeout => 0,
+        :interval => 0,
+        :daemon => false,
+        :pid_file => nil,
+        :fork_per_job => true,
+      }
+      @options.merge!(options.symbolize_keys)
+
       @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
@@ -365,7 +373,7 @@ module Resque
     def startup
       procline "Starting"
       daemonize if options[:daemonize]
-      pid_file(options[:pid]) if options[:pid]
+      pid_file(options[:pid_file]) if options[:pid_file]
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
@@ -449,7 +457,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && Resque.config.fork_per_job
+      !@cant_fork && !$TESTING && options[:fork_per_job]
     end
 
     # Given a string, sets the procline ($0) and logs.
