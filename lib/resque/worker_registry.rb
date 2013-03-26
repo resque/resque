@@ -63,8 +63,10 @@ module Resque
     end
 
     def register
-      redis.sadd(REDIS_WORKERS_KEY, @worker)
-      started!
+      redis.pipelined do
+        redis.sadd(REDIS_WORKERS_KEY, @worker)
+        started!
+      end
     end
 
     def done
@@ -109,13 +111,15 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
-      redis.srem(REDIS_WORKERS_KEY, @worker)
-      redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}")
-      redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}:started")
-      redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}:shutdown")
+      redis.pipelined do
+        redis.srem(REDIS_WORKERS_KEY, @worker)
+        redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}")
+        redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}:started")
+        redis.del("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}:shutdown")
 
-      Stat.clear("processed:#{@worker}")
-      Stat.clear("failed:#{@worker}")
+        Stat.clear("processed:#{@worker}")
+        Stat.clear("failed:#{@worker}")
+      end
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
