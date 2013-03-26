@@ -2,8 +2,6 @@ require 'test_helper'
 
 require 'resque/config'
 
-require 'minitest/autorun'
-
 describe Resque::Config do
   it "defaults" do
     defaults = {
