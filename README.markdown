@@ -543,48 +543,6 @@ Choose DelayedJob if:
 In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
-
-Installing Redis
-----------------
-
-Resque requires Redis 0.900 or higher.
-
-Resque uses Redis' lists for its queues. It also stores worker state
-data in Redis.
-
-#### Homebrew
-
-If you're on OS X, Homebrew is the simplest way to install Redis:
-
-    $ brew install redis
-    $ redis-server /usr/local/etc/redis.conf
-
-You now have a Redis daemon running on 6379.
-
-#### Via Resque
-
-Resque includes Rake tasks (thanks to Ezra's redis-rb) that will
-install and run Redis for you:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ rake redis:install dtach:install
-    $ rake redis:start
-
-Or, if you don't have admin access on your machine:
-
-    $ git clone git://github.com/defunkt/resque.git
-    $ cd resque
-    $ PREFIX=<your_prefix> rake redis:install dtach:install
-    $ rake redis:start
-
-You now have Redis running on 6379. Wait a second then hit ctrl-\ to
-detach and keep it running in the background.
-
-The demo is probably the best way to figure out how to put the parts
-together. But, it's not that hard.
-
-
 Resque Dependencies
 -------------------
 
