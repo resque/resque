@@ -1,5 +1,6 @@
 require 'test_helper'
 require 'tmpdir'
+require 'tempfile'
 
 describe "Resque::Worker" do
   before :each do
@@ -11,6 +12,7 @@ describe "Resque::Worker" do
     Resque.after_fork = nil
 
     @worker = Resque::Worker.new(:jobs)
+    @worker.stubs(:will_fork?).returns(false)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Worker.__send__(:public, :will_fork?)
     Resque::Worker.__send__(:public, :reserve)
@@ -65,8 +67,6 @@ describe "Resque::Worker" do
         Process.waitpid(worker_pid)
         assert_equal 0, Resque::Failure.count
       else
-        # ensure we actually fork
-        $TESTING = false
         Resque.redis.client.reconnect
         worker = Resque::Worker.new(:jobs)
         worker.work(0)
@@ -83,8 +83,6 @@ describe "Resque::Worker" do
         assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
         assert_equal "at_exit", File.open(tmpfile).read.strip
       else
-        # ensure we actually fork
-        $TESTING = false
         Resque.redis.client.reconnect
         Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
         worker = Resque::Worker.new(:at_exit_jobs)
@@ -259,6 +257,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
 
     worker = Resque::Worker.new("*")
+    worker.stubs(:will_fork?).returns(false)
     processed_queues = []
 
     worker.work(0) do |job|
@@ -270,6 +269,7 @@ describe "Resque::Worker" do
 
   it "can work with dynamically added queues when using wildcard" do
     worker = Resque::Worker.new("*")
+    worker.stubs(:will_fork?).returns(false)
 
     assert_equal ["jobs"], Resque.queues
 
@@ -522,27 +522,26 @@ describe "Resque::Worker" do
 
   it "Will call an after_fork hook after forking" do
     Resque.redis.flushall
-    $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    msg = "called!"
+    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", msg) }
     workerA = Resque::Worker.new(:jobs)
 
-    assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert $AFTER_FORK_CALLED == workerA.will_fork?
+    val = Resque.redis.get("after_fork")
+    assert_equal val, msg
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", "yeah") }
     workerA = Resque::Worker.new(:jobs)
     workerA.cant_fork = true
 
-    assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert !$AFTER_FORK_CALLED
+    assert_nil Resque.redis.get("after_fork")
   end
 
   it "returns PID of running process" do
@@ -706,8 +705,6 @@ describe "Resque::Worker" do
             Resque.enqueue( LongRunningJob, 5, rescue_time )
 
             worker_pid = Kernel.fork do
-              # ensure we actually fork
-              $TESTING = false
               # reconnect since we just forked
               Resque.redis.client.reconnect
 
@@ -764,14 +761,10 @@ describe "Resque::Worker" do
     end
 
     it "will notify failure hooks when a job is killed by a signal" do
-      begin
-        $TESTING = false
-        Resque.enqueue(SuicidalJob)
-        @worker.work(0)
-        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
-      ensure
-        $TESTING = true
-      end
+      @worker.stubs(:will_fork?).returns(true)
+      Resque.enqueue(SuicidalJob)
+      @worker.work(0)
+      assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
     end
   end
 

@@ -14,6 +14,7 @@ describe "Resque Hooks" do
     Resque::Worker.__send__(:public, :will_fork?)
 
     @worker = Resque::Worker.new(:jobs)
+    @worker.stubs(:will_fork?).returns(false)
 
     $called = false
     class CallNotifyJob

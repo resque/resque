@@ -4,12 +4,12 @@ require 'bundler/setup'
 require 'redis/namespace'
 require 'minitest/autorun'
 require 'resque/core_ext/kernel'
+require 'mocha/setup'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
-$TESTING = true
-$TEST_PID=Process.pid
+$TEST_PID = Process.pid
 
 #
 # make sure we can run redis

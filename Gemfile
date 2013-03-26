@@ -15,6 +15,7 @@ end
 group :test do
   gem "rack-test", "~> 0.5"
   gem "json"
+  gem "mocha", :require => false
   gem "minitest"
   gem "sinatra"
   gem "capybara"

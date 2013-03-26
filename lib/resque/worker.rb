@@ -379,7 +379,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && !$TESTING && Resque.config.fork_per_job
+      !@cant_fork && Resque.config.fork_per_job
     end
 
     # Given a string, sets the procline ($0) and logs.
@@ -435,9 +435,9 @@ module Resque
       @worker_registry.working_on job
 
       @child = fork(job) do
+        reconnect
         run_hook :after_fork, job
         unregister_signal_handlers
-        reconnect
         perform(job, &block)
         exit! unless run_at_exit_hooks
       end
