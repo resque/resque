@@ -8,8 +8,7 @@ require 'resque/core_ext/kernel'
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
-$TESTING = true
-$TEST_PID=Process.pid
+$TEST_PID = Process.pid
 
 #
 # make sure we can run redis

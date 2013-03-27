@@ -14,6 +14,8 @@ require 'resque/helpers'
 require 'resque/stat'
 require 'resque/logging'
 require 'resque/job'
+require 'resque/worker_registry'
+require 'resque/process_coordinator'
 require 'resque/worker'
 require 'resque/plugin'
 require 'resque/queue'
@@ -368,26 +370,29 @@ module Resque
     end
   end
 
-
   #
   # worker shortcuts
   #
 
   # A shortcut to Worker.all
+  # TODO - Remove this for interface consolidation.
   def workers
-    Worker.all
+    WorkerRegistry.all
   end
 
   # A shortcut to Worker.working
+  # TODO - Remove this for interface consolidation.
   def working
-    Worker.working
+    WorkerRegistry.working
   end
 
   # A shortcut to unregister_worker
   # useful for command line tool
+  # TODO - Remove this, move to WorkerRegistry for interface consolidation.
   def remove_worker(worker_id)
-    worker = Resque::Worker.find(worker_id)
-    worker.unregister_worker
+    worker = Resque::WorkerRegistry.find(worker_id)
+    registry = Resque::WorkerRegistry.new(worker)
+    registry.unregister
   end
 
   #
