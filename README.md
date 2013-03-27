@@ -21,7 +21,7 @@ exact way that they say they might here. Yay 2.0!
 
 ### Back to your regularly scheduled README.
 
-You can't always do work right away. Sometimes, you need to do it later. Rescue
+You can't always do work right away. Sometimes, you need to do it later. Resque
 is a really simple way to manage a pile of work that your application needs
 to do: 1.5 million installs can't be wrong!
 
