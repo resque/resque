@@ -12,7 +12,6 @@ describe "Resque::Worker" do
     Resque.after_fork = nil
 
     @worker = Resque::Worker.new(:jobs)
-    @worker.stubs(:will_fork?).returns(false)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Worker.__send__(:public, :will_fork?)
     Resque::Worker.__send__(:public, :reserve)
@@ -33,10 +32,12 @@ describe "Resque::Worker" do
 
   it "unavailable job definition reports exception and message" do
     Resque::Job.create(:jobs, 'NoJobDefinition')
-    @worker.work(0)
-    assert_equal 1, Resque::Failure.count, 'failure not reported'
-    assert_equal('NameError', Resque::Failure.all['exception'])
-    assert_match('uninitialized constant', Resque::Failure.all['error'])
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal 1, Resque::Failure.count, 'failure not reported'
+      assert_equal('NameError', Resque::Failure.all['exception'])
+      assert_match('uninitialized constant', Resque::Failure.all['error'])
+    end
   end
 
   it "validates jobs before enquing them." do
@@ -256,34 +257,37 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
 
+
     worker = Resque::Worker.new("*")
-    worker.stubs(:will_fork?).returns(false)
-    processed_queues = []
+    worker.stub(:will_fork?, false) do
+      processed_queues = []
 
-    worker.work(0) do |job|
-      processed_queues << job.queue
+      worker.work(0) do |job|
+        processed_queues << job.queue
+      end
+
+      assert_equal %w( jobs high critical blahblah ).sort, processed_queues
     end
-
-    assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
   it "can work with dynamically added queues when using wildcard" do
     worker = Resque::Worker.new("*")
-    worker.stubs(:will_fork?).returns(false)
+    worker.stub(:will_fork?, false) do
 
-    assert_equal ["jobs"], Resque.queues
+      assert_equal ["jobs"], Resque.queues
 
-    Resque::Job.create(:high, GoodJob)
-    Resque::Job.create(:critical, GoodJob)
-    Resque::Job.create(:blahblah, GoodJob)
+      Resque::Job.create(:high, GoodJob)
+      Resque::Job.create(:critical, GoodJob)
+      Resque::Job.create(:blahblah, GoodJob)
 
-    processed_queues = []
+      processed_queues = []
 
-    worker.work(0) do |job|
-      processed_queues << job.queue
+      worker.work(0) do |job|
+        processed_queues << job.queue
+      end
+
+      assert_equal %w( jobs high critical blahblah ).sort, processed_queues
     end
-
-    assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
   it "has a unique id" do
@@ -405,21 +409,24 @@ describe "Resque::Worker" do
   it "knows when it started" do
     time = Time.now
     @worker.work(0) do
-      assert Time.parse(@worker.started) - time < 0.1
+      registry = Resque::WorkerRegistry.new(@worker)
+      assert Time.parse(registry.started) - time < 0.1
     end
   end
 
   it "knows whether it exists or not" do
     @worker.work(0) do
-      assert Resque::Worker.exists?(@worker)
-      assert !Resque::Worker.exists?('blah-blah')
+      assert Resque::WorkerRegistry.exists?(@worker)
+      assert !Resque::WorkerRegistry.exists?('blah-blah')
     end
   end
 
   it "sets $0 while working" do
-    @worker.work(0) do
-      ver = Resque::Version
-      assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0) do
+        ver = Resque::Version
+        assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+      end
     end
   end
 
@@ -429,13 +436,13 @@ describe "Resque::Worker" do
       assert_equal @worker.to_s, found.to_s
       assert found.working?
       registry = Resque::WorkerRegistry.new(@worker)
-      assert_equal registry.job, found.job
+      assert_equal registry.job, Resque::WorkerRegistry.new(found).job
     end
   end
 
   it "doesn't find fakes" do
     @worker.work(0) do
-      found = Resque::Worker.find('blah-blah')
+      found = Resque::WorkerRegistry.find('blah-blah')
       assert_equal nil, found
     end
   end
@@ -574,10 +581,11 @@ describe "Resque::Worker" do
     proc = Proc.new { File.open(file.path, "w+") { |f| f.write("foo")} }
     # Somewhat of a pain to test because the child will fork, so need to communicate across processes and not use
     # Redis (since we're stubbing out reconnect...)
-    Resque.redis.client.stubs(:reconnect).returns(proc.call)
-    @worker.work(0)
-    val = File.read(file.path)
-    assert_equal val, "foo"
+    Resque.redis.client.stub(:reconnect, proc) do
+      @worker.work(0)
+      val = File.read(file.path)
+      assert_equal val, "foo"
+    end
   end
 
   it "tries to reconnect three times before giving up" do
@@ -607,15 +615,18 @@ describe "Resque::Worker" do
         end
       end
 
-      @worker.stubs(:will_fork?).returns(true)
-      # The 4th try gives up and throws an exception
-      begin
-        @worker.work(0)
-      rescue
-      end
+      # Make sure we haven't been flagged as reconnected (from previous tests)
+      @worker.instance_variable_set(:@reconnected, false)
+      @worker.stub(:will_fork?, true) do
+        # The 4th try gives up and throws an exception
+        begin
+          @worker.work(0)
+        rescue
+        end
 
-      val = File.read("reconnect_test.txt").to_i
-      assert_equal 4, val
+        val = File.read("reconnect_test.txt").to_i
+        assert_equal 4, val
+      end
     ensure
       File.delete("reconnect_test.txt") if File.exists?("reconnect_test.txt")
 
@@ -768,10 +779,11 @@ describe "Resque::Worker" do
     end
 
     it "will notify failure hooks when a job is killed by a signal" do
-      @worker.stubs(:will_fork?).returns(true)
-      Resque.enqueue(SuicidalJob)
-      @worker.work(0)
-      assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
+      @worker.stub(:will_fork?, true) do
+        Resque.enqueue(SuicidalJob)
+        @worker.work(0)
+        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
+      end
     end
   end
 
