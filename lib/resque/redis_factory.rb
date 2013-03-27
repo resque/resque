@@ -21,8 +21,10 @@ module Resque
         Redis::Namespace.new(namespace, :redis => redis)
       when Redis::Namespace
         server
-      else
+      when Redis
         Redis::Namespace.new(:resque, :redis => server)
+      else
+        Redis.new
       end
     end
   end
