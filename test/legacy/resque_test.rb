@@ -7,6 +7,8 @@ describe "Resque" do
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
+    Resque::Worker.__send__(:public, :reserve)
+    Resque::Worker.__send__(:public, :done_working)
     @original_redis = Resque.redis
   end
 
@@ -254,11 +256,13 @@ describe "Resque" do
     assert_equal 8, stats[:pending]
 
     @worker = Resque::Worker.new(:jobs)
-    @worker.register_worker
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.register
     2.times { @worker.process }
 
     job = @worker.reserve
-    @worker.working_on job
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
 
     stats = Resque.info
     assert_equal 1, stats[:working]

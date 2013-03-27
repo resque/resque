@@ -169,6 +169,14 @@ module Resque
       @payload_class ||= constantize(@payload['class'])
     end
 
+    def to_h
+      {
+        :queue   => queue,
+        :run_at  => Time.now.utc.iso8601,
+        :payload => payload
+      }
+    end
+
     # returns true if payload_class does not raise NameError
     def has_payload_class?
       payload_class != Object

@@ -1,8 +1,9 @@
 require 'test_helper'
 require 'tmpdir'
+require 'tempfile'
 
 describe "Resque::Worker" do
-  before do
+  before :each do
     Resque.redis = Resque.redis # reset state in Resque object
     Resque.redis.flushall
 
@@ -12,6 +13,8 @@ describe "Resque::Worker" do
 
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    Resque::Worker.__send__(:public, :will_fork?)
+    Resque::Worker.__send__(:public, :reserve)
   end
 
   it "can fail jobs" do
@@ -29,10 +32,12 @@ describe "Resque::Worker" do
 
   it "unavailable job definition reports exception and message" do
     Resque::Job.create(:jobs, 'NoJobDefinition')
-    @worker.work(0)
-    assert_equal 1, Resque::Failure.count, 'failure not reported'
-    assert_equal('NameError', Resque::Failure.all['exception'])
-    assert_match('uninitialized constant', Resque::Failure.all['error'])
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal 1, Resque::Failure.count, 'failure not reported'
+      assert_equal('NameError', Resque::Failure.all['exception'])
+      assert_match('uninitialized constant', Resque::Failure.all['error'])
+    end
   end
 
   it "validates jobs before enquing them." do
@@ -47,12 +52,13 @@ describe "Resque::Worker" do
       @worker.perform job
     end
   end
-  
+
   it "register 'run_at' time on UTC timezone in ISO8601 format" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601
-    @worker.working_on(job)
-    assert_equal now, @worker.processing['run_at']
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    assert_equal now, registry.processing['run_at']
   end
 
   unless jruby?
@@ -62,8 +68,6 @@ describe "Resque::Worker" do
         Process.waitpid(worker_pid)
         assert_equal 0, Resque::Failure.count
       else
-        # ensure we actually fork
-        $TESTING = false
         Resque.redis.client.reconnect
         worker = Resque::Worker.new(:jobs)
         worker.work(0)
@@ -80,11 +84,10 @@ describe "Resque::Worker" do
         assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
         assert_equal "at_exit", File.open(tmpfile).read.strip
       else
-        # ensure we actually fork
-        $TESTING = false
         Resque.redis.client.reconnect
         Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
         worker = Resque::Worker.new(:at_exit_jobs)
+        worker.run_at_exit_hooks = true
         worker.work(0)
         exit
       end
@@ -94,16 +97,18 @@ describe "Resque::Worker" do
 
   it "fails uncompleted jobs with DirtyExit by default on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
-    @worker.unregister_worker
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on(job)
+    registry.unregister
     assert_equal 1, Resque::Failure.count
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
-    @worker.unregister_worker(StandardError.new)
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    registry.unregister(StandardError.new)
     assert_equal 1, Resque::Failure.count
     assert_equal('StandardError', Resque::Failure.all['exception'])
   end
@@ -120,8 +125,9 @@ describe "Resque::Worker" do
 
   it "fails uncompleted jobs on exit, and calls failure hook" do
     job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
-    @worker.working_on(job)
-    @worker.unregister_worker
+    registry = Resque::WorkerRegistry.new(@worker)
+    registry.working_on job
+    registry.unregister
     assert_equal 1, Resque::Failure.count
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
   end
@@ -251,32 +257,37 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
 
+
     worker = Resque::Worker.new("*")
-    processed_queues = []
+    worker.stub(:will_fork?, false) do
+      processed_queues = []
 
-    worker.work(0) do |job|
-      processed_queues << job.queue
+      worker.work(0) do |job|
+        processed_queues << job.queue
+      end
+
+      assert_equal %w( jobs high critical blahblah ).sort, processed_queues
     end
-
-    assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
   it "can work with dynamically added queues when using wildcard" do
     worker = Resque::Worker.new("*")
+    worker.stub(:will_fork?, false) do
 
-    assert_equal ["jobs"], Resque.queues
+      assert_equal ["jobs"], Resque.queues
 
-    Resque::Job.create(:high, GoodJob)
-    Resque::Job.create(:critical, GoodJob)
-    Resque::Job.create(:blahblah, GoodJob)
+      Resque::Job.create(:high, GoodJob)
+      Resque::Job.create(:critical, GoodJob)
+      Resque::Job.create(:blahblah, GoodJob)
 
-    processed_queues = []
+      processed_queues = []
 
-    worker.work(0) do |job|
-      processed_queues << job.queue
+      worker.work(0) do |job|
+        processed_queues << job.queue
+      end
+
+      assert_equal %w( jobs high critical blahblah ).sort, processed_queues
     end
-
-    assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
   it "has a unique id" do
@@ -322,7 +333,8 @@ describe "Resque::Worker" do
 
   it "records what it is working on" do
     @worker.work(0) do
-      task = @worker.job
+      registry = Resque::WorkerRegistry.new(@worker)
+      task = registry.job
       assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
       assert task['run_at']
       assert_equal 'jobs', task['queue']
@@ -331,7 +343,8 @@ describe "Resque::Worker" do
 
   it "clears its status when not working on anything" do
     @worker.work(0)
-    assert_equal Hash.new, @worker.job
+    registry = Resque::WorkerRegistry.new(@worker)
+    assert_equal Hash.new, registry.job
   end
 
   it "knows when it is working" do
@@ -396,49 +409,55 @@ describe "Resque::Worker" do
   it "knows when it started" do
     time = Time.now
     @worker.work(0) do
-      assert Time.parse(@worker.started) - time < 0.1
+      registry = Resque::WorkerRegistry.new(@worker)
+      assert Time.parse(registry.started) - time < 0.1
     end
   end
 
   it "knows whether it exists or not" do
     @worker.work(0) do
-      assert Resque::Worker.exists?(@worker)
-      assert !Resque::Worker.exists?('blah-blah')
+      assert Resque::WorkerRegistry.exists?(@worker)
+      assert !Resque::WorkerRegistry.exists?('blah-blah')
     end
   end
 
   it "sets $0 while working" do
-    @worker.work(0) do
-      ver = Resque::Version
-      assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0) do
+        ver = Resque::Version
+        assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
+      end
     end
   end
 
   it "can be found" do
     @worker.work(0) do
-      found = Resque::Worker.find(@worker.to_s)
+      found = Resque::WorkerRegistry.find(@worker.to_s)
       assert_equal @worker.to_s, found.to_s
       assert found.working?
-      assert_equal @worker.job, found.job
+      registry = Resque::WorkerRegistry.new(@worker)
+      assert_equal registry.job, Resque::WorkerRegistry.new(found).job
     end
   end
 
   it "doesn't find fakes" do
     @worker.work(0) do
-      found = Resque::Worker.find('blah-blah')
+      found = Resque::WorkerRegistry.find('blah-blah')
       assert_equal nil, found
     end
   end
-  
+
   it "cleans up dead worker info on start (crash recovery)" do
     # first we fake out two dead workers
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
-    workerA.register_worker
+    registry = Resque::WorkerRegistry.new(workerA)
+    registry.register
 
     workerB = Resque::Worker.new(:high, :low)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
-    workerB.register_worker
+    registry = Resque::WorkerRegistry.new(workerB)
+    registry.register
 
     assert_equal 2, Resque.workers.size
 
@@ -449,7 +468,7 @@ describe "Resque::Worker" do
   end
 
   it "worker_pids returns pids" do
-    known_workers = @worker.worker_pids
+    known_workers = Resque::ProcessCoordinator.new.worker_pids
     assert !known_workers.empty?
   end
 
@@ -510,27 +529,26 @@ describe "Resque::Worker" do
 
   it "Will call an after_fork hook after forking" do
     Resque.redis.flushall
-    $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    msg = "called!"
+    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", msg) }
     workerA = Resque::Worker.new(:jobs)
 
-    assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert $AFTER_FORK_CALLED == workerA.will_fork?
+    val = Resque.redis.get("after_fork")
+    assert_equal val, msg
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", "yeah") }
     workerA = Resque::Worker.new(:jobs)
     workerA.cant_fork = true
 
-    assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work(0)
-    assert !$AFTER_FORK_CALLED
+    assert_nil Resque.redis.get("after_fork")
   end
 
   it "returns PID of running process" do
@@ -559,10 +577,15 @@ describe "Resque::Worker" do
 
   it "reconnects to redis after fork" do
     skip "JRuby doesn't fork." if jruby?
-
-    original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
-    @worker.work(0)
-    refute_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+    file = Tempfile.new("reconnect")
+    proc = Proc.new { File.open(file.path, "w+") { |f| f.write("foo")} }
+    # Somewhat of a pain to test because the child will fork, so need to communicate across processes and not use
+    # Redis (since we're stubbing out reconnect...)
+    Resque.redis.client.stub(:reconnect, proc) do
+      @worker.work(0)
+      val = File.read(file.path)
+      assert_equal val, "foo"
+    end
   end
 
   it "tries to reconnect three times before giving up" do
@@ -575,6 +598,8 @@ describe "Resque::Worker" do
         #warning: previous definition of reconnect was here
         silence_warnings do
           def reconnect
+            val = File.exists?("reconnect_test.txt") ? File.read("reconnect_test.txt").to_i : 0
+            File.open("reconnect_test.txt", "w+") {|f| f.write(val + 1)}
             raise Redis::BaseConnectionError
           end
         end
@@ -590,17 +615,21 @@ describe "Resque::Worker" do
         end
       end
 
-      Resque.logger = DummyLogger.new
-      begin
-        @worker.work(0)
-        messages = Resque.logger.messages
-      ensure
-        reset_logger
-      end
+      # Make sure we haven't been flagged as reconnected (from previous tests)
+      @worker.instance_variable_set(:@reconnected, false)
+      @worker.stub(:will_fork?, true) do
+        # The 4th try gives up and throws an exception
+        begin
+          @worker.work(0)
+        rescue
+        end
 
-      assert_equal 3, messages.grep(/retrying/).count
-      assert_equal 1, messages.grep(/quitting/).count
+        val = File.read("reconnect_test.txt").to_i
+        assert_equal 4, val
+      end
     ensure
+      File.delete("reconnect_test.txt") if File.exists?("reconnect_test.txt")
+
       class Redis::Client
         # warning: method redefined;
         silence_warnings do
@@ -694,8 +723,6 @@ describe "Resque::Worker" do
             Resque.enqueue( LongRunningJob, 5, rescue_time )
 
             worker_pid = Kernel.fork do
-              # ensure we actually fork
-              $TESTING = false
               # reconnect since we just forked
               Resque.redis.client.reconnect
 
@@ -752,13 +779,10 @@ describe "Resque::Worker" do
     end
 
     it "will notify failure hooks when a job is killed by a signal" do
-      begin
-        $TESTING = false
+      @worker.stub(:will_fork?, true) do
         Resque.enqueue(SuicidalJob)
         @worker.work(0)
         assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
-      ensure
-        $TESTING = true
       end
     end
   end

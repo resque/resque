@@ -10,6 +10,9 @@ describe "Resque Hooks" do
     Resque.before_perform = nil
     Resque.after_perform = nil
 
+    Resque::Worker.__send__(:public, :pause_processing)
+    Resque::Worker.__send__(:public, :will_fork?)
+
     @worker = Resque::Worker.new(:jobs)
 
     $called = false
@@ -38,8 +41,10 @@ describe "Resque Hooks" do
     2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
     assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(1, counter)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(1, counter)
+    end
   end
 
   it 'calls before_first_fork with worker' do
@@ -47,8 +52,10 @@ describe "Resque Hooks" do
 
     Resque.before_first_fork { |worker| trapped_worker = worker }
 
-    @worker.work(0)
-    assert_equal(@worker, trapped_worker)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(@worker, trapped_worker)
+    end
   end
 
   it 'calls before_fork before each job' do
@@ -58,8 +65,10 @@ describe "Resque Hooks" do
     2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
     assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(@worker.will_fork? ? 2 : 0, counter)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(@worker.will_fork? ? 2 : 0, counter)
+    end
   end
 
   it 'calls before_perform before each job' do
@@ -69,8 +78,10 @@ describe "Resque Hooks" do
     2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
     assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(2, counter)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(2, counter)
+    end
   end
 
   it 'calls after_fork after each job if forking' do
@@ -80,8 +91,10 @@ describe "Resque Hooks" do
     2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
     assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(@worker.will_fork? ? 2 : 0, counter)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(@worker.will_fork? ? 2 : 0, counter)
+    end
   end
 
   it 'calls after_perform after each job' do
@@ -91,29 +104,37 @@ describe "Resque Hooks" do
     2.times { Resque::Job.create(:jobs, CallNotifyJob) }
 
     assert_equal(0, counter)
-    @worker.work(0)
-    assert_equal(2, counter)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert_equal(2, counter)
+    end
   end
 
   it 'calls before_first_fork before forking' do
     Resque.before_first_fork { assert(!$called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
-    @worker.work(0)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+    end
   end
 
   it 'calls before_fork before forking' do
     Resque.before_fork { assert(!$called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
-    @worker.work(0)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+    end
   end
 
   it 'calls after_fork after forking' do
     Resque.after_fork { assert($called) }
 
     Resque::Job.create(:jobs, CallNotifyJob)
-    @worker.work(0)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+    end
   end
 
   it 'registeres multiple before_first_forks' do
@@ -125,8 +146,10 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert(first && second)
+    end
   end
 
   it 'registers multiple before_forks' do
@@ -138,12 +161,14 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
 
-    if @worker.will_fork?
-      assert(first && second)
-    else
-      assert(!first && !second)
+      if @worker.will_fork?
+        assert(first && second)
+      else
+        assert(!first && !second)
+      end
     end
   end
 
@@ -156,12 +181,14 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
 
-    if @worker.will_fork?
-      assert(first && second)
-    else
-      assert(!first && !second)
+      if @worker.will_fork?
+        assert(first && second)
+      else
+        assert(!first && !second)
+      end
     end
   end
 
@@ -172,15 +199,17 @@ describe "Resque Hooks" do
     Resque.before_pause { first = true }
     Resque.before_pause { second = true }
 
-    @worker.pause_processing
+    @worker.stub(:will_fork?, false) do
+      @worker.pause_processing
 
-    assert(!first && !second)
+      assert(!first && !second)
 
-    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
-    @worker.work(0)
-    t.join
+      t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+      @worker.work(0)
+      t.join
 
-    assert(first && second)
+      assert(first && second)
+    end
   end
 
   it 'registers multiple after_pause hooks' do
@@ -189,16 +218,18 @@ describe "Resque Hooks" do
 
     Resque.after_pause { first = true }
     Resque.after_pause { second = true }
+    @worker.stub(:will_fork?, false) do
 
-    @worker.pause_processing
+      @worker.pause_processing
 
-    assert(!first && !second)
+      assert(!first && !second)
 
-    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
-    @worker.work(0)
-    t.join
+      t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+      @worker.work(0)
+      t.join
 
-    assert(first && second)
+      assert(first && second)
+    end
   end
 
   it 'registers multiple before_perform' do
@@ -210,8 +241,10 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert(first && second)
+    end
   end
 
   it 'registers multiple after_perform' do
@@ -223,8 +256,10 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert(first && second)
+    end
   end
 
   it 'flattens hooks on assignment' do
@@ -235,7 +270,9 @@ describe "Resque Hooks" do
     Resque::Job.create(:jobs, CallNotifyJob)
 
     assert(!first && !second)
-    @worker.work(0)
-    assert(first && second)
+    @worker.stub(:will_fork?, false) do
+      @worker.work(0)
+      assert(first && second)
+    end
   end
 end
