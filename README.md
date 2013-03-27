@@ -6,14 +6,14 @@ background jobs, placing those jobs on multiple queues, and processing
 them later.
 
   - [![Code Climate](https://codeclimate.com/github/defunkt/resque.png)](https://codeclimate.com/github/defunkt/resque)
-  - [![Build Status](https://travis-ci.org/defunkt/resque.png?branch=master)](https://travis-ci.org/defunkt/resque)
+  - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
 
 ### A note about branches
 
 This branch is the master branch, which contains work towards Resque 2.0. If
 you're currently using Resque, you'll want to check out [the 1-x-stable
-branch](https://github.com/defunkt/resque/tree/1-x-stable), and particularly
-[its README](https://github.com/defunkt/resque/blob/1-x-stable/README.markdown),
+branch](https://github.com/resque/resque/tree/1-x-stable), and particularly
+[its README](https://github.com/resque/resque/blob/1-x-stable/README.markdown),
 which is more accurate for the code you're running in production.
 
 Also, this README is written first, so lots of things in here may not work the
@@ -67,7 +67,7 @@ Then run `bundle`. If you're not using Bundler, just `gem install resque`.
 Resque is used by a large number of people, across a diverse set of codebases.
 There is no official requirement other than Ruby newer than 1.8.7. We of course
 reccomend Ruby 2.0.0, but test against many Rubies, as you can see from our
-[.travis.yml](https://github.com/defunkt/resque/blob/master/.travis.yml).
+[.travis.yml](https://github.com/resque/resque/blob/master/.travis.yml).
 
 We would love to support non-MRI Rubies, but they may have bugs. We would love
 some contributions to clear up failures on these Rubies, but they are set to
@@ -79,13 +79,13 @@ Rails 3.2 or 4.
 ### Backwards Compatibility
 
 Resque uses [SemVer](http://semver.org/), and takes it seriously. If you find
-an interface regression, please [file an issue](https://defunkt/resque/issues)
+an interface regression, please [file an issue](https://github.com/resque/resque/issues)
 so that we can address it.
 
 If you have previously used Resque 1.23, the transition to 2.0 shouldn't be
 too painful: we've tried to upgrade _interfaces_ but leave _semantics_ largely
 in place. Check out
-[UPGRADING.md](https://github.com/defunkt/resque/blob/master/UPGRADING.md) for
+[UPGRADING.md](https://github.com/resque/resque/blob/master/UPGRADING.md) for
 detailed examples of what needs to be done.
 
 ## Jobs
@@ -191,7 +191,7 @@ Coming soon.
 
 ## Contributing
 
-Please see [CONTRIBUTING.md](https://github.com/defunkt/resque/blob/master/CONTRIBUTING.md).
+Please see [CONTRIBUTING.md](https://github.com/resque/resque/blob/master/CONTRIBUTING.md).
 
 ## Anything we missed?
 
