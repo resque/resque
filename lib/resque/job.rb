@@ -169,6 +169,16 @@ module Resque
       @payload_class ||= constantize(@payload['class'])
     end
 
+    # Returns the payload class as a string without raising NameError
+    def payload_class_name
+      if has_payload_class?
+        payload_class.to_s
+      else
+        'No Name'
+      end
+    end
+
+
     def to_h
       {
         :queue   => queue,
