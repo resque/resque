@@ -15,7 +15,7 @@ module Resque
         :pid => env(:pid_file) || nil,
         :queues => (env(:queue) || env(:queues) || "*"),
         :timeout => env(:rescue_term_timeout) || 4.0,
-        :require => nil
+        :requirement => nil
       }.merge!(options.symbolize_keys!)
     end
 

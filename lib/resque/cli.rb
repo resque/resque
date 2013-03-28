@@ -17,7 +17,7 @@ module Resque
     def work
       load_config
 
-      load_enviroment(Resque.config.require)
+      load_enviroment(Resque.config.requirement)
       worker = Resque::Worker.new(*Resque.config.queues)
 
       worker.term_timeout = Resque.config.timeout
