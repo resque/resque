@@ -13,7 +13,7 @@ describe "Resque" do
   end
 
   if defined?(RUBY_ENGINE) && RUBY_ENGINE != "rbx"
-    # See https://github.com/defunkt/resque/issues/769
+    # See https://github.com/resque/resque/issues/769
     it "rescues jobs with invalid UTF-8 characters" do
       Resque.logger = DummyLogger.new
       begin
