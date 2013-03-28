@@ -423,4 +423,4 @@ module Resque
 end
 
 # Log to STDOUT by default
-Resque.logger           = MonoLogger.new(STDOUT)
+Resque.logger = MonoLogger.new(STDOUT)
