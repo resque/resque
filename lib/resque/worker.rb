@@ -257,7 +257,7 @@ module Resque
 
     # Processes a given job in the child.
     def perform(job)
-      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
+      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
       begin
         run_hook :before_perform, job
         job.perform
