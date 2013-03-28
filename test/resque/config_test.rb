@@ -15,7 +15,7 @@ describe Resque::Config do
       :pid => nil,
       :queues => "*",
       :timeout => 4.0,
-      :require => nil
+      :requirement => nil
     }
 
     assert_equal defaults, Resque::Config.new.options
