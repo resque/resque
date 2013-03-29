@@ -88,9 +88,9 @@ module Resque
     def initialize(queues = [], options = {})
       @options = {
         # Termination timeout
-        :timeout => 0,
+        :timeout => 5,
         # Worker's poll interval
-        :interval => 0,
+        :interval => 5,
         # Run as deamon
         :daemon => false,
         # Path to file file where worker's pid will be save

@@ -3,7 +3,7 @@ require 'tmpdir'
 require 'tempfile'
 
 describe "Resque::Worker" do
-  let(:test_options){ { :interval => 0 } }
+  let(:test_options){ { :interval => 0, :timeout => 0 } }
 
   before :each do
     Resque.redis = Resque.redis # reset state in Resque object
@@ -265,7 +265,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
 
 
-    worker = Resque::Worker.new("*")
+    worker = Resque::Worker.new("*", test_options)
     worker.stub(:will_fork?, false) do
       processed_queues = []
 
@@ -278,7 +278,7 @@ describe "Resque::Worker" do
   end
 
   it "can work with dynamically added queues when using wildcard" do
-    worker = Resque::Worker.new("*")
+    worker = Resque::Worker.new("*", test_options)
     worker.stub(:will_fork?, false) do
 
       assert_equal ["jobs"], Resque.queues
@@ -383,7 +383,7 @@ describe "Resque::Worker" do
   end
 
   it "reserve blocks when the queue is empty" do
-    worker = Resque::Worker.new(:timeout)
+    worker = Resque::Worker.new(:timeout, test_options)
 
     assert_raises Timeout::Error do
       Timeout.timeout(1) { worker.reserve(5) }
@@ -391,7 +391,7 @@ describe "Resque::Worker" do
   end
 
   it "reserve returns nil when there is no job and is polling" do
-    worker = Resque::Worker.new(:timeout)
+    worker = Resque::Worker.new(:timeout, test_options)
 
     assert_equal nil, worker.reserve(1)
   end
@@ -456,12 +456,12 @@ describe "Resque::Worker" do
 
   it "cleans up dead worker info on start (crash recovery)" do
     # first we fake out two dead workers
-    workerA = Resque::Worker.new(:jobs)
+    workerA = Resque::Worker.new(:jobs, test_options)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     registry = Resque::WorkerRegistry.new(workerA)
     registry.register
 
-    workerB = Resque::Worker.new([:high, :low])
+    workerB = Resque::Worker.new([:high, :low], test_options)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
     registry = Resque::WorkerRegistry.new(workerB)
     registry.register
@@ -566,8 +566,8 @@ describe "Resque::Worker" do
 
   it "requeue failed queue" do
     queue = 'good_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
     Resque::Failure.requeue_queue(queue)
     assert Resque::Failure.all(0).has_key?('retried_at')
     assert !Resque::Failure.all(1).has_key?('retried_at')
@@ -576,9 +576,9 @@ describe "Resque::Worker" do
   it "remove failed queue" do
     queue = 'good_job'
     queue2 = 'some_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2), :queue => queue2, :payload => {'class' => 'SomeJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue), :queue => queue, :payload => {'class' => 'GoodJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2, test_options), :queue => queue2, :payload => {'class' => 'SomeJob'})
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.remove_queue(queue)
     assert_equal queue2, Resque::Failure.all(0)['queue']
     assert_equal 1, Resque::Failure.count
