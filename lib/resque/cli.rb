@@ -8,12 +8,12 @@ module Resque
     class_option :namespace, :aliases => ["-N"], :type => :string
 
     desc "work", "Start processing jobs."
-    option :queues,    :aliases => ["-q"], :type => :string,  :default => "*"
-    option :require,   :aliases => ["-r"], :type => :string,  :default => "."
-    option :pid,       :aliases => ["-p"], :type => :string
-    option :interval,  :aliases => ["-i"], :type => :numeric, :default => 5
-    option :daemon,    :aliases => ["-d"], :type => :boolean, :default => false
-    option :timeout,   :aliases => ["-t"], :type => :numeric, :default => 4.0
+    option :queues,     :aliases => ["-q"], :type => :string,  :default => "*"
+    option :requirement,:aliases => ["-r"], :type => :string,  :default => "."
+    option :pid,        :aliases => ["-p"], :type => :string
+    option :interval,   :aliases => ["-i"], :type => :numeric, :default => 5
+    option :daemon,     :aliases => ["-d"], :type => :boolean, :default => false
+    option :timeout,    :aliases => ["-t"], :type => :numeric, :default => 4.0
     def work
       load_config
 
