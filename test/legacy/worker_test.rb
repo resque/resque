@@ -94,8 +94,7 @@ describe "Resque::Worker" do
       else
         Resque.redis.client.reconnect
         Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
-        worker = Resque::Worker.new(:at_exit_jobs, test_options)
-        worker.run_at_exit_hooks = true
+        worker = Resque::Worker.new(:at_exit_jobs, test_options.merge(:run_at_exit_hooks => true))
         worker.work
         exit
       end

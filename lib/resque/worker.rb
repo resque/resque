@@ -72,10 +72,6 @@ module Resque
     # Config options
     attr_accessor :options
 
-    # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
-    # registered in the application. Otherwise, forked workers exit with `exit!`
-    attr_accessor :run_at_exit_hooks
-
     attr_writer :to_s
 
     # Workers should be initialized with an array of string queue
@@ -91,11 +87,19 @@ module Resque
     # removed without needing to restart workers using this method.
     def initialize(queues = [], options = {})
       @options = {
+        # Termination timeout
         :timeout => 0,
+        # Worker's poll interval
         :interval => 0,
+        # Run as deamon
         :daemon => false,
+        # Path to file file where worker's pid will be save
         :pid_file => nil,
+        # Use fork(2) on performing jobs
         :fork_per_job => true,
+        # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
+        # registered in the application. Otherwise, forked workers exit with `exit!`
+        :run_at_exit_hooks => false
       }
       @options.merge!(options.symbolize_keys)
 
@@ -457,7 +461,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && !$TESTING && options[:fork_per_job]
+      !@cant_fork && options[:fork_per_job]
     end
 
     # Given a string, sets the procline ($0) and logs.
@@ -517,7 +521,7 @@ module Resque
         run_hook :after_fork, job
         unregister_signal_handlers
         perform(job, &block)
-        exit! unless run_at_exit_hooks
+        exit! unless options[:run_at_exit_hooks]
       end
 
       if @child
