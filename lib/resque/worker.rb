@@ -377,7 +377,7 @@ module Resque
     def startup
       procline "Starting"
       daemonize if options[:daemonize]
-      pid_file(options[:pid_file]) if options[:pid_file]
+      write_pid_file(options[:pid_file]) if options[:pid_file]
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
@@ -399,7 +399,7 @@ module Resque
     end
 
     # Save worker's pid to file
-    def pid_file(path = nil)
+    def write_pid_file(path = nil)
       File.open(path, 'w'){ |f| f << self.pid } if path
     end
 
