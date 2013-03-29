@@ -93,6 +93,12 @@ context "Resque::Worker" do
 
   end
 
+  test "does report failure for jobs with invalid payload" do
+    job = Resque::Job.new(:jobs, { 'class' => 'NotAValidJobClass', 'args' => '' })
+    @worker.perform job
+    assert_equal 1, Resque::Failure.count, 'failure not reported'
+  end
+
   test "register 'run_at' time on UTC timezone in ISO8601 format" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601
@@ -453,7 +459,7 @@ context "Resque::Worker" do
     workerA.work(0)
     assert $BEFORE_FORK_CALLED
   end
-  
+
   test "Will not call a before_fork hook when the worker can't fork" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false

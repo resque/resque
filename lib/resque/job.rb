@@ -166,6 +166,19 @@ module Resque
       @payload_class ||= constantize(@payload['class'])
     end
 
+    # Returns the payload class as a string without raising NameError
+    def payload_class_name
+      payload_class.to_s
+    rescue NameError
+      'No Name'
+    end
+
+    def has_payload_class?
+      payload_class != Object
+    rescue NameError
+      false
+    end
+
     # Returns an array of args represented in this job's payload.
     def args
       @payload['args']
@@ -220,7 +233,9 @@ module Resque
     def run_failure_hooks(exception)
       begin
         job_args = args || []
-        failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
+        if has_payload_class?
+          failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
+        end
       ensure
         @failure_hooks_ran = true
       end
