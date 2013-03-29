@@ -318,23 +318,23 @@ describe "Resque::Worker" do
 
   it "inserts itself into the 'workers' list on startup" do
     @worker.work do
-      assert_equal @worker, Resque.workers[0]
+      assert_equal @worker, Resque::WorkerRegistry.all[0]
     end
   end
 
   it "removes itself from the 'workers' list on shutdown" do
     @worker.work do
-      assert_equal @worker, Resque.workers[0]
+      assert_equal @worker, Resque::WorkerRegistry.all[0]
     end
 
-    assert_equal [], Resque.workers
+    assert_equal [], Resque::WorkerRegistry.all
   end
 
   it "removes worker with stringified id" do
     @worker.work do
-      worker_id = Resque.workers[0].to_s
-      Resque.remove_worker(worker_id)
-      assert_equal [], Resque.workers
+      worker_id = Resque::WorkerRegistry.all[0].to_s
+      Resque::WorkerRegistry.remove(worker_id)
+      assert_equal [], Resque::WorkerRegistry.all
     end
   end
 
@@ -367,7 +367,7 @@ describe "Resque::Worker" do
 
   it "knows who is working" do
     @worker.work do
-      assert_equal [@worker], Resque.working
+      assert_equal [@worker], Resque::WorkerRegistry.working
     end
   end
 
@@ -466,11 +466,11 @@ describe "Resque::Worker" do
     registry = Resque::WorkerRegistry.new(workerB)
     registry.register
 
-    assert_equal 2, Resque.workers.size
+    assert_equal 2, Resque::WorkerRegistry.all.size
 
     # then we prune them
     @worker.work do
-      assert_equal 1, Resque.workers.size
+      assert_equal 1, Resque::WorkerRegistry.all.size
     end
   end
 

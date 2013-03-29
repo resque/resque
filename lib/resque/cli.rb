@@ -62,14 +62,15 @@ module Resque
 
     desc "remove WORKER", "Removes a worker"
     def remove(worker)
-      Resque.remove_worker(worker)
+      Resque::WorkerRegistry.remove(worker)
       puts "Removed #{worker}"
     end
 
     desc "list", "Lists known workers"
     def list
-      if Resque.workers.any?
-        Resque.workers.each do |worker|
+      workers = Resque::WorkerRegistry.all
+      if workers.any?
+        workers.each do |worker|
           puts "#{worker} (#{worker.state})"
         end
       else

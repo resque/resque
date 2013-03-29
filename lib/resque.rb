@@ -377,31 +377,6 @@ module Resque
   end
 
   #
-  # worker shortcuts
-  #
-
-  # A shortcut to Worker.all
-  # TODO - Remove this for interface consolidation.
-  def workers
-    WorkerRegistry.all
-  end
-
-  # A shortcut to Worker.working
-  # TODO - Remove this for interface consolidation.
-  def working
-    WorkerRegistry.working
-  end
-
-  # A shortcut to unregister_worker
-  # useful for command line tool
-  # TODO - Remove this, move to WorkerRegistry for interface consolidation.
-  def remove_worker(worker_id)
-    worker = Resque::WorkerRegistry.find(worker_id)
-    registry = Resque::WorkerRegistry.new(worker)
-    registry.unregister
-  end
-
-  #
   # stats
   #
 
@@ -411,8 +386,8 @@ module Resque
       :pending   => queues.inject(0) { |m,k| m + size(k) },
       :processed => Stat[:processed],
       :queues    => queues.size,
-      :workers   => workers.size.to_i,
-      :working   => working.size,
+      :workers   => Resque::WorkerRegistry.all.size.to_i,
+      :working   => Resque::WorkerRegistry.working.size,
       :failed    => Resque.redis.llen(:failed).to_i,
       :servers   => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'

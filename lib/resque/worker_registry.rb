@@ -72,6 +72,12 @@ module Resque
       redis.sismember(REDIS_WORKERS_KEY, worker_id)
     end
 
+    # Remove registered worker by it's id
+    def self.remove(worker_id)
+      worker = find(worker_id)
+      new(worker).unregister
+    end
+
     def initialize(worker)
       @worker = worker
     end
