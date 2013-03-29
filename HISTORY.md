@@ -2,6 +2,8 @@
 * Updates fork method so [resque-multi-job-forks](https://github.com/stulentsev/resque-multi-job-forks)
   monkey patching works again. See discussion at https://github.com/defunkt/resque/pull/895 for more
   context (@jonhyman)
+* Fixed uninitialize constant for the module/class that contains the perform 
+  method causing job failures to no be reported, #792 (@sideshowcoder)
 
 ## 1.24.1 (2013-3-23)
 

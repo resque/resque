@@ -139,7 +139,7 @@ module Resque
           job.worker = self
           working_on job
 
-          procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class}]"
+          procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
           if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
