@@ -23,7 +23,6 @@ module Resque
     option :interval,     :aliases => ["-i"], :type => :numeric
     option :daemon,       :aliases => ["-d"], :type => :boolean
     option :timeout,      :aliases => ["-t"], :type => :numeric
-    option :fork_per_job, :aliases => ["-f"], :type => :boolean
     def work
       load_enviroment(options[:require])
 
