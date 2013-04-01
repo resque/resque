@@ -90,7 +90,9 @@ module Resque
       end
 
       def show_args(args)
-        Array(args).map { |a| a.inspect }.join("\n")
+        Array(args).map do |a|
+          a.to_yaml
+        end.join("\n")
       end
 
       def worker_hosts

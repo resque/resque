@@ -18,8 +18,9 @@
 <% else %>
 <p class='sub'>Showing <%= failed_start_at %> to <%= failed_end_at %> of <b><%= failed_size %></b> jobs</p>
 
+
 <ul class='failed'>
-  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue], params[:class]) do |id, job| %>
+  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue], params[:class], failed_order) do |id, job| %>
     <%= partial :failed_job, :id => id, :job => job %>
   <% end %>
 </ul>
