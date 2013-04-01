@@ -77,20 +77,23 @@ module Resque
     # Whereas specifying args will only remove the 2nd job:
     #
     #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
-    #
-    # This method can be potentially very slow and memory intensive,
-    # depending on the size of your queue, as it loads all jobs into
-    # a Ruby array before processing.
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
       queue = "queue:#{queue}"
       destroyed = 0
 
       if args.empty?
-        redis.lrange(queue, 0, -1).each do |string|
+        tmp_queue = "#{queue}:tmp:#{Time.now.to_i}"
+        requeue_queue = "#{tmp_queue}:requeue"
+        while string = redis.rpoplpush(queue, tmp_queue)
           if decode(string)['class'] == klass
-            destroyed += redis.lrem(queue, 0, string).to_i
+            destroyed += redis.del(tmp_queue).to_i
+          else
+            redis.rpoplpush(tmp_queue, requeue_queue)
           end
+        end
+        loop do
+          break unless redis.rpoplpush(requeue_queue, queue)
         end
       else
         payload = encode('class' => klass, 'args' => args)
