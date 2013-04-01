@@ -25,15 +25,19 @@ Resque::Server.helpers do
   end
 
   def failed_start_at
-    params[:start].to_i
+    (params[:start] || failed_size - failed_per_page).to_i
   end
 
   def failed_end_at
     if failed_start_at + failed_per_page > failed_size
       failed_size
     else
-      failed_start_at + failed_per_page
+      failed_start_at  + failed_per_page
     end
+  end
+
+  def failed_order
+    params[:order] || 'desc'
   end
 
   def failed_class_counts(queue = params[:queue])

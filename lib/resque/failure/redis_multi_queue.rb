@@ -33,17 +33,20 @@ module Resque
         end
       end
 
-      def self.all(offset = 0, limit = 1, queue = :failed)
-        Resque.list_range(queue, offset, limit)
+      def self.all(offset = 0, limit = 1, queue = :failed, order = 'desc')
+        Resque.list_range(queue, offset, limit, order)
       end
 
       def self.queues
         Array(Resque.redis.smembers(:failed_queues))
       end
 
-      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
-        items = all(offset, limit, queue)
+      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
+        items = all(offset, limit, queue, order)
         items = [items] unless items.is_a? Array
+        if order.eql? 'desc'
+          items.reverse!
+        end
         items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
             yield offset + i, item
