@@ -80,24 +80,20 @@ module Resque
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
       queue = "queue:#{queue}"
+      tmp_queue = "#{queue}:tmp:#{Time.now.to_i}"
+      requeue_queue = "#{tmp_queue}:requeue"
       destroyed = 0
 
-      if args.empty?
-        tmp_queue = "#{queue}:tmp:#{Time.now.to_i}"
-        requeue_queue = "#{tmp_queue}:requeue"
-        while string = redis.rpoplpush(queue, tmp_queue)
-          if decode(string)['class'] == klass
-            destroyed += redis.del(tmp_queue).to_i
-          else
-            redis.rpoplpush(tmp_queue, requeue_queue)
-          end
+      while string = redis.rpoplpush(queue, tmp_queue)
+        decoded = decode(string)
+        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
+          destroyed += redis.del(tmp_queue).to_i
+        else
+          redis.rpoplpush(tmp_queue, requeue_queue)
         end
-        loop do
-          break unless redis.rpoplpush(requeue_queue, queue)
-        end
-      else
-        payload = encode('class' => klass, 'args' => args)
-        destroyed += redis.lrem(queue, 0, payload)
+      end
+      loop do
+        break unless redis.rpoplpush(requeue_queue, queue)
       end
 
       destroyed
