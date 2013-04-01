@@ -76,8 +76,8 @@ module Resque
     end
 
     # Iterate across all failures with the given options
-    def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, &block)
-      backend.each(offset, limit, queue, class_name, &block)
+    def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, order = 'desc', &block)
+      backend.each(offset, limit, queue, class_name, order, &block)
     end
 
     # The string url of the backend's web interface, if any.
