@@ -120,21 +120,24 @@ module Resque
     # Whereas specifying args will only find the 2nd job:
     #
     #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
-    #
-    # This method can be potentially very slow and memory intensive,
-    # depending on the size of your queue, as it loads all jobs into
-    # a Ruby array.
     def self.queued(queue, klass, *args)
       klass = klass.to_s
+      tmp_queue = "queue:#{queue}:tmp:#{Time.now.to_i}"
+      requeue_queue = "#{tmp_queue}:requeue"
+      jobs = []
 
-      redis.lrange("queue:#{queue}", 0, -1).inject([]) do |memo, string|
+      while string = redis.rpoplpush("queue:#{queue}", tmp_queue)
         decoded = decode(string)
         if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
-          memo << new(queue, decoded)
+          jobs.unshift new(queue, decoded)
         end
-
-        memo
+        redis.rpoplpush(tmp_queue, requeue_queue)
       end
+      loop do
+        redis.rpoplpush(requeue_queue, "queue:#{queue}") or break
+      end
+
+      jobs
     end
 
     # Given a string queue name, returns an instance of Resque::Job
