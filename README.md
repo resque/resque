@@ -38,8 +38,8 @@ end
 Next, we need to procrastinate! Let's put your job on the queue:
 
 ```
-rescue = Resque.new
-rescue << ImageConversionJob.new
+resque = Resque.new
+resque << ImageConversionJob.new
 ```
 
 Neat! This unit of work will be stored in Redis. We can spin up a worker to
