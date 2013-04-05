@@ -57,8 +57,12 @@ namespace :resque do
   # Preload app files if this is Rails
   task :preload => :setup do
     if defined?(Rails) && Rails.respond_to?(:application)
-      # Rails 3
-      Rails.application.eager_load!
+      if ENV["REQUIRE"].present?
+        require ENV["REQUIRE"]
+      else
+        # Rails 3
+        Rails.application.eager_load!
+      end
     elsif defined?(Rails::Initializer)
       # Rails 2.3
       $rails_rake_task = false
