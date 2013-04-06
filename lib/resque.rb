@@ -21,7 +21,6 @@ require 'resque/queue'
 require 'resque/multi_queue'
 require 'resque/coder'
 require 'resque/json_coder'
-require 'resque/redis_factory'
 require 'resque/hook_register'
 
 require 'resque/vendor/utf8_util'
@@ -51,19 +50,22 @@ module Resque
     yield config
   end
 
-  # Accepts:
-  #   1. A 'hostname:port' String
-  #   2. A 'hostname:port:db' String (to select the Redis db)
-  #   3. A 'hostname:port/namespace' String (to set the Redis namespace)
-  #   4. A Redis URL String 'redis://host:port'
-  #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
-  #      or `Redis::Namespace`.
   def redis=(server)
-    @redis = RedisFactory.from_server(server)
+    config.redis = server
 
     @queues = Hash.new do |h,name|
-      h[name] = Resque::Queue.new(name, @redis, coder)
+      h[name] = Resque::Queue.new(name, config.redis, coder)
     end
+  end
+
+  # Returns the current Redis connection. If none has been created, will
+  # create a new one.
+  def redis
+    config.redis
+  end
+
+  def redis_id
+    config.redis_id
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
@@ -72,29 +74,6 @@ module Resque
     @coder ||= JsonCoder.new
   end
   attr_writer :coder
-
-  # Returns the current Redis connection. If none has been created, will
-  # create a new one.
-  def redis
-    return @redis if @redis
-
-    self.redis = if Redis.respond_to?(:connect)
-                   Redis.connect(:thread_safe => true)
-                 else
-                   "localhost:6379"
-                 end
-  end
-
-  def redis_id
-    # support 1.x versions of redis-rb
-    if redis.respond_to?(:server)
-      redis.server
-    elsif redis.respond_to?(:nodes) # distributed
-      redis.nodes.map { |n| n.id }.join(', ')
-    else
-      redis.client.id
-    end
-  end
 
   # Set or retrieve the current logger object
   attr_accessor :logger
@@ -226,7 +205,6 @@ module Resque
 
   # Return the Resque::Queue object for a given name
   def queue(name)
-    redis unless @redis
     @queues[name.to_s]
   end
 
