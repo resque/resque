@@ -68,6 +68,14 @@ module Resque
     config.redis_id
   end
 
+  def namespace=(val)
+    config.namespace = val
+  end
+
+  def namespace
+    config.namespace
+  end
+
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
   # This defaults to JSON for backwards compatibility.
   def coder
