@@ -28,8 +28,20 @@ require 'resque/hook_register'
 require 'resque/vendor/utf8_util'
 
 module Resque
-  include Helpers
   extend self
+
+  # Direct access to the Redis instance.
+  def redis
+    Resque.redis
+  end
+
+  def encode(object)
+    Resque.coder.encode(object)
+  end
+
+  def decode(object)
+    Resque.coder.decode(object)
+  end
 
   extend Forwardable
 
@@ -73,10 +85,10 @@ module Resque
     return @redis if @redis
 
     self.redis = if Redis.respond_to?(:connect)
-      Redis.connect(:thread_safe => true)
-    else
-      "localhost:6379"
-    end
+                   Redis.connect(:thread_safe => true)
+                 else
+                   "localhost:6379"
+                 end
   end
 
   def redis_id
@@ -111,8 +123,8 @@ module Resque
     :after_perform,
     :after_perform=
 
-  def to_s
-    "Resque Client connected to #{redis_id}"
+    def to_s
+      "Resque Client connected to #{redis_id}"
   end
 
   # If 'inline' is true Resque will call #perform method inline
