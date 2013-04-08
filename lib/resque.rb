@@ -10,7 +10,6 @@ require 'resque/failure/base'
 require 'resque/failure'
 require 'resque/failure/redis'
 
-require 'resque/helpers'
 require 'resque/stat'
 require 'resque/logging'
 require 'resque/job'
