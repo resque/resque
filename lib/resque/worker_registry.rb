@@ -1,11 +1,25 @@
 # This class handles registering/unregistering/updating worker status in Redis
 module Resque
   class WorkerRegistry
-    include Resque::Helpers
-    extend Resque::Helpers
-
     REDIS_WORKERS_KEY = :workers
     REDIS_SINGLE_WORKER_KEY = :worker
+    
+    # Direct access to the Redis instance.
+    def redis
+      Resque.redis
+    end
+
+    def self.redis
+      Resque.redis
+    end
+
+    def encode(object)
+      Resque.coder.encode(object)
+    end
+
+    def decode(object)
+      Resque.coder.decode(object)
+    end
 
     # Returns an array of all worker objects.
     def self.all
