@@ -9,9 +9,40 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
-    extend  Resque::Helpers
-    include Resque::Helpers
     include Resque::Logging
+
+    def redis
+      Resque.redis
+    end
+
+    def self.redis
+      Resque.redis
+    end
+    
+    # Given a Ruby object, returns a string suitable for storage in a
+    # queue.
+    def encode(object)
+      if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+        MultiJson.dump object
+      else
+        MultiJson.encode object
+      end
+    end
+
+    # Given a string, returns a Ruby object.
+    def decode(object)
+      return unless object
+
+      begin
+        if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+          MultiJson.load object
+        else
+          MultiJson.decode object
+        end
+      rescue ::MultiJson::DecodeError => e
+        raise DecodeException, e.message, e.backtrace
+      end
+    end
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
