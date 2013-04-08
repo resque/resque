@@ -23,12 +23,6 @@ require 'resque/vendor/utf8_util'
 module Resque
   extend self
 
-  # Direct access to the Redis instance.
-  def redis
-    Resque.redis
-  end
-
-  
   # Given a Ruby object, returns a string suitable for storage in a
   # queue.
   def encode(object)
