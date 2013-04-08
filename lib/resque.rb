@@ -118,8 +118,8 @@ module Resque
     :after_perform,
     :after_perform=
 
-    def to_s
-      "Resque Client connected to #{redis_id}"
+  def to_s
+    "Resque Client connected to #{redis_id}"
   end
 
   # If 'inline' is true Resque will call #perform method inline
