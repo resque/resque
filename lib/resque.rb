@@ -21,8 +21,52 @@ require 'resque/plugin'
 require 'resque/vendor/utf8_util'
 
 module Resque
-  include Helpers
   extend self
+
+  # Direct access to the Redis instance.
+  def redis
+    Resque.redis
+  end
+
+  
+  # Given a Ruby object, returns a string suitable for storage in a
+  # queue.
+  def encode(object)
+    if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+      MultiJson.dump object
+    else
+      MultiJson.encode object
+    end
+  end
+
+  # Given a string, returns a Ruby object.
+  def decode(object)
+    return unless object
+
+    begin
+      if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+        MultiJson.load object
+      else
+        MultiJson.decode object
+      end
+    rescue ::MultiJson::DecodeError => e
+      raise Helpers::DecodeException, e.message, e.backtrace
+    end
+  end
+
+  extend Forwardable
+
+  def self.config=(options = {})
+    @config = Config.new(options)
+  end
+
+  def self.config
+    @config ||= Config.new
+  end
+
+  def self.configure
+    yield config
+  end
 
   # Accepts:
   #   1. A 'hostname:port' String

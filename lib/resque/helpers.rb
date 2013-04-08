@@ -34,7 +34,6 @@ module Resque
       else
         MultiJson.encode object
       end
-
     end
 
     # Given a string, returns a Ruby object.
