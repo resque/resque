@@ -30,11 +30,6 @@ require 'resque/vendor/utf8_util'
 module Resque
   extend self
 
-  # Direct access to the Redis instance.
-  def redis
-    Resque.redis
-  end
-
   def encode(object)
     Resque.coder.encode(object)
   end
