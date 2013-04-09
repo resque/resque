@@ -15,21 +15,38 @@ describe "Resque::Worker" do
 
     @worker = Resque::Worker.new(:jobs, test_options)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    Resque::Worker.__send__(:public, :pause_processing)
     Resque::Worker.__send__(:public, :will_fork?)
     Resque::Worker.__send__(:public, :reserve)
   end
 
   it "can fail jobs" do
-    Resque::Job.create(:jobs, BadJob)
-    @worker.work
-    assert_equal 1, Resque::Failure.count
+    # This test forks, so we will use the real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
+
+    begin
+      Resque::Job.create(:jobs, BadJob)
+      @worker.work
+      assert_equal 1, Resque::Failure.count
+    ensure
+      Resque.redis = $mock_redis 
+    end
   end
 
   it "failed jobs report exception and message" do
-    Resque::Job.create(:jobs, BadJobWithSyntaxError)
-    @worker.work
-    assert_equal('SyntaxError', Resque::Failure.all['exception'])
-    assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+    # we fork, so let's use real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
+
+    begin
+      Resque::Job.create(:jobs, BadJobWithSyntaxError)
+      @worker.work
+      assert_equal('SyntaxError', Resque::Failure.all['exception'])
+      assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "unavailable job definition reports exception and message" do
@@ -163,28 +180,52 @@ describe "Resque::Worker" do
   end
 
   it "can peek at failed jobs" do
-    10.times { Resque::Job.create(:jobs, BadJob) }
-    @worker.work
-    assert_equal 10, Resque::Failure.count
+    # This test forks so we'll use the real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
 
-    assert_equal 10, Resque::Failure.all(0, 20).size
+    begin
+      10.times { Resque::Job.create(:jobs, BadJob) }
+      @worker.work
+      assert_equal 10, Resque::Failure.count
+
+      assert_equal 10, Resque::Failure.all(0, 20).size
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "can clear failed jobs" do
-    Resque::Job.create(:jobs, BadJob)
-    @worker.work
-    assert_equal 1, Resque::Failure.count
-    Resque::Failure.clear
-    assert_equal 0, Resque::Failure.count
+    # This test forks so we'll use the real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
+
+    begin
+      Resque::Job.create(:jobs, BadJob)
+      @worker.work
+      assert_equal 1, Resque::Failure.count
+      Resque::Failure.clear
+      assert_equal 0, Resque::Failure.count
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "catches exceptional jobs" do
-    Resque::Job.create(:jobs, BadJob)
-    Resque::Job.create(:jobs, BadJob)
-    @worker.process
-    @worker.process
-    @worker.process
-    assert_equal 2, Resque::Failure.count
+    # This test forks so we'll use the real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
+
+    begin
+      Resque::Job.create(:jobs, BadJob)
+      Resque::Job.create(:jobs, BadJob)
+      @worker.process
+      @worker.process
+      @worker.process
+      assert_equal 2, Resque::Failure.count
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "strips whitespace from queue names" do
@@ -308,12 +349,20 @@ describe "Resque::Worker" do
   end
 
   it "fails if a job class has no `perform` method" do
-    worker = Resque::Worker.new(:perform_less, test_options)
-    Resque::Job.create(:perform_less, Object)
+    # This test forks so let's use real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
 
-    assert_equal 0, Resque::Failure.count
-    worker.work
-    assert_equal 1, Resque::Failure.count
+    begin
+      worker = Resque::Worker.new(:perform_less, test_options)
+      Resque::Job.create(:perform_less, Object)
+
+      assert_equal 0, Resque::Failure.count
+      worker.work
+      assert_equal 1, Resque::Failure.count
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "inserts itself into the 'workers' list on startup" do
@@ -383,10 +432,21 @@ describe "Resque::Worker" do
   end
 
   it "reserve blocks when the queue is empty" do
-    worker = Resque::Worker.new(:timeout, test_options)
+    # due to difference in behavior regarding timeouts, let's
+    # use real redis
+    Resque.redis = $real_redis
+    Resque.redis.flushall
 
-    assert_raises Timeout::Error do
-      Timeout.timeout(1) { worker.reserve(5) }
+    begin
+      worker = Resque::Worker.new(:timeout, test_options)
+
+      # In MockRedis, this will return nil rather than throwing
+      # the timeout error.
+      assert_raises Timeout::Error do
+        Timeout.timeout(1) { worker.reserve(5) }
+      end
+    ensure
+      Resque.redis = $mock_redis
     end
   end
 
@@ -535,17 +595,23 @@ describe "Resque::Worker" do
   end
 
   it "Will call an after_fork hook after forking" do
+    # we fork, therefore, real redis
+    Resque.redis = $real_redis
     Resque.redis.flushall
 
-    msg = "called!"
-    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", msg) }
-    workerA = Resque::Worker.new(:jobs, test_options)
+    begin
+      msg = "called!"
+      Resque.after_fork = Proc.new { Resque.redis.set("after_fork", msg) }
+      workerA = Resque::Worker.new(:jobs, test_options)
 
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
 
-    workerA.work
-    val = Resque.redis.get("after_fork")
-    assert_equal val, msg
+      workerA.work
+      val = Resque.redis.get("after_fork")
+      assert_equal val, msg
+    ensure
+      Resque.redis = $mock_redis
+    end
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
@@ -657,26 +723,35 @@ describe "Resque::Worker" do
   end
 
   it "will call before_pause before it is paused" do
-    before_pause_called = false
-    captured_worker = nil
+    # this test is kinda weird and complex, so let's punt
+    # and use real redis to make sure we don't break stuff
+    Resque.redis = $real_redis
+    Resque.redis.flushall
 
-    Resque.before_pause do |worker|
-      before_pause_called = true
-      captured_worker = worker
+    begin
+      before_pause_called = false
+      captured_worker = nil
+
+      Resque.before_pause do |worker|
+        before_pause_called = true
+        captured_worker = worker
+      end
+
+      @worker.pause_processing
+
+      assert !before_pause_called
+
+      t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
+
+      @worker.work
+
+      t.join
+
+      assert before_pause_called
+      assert_equal @worker, captured_worker
+    ensure
+      Resque.redis = $mock_redis
     end
-
-    @worker.pause_processing
-
-    assert !before_pause_called
-
-    t = Thread.start { sleep(0.1); Process.kill('CONT', @worker.pid) }
-
-    @worker.work
-
-    t.join
-
-    assert before_pause_called
-    assert_equal @worker, captured_worker
   end
 
   it "will call after_pause after it is paused" do
@@ -710,6 +785,7 @@ describe "Resque::Worker" do
       }.each do |scenario,rescue_time|
         it "SIGTERM when #{scenario} while catching #{exception}" do
           begin
+            Resque.redis = $real_redis
             eval("class LongRunningJob; @@exception = #{exception}; end")
             class LongRunningJob
               @queue = :long_running_job
@@ -770,6 +846,7 @@ describe "Resque::Worker" do
           ensure
             remaining_keys = Resque.redis.keys('sigterm-test:*') || []
             Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
+            Resque.redis = $mock_redis
           end
         end
       end

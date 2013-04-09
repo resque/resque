@@ -36,18 +36,28 @@ MiniTest::Unit.after_tests do
   end
 end
 
+require 'mock_redis'
+puts "Using a mock Redis"
+r = MockRedis.new :host => "localhost", :port => 9736, :db => 0
+$mock_redis = Redis::Namespace.new :resque, :redis => r
+
+# this gets set up based on the two keys below
+$real_reids = nil
+
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'
   puts "Starting redis for testing at localhost:9736 and localhost:9737..."
   `redis-server #{$dir}/redis-test.conf`
   `redis-server #{$dir}/redis-test-cluster.conf`
   r = Redis::Distributed.new(['redis://localhost:9736', 'redis://localhost:9737'])
-  Resque.redis = Redis::Namespace.new :resque, :redis => r
+  $real_redis = Redis::Namespace.new :resque, :redis => r
 else
   puts "Starting redis for testing at localhost:9736..."
   `redis-server #{$dir}/redis-test.conf`
-  Resque.redis = 'localhost:9736'
+  $real_redis = 'localhost:9736'
 end
+
+Resque.redis = $mock_redis
 
 class DummyLogger
   attr_reader :messages
