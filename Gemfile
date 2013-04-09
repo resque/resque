@@ -17,5 +17,5 @@ group :test do
   gem "json"
   gem "minitest"
   gem "sinatra"
-  gem "capybara"
+  gem "capybara", "~> 2.0.3"
 end
