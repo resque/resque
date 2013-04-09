@@ -6,12 +6,12 @@ module Resque
       job_was_performed = false
 
       # Execute before_perform hook. Abort the job gracefully if
-      # Resque::Job::DontPerform is raised.
+      # Resque::DontPerform is raised.
       begin
         hooks[:before].each do |hook|
           job.send(hook, *job_args)
         end
-      rescue Job::DontPerform
+      rescue Resque::DontPerform
         return false
       end
 

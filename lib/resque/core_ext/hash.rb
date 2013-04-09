@@ -9,4 +9,10 @@ class Hash
   def symbolize_keys!
     self.replace(self.symbolize_keys)
   end
+
+  def slice(*keys)
+    hash = self.class.new
+    keys.each { |k| hash[k] = self[k] if has_key?(k) }
+    hash
+  end
 end

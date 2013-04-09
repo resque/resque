@@ -23,7 +23,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      Array(redis.smembers(REDIS_WORKERS_KEY)).map { |id| find(id) }.compact
+      redis.smembers(REDIS_WORKERS_KEY).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -53,7 +53,7 @@ module Resque
     def self.find(worker_id)
       if exists?(worker_id)
         queues = worker_id.split(':')[-1].split(',')
-        worker = Worker.new(*queues)
+        worker = Worker.new(queues)
         worker.to_s = worker_id
         worker
       else
@@ -70,6 +70,12 @@ module Resque
     # worker exists
     def self.exists?(worker_id)
       redis.sismember(REDIS_WORKERS_KEY, worker_id)
+    end
+
+    # Remove registered worker by it's id
+    def self.remove(worker_id)
+      worker = find(worker_id)
+      new(worker).unregister
     end
 
     def initialize(worker)
