@@ -41,9 +41,6 @@ puts "Using a mock Redis"
 r = MockRedis.new :host => "localhost", :port => 9736, :db => 0
 $mock_redis = Redis::Namespace.new :resque, :redis => r
 
-# this gets set up based on the two keys below
-$real_reids = nil
-
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'
   puts "Starting redis for testing at localhost:9736 and localhost:9737..."
