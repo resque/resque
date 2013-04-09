@@ -6,7 +6,6 @@ module Resque
   class CLI < Thor
     class_option :config,    :aliases => ["-c"], :type => :string
     class_option :redis,     :aliases => ["-R"], :type => :string
-    class_option :namespace, :aliases => ["-N"], :type => :string
 
     def initialize(args = [], opts = [], config = {})
       super(args, opts, config)
@@ -14,6 +13,8 @@ module Resque
       if options[:config] && File.exists?(options[:config])
         @options = YAML.load_file(options[:config]).symbolize_keys.merge(@options.symbolize_keys)
       end
+
+      Resque.redis = options[:redis]
     end
 
     desc "work", "Start processing jobs."

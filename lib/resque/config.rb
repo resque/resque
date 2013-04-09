@@ -3,15 +3,6 @@ require "resque/core_ext/hash"
 module Resque
   class Config
     attr_reader :redis
-    attr_writer :namespace
-
-    def initialize
-      self.redis = Redis.new(:thread_safe => true)
-    end
-
-    def namespace
-      @namespace ||= :resque
-    end
 
     # Accepts:
     #   1. A 'hostname:port' String
@@ -21,12 +12,14 @@ module Resque
     #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
     #      or `Redis::Namespace`.
     def redis=(server)
+      return if server == "" or server.nil?
+
       @redis = case server
       when String
         if server['redis://']
           redis = Redis.connect(:url => server, :thread_safe => true)
         else
-          server, self.namespace = server.split('/', 2)
+          server, namespace = server.split('/', 2)
           host, port, db = server.split(':')
 
           redis = Redis.new(
@@ -36,13 +29,11 @@ module Resque
             :thread_safe => true
           )
         end
-        Redis::Namespace.new(self.namespace, :redis => redis)
+        Redis::Namespace.new(namespace || :resque, :redis => redis)
       when Redis::Namespace
         server
       when Redis
-        Redis::Namespace.new(self.namespace, :redis => server)
-      else
-        Redis.new(:thread_safe => true)
+        Redis::Namespace.new(:resque, :redis => server)
       end
     end
 
