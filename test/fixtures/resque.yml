@@ -1,0 +1,8 @@
+redis: ""
+namespace: ""
+failure_backed: ""
+daemon: true
+failure_backend: "redis"
+fork_per_job: true
+interval: 1
+timeout: 2

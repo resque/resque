@@ -1,53 +1,51 @@
-require "ostruct"
 require "resque/core_ext/hash"
 
 module Resque
   class Config
-    attr_accessor :options
+    attr_reader :redis
 
-    def initialize(options = {})
-      @options = {
-        :daemon => env(:background) || false,
-        :count => env(:count) || 5,
-        :failure_backend => env(:failure_backend) || "redis",
-        :fork_per_job => env(:fork_per_job).nil? || env(:fork_per_job) == "true",
-        :interval => env(:interval) || 5,
-        :pid => env(:pid_file) || nil,
-        :queues => (env(:queue) || env(:queues) || "*"),
-        :timeout => env(:rescue_term_timeout) || 4.0,
-        :requirement => nil
-      }.merge!(options.symbolize_keys!)
-    end
+    # Accepts:
+    #   1. A 'hostname:port' String
+    #   2. A 'hostname:port:db' String (to select the Redis db)
+    #   3. A 'hostname:port/namespace' String (to set the Redis namespace)
+    #   4. A Redis URL String 'redis://host:port'
+    #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
+    #      or `Redis::Namespace`.
+    def redis=(server)
+      return if server == "" or server.nil?
 
-    def timeout
-      @options[:timeout].to_f
-    end
-
-    def interval
-      @options[:interval].to_f
-    end
-
-    def queues
-      @options[:queues].to_s.split(',')
-    end
-
-    def method_missing(name)
-      name = name.to_sym
-      if @options.has_key?(name)
-        @options[name]
-      end
-    end
-
-    protected
-
-      def env(key)
-        key = key.to_s.upcase
-        if ENV.key?(key)
-          Kernel.warn "DEPRECATION WARNING: Using ENV variables is deprecated and will be removed in Resque 2.1"
-          ENV[key]
+      @redis = case server
+      when String
+        if server['redis://']
+          redis = Redis.connect(:url => server, :thread_safe => true)
         else
-          nil
+          server, namespace = server.split('/', 2)
+          host, port, db = server.split(':')
+
+          redis = Redis.new(
+            :host => host,
+            :port => port,
+            :db => db,
+            :thread_safe => true
+          )
         end
+        Redis::Namespace.new(namespace || :resque, :redis => redis)
+      when Redis::Namespace
+        server
+      when Redis
+        Redis::Namespace.new(:resque, :redis => server)
       end
+    end
+
+    def redis_id
+      # support 1.x versions of redis-rb
+      if redis.respond_to?(:server)
+        redis.server
+      elsif redis.respond_to?(:nodes) # distributed
+        redis.nodes.map(&:id).join(', ')
+      else
+        redis.client.id
+      end
+    end
   end
 end

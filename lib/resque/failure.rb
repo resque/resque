@@ -32,17 +32,9 @@ module Resque
     # Returns the current backend class. If none has been set, falls
     # back to `Resque::Failure::Redis`
     def self.backend
-      return @backend if @backend
-
-      case Resque.config.failure_backend
-      when 'redis_multi_queue'
-        require 'resque/failure/redis_multi_queue'
-        @backend = Failure::RedisMultiQueue
-      when 'redis', nil
+      @backend ||= begin
         require 'resque/failure/redis'
-        @backend = Failure::Redis
-      else
-        raise ArgumentError, "invalid failure backend: #{Resque.config.failure_backend}"
+        Failure::Redis
       end
     end
 

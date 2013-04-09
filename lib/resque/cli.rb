@@ -1,3 +1,4 @@
+require 'yaml'
 require 'thor'
 require "resque"
 
@@ -5,56 +6,49 @@ module Resque
   class CLI < Thor
     class_option :config,    :aliases => ["-c"], :type => :string
     class_option :redis,     :aliases => ["-R"], :type => :string
-    class_option :namespace, :aliases => ["-N"], :type => :string
+
+    def initialize(args = [], opts = [], config = {})
+      super(args, opts, config)
+
+      if options[:config] && File.exists?(options[:config])
+        @options = YAML.load_file(options[:config]).symbolize_keys.merge(@options.symbolize_keys)
+      end
+
+      Resque.redis = options[:redis]
+    end
 
     desc "work", "Start processing jobs."
-    option :queues,     :aliases => ["-q"], :type => :string,  :default => "*"
-    option :requirement,:aliases => ["-r"], :type => :string,  :default => "."
-    option :pid,        :aliases => ["-p"], :type => :string
-    option :interval,   :aliases => ["-i"], :type => :numeric, :default => 5
-    option :daemon,     :aliases => ["-d"], :type => :boolean, :default => false
-    option :timeout,    :aliases => ["-t"], :type => :numeric, :default => 4.0
+    option :queues,       :aliases => ["-q"], :type => :string
+    option :require,      :aliases => ["-r"], :type => :string
+    option :pid_file,     :aliases => ["-p"], :type => :string
+    option :interval,     :aliases => ["-i"], :type => :numeric
+    option :daemon,       :aliases => ["-d"], :type => :boolean
+    option :timeout,      :aliases => ["-t"], :type => :numeric
     def work
-      load_config
+      load_enviroment(options[:require])
 
-      load_enviroment(Resque.config.requirement)
-      worker = Resque::Worker.new(*Resque.config.queues)
+      queues = options[:queues].to_s.split(',')
+      opts = @options.symbolize_keys.slice(:timeout, :interval, :daemon, :pid_file)
 
-      worker.term_timeout = Resque.config.timeout
-
-      if Resque.config.daemon
-        Process.daemon(true)
-      end
-
-      if Resque.config.pid
-        File.open(Resque.config.pid, 'w') { |f| f << worker.pid }
-      end
-
-      Resque.logger.info "Starting worker #{worker}"
-
-      worker.work(Resque.config.interval) # interval, will block
+      Resque::Worker.new(queues, opts).work
     end
 
     desc "workers", "Start multiple Resque workers. Should only be used in dev mode."
     option :count, :aliases => ["-n"], :type => :numeric, :default => 5
     def workers
-      load_config
-
       threads = []
 
-      Resque.config.count.to_i.times do
+      options[:count].to_i.times do
         threads << Thread.new do
           self.work
         end
       end
 
-      threads.each { |thread| thread.join }
+      threads.each(&:join)
     end
 
     desc "kill WORKER", "Kills a worker"
     def kill(worker)
-      load_config
-
       pid = worker.split(':')[1].to_i
 
       begin
@@ -69,18 +63,15 @@ module Resque
 
     desc "remove WORKER", "Removes a worker"
     def remove(worker)
-      load_config
-
-      Resque.remove_worker(worker)
+      Resque::WorkerRegistry.remove(worker)
       puts "Removed #{worker}"
     end
 
     desc "list", "Lists known workers"
     def list
-      load_config
-
-      if Resque.workers.any?
-        Resque.workers.each do |worker|
+      workers = Resque::WorkerRegistry.all
+      if workers.any?
+        workers.each do |worker|
           puts "#{worker} (#{worker.state})"
         end
       else
@@ -91,7 +82,6 @@ module Resque
     desc "sort_failures", "Sort the 'failed' queue for the redis_multi_queue failure backend"
     def sort_failures
       require 'resque/failure/redis'
-      load_config
 
       warn "Sorting #{Resque::Failure.count} failures..."
       Resque::Failure.each(0, Resque::Failure.count) do |_, failure|
@@ -101,19 +91,11 @@ module Resque
       warn "done!"
     end
 
+
     protected
 
-      def load_config
-        opts = {}
-        if options[:config]
-          opts = YAML.load_file(File.expand_path(options[:config]))
-        end
-
-        Resque.config = opts.merge!(options)
-      end
-
       def load_enviroment(file = nil)
-        return if file.nil?
+        file ||= "."
 
         if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/environment.rb"))
           require "rails"
@@ -130,5 +112,6 @@ module Resque
           require File.expand_path(file)
         end
       end
+
   end
 end

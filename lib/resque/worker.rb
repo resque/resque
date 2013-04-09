@@ -19,61 +19,13 @@ module Resque
     def self.redis
       Resque.redis
     end
-    
-    # Tries to find a constant with the name specified in the argument string.
-    #
-    #   'Module'.constantize     # => Module
-    #   'Test::Unit'.constantize # => Test::Unit
-    #
-    # The name is assumed to be the one of a top-level constant, no matter
-    # whether it starts with "::" or not. No lexical context is taken into
-    # account:
-    #
-    #   C = 'outside'
-    #   module M
-    #     C = 'inside'
-    #     C               # => 'inside'
-    #     'C'.constantize # => 'outside', same as ::C
-    #   end
-    #
-    # NameError is raised when the name is not in CamelCase or the constant is
-    # unknown.
-    def self.constantize(camel_cased_word)
-      names = camel_cased_word.to_s.split('::')
-      names.shift if names.empty? || names.first.empty?
-
-      names.inject(Object) do |constant, name|
-        if constant == Object
-          constant.const_get(name)
-        else
-          candidate = constant.const_get(name)
-          args = Module.method(:const_defined?).arity != 1 ? [false] : []
-          next candidate if constant.const_defined?(name, *args)
-          next candidate unless Object.const_defined?(name)
-
-          # Go down the ancestors to check it it's owned
-          # directly before we reach Object or the end of ancestors.
-          constant = constant.ancestors.inject do |const, ancestor|
-            break const    if ancestor == Object
-            break ancestor if ancestor.const_defined?(name, *args)
-            const
-          end
-
-          # owner is in Object, so raise
-          constant.const_get(name, false)
-        end
-      end
-    end
 
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
 
-    attr_accessor :term_timeout
-
-    # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
-    # registered in the application. Otherwise, forked workers exit with `exit!`
-    attr_accessor :run_at_exit_hooks
+    # Config options
+    attr_accessor :options
 
     attr_writer :to_s
 
@@ -88,13 +40,31 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues.map { |queue| queue.to_s.strip }
+    def initialize(queues = [], options = {})
+      @options = {
+        # Termination timeout
+        :timeout => 5,
+        # Worker's poll interval
+        :interval => 5,
+        # Run as deamon
+        :daemon => false,
+        # Path to file file where worker's pid will be save
+        :pid_file => nil,
+        # Use fork(2) on performing jobs
+        :fork_per_job => true,
+        # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
+        # registered in the application. Otherwise, forked workers exit with `exit!`
+        :run_at_exit_hooks => false
+      }
+      @options.merge!(options.symbolize_keys)
+
+      @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
       @cant_fork = false
       @reconnected = false
       @worker_registry = WorkerRegistry.new(self)
+
       validate_queues
     end
 
@@ -114,8 +84,8 @@ module Resque
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
-    def work(interval = 5.0, &block)
-      interval = Float(interval)
+    def work(&block)
+      interval = Float(options[:interval])
       startup
 
       loop do
@@ -213,7 +183,7 @@ module Resque
 
     # has our child quit gracefully within the timeout limit?
     def quit_gracefully?(child)
-      (term_timeout.to_f * 10).round.times do |i|
+      (options[:timeout].to_f * 10).round.times do |i|
         sleep(0.1)
         return true if Process.waitpid(child, Process::WNOHANG)
       end
@@ -361,6 +331,8 @@ module Resque
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
       procline "Starting"
+      daemonize if options[:daemonize]
+      write_pid_file(options[:pid_file]) if options[:pid_file]
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
@@ -370,6 +342,20 @@ module Resque
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
       $stdout.sync = true
+    end
+
+    # Daemonize process (ruby 1.9 only)
+    def daemonize
+      if Process.respond_to?(:daemon)
+        Process.daemon(true)
+      else
+        Kernel.warn "Running process as daemon requires ruby >= 1.9"
+      end
+    end
+
+    # Save worker's pid to file
+    def write_pid_file(path = nil)
+      File.open(path, 'w'){ |f| f << self.pid } if path
     end
 
     # Enables GC Optimizations if you're running REE.
@@ -430,7 +416,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && Resque.config.fork_per_job
+      !@cant_fork && options[:fork_per_job]
     end
 
     # Given a string, sets the procline ($0) and logs.
@@ -490,7 +476,7 @@ module Resque
         run_hook :after_fork, job
         unregister_signal_handlers
         perform(job, &block)
-        exit! unless run_at_exit_hooks
+        exit! unless options[:run_at_exit_hooks]
       end
 
       if @child
@@ -505,9 +491,7 @@ module Resque
 
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
-    def reserve(interval = 5.0)
-      interval = interval.to_i
-
+    def reserve(interval = 5)
       multi_queue = MultiQueue.from_queues(queues)
 
       if interval < 1
@@ -517,7 +501,7 @@ module Resque
           queue, job = nil
         end
       else
-        queue, job = multi_queue.poll(interval.to_i)
+        queue, job = multi_queue.poll(interval)
       end
 
       Resque.logger.debug "Found job on #{queue}"
