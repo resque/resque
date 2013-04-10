@@ -1,5 +1,9 @@
 require 'time'
 require 'redis/distributed'
+require 'resque/logging'
+require 'resque/core_ext/hash'
+require 'resque/worker_registry'
+require 'resque/errors'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -63,9 +67,12 @@ module Resque
       @paused = nil
       @cant_fork = false
       @reconnected = false
-      @worker_registry = WorkerRegistry.new(self)
 
       validate_queues
+    end
+
+    def worker_registry
+      @worker_registry ||= WorkerRegistry.new(self)
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -103,9 +110,9 @@ module Resque
         end
       end
 
-      @worker_registry.unregister
+      worker_registry.unregister
     rescue Exception => exception
-      @worker_registry.unregister(exception)
+      worker_registry.unregister(exception)
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -114,7 +121,7 @@ module Resque
       return unless job ||= reserve
 
       job.worker = self
-      @worker_registry.working_on job
+      worker_registry.working_on job
       perform(job, &block)
     ensure
       done_working
@@ -143,7 +150,7 @@ module Resque
       Resque.logger.info 'Exiting...'
 
       @shutdown = true
-      @worker_registry.remote_shutdown if remote
+      worker_registry.remote_shutdown if remote
     end
 
     # Kill the child and shutdown immediately.
@@ -154,7 +161,7 @@ module Resque
 
     # Should this worker shutdown as soon as current job is finished?
     def shutdown?
-      @shutdown || @worker_registry.remote_shutdown?
+      @shutdown || worker_registry.remote_shutdown?
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -247,12 +254,16 @@ module Resque
 
     # Boolean - true if working, false if not
     def working?
-      @worker_registry.state == :working
+      worker_registry.state == :working
     end
 
     # Boolean - true if idle, false if not
     def idle?
-      @worker_registry.state == :idle
+      worker_registry.state == :idle
+    end
+
+    def state
+      worker_registry.state
     end
 
     # Is this worker the same as another worker?
@@ -337,7 +348,7 @@ module Resque
       register_signal_handlers
       prune_dead_workers
       run_hook :before_first_fork, self
-      @worker_registry.register
+      worker_registry.register
 
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
@@ -443,7 +454,7 @@ module Resque
     # and tells Redis we processed a job.
     def done_working
       processed!
-      @worker_registry.done
+      worker_registry.done
     end
 
     # A worker must be given a queue, otherwise it won't know what to
@@ -469,7 +480,7 @@ module Resque
     def process_job(job, &block)
       Resque.logger.info "got: #{job.inspect}"
       job.worker = self
-      @worker_registry.working_on job
+      worker_registry.working_on job
 
       @child = fork(job) do
         reconnect

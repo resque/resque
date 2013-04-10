@@ -5,14 +5,12 @@ require 'resque/cli'
 describe Resque::CLI do
   describe "#work" do
     it "does its thing" do
-      worker = MiniTest::Mock.new
-      new_method = MiniTest::Mock.new.expect(:work, "did some work!")
-      worker.expect(:new, new_method, [["first", "second"], {:timeout => 2, :interval => 666, :daemon => true}])
+      worker = MiniTest::Mock.new.expect(:work, "did some work!")
 
-      Resque::Worker = worker
-
-      cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "-i", "666", "-q", "first,second", "-r", "path/to/file"])
-      assert_equal "did some work!", cli.invoke(:work)
+      Resque::Worker.stub(:new, worker) do
+        cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "-i", "666", "-q", "first,second", "-r", "path/to/file"])
+        assert_equal "did some work!", cli.invoke(:work)
+      end
     end
   end
 
