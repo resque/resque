@@ -3,14 +3,17 @@ require 'test_helper'
 require 'resque/cli'
 
 describe Resque::CLI do
-  it "#work" do
-    worker = MiniTest::Mock.new
-    worker.expect(:new, MiniTest::Mock.new.expect(:work, nil), [["first", "second"], {:timeout => 2, :interval => 666, :daemon => true}])
+  describe "#work" do
+    it "does its thing" do
+      worker = MiniTest::Mock.new
+      new_method = MiniTest::Mock.new.expect(:work, "did some work!")
+      worker.expect(:new, new_method, [["first", "second"], {:timeout => 2, :interval => 666, :daemon => true}])
 
-    Resque::Worker = worker
+      Resque::Worker = worker
 
-    cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "-i", "666", "-q", "first,second", "-r", "path/to/file"])
-    cli.invoke(:work)
+      cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "-i", "666", "-q", "first,second", "-r", "path/to/file"])
+      assert_equal "did some work!", cli.invoke(:work)
+    end
   end
 
 	describe "#list" do

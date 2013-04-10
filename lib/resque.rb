@@ -25,6 +25,8 @@ require 'resque/hook_register'
 
 require 'resque/vendor/utf8_util'
 
+require 'forwardable'
+
 module Resque
   extend self
 
