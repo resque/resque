@@ -13,16 +13,31 @@ describe Resque::CLI do
     cli.invoke(:work)
   end
 
-  describe "#list" do
-    describe "no workers" do
-      it "displays None" do
-        cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
-        out, err = capture_io do
-	  cli.invoke(:list)
-        end
+	describe "#list" do
+		describe "no workers" do
+			it "displays None" do
+				cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
+				out, err = capture_io do
+					cli.invoke(:list)
+				end
 
-        assert_equal "None", out.chomp
-      end
-    end
-  end
+				assert_equal "None", out.chomp
+			end
+		end
+
+		describe "with a worker" do
+			it "displays worker state" do
+				registry = MiniTest::Mock.new
+				registry.expect(:all, [MiniTest::Mock.new.expect(:state, "working")])
+				Resque::WorkerRegistry = registry
+
+				cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
+				out, err = capture_io do
+					cli.invoke(:list)
+				end
+
+				assert_match /\(working\)/, out.chomp
+			end
+		end
+	end
 end
