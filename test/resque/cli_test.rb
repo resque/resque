@@ -12,4 +12,17 @@ describe Resque::CLI do
     cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "-i", "666", "-q", "first,second", "-r", "path/to/file"])
     cli.invoke(:work)
   end
+
+  describe "#list" do
+    describe "no workers" do
+      it "displays None" do
+        cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
+        out, err = capture_io do
+	  cli.invoke(:list)
+        end
+
+        assert_equal "None", out.chomp
+      end
+    end
+  end
 end
