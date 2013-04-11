@@ -14,31 +14,34 @@ describe Resque::CLI do
     end
   end
 
-	describe "#list" do
-		describe "no workers" do
-			it "displays None" do
-				cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
-				out, err = capture_io do
-					cli.invoke(:list)
-				end
+  describe "#list" do
+    describe "no workers" do
+      it "displays None" do
+        cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
+        out, err = capture_io do
+          begin
+            cli.invoke(:list)
+          rescue Redis::CannotConnectError => e
+            puts "rescued: #{e}"
+          end
+        end
+        assert_equal "None", out.chomp
+      end
+    end
 
-				assert_equal "None", out.chomp
-			end
-		end
+    describe "with a worker" do
+      it "displays worker state" do
+        registry = MiniTest::Mock.new
+        registry.expect(:all, [MiniTest::Mock.new.expect(:state, "working")])
+        Resque::WorkerRegistry = registry
+        cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
+        out, err = capture_io do
+          cli.invoke(:list)
+        end
+        assert_match /\(working\)/, out.chomp
+      end
+    end
 
-		describe "with a worker" do
-			it "displays worker state" do
-				registry = MiniTest::Mock.new
-				registry.expect(:all, [MiniTest::Mock.new.expect(:state, "working")])
-				Resque::WorkerRegistry = registry
+  end
 
-				cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
-				out, err = capture_io do
-					cli.invoke(:list)
-				end
-
-				assert_match /\(working\)/, out.chomp
-			end
-		end
-	end
 end

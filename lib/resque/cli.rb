@@ -69,12 +69,18 @@ module Resque
 
     desc "list", "Lists known workers"
     def list
-      workers = Resque::WorkerRegistry.all
-      if workers.any?
-        workers.each do |worker|
-          puts "#{worker} (#{worker.state})"
+      begin
+        workers = Resque::WorkerRegistry.all
+        if workers.any?
+          workers.each do |worker|
+            puts "#{worker} (#{worker.state})"
+          end
+        else
+          puts "None"
         end
-      else
+      rescue Redis::CannotConnectError => e
+        ## puts "rescued #{e}"
+      ensure
         puts "None"
       end
     end
