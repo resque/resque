@@ -77,25 +77,18 @@ module Resque
       coder = Resque.coder
       redis = Resque.redis
       klass = klass.to_s
-      args  = coder.decode(coder.encode(args))
-      queue = "queue:#{queue}"
-      destroyed = 0
 
-      tmp_queue = "#{queue}:tmp:#{Time.now.to_i}"
-      requeue_queue = "#{tmp_queue}:requeue"
-      while string = redis.rpoplpush(queue, tmp_queue)
-        decoded = coder.decode(string)
-        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
-          destroyed += redis.del(tmp_queue).to_i
-        else
-          redis.rpoplpush(tmp_queue, requeue_queue)
-        end
-      end
-      loop do
-        redis.rpoplpush(requeue_queue, queue) or break
+      new_queue     = "queue:#{queue}"
+      temp_queue    = "#{queue}:temp:#{Time.now.to_i}"
+      requeue_queue = "#{temp_queue}:requeue"
+
+      destroyed_count = 0
+
+      destroyed_count = process_queue(new_queue, temp_queue, requeue_queue, coder, redis, klass, args) do |decoded|
+        redis.del(temp_queue).to_i
       end
 
-      destroyed
+      destroyed_count.inject(:+)
     end
 
     # Find jobs from a queue. Expects a string queue name, a
@@ -119,23 +112,17 @@ module Resque
     #
     #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
     def self.queued(queue, klass, *args)
-      redis = Resque.redis
       coder = Resque.coder
-
+      redis = Resque.redis
       klass = klass.to_s
-      tmp_queue = "queue:#{queue}:tmp:#{Time.now.to_i}"
-      requeue_queue = "#{tmp_queue}:requeue"
-      jobs = []
 
-      while string = redis.rpoplpush("queue:#{queue}", tmp_queue)
-        decoded = coder.decode(string)
-        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
-          jobs.unshift new(queue, decoded)
-        end
-        redis.rpoplpush(tmp_queue, requeue_queue)
-      end
-      loop do
-        redis.rpoplpush(requeue_queue, "queue:#{queue}") or break
+      new_queue     = "queue:#{queue}"
+      temp_queue    = "queue:#{queue}:temp:#{Time.now.to_i}"
+      requeue_queue = "#{temp_queue}:requeue"
+
+      jobs = process_queue(new_queue, temp_queue, requeue_queue, coder, redis, klass, args) do |decoded|
+        redis.rpoplpush(temp_queue, requeue_queue)
+        new(queue, decoded)
       end
 
       jobs
@@ -264,6 +251,26 @@ module Resque
       ensure
         @failure_hooks_ran = true
       end
+    end
+
+    protected
+    def self.process_queue(queue, temp_queue, requeue_queue, coder, redis, klass, args)
+      return_array = []
+      while string = redis.rpoplpush(queue, temp_queue)
+        decoded = coder.decode(string)
+        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
+          return_array.unshift(yield decoded)
+        else
+          redis.rpoplpush(temp_queue, requeue_queue)
+        end
+      end
+      push_queue(redis, requeue_queue, queue)
+
+      return_array
+    end
+
+    def self.push_queue(redis, requeue_queue, queue)
+      loop { redis.rpoplpush(requeue_queue, queue) or break }
     end
   end
 end
