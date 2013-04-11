@@ -1,5 +1,4 @@
 require 'resque/core_ext/string'
-
 require 'resque/errors'
 require 'resque/job_performer'
 
@@ -77,7 +76,6 @@ module Resque
     def self.destroy(queue, klass, *args)
       coder = Resque.coder
       redis = Resque.redis
-
       klass = klass.to_s
       args  = coder.decode(coder.encode(args))
       queue = "queue:#{queue}"
@@ -183,7 +181,6 @@ module Resque
         'No Name'
       end
     end
-
 
     def to_h
       {
