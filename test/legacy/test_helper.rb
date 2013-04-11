@@ -177,7 +177,3 @@ def reset_logger
 end
 
 reset_logger
-
-def jruby?
-  defined?(RUBY_ENGINE) && RUBY_ENGINE == "jruby"
-end

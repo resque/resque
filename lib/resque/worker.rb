@@ -390,8 +390,11 @@ module Resque
       trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
-        trap('USR1') { kill_child }
+        # The signal QUIT & USR1 is in use by the JVM and will not work correctly on jRuby
+        unless jruby?
+          trap('QUIT') { shutdown   }
+          trap('USR1') { kill_child }
+        end
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
