@@ -77,14 +77,10 @@ module Resque
       coder = Resque.coder
       redis = Resque.redis
       klass = klass.to_s
-
-      new_queue     = "queue:#{queue}"
-      temp_queue    = "#{queue}:temp:#{Time.now.to_i}"
-      requeue_queue = "#{temp_queue}:requeue"
-
+      
       destroyed_count = 0
 
-      destroyed_count = process_queue(new_queue, temp_queue, requeue_queue, coder, redis, klass, args) do |decoded|
+      destroyed_count = process_queue(queue, coder, redis, klass, args) do |decoded, new_queue, temp_queue, requeue_queue|
         redis.del(temp_queue).to_i
       end
 
@@ -116,11 +112,7 @@ module Resque
       redis = Resque.redis
       klass = klass.to_s
 
-      new_queue     = "queue:#{queue}"
-      temp_queue    = "queue:#{queue}:temp:#{Time.now.to_i}"
-      requeue_queue = "#{temp_queue}:requeue"
-
-      jobs = process_queue(new_queue, temp_queue, requeue_queue, coder, redis, klass, args) do |decoded|
+      jobs = process_queue(queue, coder, redis, klass, args) do |decoded, new_queue, temp_queue, requeue_queue|
         redis.rpoplpush(temp_queue, requeue_queue)
         new(queue, decoded)
       end
@@ -254,17 +246,21 @@ module Resque
     end
 
     protected
-    def self.process_queue(queue, temp_queue, requeue_queue, coder, redis, klass, args)
-      return_array = []
-      while string = redis.rpoplpush(queue, temp_queue)
+    def self.process_queue(queue, coder, redis, klass, args)
+      return_array  = []
+      new_queue     = "queue:#{queue}"
+      temp_queue    = "queue:#{queue}:temp:#{Time.now.to_i}"
+      requeue_queue = "#{temp_queue}:requeue"
+
+      while string = redis.rpoplpush(new_queue, temp_queue)
         decoded = coder.decode(string)
         if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
-          return_array.unshift(yield decoded)
+          return_array.unshift(yield decoded, new_queue, temp_queue, requeue_queue)
         else
           redis.rpoplpush(temp_queue, requeue_queue)
         end
       end
-      push_queue(redis, requeue_queue, queue)
+      push_queue(redis, requeue_queue, new_queue)
 
       return_array
     end
