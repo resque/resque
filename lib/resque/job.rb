@@ -17,30 +17,6 @@ module Resque
   #   klass = job.payload['class'].to_s.constantize
   #   klass.perform(*job.payload['args'])
   class Job
-    def redis
-      Resque.redis
-    end
-
-    def self.redis
-      Resque.redis
-    end
-
-    def self.encode(object)
-      Resque.coder.encode(object)
-    end
-
-    def self.decode(object)
-      Resque.coder.decode(object)
-    end
-
-    def encode(object)
-      Resque.coder.encode(object)
-    end
-
-    def decode(object)
-      Resque.coder.decode(object)
-    end
-
     def constantize(camel_cased_word)
       names = camel_cased_word.to_s.split('::')
       names.shift if names.empty? || names.first.empty?
@@ -90,13 +66,14 @@ module Resque
     #
     # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
+      coder = Resque.coder
       Resque.validate(klass, queue)
 
       if Resque.inline?
         # Instantiating a Resque::Job and calling perform on it so callbacks run
         # decode(encode(args)) to ensure that args are normalized in the same
         # manner as a non-inline job
-        payload = {'class' => klass, 'args' => decode(encode(args))}
+        payload = {'class' => klass, 'args' => coder.decode(coder.encode(args))}
 
         new(:inline, payload).perform
       else
@@ -125,15 +102,18 @@ module Resque
     #
     #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
     def self.destroy(queue, klass, *args)
+      coder = Resque.coder
+      redis = Resque.redis
+
       klass = klass.to_s
-      args  = decode(encode(args))
+      args  = coder.decode(coder.encode(args))
       queue = "queue:#{queue}"
       destroyed = 0
 
       tmp_queue = "#{queue}:tmp:#{Time.now.to_i}"
       requeue_queue = "#{tmp_queue}:requeue"
       while string = redis.rpoplpush(queue, tmp_queue)
-        decoded = decode(string)
+        decoded = coder.decode(string)
         if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
           destroyed += redis.del(tmp_queue).to_i
         else
@@ -168,13 +148,16 @@ module Resque
     #
     #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
     def self.queued(queue, klass, *args)
+      redis = Resque.redis
+      coder = Resque.coder
+
       klass = klass.to_s
       tmp_queue = "queue:#{queue}:tmp:#{Time.now.to_i}"
       requeue_queue = "#{tmp_queue}:requeue"
       jobs = []
 
       while string = redis.rpoplpush("queue:#{queue}", tmp_queue)
-        decoded = decode(string)
+        decoded = coder.decode(string)
         if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
           jobs.unshift new(queue, decoded)
         end
