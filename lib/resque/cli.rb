@@ -76,10 +76,10 @@ module Resque
             puts "#{worker} (#{worker.state})"
           end
         else
-          puts "None"
+          # puts "None"
         end
       rescue Redis::CannotConnectError => e
-        ## puts "rescued #{e}"
+        # puts "rescued #{e}"
       ensure
         puts "None"
       end
