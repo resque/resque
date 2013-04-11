@@ -44,7 +44,6 @@
   typing purposes (jonhyman)
 * Fix log formatters not appending a new line (flavorpill)
 * redirect unauthorized resque-web polling requests to root url (trliner)
-* Disable forking with FORK_PER_JOB=false (@tarcieri)
 * Various resque-web fixes (@tarcieri)
 * Optional RedisMultiQueue failure backend, can be enabled with
   FAILURE_BACKEND=redis_multi_queue env var (@tarcieri)
