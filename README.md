@@ -5,7 +5,7 @@ Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing
 them later.
 
-  - [![Code Climate](https://codeclimate.com/github/resque/resque.png)](https://codeclimate.com/github/defunkt/resque)
+  - [![Code Climate](https://codeclimate.com/github/resque/resque.png)](https://codeclimate.com/github/resque/resque)
   - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
 
 ### A note about branches
