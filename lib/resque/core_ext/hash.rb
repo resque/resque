@@ -4,15 +4,15 @@ class Hash
       options[(key.to_sym rescue key) || key] = value
       options
     end
-  end
+  end unless Hash.respond_to?(:symbolize_keys)
 
   def symbolize_keys!
     self.replace(self.symbolize_keys)
-  end
+  end unless Hash.respond_to?(:symbolize_keys!)
 
   def slice(*keys)
     hash = self.class.new
     keys.each { |k| hash[k] = self[k] if has_key?(k) }
     hash
-  end
+  end unless Hash.respond_to?(:slice)
 end
