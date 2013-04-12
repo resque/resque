@@ -25,7 +25,7 @@ Resque::Server.helpers do
   end
 
   def failed_start_at
-    (params[:start] || failed_size - failed_per_page).to_i
+    params[:start].to_i
   end
 
   def failed_end_at
