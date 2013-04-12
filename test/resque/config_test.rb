@@ -18,6 +18,12 @@ describe Resque::Config do
       config.redis = new_namespace
       assert_equal new_namespace, config.redis
     end
+
+    it "works with Redis::Distributed" do
+      distributed = Redis::Distributed.new(%w(redis://localhost:6379 redis://localhost:6380))
+      config.redis = distributed
+      assert_equal distributed, config.redis
+    end
   end
 
   describe "#redis_id" do
@@ -31,6 +37,12 @@ describe Resque::Config do
       redis = Redis.new
       config.redis = redis
       assert_equal config.redis_id, redis.client.id
+    end
+
+    it "distributed" do
+      require 'redis/distributed'
+      config.redis = Redis::Distributed.new(%w(redis://localhost:6379 redis://localhost:6380))
+      assert_equal config.redis_id, "redis://localhost:6379/0, redis://localhost:6380/0"
     end
   end
 end
