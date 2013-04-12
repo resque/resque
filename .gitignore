@@ -7,3 +7,4 @@ test/dump-cluster.rdb
 *.rbc
 pkg
 log
+*.swp
