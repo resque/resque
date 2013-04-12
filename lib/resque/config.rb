@@ -30,7 +30,7 @@ module Resque
           )
         end
         Redis::Namespace.new(namespace || :resque, :redis => redis)
-      when Redis::Namespace
+      when Redis::Namespace, Redis::Distributed
         server
       when Redis
         Redis::Namespace.new(:resque, :redis => server)
