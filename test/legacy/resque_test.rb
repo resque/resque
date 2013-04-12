@@ -16,22 +16,6 @@ describe "Resque" do
     Resque.redis = @original_redis
   end
 
-  it "can set a namespace through a url-like string" do
-    assert Resque.redis
-    assert_equal :resque, Resque.redis.namespace
-    Resque.redis = 'localhost:9736/namespace'
-    assert_equal 'namespace', Resque.redis.namespace
-  end
-
-  it "redis= works correctly with a Redis::Namespace param" do
-    new_redis = Redis.new(:host => "localhost", :port => 9736)
-    new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
-    Resque.redis = new_namespace
-    assert_equal new_namespace, Resque.redis
-
-    Resque.redis = 'localhost:9736/namespace'
-  end
-
   it "can put jobs on a queue" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
