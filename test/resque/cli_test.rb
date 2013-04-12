@@ -18,11 +18,14 @@ describe Resque::CLI do
     describe "no workers" do
       it "displays None" do
         cli = Resque::CLI.new([], ["-c", "test/fixtures/resque.yml", "--redis", "localhost:6379/resque"])
-        out, err = capture_io do
-          cli.invoke(:list)
-        end
 
-        assert_equal "None", out.chomp
+        Resque::WorkerRegistry.stub(:all, []) do
+          out, err = capture_io do
+            cli.invoke(:list)
+          end
+
+          assert_equal "None", out.chomp
+        end
       end
     end
 
