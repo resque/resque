@@ -10,19 +10,17 @@ module Resque
     #   hook: A hash with keys :before, :after and :around, all arrays of
     #         methods to call on the payload class with args
     def perform(payload_class, args, hooks)
-      # Setup instance variables for the helper methods
       @job      = payload_class
       @job_args = args || []
       @hooks    = hooks
 
-      # Before hooks can raise a Resque::DontPerform exception
+      # before_hooks can raise a Resque::DontPerform exception
       # in which case we exit this method, returning false (because
       # the job was never performed)
       return false unless call_before_hooks
       execute_job
       call_hooks(:after)
 
-      # Return whether or not the job was performed
       performed?
     end
 
