@@ -3,7 +3,7 @@ module Resque
   class WorkerRegistry
     REDIS_WORKERS_KEY = :workers
     REDIS_SINGLE_WORKER_KEY = :worker
-    
+
     # Direct access to the Redis instance.
     def redis
       Resque.redis
