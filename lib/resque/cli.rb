@@ -64,7 +64,7 @@ module Resque
     desc "remove WORKER", "Removes a worker"
     def remove(worker)
       Resque::WorkerRegistry.remove(worker)
-      puts "Removed #{worker}"
+      puts "removed #{worker}"
     end
 
     desc "list", "Lists known workers"
