@@ -1,5 +1,4 @@
-require File.join(File.expand_path(File.dirname(__FILE__)), 'test_helper')
-
+require 'test_helper'
 require 'resque/cli'
 
 describe Resque::CLI do
@@ -42,6 +41,16 @@ describe Resque::CLI do
           out, _ = capture_io { cli.kill("worker:123") }
           assert_match(/killed/, out.chomp)
         end
+      end
+    end
+  end
+
+  describe "#remove" do
+    it "displays removed" do
+      Resque::WorkerRegistry.stub(:remove, nil) do
+        cli = Resque::CLI.new #move this to a subject?
+        out, _ = capture_io { cli.remove("worker:123") }
+        assert_match(/removed/, out.chomp)
       end
     end
   end
