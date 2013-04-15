@@ -16,7 +16,7 @@ describe Resque::Worker do
   end
 
   describe "#to_s, #inspect" do
-    it "give us string representations of a worker" do
+    it "gives us string representations of a worker" do
       worker = Resque::Worker.new(:queue => "foo")
       Socket.stub(:gethostname, "test.com") do
         worker.stub(:pid, "1234") do
