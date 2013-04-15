@@ -7,7 +7,7 @@ describe Resque::CLI do
     it "does its thing" do
       Resque::Worker.stub(:new, MiniTest::Mock.new.expect(:work, "did some work!")) do
         cli = Resque::CLI.new
-        assert_equal "did some work!", cli.invoke(:work)
+        assert_equal "did some work!", cli.work
       end
     end
   end
@@ -17,7 +17,7 @@ describe Resque::CLI do
       it "displays None" do
         Resque::WorkerRegistry.stub(:all, []) do
           cli = Resque::CLI.new
-          out, _ = capture_io { cli.invoke(:list) }
+          out, _ = capture_io { cli.list }
           assert_equal "None", out.chomp
         end
       end
@@ -27,8 +27,20 @@ describe Resque::CLI do
       it "displays worker state" do
         Resque::WorkerRegistry.stub(:all, [MiniTest::Mock.new.expect(:state, "working")]) do
           cli = Resque::CLI.new
-          out, _ = capture_io { cli.invoke(:list) }
+          out, _ = capture_io { cli.list }
           assert_match(/\(working\)/, out.chomp)
+        end
+      end
+    end
+  end
+
+  describe "#kill" do
+    it "displays killed" do
+      Process.stub(:kill, nil) do
+        Resque::WorkerRegistry.stub(:remove, nil) do
+          cli = Resque::CLI.new
+          out, _ = capture_io { cli.kill("worker:123") }
+          assert_match(/killed/, out.chomp)
         end
       end
     end
