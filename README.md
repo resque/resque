@@ -27,7 +27,7 @@ to do: 1.5 million installs can't be wrong!
 
 To define some work, make a job. Jobs need a `work` method:
 
-```
+```ruby
 class ImageConversionJob
   def work
     # convert some kind of image here
@@ -37,7 +37,7 @@ end
 
 Next, we need to procrastinate! Let's put your job on the queue:
 
-```
+```ruby
 resque = Resque.new
 resque << ImageConversionJob.new
 ```
@@ -110,7 +110,7 @@ does web scraping and crawling is a great use of jobs, too.
 Jobs are persisted in Redis via JSON serialization. Basically, the job looks
 like this:
 
-```
+```json
 {
     "class": "Email",
     "vars": {
@@ -122,7 +122,7 @@ like this:
 
 When Resque fetches this job from Redis, it will do something like this:
 
-```
+```ruby
 json = fetch_json_from_redis
 
 job = json["class"].constantize.new
