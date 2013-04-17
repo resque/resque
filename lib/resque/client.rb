@@ -12,6 +12,11 @@
 # one project.
 module Resque
   class Client
+
+    # This error is thrown if we have a problem connecting to
+    # the back end.
+    ConnectionError = Class.new(StandardError)
+
     attr_reader :backend, :logger
 
     def initialize(backend, logger)
@@ -19,8 +24,13 @@ module Resque
       @logger = logger
     end
     
-    # Reconnect to Redis to avoid sharing a connection with the parent,
-    # retry up to 3 times with increasing delay before giving up.
+    # Reconnects to the backend
+    #
+    # Maybe your backend died, maybe you've just forked. Whatever the
+    # reason, this method will attempt to reconnect to the backend.
+    # 
+    # If it can't connect, it will attempt to rety the connection after
+    # sleeping, and after 3 failures will throw an exception.
     def reconnect
       tries = 0
       begin
@@ -30,7 +40,7 @@ module Resque
 
         if tries == 3
           logger.info "Error reconnecting to Redis; quitting"
-          raise
+          raise ConnectionError
         end
 
         logger.info "Error reconnecting to Redis; retrying"
