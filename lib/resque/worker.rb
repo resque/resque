@@ -62,7 +62,7 @@ module Resque
       @paused = nil
       @cant_fork = false
 
-      @client = @options.fetch(:client) { Client.new(Resque.redis) }
+      @client = @options.fetch(:client) { Client.new(Resque.redis, Resque.logger) }
 
       validate_queues
     end

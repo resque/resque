@@ -3,14 +3,12 @@ require 'test_helper'
 require 'resque/client'
 
 describe Resque::Client do
-  before do
-    Resque.logger = MonoLogger.new(Tempfile.new('resque-log'))
-  end
+  let(:logger) { Logger.new(Tempfile.new('resque-log')) }
 
   describe "#new" do
     it "needs a Redis to be built" do
       redis = MiniTest::Mock.new
-      client = Resque::Client.new(redis)
+      client = Resque::Client.new(redis, logger)
 
       assert_same client.backend.__id__, redis.__id__
     end
@@ -32,7 +30,7 @@ describe Resque::Client do
         end
       end.new
 
-      client = Resque::Client.new(redis)
+      client = Resque::Client.new(redis, logger)
 
       # not actually stubbing right now?
       Kernel.stub(:sleep, nil) do

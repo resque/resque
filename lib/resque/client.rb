@@ -12,10 +12,11 @@
 # one project.
 module Resque
   class Client
-    attr_reader :backend
+    attr_reader :backend, :logger
 
-    def initialize(backend)
+    def initialize(backend, logger)
       @backend = backend
+      @logger = logger
     end
     
     # Reconnect to Redis to avoid sharing a connection with the parent,
@@ -28,11 +29,11 @@ module Resque
         tries += 1
 
         if tries == 3
-          Resque.logger.info "Error reconnecting to Redis; quitting"
+          logger.info "Error reconnecting to Redis; quitting"
           raise
         end
 
-        Resque.logger.info "Error reconnecting to Redis; retrying"
+        logger.info "Error reconnecting to Redis; retrying"
         sleep(tries)
         retry
       end
