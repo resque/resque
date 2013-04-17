@@ -7,6 +7,7 @@ them later.
 
   - [![Code Climate](https://codeclimate.com/github/resque/resque.png)](https://codeclimate.com/github/resque/resque)
   - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
+  - [![Dependency Status](https://gemnasium.com/resque/resque.png)](https://gemnasium.com/resque/resque)
 
 ### A note about branches
 
