@@ -16,28 +16,25 @@ module Resque
 
     def initialize(backend)
       @backend = backend
-
-      @reconnected = false
     end
     
     # Reconnect to Redis to avoid sharing a connection with the parent,
     # retry up to 3 times with increasing delay before giving up.
     def reconnect
-      return if @reconnected
-
       tries = 0
       begin
         backend.client.reconnect
-        @reconnected = true
       rescue Redis::BaseConnectionError
-        if (tries += 1) <= 3
-          Resque.logger.info "Error reconnecting to Redis; retrying"
-          sleep(tries)
-          retry
-        else
+        tries += 1
+
+        if tries == 3
           Resque.logger.info "Error reconnecting to Redis; quitting"
           raise
         end
+
+        Resque.logger.info "Error reconnecting to Redis; retrying"
+        sleep(tries)
+        retry
       end
     end
   end
