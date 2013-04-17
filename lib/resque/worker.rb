@@ -4,6 +4,7 @@ require 'resque/logging'
 require 'resque/core_ext/hash'
 require 'resque/worker_registry'
 require 'resque/errors'
+require 'resque/client'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -16,14 +17,6 @@ module Resque
   class Worker
     include Resque::Logging
 
-    def redis
-      Resque.redis
-    end
-
-    def self.redis
-      Resque.redis
-    end
-
     # Boolean indicating whether this worker can or can not fork.
     # Automatically set if a fork(2) fails.
     attr_accessor :cant_fork
@@ -32,6 +25,8 @@ module Resque
     attr_accessor :options
 
     attr_writer :to_s
+
+    attr_reader :client
 
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
@@ -58,7 +53,7 @@ module Resque
         :fork_per_job => true,
         # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
         # registered in the application. Otherwise, forked workers exit with `exit!`
-        :run_at_exit_hooks => false
+        :run_at_exit_hooks => false,
       }
       @options.merge!(options.symbolize_keys)
 
@@ -66,7 +61,8 @@ module Resque
       @shutdown = nil
       @paused = nil
       @cant_fork = false
-      @reconnected = false
+
+      @client = @options.fetch(:client) { Client.new(Resque.redis) }
 
       validate_queues
     end
@@ -304,6 +300,10 @@ module Resque
       end
     end
 
+    def reconnect
+      client.reconnect
+    end
+
     protected
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
@@ -520,27 +520,6 @@ module Resque
 
       Resque.logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if (queue && job)
-    end
-
-    # Reconnect to Redis to avoid sharing a connection with the parent,
-    # retry up to 3 times with increasing delay before giving up.
-    def reconnect
-      return if @reconnected
-
-      tries = 0
-      begin
-        redis.client.reconnect
-        @reconnected = true
-      rescue Redis::BaseConnectionError
-        if (tries += 1) <= 3
-          Resque.logger.info "Error reconnecting to Redis; retrying"
-          sleep(tries)
-          retry
-        else
-          Resque.logger.info "Error reconnecting to Redis; quitting"
-          raise
-        end
-      end
     end
   end
 end
