@@ -663,65 +663,6 @@ describe "Resque::Worker" do
     end
   end
 
-  it "tries to reconnect three times before giving up" do
-    skip "JRuby doesn't fork." if jruby?
-
-    begin
-      class Redis::Client
-        alias_method :original_reconnect, :reconnect
-
-        #warning: previous definition of reconnect was here
-        silence_warnings do
-          def reconnect
-            val = File.exists?("reconnect_test.txt") ? File.read("reconnect_test.txt").to_i : 0
-            File.open("reconnect_test.txt", "w+") {|f| f.write(val + 1)}
-            raise Redis::BaseConnectionError
-          end
-        end
-      end
-
-      class Resque::Worker
-        alias_method :original_sleep, :sleep
-        # warning: method redefined;
-        silence_warnings do
-          def sleep(duration = nil)
-            # noop
-          end
-        end
-      end
-
-      # Make sure we haven't been flagged as reconnected (from previous tests)
-      worker.instance_variable_set(:@reconnected, false)
-      worker.stub(:will_fork?, true) do
-        # The 4th try gives up and throws an exception
-        begin
-          worker.work
-        rescue
-        end
-
-        skip "Flaky test: skipping." unless File.exists?("reconnect_test.txt")
-        val = File.read("reconnect_test.txt").to_i
-        assert_equal 4, val
-      end
-    ensure
-      File.delete("reconnect_test.txt") if File.exists?("reconnect_test.txt")
-
-      class Redis::Client
-        # warning: method redefined;
-        silence_warnings do
-          alias_method :reconnect, :original_reconnect
-        end
-      end
-
-      class Resque::Worker
-        #  warning: method redefined;
-        silence_warnings do
-          alias_method :sleep, :original_sleep
-        end
-      end
-    end
-  end
-
   it "will call before_pause before it is paused" do
     # this test is kinda weird and complex, so let's punt
     # and use real redis to make sure we don't break stuff
