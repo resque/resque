@@ -4,7 +4,7 @@ require 'resque/logging'
 require 'resque/core_ext/hash'
 require 'resque/worker_registry'
 require 'resque/errors'
-require 'resque/client'
+require 'resque/backend'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -62,7 +62,7 @@ module Resque
       @paused = nil
       @cant_fork = false
 
-      @client = @options.fetch(:client) { Client.new(Resque.redis, Resque.logger) }
+      @client = @options.fetch(:client) { Backend.new(Resque.redis, Resque.logger) }
 
       validate_queues
     end
