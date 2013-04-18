@@ -1,5 +1,5 @@
 ##
-# Resque::Client is a wrapper around all things Redis.
+# Resque::Backend is a wrapper around all things Redis.
 #
 # This provides a level of indirection so that the rest of our code
 # doesn't need to know anything about Redis, and allows us to someday
@@ -11,7 +11,7 @@
 # Also, we can theoretically have multiple Redis/Resques going on
 # one project.
 module Resque
-  class Client
+  class Backend
 
     # This error is thrown if we have a problem connecting to
     # the back end.
