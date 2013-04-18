@@ -52,8 +52,13 @@ module Resque
     yield config
   end
 
+  def backend
+    @backend ||= Backend.new(config.redis, Resque.logger)
+  end
+
   def redis=(server)
     config.redis = server
+    @backend = Backend.new(config.redis, Resque.logger)
 
     @queues = Hash.new do |h,name|
       h[name] = Resque::Queue.new(name, config.redis, coder)
@@ -63,7 +68,7 @@ module Resque
   # Returns the current Redis connection. If none has been created, will
   # create a new one.
   def redis
-    config.redis
+    backend.store
   end
 
   def redis_id
