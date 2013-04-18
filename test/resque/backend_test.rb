@@ -9,9 +9,9 @@ describe Resque::Backend do
   describe "#new" do
     it "needs a Redis to be built" do
       redis = MiniTest::Mock.new
-      client = Resque::Backend.new(redis, logger)
+      backend = Resque::Backend.new(redis, logger)
 
-      assert_same client.backend.__id__, redis.__id__
+      assert_same backend.store.__id__, redis.__id__
     end
   end
 
