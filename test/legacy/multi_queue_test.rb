@@ -1,7 +1,7 @@
 require "test_helper"
 
 describe "Resque::MultiQueue" do
-  let(:redis) { Resque.redis }
+  let(:redis) { Resque.backend.store }
   let(:coder) { Resque::JsonCoder.new }
 
   before do

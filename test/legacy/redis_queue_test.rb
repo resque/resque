@@ -15,7 +15,7 @@ describe "Resque::Queue" do
   end
 
   before do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
   end
 
   it "generates a redis_name" do
@@ -101,7 +101,7 @@ describe "Resque::Queue" do
     q.destroy
 
     assert_equal [], Resque.queues
-    assert !Resque.redis.exists(queue.redis_name)
+    assert !Resque.backend.store.exists(queue.redis_name)
   end
 
   it "returns false if a queue is not destroyed" do
@@ -126,6 +126,6 @@ describe "Resque::Queue" do
   end
 
   def q
-    Resque::Queue.new 'foo', Resque.redis
+    Resque::Queue.new 'foo', Resque.backend.store
   end
 end

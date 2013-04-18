@@ -86,7 +86,7 @@ module Resque
       warn "Sorting #{Resque::Failure.count} failures..."
       Resque::Failure.each(0, Resque::Failure.count) do |_, failure|
         data = Resque.encode(failure)
-        Resque.redis.rpush(Resque::Failure.failure_queue_name(failure['queue']), data)
+        Resque.backend.store.rpush(Resque::Failure.failure_queue_name(failure['queue']), data)
       end
       warn "done!"
     end

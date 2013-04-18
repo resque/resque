@@ -7,8 +7,8 @@ describe "Resque::Worker" do
   let(:worker) { Resque::Worker.new(:jobs, test_options) }
 
   before :each do
-    Resque.redis = Resque.redis # reset state in Resque object
-    Resque.redis.flushall
+    Resque.redis = Resque.backend.store
+    Resque.backend.store.flushall
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
@@ -23,7 +23,7 @@ describe "Resque::Worker" do
   it "can fail jobs" do
     # This test forks, so we will use the real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -37,7 +37,7 @@ describe "Resque::Worker" do
   it "failed jobs report exception and message" do
     # we fork, so let's use real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       Resque::Job.create(:jobs, BadJobWithSyntaxError)
@@ -93,7 +93,7 @@ describe "Resque::Worker" do
         Process.waitpid(worker_pid)
         assert_equal 0, Resque::Failure.count
       else
-        Resque.redis.client.reconnect
+        Resque.backend.store.client.reconnect
         worker = Resque::Worker.new(:jobs, test_options)
         worker.work
         exit
@@ -109,7 +109,7 @@ describe "Resque::Worker" do
         assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
         assert_equal "at_exit", File.open(tmpfile).read.strip
       else
-        Resque.redis.client.reconnect
+        Resque.backend.store.client.reconnect
         Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
         worker = Resque::Worker.new(:at_exit_jobs, test_options.merge(:run_at_exit_hooks => true))
         worker.work
@@ -182,7 +182,7 @@ describe "Resque::Worker" do
   it "can peek at failed jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       10.times { Resque::Job.create(:jobs, BadJob) }
@@ -198,7 +198,7 @@ describe "Resque::Worker" do
   it "can clear failed jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -214,7 +214,7 @@ describe "Resque::Worker" do
   it "catches exceptional jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -351,7 +351,7 @@ describe "Resque::Worker" do
   it "fails if a job class has no `perform` method" do
     # This test forks so let's use real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       worker = Resque::Worker.new(:perform_less, test_options)
@@ -435,7 +435,7 @@ describe "Resque::Worker" do
     # due to difference in behavior regarding timeouts, let's
     # use real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       worker = Resque::Worker.new(:timeout, test_options)
@@ -582,7 +582,7 @@ describe "Resque::Worker" do
   end
 
   it "Will not call a before_fork hook when the worker can't fork" do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs, test_options)
@@ -597,17 +597,17 @@ describe "Resque::Worker" do
   it "Will call an after_fork hook after forking" do
     # we fork, therefore, real redis
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       msg = "called!"
-      Resque.after_fork = Proc.new { Resque.redis.set("after_fork", msg) }
+      Resque.after_fork = Proc.new { Resque.backend.store.set("after_fork", msg) }
       workerA = Resque::Worker.new(:jobs, test_options)
 
       Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
 
       workerA.work
-      val = Resque.redis.get("after_fork")
+      val = Resque.backend.store.get("after_fork")
       assert_equal val, msg
     ensure
       Resque.redis = $mock_redis
@@ -615,15 +615,15 @@ describe "Resque::Worker" do
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
     $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { Resque.redis.set("after_fork", "yeah") }
+    Resque.after_fork = Proc.new { Resque.backend.store.set("after_fork", "yeah") }
     workerA = Resque::Worker.new(:jobs, test_options)
     workerA.cant_fork = true
 
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work
-    assert_nil Resque.redis.get("after_fork")
+    assert_nil Resque.backend.store.get("after_fork")
   end
 
   it "returns PID of running process" do
@@ -656,7 +656,7 @@ describe "Resque::Worker" do
     proc = Proc.new { File.open(file.path, "w+") { |f| f.write("foo")} }
     # Somewhat of a pain to test because the child will fork, so need to communicate across processes and not use
     # Redis (since we're stubbing out reconnect...)
-    Resque.redis.client.stub(:reconnect, proc) do
+    Resque.backend.store.client.stub(:reconnect, proc) do
       worker.work
       val = File.read(file.path)
       assert_equal val, "foo"
@@ -667,7 +667,7 @@ describe "Resque::Worker" do
     # this test is kinda weird and complex, so let's punt
     # and use real redis to make sure we don't break stuff
     Resque.redis = $real_redis
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     begin
       before_pause_called = false
@@ -734,15 +734,15 @@ describe "Resque::Worker" do
               #warning: previous definition of perform was here
               silence_warnings do
                 def self.perform( run_time, rescue_time=nil )
-                  Resque.redis.client.reconnect # get its own connection
-                  Resque.redis.rpush( 'sigterm-test:start', Process.pid )
+                  Resque.backend.store.client.reconnect # get its own connection
+                  Resque.backend.store.rpush( 'sigterm-test:start', Process.pid )
                   sleep run_time
-                  Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
+                  Resque.backend.store.rpush( 'sigterm-test:result', 'Finished Normally' )
                 rescue @@exception => e
-                  Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
+                  Resque.backend.store.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
                   sleep rescue_time unless rescue_time.nil?
                 ensure
-                  Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
+                  Resque.backend.store.rpush( 'sigterm-test:final', 'exiting.' )
                 end
               end
             end
@@ -751,7 +751,7 @@ describe "Resque::Worker" do
 
             worker_pid = Kernel.fork do
               # reconnect since we just forked
-              Resque.redis.client.reconnect
+              Resque.backend.store.client.reconnect
 
               worker = Resque::Worker.new(:long_running_job, test_options.merge(:timeout => 1))
               worker.work
@@ -760,7 +760,7 @@ describe "Resque::Worker" do
             end
 
             # ensure the worker is started
-            start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
+            start_status = Resque.backend.store.blpop( 'sigterm-test:start', 5 )
             refute_nil start_status
             child_pid = start_status[1].to_i
             assert_operator child_pid, :>, 0
@@ -770,7 +770,7 @@ describe "Resque::Worker" do
             Process.waitpid(worker_pid)
 
             # wait to see how it all came down
-            result = Resque.redis.blpop( 'sigterm-test:result', 5 )
+            result = Resque.backend.store.blpop( 'sigterm-test:result', 5 )
             refute_nil result
             assert !result[1].start_with?('Finished Normally'), 'Job Finished normally. Sleep not long enough?'
             assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
@@ -780,13 +780,13 @@ describe "Resque::Worker" do
             assert child_not_running
 
             # see if post-cleanup occurred. This should happen IFF the rescue_time is less than the term_timeout
-            post_cleanup_occurred = Resque.redis.lpop( 'sigterm-test:final' )
+            post_cleanup_occurred = Resque.backend.store.lpop( 'sigterm-test:final' )
             assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?' if rescue_time.nil?
             assert !post_cleanup_occurred, 'post cleanup occurred. SIGKILL sent too late?' unless rescue_time.nil?
 
           ensure
-            remaining_keys = Resque.redis.keys('sigterm-test:*') || []
-            Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
+            remaining_keys = Resque.backend.store.keys('sigterm-test:*') || []
+            Resque.backend.store.del(*remaining_keys) unless remaining_keys.empty?
             Resque.redis = $mock_redis
           end
         end

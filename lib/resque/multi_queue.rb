@@ -29,10 +29,10 @@ module Resque
     # multiqueue
     def self.from_queues(queues)
       new_queues = queues.map do |queue|
-        Queue.new(queue, Resque.redis, Resque.coder)
+        Queue.new(queue, Resque.backend.store, Resque.coder)
       end
 
-      new(new_queues, Resque.redis)
+      new(new_queues, Resque.backend.store)
     end
 
     # Pop an item off one of the queues.  This method will block until an item

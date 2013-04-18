@@ -58,18 +58,18 @@ module Resque
 
   def redis=(server)
     config.redis = server
-    @backend = Backend.new(config.redis, Resque.logger)
 
     @queues = Hash.new do |h,name|
       h[name] = Resque::Queue.new(name, config.redis, coder)
     end
+
+    @backend = Backend.new(config.redis, Resque.logger)
+
+    config.redis
   end
 
   # Returns the current Redis connection. If none has been created, will
   # create a new one.
-  def redis
-    backend.store
-  end
 
   def redis_id
     config.redis_id
@@ -199,9 +199,9 @@ module Resque
   # and converting them into Ruby objects.
   def list_range(key, start = 0, count = 1)
     if count == 1
-      decode(redis.lindex(key, start))
+      decode(backend.store.lindex(key, start))
     else
-      Array(redis.lrange(key, start, start+count-1)).map do |item|
+      Array(backend.store.lrange(key, start, start+count-1)).map do |item|
         decode(item)
       end
     end
@@ -209,7 +209,7 @@ module Resque
 
   # Returns an array of all known Resque queues as strings.
   def queues
-    Array(redis.smembers(:queues))
+    Array(backend.store.smembers(:queues))
   end
 
   # Given a queue name, completely deletes the queue.
@@ -381,7 +381,7 @@ module Resque
       :queues    => queues.size,
       :workers   => Resque::WorkerRegistry.all.size.to_i,
       :working   => Resque::WorkerRegistry.working.size,
-      :failed    => Resque.redis.llen(:failed).to_i,
+      :failed    => Resque.backend.store.llen(:failed).to_i,
       :servers   => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     }
@@ -390,8 +390,8 @@ module Resque
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
-    redis.keys("*").map do |key|
-      key.sub("#{redis.namespace}:", '')
+    backend.store.keys("*").map do |key|
+      key.sub("#{backend.store.namespace}:", '')
     end
   end
 end

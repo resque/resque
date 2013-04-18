@@ -2,14 +2,14 @@ require 'test_helper'
 
 describe "Resque" do
   before do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
     Resque::Worker.__send__(:public, :reserve)
     Resque::Worker.__send__(:public, :done_working)
-    @original_redis = Resque.redis
+    @original_redis = Resque.backend.store
   end
 
   after do
@@ -206,7 +206,7 @@ describe "Resque" do
   end
 
   it "queues are always a list" do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
     assert_equal [], Resque.queues
   end
 
@@ -259,9 +259,9 @@ describe "Resque" do
     assert_equal 3, stats[:processed]
     assert_equal 1, stats[:failed]
     if ENV.key? 'RESQUE_DISTRIBUTED'
-      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
+      assert_equal [Resque.backend.store.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
     else
-      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
+      assert_equal [Resque.backend.store.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
     end
   end
 

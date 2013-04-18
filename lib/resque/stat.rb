@@ -10,7 +10,7 @@ module Resque
     
     # Direct access to the Redis instance.
     def redis
-      Resque.redis
+      Resque.backend.store
     end
 
     # Returns the int value of a stat, given a string stat name.

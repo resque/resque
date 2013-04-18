@@ -6,11 +6,11 @@ module Resque
 
     # Direct access to the Redis instance.
     def redis
-      Resque.redis
+      Resque.backend.store
     end
 
     def self.redis
-      Resque.redis
+      Resque.backend.store
     end
 
     def encode(object)

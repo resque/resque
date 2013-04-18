@@ -75,7 +75,7 @@ module Resque
     #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
     def self.destroy(queue, klass, *args)
       coder = Resque.coder
-      redis = Resque.redis
+      redis = Resque.backend.store
       klass = klass.to_s
       
       destroyed_count = 0
@@ -109,7 +109,7 @@ module Resque
     #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
     def self.queued(queue, klass, *args)
       coder = Resque.coder
-      redis = Resque.redis
+      redis = Resque.backend.store
       klass = klass.to_s
 
       jobs = process_queue(queue, coder, redis, klass, args) do |decoded, new_queue, temp_queue, requeue_queue|

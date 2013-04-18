@@ -17,7 +17,7 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(:failed, data)
+        Resque.backend.store.rpush(:failed, data)
       end
 
       def self.count(queue = nil, class_name = nil)
@@ -28,7 +28,7 @@ module Resque
           each(0, count(queue), queue, class_name) { n += 1 } 
           n
         else
-          Resque.redis.llen(:failed).to_i
+          Resque.backend.store.llen(:failed).to_i
         end
       end
 
@@ -45,27 +45,27 @@ module Resque
 
       def self.clear(queue = nil)
         check_queue(queue)
-        Resque.redis.del(:failed)
+        Resque.backend.store.del(:failed)
       end
 
       def self.requeue(id)
         item = all(id)
         item['retried_at'] = Time.now.rfc2822
-        Resque.redis.lset(:failed, id, Resque.encode(item))
+        Resque.backend.store.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
       def self.requeue_to(id, queue_name)
         item = all(id)
         item['retried_at'] = Time.now.rfc2822
-        Resque.redis.lset(:failed, id, Resque.encode(item))
+        Resque.backend.store.lset(:failed, id, Resque.encode(item))
         Job.create(queue_name, item['payload']['class'], *item['payload']['args'])
       end
 
       def self.remove(id)
         sentinel = ""
-        Resque.redis.lset(:failed, id, sentinel)
-        Resque.redis.lrem(:failed, 1,  sentinel)
+        Resque.backend.store.lset(:failed, id, sentinel)
+        Resque.backend.store.lrem(:failed, 1,  sentinel)
       end
 
       def self.requeue_queue(queue)

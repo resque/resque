@@ -2,7 +2,7 @@ require 'test_helper'
 
 describe "Resque Hooks" do
   before do
-    Resque.redis.flushall
+    Resque.backend.store.flushall
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
