@@ -25,6 +25,9 @@ module Resque
 
       raise 'System call for ps command failed. Please make sure that you have a compatible ps command in the path!' unless $?.success?
 
+      # output may contain invalid byte sequence in UTF-8
+      output = output.unpack('C*').pack('U*') if !output.valid_encoding?
+
       output.split($/).each do |line|
         next unless line =~ /resque/i
         next if line =~ /resque-web/
