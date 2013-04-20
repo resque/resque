@@ -1,4 +1,7 @@
 require 'minitest/autorun'
+require 'turn/autorun'
+
+Turn.config.format = :dot
 
 ##
 # Add helper methods to Kernel

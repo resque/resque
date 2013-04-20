@@ -3,6 +3,9 @@ require 'timeout'
 require 'bundler/setup'
 require 'redis/namespace'
 require 'minitest/autorun'
+require 'turn/autorun'
+
+Turn.config.format = :dot
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
