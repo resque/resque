@@ -1,5 +1,6 @@
 require 'time'
 require 'redis/distributed'
+require 'resque'
 require 'resque/logging'
 require 'resque/core_ext/hash'
 require 'resque/worker_registry'
