@@ -40,4 +40,20 @@ describe Resque::Worker do
       worker.reconnect
     end
   end
+
+  describe "#==" do
+    it "compares the same worker" do
+      client = MiniTest::Mock.new
+      worker1 = Resque::Worker.new([:foo], :client => client)
+      worker2 = Resque::Worker.new([:foo], :client => client)
+      assert worker1 == worker2
+    end
+
+    it "compares different workers" do
+      client = MiniTest::Mock.new
+      worker1 = Resque::Worker.new([:foo], :client => client)
+      worker2 = Resque::Worker.new([:foo], :client => client)
+      refute worker1 == worker2
+    end
+  end
 end
