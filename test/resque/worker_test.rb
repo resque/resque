@@ -18,6 +18,24 @@ describe Resque::Worker do
     end
   end
 
+  describe "#idle" do
+    it "returns true if the worker is idle" do
+      worker = Resque::Worker.new [:foo, :bar], :client => client
+      registry = MiniTest::Mock.new.expect(:state, :idle)
+      worker.stub(:worker_registry, registry) do
+        assert worker.idle?
+      end
+    end
+
+    it "returns false if the worker is not idle" do
+      worker = Resque::Worker.new [:foo, :bar], :client => client
+      registry = MiniTest::Mock.new.expect(:state, :working)
+      worker.stub(:worker_registry, registry) do
+        refute worker.idle?
+      end
+    end
+  end
+
   describe "#to_s, #inspect" do
     it "gives us string representations of a worker" do
       worker = Resque::Worker.new [:foo, :bar], :client => client
