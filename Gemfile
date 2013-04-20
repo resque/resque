@@ -13,6 +13,7 @@ group :documentation do
 end
 
 group :test do
+  gem "turn"
   gem "rack-test", "~> 0.5"
   gem "json"
   gem "minitest"
