@@ -52,7 +52,7 @@ describe Resque::Worker do
     it "compares different workers" do
       client = MiniTest::Mock.new
       worker1 = Resque::Worker.new([:foo], :client => client)
-      worker2 = Resque::Worker.new([:foo], :client => client)
+      worker2 = Resque::Worker.new([:bar], :client => client)
       refute worker1 == worker2
     end
   end
