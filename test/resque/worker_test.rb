@@ -4,9 +4,11 @@ require 'resque/worker'
 require 'socket'
 
 describe Resque::Worker do
+
+  let(:client) { MiniTest::Mock.new }
+
   describe "#state" do
     it "gives us the current state" do
-      client = MiniTest::Mock.new
       worker = Resque::Worker.new [:foo, :bar], :client => client
       registry = MiniTest::Mock.new.expect(:state, "working")
 
@@ -18,8 +20,6 @@ describe Resque::Worker do
 
   describe "#to_s, #inspect" do
     it "gives us string representations of a worker" do
-      client = MiniTest::Mock.new
-
       worker = Resque::Worker.new [:foo, :bar], :client => client
       Socket.stub(:gethostname, "test.com") do
         worker.stub(:pid, "1234") do
@@ -32,28 +32,32 @@ describe Resque::Worker do
 
   describe "#reconnect" do
     it "delegates to the client" do
-      client = MiniTest::Mock.new
       client.expect :reconnect, nil
-
       worker = Resque::Worker.new :foo, :client => client
-
       worker.reconnect
     end
   end
 
   describe "#==" do
     it "compares the same worker" do
-      client = MiniTest::Mock.new
       worker1 = Resque::Worker.new([:foo], :client => client)
       worker2 = Resque::Worker.new([:foo], :client => client)
       assert worker1 == worker2
     end
 
     it "compares different workers" do
-      client = MiniTest::Mock.new
       worker1 = Resque::Worker.new([:foo], :client => client)
       worker2 = Resque::Worker.new([:bar], :client => client)
       refute worker1 == worker2
+    end
+  end
+
+  describe "#pid" do
+    it "returns the pid of the current process" do
+      Process.stub(:pid, 27415) do
+        worker = Resque::Worker.new(:foo, :client => client)
+        assert 27415, worker.pid
+      end
     end
   end
 end
