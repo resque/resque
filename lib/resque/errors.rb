@@ -13,4 +13,7 @@ module Resque
 
   # Raised from a before_perform hook to abort the job.
   class DontPerform < StandardError; end
+  
+  # Raised when we have a problem connecting to the back end.
+  class ConnectionError < StandardError; end;
 end
