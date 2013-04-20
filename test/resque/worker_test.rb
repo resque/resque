@@ -6,7 +6,8 @@ require 'socket'
 describe Resque::Worker do
   describe "#state" do
     it "gives us the current state" do
-      worker = Resque::Worker.new([:foo])
+      client = MiniTest::Mock.new
+      worker = Resque::Worker.new [:foo, :bar], :client => client
       registry = MiniTest::Mock.new.expect(:state, "working")
 
       worker.stub(:worker_registry, registry) do
@@ -17,7 +18,9 @@ describe Resque::Worker do
 
   describe "#to_s, #inspect" do
     it "gives us string representations of a worker" do
-      worker = Resque::Worker.new([:foo, :bar])
+      client = MiniTest::Mock.new
+
+      worker = Resque::Worker.new [:foo, :bar], :client => client
       Socket.stub(:gethostname, "test.com") do
         worker.stub(:pid, "1234") do
           assert_equal "test.com:1234:foo,bar", worker.to_s
@@ -40,14 +43,16 @@ describe Resque::Worker do
 
   describe "#==" do
     it "compares the same worker" do
-      worker1 = Resque::Worker.new([:foo])
-      worker2 = Resque::Worker.new([:foo])
+      client = MiniTest::Mock.new
+      worker1 = Resque::Worker.new([:foo], :client => client)
+      worker2 = Resque::Worker.new([:foo], :client => client)
       assert worker1 == worker2
     end
 
     it "compares different workers" do
-      worker1 = Resque::Worker.new([:foo])
-      worker2 = Resque::Worker.new([:bar])
+      client = MiniTest::Mock.new
+      worker1 = Resque::Worker.new([:foo], :client => client)
+      worker2 = Resque::Worker.new([:foo], :client => client)
       refute worker1 == worker2
     end
   end
