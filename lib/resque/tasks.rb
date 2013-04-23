@@ -29,7 +29,7 @@ namespace :resque do
       unless Process.respond_to?('daemon')
           abort "env var BACKGROUND is set, which requires ruby >= 1.9"
       end
-      Process.daemon(true)
+      Process.daemon(true, true)
     end
 
     if ENV['PIDFILE']
