@@ -358,7 +358,7 @@ module Resque
     # Daemonize process (ruby 1.9 only)
     def daemonize
       if Process.respond_to?(:daemon)
-        Process.daemon(true)
+        Process.daemon(true, true)
       else
         Kernel.warn "Running process as daemon requires ruby >= 1.9"
       end
