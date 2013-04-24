@@ -57,7 +57,7 @@ them. :metal:
 To install Resque, add the gem to your Gemfile:
 
 ```
-gem "resque", "~> 2.0"
+gem "resque", "~> 2.0.0.pre.1"
 ```
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
