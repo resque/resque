@@ -1,5 +1,8 @@
 require 'minitest/autorun'
 
+require 'coveralls'
+Coveralls.wear!
+
 ##
 # Add helper methods to Kernel
 #

@@ -8,3 +8,4 @@ test/dump-cluster.rdb
 pkg
 log
 *.swp
+coverage
