@@ -88,17 +88,23 @@ module Resque
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
     def work(&block)
-      interval = Float(options[:interval])
       startup
+      work_loop(&block)
+      worker_registry.unregister
+    rescue Exception => exception
+      worker_registry.unregister(exception)
+    end
 
+    # Jobs are pulled from a queue and processed.
+    def work_loop(&block)
+      interval = Float(options[:interval])
       loop do
         break if shutdown?
-
         pause if should_pause?
 
-        if job = reserve(interval)
+        job = reserve(interval)
+        if job
           process_job(job, &block)
-          @child = nil
         else
           break if interval.zero?
           Resque.logger.debug "Timed out after #{interval} seconds"
@@ -106,9 +112,6 @@ module Resque
         end
       end
 
-      worker_registry.unregister
-    rescue Exception => exception
-      worker_registry.unregister(exception)
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -501,6 +504,8 @@ module Resque
         perform(job, &block)
       end
       done_working
+    ensure
+      @child = nil
     end
 
     # Attempts to grab a job off one of the provided queues. Returns
