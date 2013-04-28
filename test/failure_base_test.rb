@@ -7,10 +7,9 @@ class TestFailure < Resque::Failure::Base
 end
 
 describe "Base failure class" do
-  it "should allow calling all without throwing" do
+  it "allows calling all without throwing" do
     with_failure_backend TestFailure do
       assert_empty Resque::Failure.all
     end
   end
-    
 end
