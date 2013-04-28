@@ -23,8 +23,6 @@ require 'resque/coder'
 require 'resque/json_coder'
 require 'resque/hook_register'
 
-require 'resque/vendor/utf8_util'
-
 require 'forwardable'
 
 module Resque
