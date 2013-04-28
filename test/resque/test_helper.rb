@@ -1,5 +1,3 @@
-require 'minitest/autorun'
-
 require 'simplecov'
 SimpleCov.start do
   add_filter do |source_file|
@@ -9,6 +7,8 @@ end
 
 require 'coveralls'
 Coveralls.wear!
+
+require 'minitest/autorun'
 
 ##
 # Add helper methods to Kernel
