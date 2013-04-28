@@ -20,14 +20,7 @@ Rake::TestTask.new(:legacy) do |test|
   test.ruby_opts = ["-w"]
 end
 
-Rake::TestTask.new(:end_to_end) do |test|
-  test.libs << "test/end_to_end"
-  test.libs << "lib"
-  test.test_files = FileList['test/end_to_end/**/*_test.rb']
-  test.ruby_opts = ["-w"]
-end
-
-task :ci => [:test, :end_to_end, :legacy]
+task :ci => [:test, :legacy]
 
 YARD::Rake::YardocTask.new
 task :docs => :yard
