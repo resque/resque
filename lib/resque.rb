@@ -341,15 +341,6 @@ module Resque
     end
   end
 
-  # This method will return a `Resque::Job` object or a non-true value
-  # depending on whether a job can be obtained. You should pass it the
-  # precise name of a queue: case matters.
-  #
-  # This method is considered part of the `stable` API.
-  def reserve(queue)
-    Job.reserve(queue)
-  end
-
   # Validates if the given klass could be a valid Resque job
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
