@@ -14,7 +14,7 @@ module Resque
         @options = YAML.load_file(options[:config]).symbolize_keys.merge(@options.symbolize_keys)
       end
 
-      Resque.redis = options[:redis]
+      Resque.redis = options[:redis] || "localhost:6379/resque"
     end
 
     desc "work", "Start processing jobs."
