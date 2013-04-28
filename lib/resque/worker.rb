@@ -481,7 +481,6 @@ module Resque
         wait_for_child
         job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
       else
-        reconnect if will_fork?
         perform(job, &block)
       end
       done_working
