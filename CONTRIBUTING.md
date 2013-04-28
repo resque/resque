@@ -52,7 +52,36 @@ Bugs & Feature Requests
 
 You can file bugs on the [issues
 tracker](https://github.com/resque/resque/issues), and tag them with 'bug'.
-Feel free to ask for features there, too, if you'd like.
+
+When filing a bug, please follow these tips to help us help you:
+
+### Good report structure
+
+Please include the following four things in your report:
+
+1. What you did.
+2. What you expected to happen.
+3. What happened instead.
+4. What version of Resque you're using. You can find this with
+   `$ gem list resque`.
+
+The more information the better.
+
+### Reproduction
+
+If possible, please provide some sort of executable reproduction of the issue.
+Your application has a lot of things in it, and it might be a complex
+interaction between components that causes the issue.
+
+To reproduce the issue, please make a simple Job that demonstrates the essence
+of the issue. If the basic job doesn't demonstrate the issue, try adding the
+other gems that your application uses to the Gemfile, even if they don't seem
+directly relevant.
+
+### Version information
+
+If you can't provide a reproduction, a copy of your Gemfile.lock would be
+helpful.
 
 Help
 ----
