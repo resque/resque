@@ -17,10 +17,6 @@ module Resque
   class Worker
     include Resque::Logging
 
-    # Boolean indicating whether this worker can or can not fork.
-    # Automatically set if a fork(2) fails.
-    attr_accessor :cant_fork
-
     # Config options
     attr_accessor :options
 
@@ -60,7 +56,6 @@ module Resque
       @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
-      @cant_fork = false
 
       @client = @options.fetch(:client) { Backend.new(Resque.backend.store, Resque.logger) }
 
@@ -319,27 +314,11 @@ module Resque
       Socket.gethostname
     end
 
-    # Not every platform supports fork. Here we do our magic to
-    # determine if yours does.
-    def fork(job,&block)
+    def fork(job, &block)
       return unless will_fork?
 
-      begin
-        # IronRuby doesn't support `Kernel.fork` yet
-        if Kernel.respond_to?(:fork)
-          # Only run before_fork hooks if we're actually going to fork
-          # (after checking @cant_fork)
-          if will_fork?
-            run_hook :before_fork, job
-            Kernel.fork(&block)
-          end
-        else
-          raise NotImplementedError
-        end
-      rescue NotImplementedError
-        @cant_fork = true
-        nil
-      end
+      run_hook :before_fork, job
+      Kernel.fork(&block)
     end
 
     # Runs all the methods needed when a worker begins its lifecycle.
@@ -433,7 +412,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && options[:fork_per_job]
+      options[:fork_per_job]
     end
 
     # Given a string, sets the procline ($0) and logs.

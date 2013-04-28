@@ -585,8 +585,7 @@ describe "Resque::Worker" do
     Resque.backend.store.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs, test_options)
-    workerA.cant_fork = true
+    workerA = Resque::Worker.new(:jobs, test_options.merge(:fork_per_job => false))
 
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
@@ -618,8 +617,7 @@ describe "Resque::Worker" do
     Resque.backend.store.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { Resque.backend.store.set("after_fork", "yeah") }
-    workerA = Resque::Worker.new(:jobs, test_options)
-    workerA.cant_fork = true
+    workerA = Resque::Worker.new(:jobs, test_options.merge(:fork_per_job => false))
 
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work
