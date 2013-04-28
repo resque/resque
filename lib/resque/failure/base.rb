@@ -42,7 +42,7 @@ module Resque
       end
 
       # Returns a paginated array of failure objects.
-      def self.all(offset = 0, limit = 1)
+      def self.all(offset = 0, limit = 1, queue = nil)
         []
       end
 
