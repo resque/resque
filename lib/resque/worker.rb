@@ -164,18 +164,18 @@ module Resque
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
     def kill_child
-      return unless @child
+      return unless @child_pid
 
-      if Process.waitpid(@child, Process::WNOHANG)
-        logger.debug "Child #{@child} already quit."
+      if Process.waitpid(@child_pid, Process::WNOHANG)
+        logger.debug "Child #{@child_pid} already quit."
         return
       end
 
-      signal_child("TERM", @child)
+      signal_child("TERM", @child_pid)
 
-      signal_child("KILL", @child) unless quit_gracefully?(@child)
+      signal_child("KILL", @child_pid) unless quit_gracefully?(@child_pid)
     rescue SystemCallError
-      logger.debug "Child #{@child} already quit and reaped."
+      logger.debug "Child #{@child_pid} already quit and reaped."
     end
 
     # send a signal to a child, have it logged.
@@ -456,9 +456,9 @@ module Resque
 
     def wait_for_child
       srand # Reseeding
-      procline "Forked #{@child} at #{Time.now.to_i}"
+      procline "Forked #{@child_pid} at #{Time.now.to_i}"
       begin
-        Process.waitpid(@child)
+        Process.waitpid(@child_pid)
       rescue SystemCallError
         nil
       end
@@ -469,7 +469,7 @@ module Resque
 
       worker_registry.working_on self, job
 
-      @child = fork(job) do
+      @child_pid = fork(job) do
         reconnect
         run_hook :after_fork, job
         unregister_signal_handlers
@@ -477,7 +477,7 @@ module Resque
         exit! unless options[:run_at_exit_hooks]
       end
 
-      if @child
+      if @child_pid
         wait_for_child
         job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
       else
@@ -485,7 +485,7 @@ module Resque
       end
       done_working
     ensure
-      @child = nil
+      @child_pid = nil
     end
 
     # Attempts to grab a job off one of the provided queues. Returns
