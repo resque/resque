@@ -27,13 +27,7 @@ describe Resque::Config do
   end
 
   describe "#redis_id" do
-    it "redis 1.x" do
-      config.stub(:redis, MiniTest::Mock.new.expect(:server, "server")) do
-        assert_equal config.redis_id, "server"
-      end
-    end
-
-    it "redis 2.x" do
+    it "redis" do
       redis = Redis.new
       config.redis = redis
       assert_equal config.redis_id, redis.client.id
