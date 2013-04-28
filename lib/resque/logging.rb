@@ -8,11 +8,11 @@ module Resque
       Resque.logger.__send__(severity, message) if Resque.logger
     end
 
-    # Log level aliases
-    def debug(message); Logging.log :debug, message; end
-    def info(message);  Logging.log :info,  message; end
-    def warn(message);  Logging.log :warn,  message; end
-    def error(message); Logging.log :error, message; end
-    def fatal(message); Logging.log :fatal, message; end
+    [:debug, :info, :warn, :error, :fatal].each do |level|
+      define_method level do |message|
+        Logging.log(level, message)
+      end
+    end
+    module_function :debug, :info, :warn, :error, :fatal
   end
 end
