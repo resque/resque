@@ -11,7 +11,9 @@ describe Resque::JsonCoder do
     end
 
     it "raises with invalid input" do
-      lambda { coder.encode("\xC2") }.must_raise(Resque::EncodeException)
+      if defined?(Encoding) # avoid this test on 1.8
+        lambda { coder.encode("\xC2") }.must_raise(Resque::EncodeException)
+      end
     end
   end
 
