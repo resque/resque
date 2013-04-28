@@ -15,14 +15,14 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
-    include Resque::Logging
-
     # Config options
     attr_accessor :options
 
     attr_writer :to_s
 
     attr_reader :client
+
+    attr_reader :logger
 
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
@@ -50,14 +50,17 @@ module Resque
         # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
         # registered in the application. Otherwise, forked workers exit with `exit!`
         :run_at_exit_hooks => false,
+        # the logger we're going to use.
+        :logger => Resque.logger,
       }
       @options.merge!(options.symbolize_keys)
 
       @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @logger = @options.delete(:logger)
 
-      @client = @options.fetch(:client) { Backend.new(Resque.backend.store, Resque.logger) }
+      @client = @options.fetch(:client) { Backend.new(Resque.backend.store, @logger) }
 
       validate_queues
     end
@@ -102,7 +105,7 @@ module Resque
           process_job(job, &block)
         else
           break if interval.zero?
-          Resque.logger.debug "Timed out after #{interval} seconds"
+          logger.debug "Timed out after #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
         end
       end
@@ -140,7 +143,7 @@ module Resque
     #
     # If passed true, mark the shutdown in Redis to signal a remote shutdown
     def shutdown(remote = false)
-      Resque.logger.info 'Exiting...'
+      logger.info 'Exiting...'
 
       @shutdown = true
       worker_registry.remote_shutdown if remote
@@ -164,7 +167,7 @@ module Resque
       return unless @child
 
       if Process.waitpid(@child, Process::WNOHANG)
-        Resque.logger.debug "Child #{@child} already quit."
+        logger.debug "Child #{@child} already quit."
         return
       end
 
@@ -172,12 +175,12 @@ module Resque
 
       signal_child("KILL", @child) unless quit_gracefully?(@child)
     rescue SystemCallError
-      Resque.logger.debug "Child #{@child} already quit and reaped."
+      logger.debug "Child #{@child} already quit and reaped."
     end
 
     # send a signal to a child, have it logged.
     def signal_child(signal, child)
-      Resque.logger.debug "Sending #{signal} signal to child #{child}"
+      logger.debug "Sending #{signal} signal to child #{child}"
       Process.kill(signal, child)
     end
 
@@ -200,7 +203,7 @@ module Resque
     def pause
       rd, wr = IO.pipe
       trap('CONT') {
-        Resque.logger.info "CONT received; resuming job processing"
+        logger.info "CONT received; resuming job processing"
         @paused = false
         wr.write 'x'
         wr.close
@@ -229,7 +232,7 @@ module Resque
         host, pid, _ = worker.id.split(':')
         next unless host == hostname
         next if known_workers.include?(pid)
-        Resque.logger.debug "Pruning dead worker: #{worker}"
+        logger.debug "Pruning dead worker: #{worker}"
         registry = WorkerRegistry.new(worker)
         registry.unregister
       end
@@ -291,7 +294,7 @@ module Resque
         job.fail(e)
         failed!
       else
-        Resque.logger.info "done: #{job.inspect}"
+        logger.info "done: #{job.inspect}"
       ensure
         yield job if block_given?
       end
@@ -305,7 +308,7 @@ module Resque
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
     def pause_processing
-      Resque.logger.info "USR2 received; pausing job processing"
+      logger.info "USR2 received; pausing job processing"
       @paused = true
     end
 
@@ -382,7 +385,7 @@ module Resque
         warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
-      Resque.logger.debug "Registered signals"
+      logger.debug "Registered signals"
     end
 
     def unregister_signal_handlers
@@ -419,7 +422,7 @@ module Resque
     #   resque-VERSION: STRING
     def procline(string)
       $0 = "resque-#{Resque::Version}: #{string}"
-      Resque.logger.debug $0
+      logger.debug $0
     end
 
     # Runs a named hook, passing along any arguments.
@@ -427,7 +430,7 @@ module Resque
       return unless hooks = Resque.send(name)
       msg = "Running #{name} hooks"
       msg << " with #{args.inspect}" if args.any?
-      Resque.logger.info msg
+      logger.info msg
 
       hooks.each do |hook|
         args.any? ? hook.call(*args) : hook.call
@@ -462,7 +465,7 @@ module Resque
     end
 
     def process_job(job, &block)
-      Resque.logger.info "got: #{job.inspect}"
+      logger.info "got: #{job.inspect}"
 
       worker_registry.working_on self, job
 
@@ -501,7 +504,7 @@ module Resque
         queue, job = multi_queue.poll(interval)
       end
 
-      Resque.logger.debug "Found job on #{queue}"
+      logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if (queue && job)
     end
   end
