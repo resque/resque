@@ -20,10 +20,10 @@ describe Resque::Backend do
       redis = Class.new do
         def client
           @client ||= Class.new do
+            attr_accessor :count
+            
             def reconnect
               @count ||= 0
-              return if @count == 2
-
               @count += 1
               raise Redis::BaseConnectionError
             end
@@ -35,8 +35,18 @@ describe Resque::Backend do
 
       # not actually stubbing right now?
       Kernel.stub(:sleep, nil) do
-        client.reconnect
+        rescued = false
+
+        begin
+          client.reconnect
+        rescue Resque::Backend::ConnectionError
+          rescued = true
+          assert_equal 3, client.store.client.count
+        end
+
+        assert rescued
       end
+
     end
   end
 end

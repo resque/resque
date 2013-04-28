@@ -23,8 +23,6 @@ require 'resque/coder'
 require 'resque/json_coder'
 require 'resque/hook_register'
 
-require 'resque/vendor/utf8_util'
-
 require 'forwardable'
 
 module Resque
@@ -343,15 +341,6 @@ module Resque
     end
   end
 
-  # This method will return a `Resque::Job` object or a non-true value
-  # depending on whether a job can be obtained. You should pass it the
-  # precise name of a queue: case matters.
-  #
-  # This method is considered part of the `stable` API.
-  def reserve(queue)
-    Job.reserve(queue)
-  end
-
   # Validates if the given klass could be a valid Resque job
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
@@ -376,15 +365,27 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     {
-      :pending   => queues.inject(0) { |m,k| m + size(k) },
+      :pending   => pending_queues,
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => Resque::WorkerRegistry.all.size.to_i,
       :working   => Resque::WorkerRegistry.working.size,
-      :failed    => Resque.backend.store.llen(:failed).to_i,
+      :failed    => failed_job_count,
       :servers   => [redis_id],
-      :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+      :environment  => environment
     }
+  end
+
+  def pending_queues
+    queues.inject(0) { |m,k| m + size(k) }
+  end
+
+  def failed_job_count
+    Resque.backend.store.llen(:failed).to_i
+  end
+
+  def environment
+    ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation

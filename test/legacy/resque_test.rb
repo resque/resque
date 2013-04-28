@@ -7,7 +7,6 @@ describe "Resque" do
     Resque.push(:people, { 'name' => 'chris' })
     Resque.push(:people, { 'name' => 'bob' })
     Resque.push(:people, { 'name' => 'mark' })
-    Resque::Worker.__send__(:public, :reserve)
     Resque::Worker.__send__(:public, :done_working)
     @original_redis = Resque.backend.store
   end
@@ -24,7 +23,7 @@ describe "Resque" do
   it "can grab jobs off a queue" do
     Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
 
-    job = Resque.reserve(:jobs)
+    job = Resque::Job.reserve(:jobs)
 
     assert_kind_of Resque::Job, job
     assert_equal SomeJob, job.payload_class
@@ -35,10 +34,10 @@ describe "Resque" do
   it "can re-queue jobs" do
     Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
 
-    job = Resque.reserve(:jobs)
+    job = Resque::Job.reserve(:jobs)
     job.recreate
 
-    assert_equal job, Resque.reserve(:jobs)
+    assert_equal job, Resque::Job.reserve(:jobs)
   end
 
   it "can put jobs on a queue by way of an ivar" do
@@ -46,15 +45,15 @@ describe "Resque" do
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
 
-    job = Resque.reserve(:ivar)
+    job = Resque::Job.reserve(:ivar)
 
     assert_kind_of Resque::Job, job
     assert_equal SomeIvarJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
 
-    assert Resque.reserve(:ivar)
-    assert_equal nil, Resque.reserve(:ivar)
+    assert Resque::Job.reserve(:ivar)
+    assert_equal nil, Resque::Job.reserve(:ivar)
   end
 
   it "can remove jobs from a queue by way of an ivar" do
@@ -91,7 +90,7 @@ describe "Resque" do
 
   it "jobs have a nice #inspect" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
-    job = Resque.reserve(:jobs)
+    job = Resque::Job.reserve(:jobs)
     assert_equal '(Job{jobs} | SomeJob | [20, "/tmp"])', job.inspect
   end
 
@@ -112,15 +111,15 @@ describe "Resque" do
   it "jobs can it for equality" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
-    assert_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
+    assert_equal Resque::Job.reserve(:jobs), Resque::Job.reserve(:jobs)
 
     assert Resque::Job.create(:jobs, 'SomeMethodJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
-    refute_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
+    refute_equal Resque::Job.reserve(:jobs), Resque::Job.reserve(:jobs)
 
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'SomeJob', 30, '/tmp')
-    refute_equal Resque.reserve(:jobs), Resque.reserve(:jobs)
+    refute_equal Resque::Job.reserve(:jobs), Resque::Job.reserve(:jobs)
   end
 
   it "can put jobs on a queue by way of a method" do
@@ -128,22 +127,22 @@ describe "Resque" do
     assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
     assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
 
-    job = Resque.reserve(:method)
+    job = Resque::Job.reserve(:method)
 
     assert_kind_of Resque::Job, job
     assert_equal SomeMethodJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
 
-    assert Resque.reserve(:method)
-    assert_equal nil, Resque.reserve(:method)
+    assert Resque::Job.reserve(:method)
+    assert_equal nil, Resque::Job.reserve(:method)
   end
 
   it "can define a queue for jobs by way of a method" do
     assert_equal 0, Resque.size(:method)
     assert Resque.enqueue_to(:new_queue, SomeMethodJob, 20, '/tmp')
 
-    job = Resque.reserve(:new_queue)
+    job = Resque::Job.reserve(:new_queue)
     assert_equal SomeMethodJob, job.payload_class
     assert_equal 20, job.args[0]
     assert_equal '/tmp', job.args[1]
@@ -244,9 +243,9 @@ describe "Resque" do
     registry.register
     2.times { @worker.process }
 
-    job = @worker.reserve
+    job = @worker.__send__(:reserve)
     registry = Resque::WorkerRegistry.new(@worker)
-    registry.working_on job
+    registry.working_on @worker, job
 
     stats = Resque.info
     assert_equal 1, stats[:working]

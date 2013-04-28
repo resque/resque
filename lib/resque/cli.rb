@@ -14,11 +14,11 @@ module Resque
         @options = YAML.load_file(options[:config]).symbolize_keys.merge(@options.symbolize_keys)
       end
 
-      Resque.redis = options[:redis]
+      Resque.redis = options[:redis] || "localhost:6379/resque"
     end
 
     desc "work", "Start processing jobs."
-    option :queues,       :aliases => ["-q"], :type => :string
+    option :queues,       :aliases => ["-q"], :type => :string, :default => "default"
     option :require,      :aliases => ["-r"], :type => :string
     option :pid_file,     :aliases => ["-p"], :type => :string
     option :interval,     :aliases => ["-i"], :type => :numeric

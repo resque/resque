@@ -7,6 +7,7 @@ them later.
 
   - [![Code Climate](https://codeclimate.com/github/resque/resque.png)](https://codeclimate.com/github/resque/resque)
   - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
+  - [![Coverage Status](https://coveralls.io/repos/resque/resque/badge.png?branch=master)](https://coveralls.io/r/resque/resque)
 
 ### A note about branches
 
@@ -57,7 +58,7 @@ them. :metal:
 To install Resque, add the gem to your Gemfile:
 
 ```
-gem "resque", "~> 2.0"
+gem "resque", "~> 2.0.0.pre.1"
 ```
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.

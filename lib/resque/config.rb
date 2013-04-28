@@ -38,10 +38,7 @@ module Resque
     end
 
     def redis_id
-      # support 1.x versions of redis-rb
-      if redis.respond_to?(:server)
-        redis.server
-      elsif redis.respond_to?(:nodes) # distributed
+      if redis.respond_to?(:nodes) # distributed
         redis.nodes.map(&:id).join(', ')
       else
         redis.client.id
