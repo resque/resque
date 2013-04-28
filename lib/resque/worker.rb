@@ -469,6 +469,13 @@ module Resque
 
       worker_registry.working_on self, job
 
+      fork_for_child(job, &block)
+
+    ensure
+      done_working
+    end
+
+    def fork_for_child(job, &block)
       @child_pid = fork(job) do
         reconnect
         run_hook :after_fork, job
@@ -483,7 +490,6 @@ module Resque
       else
         perform(job, &block)
       end
-      done_working
     ensure
       @child_pid = nil
     end
