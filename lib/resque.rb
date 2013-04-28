@@ -376,15 +376,27 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     {
-      :pending   => queues.inject(0) { |m,k| m + size(k) },
+      :pending   => pending_queues,
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => Resque::WorkerRegistry.all.size.to_i,
       :working   => Resque::WorkerRegistry.working.size,
-      :failed    => Resque.backend.store.llen(:failed).to_i,
+      :failed    => failed_job_count,
       :servers   => [redis_id],
-      :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
+      :environment  => environment
     }
+  end
+
+  def pending_queues
+    queues.inject(0) { |m,k| m + size(k) }
+  end
+
+  def failed_job_count
+    Resque.backend.store.llen(:failed).to_i
+  end
+
+  def environment
+    ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
