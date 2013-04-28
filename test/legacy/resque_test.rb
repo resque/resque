@@ -246,7 +246,7 @@ describe "Resque" do
 
     job = @worker.reserve
     registry = Resque::WorkerRegistry.new(@worker)
-    registry.working_on job
+    registry.working_on @worker, job
 
     stats = Resque.info
     assert_equal 1, stats[:working]

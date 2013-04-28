@@ -114,7 +114,8 @@ module Resque
 
     # Given a job, tells Redis we're working on it. Useful for seeing
     # what workers are doing and when.
-    def working_on(job)
+    def working_on(worker, job)
+      job.worker = worker
       data = encode job.to_h
       redis.set("#{REDIS_SINGLE_WORKER_KEY}:#{@worker}", data)
     end

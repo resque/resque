@@ -114,8 +114,7 @@ module Resque
     def process(job = nil, &block)
       return unless job ||= reserve
 
-      job.worker = self
-      worker_registry.working_on job
+      worker_registry.working_on self, job
       perform(job, &block)
     ensure
       done_working
@@ -464,8 +463,8 @@ module Resque
 
     def process_job(job, &block)
       Resque.logger.info "got: #{job.inspect}"
-      job.worker = self
-      worker_registry.working_on job
+
+      worker_registry.working_on self, job
 
       @child = fork(job) do
         reconnect

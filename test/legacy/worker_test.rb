@@ -82,7 +82,7 @@ describe "Resque::Worker" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     now = Time.now.utc.iso8601
     registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on job
+    registry.working_on worker, job
     assert_equal now, registry.processing['run_at']
   end
 
@@ -122,7 +122,7 @@ describe "Resque::Worker" do
   it "fails uncompleted jobs with DirtyExit by default on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on(job)
+    registry.working_on(worker, job)
     registry.unregister
     assert_equal 1, Resque::Failure.count
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
@@ -131,7 +131,7 @@ describe "Resque::Worker" do
   it "fails uncompleted jobs with worker exception on exit" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on job
+    registry.working_on worker, job
     registry.unregister(StandardError.new)
     assert_equal 1, Resque::Failure.count
     assert_equal('StandardError', Resque::Failure.all['exception'])
@@ -150,7 +150,7 @@ describe "Resque::Worker" do
   it "fails uncompleted jobs on exit, and calls failure hook" do
     job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
     registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on job
+    registry.working_on worker, job
     registry.unregister
     assert_equal 1, Resque::Failure.count
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
