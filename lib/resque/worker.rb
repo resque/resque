@@ -62,7 +62,9 @@ module Resque
 
       @client = @options.fetch(:client) { Backend.new(Resque.backend.store, @logger) }
 
-      validate_queues
+      if @queues.nil? || @queues.empty?
+        raise NoQueueError.new("Please give each worker at least one queue.")
+      end
     end
 
     def worker_registry
@@ -442,16 +444,6 @@ module Resque
     def done_working
       processed!
       worker_registry.done
-    end
-
-    # A worker must be given a queue, otherwise it won't know what to
-    # do with itself.
-    #
-    # You probably never need to call this.
-    def validate_queues
-      if @queues.nil? || @queues.empty?
-        raise NoQueueError.new("Please give each worker at least one queue.")
-      end
     end
 
     def wait_for_child
