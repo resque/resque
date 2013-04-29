@@ -4,8 +4,28 @@ require 'resque/worker'
 require 'socket'
 
 describe Resque::Worker do
-
   let(:client) { MiniTest::Mock.new }
+
+  describe "#initialize" do
+    it "contains the correct default options" do
+      client = MiniTest::Mock.new
+      worker = Resque::Worker.new [:foo, :bar]
+      assert_equal worker.options, {:timeout => 5, :interval => 5, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
+    end
+
+    it "overrides default options with its parameter" do
+      client = MiniTest::Mock.new
+      worker = Resque::Worker.new [:foo, :bar], :interval => 10
+      assert_equal worker.options, {:timeout => 5, :interval => 10, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
+    end
+
+    it "initalizes the specified queues" do
+      client = MiniTest::Mock.new
+      worker = Resque::Worker.new [:foo, :bar]
+      assert_equal worker.queues.size, 2
+      assert_equal :foo.to_s, worker.queues.first
+    end
+  end
 
   describe "#state" do
     it "gives us the current state" do
