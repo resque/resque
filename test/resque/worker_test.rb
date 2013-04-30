@@ -119,4 +119,26 @@ describe Resque::Worker do
       end
     end
   end
+
+  describe "#pause" do
+    it "will run before hooks" do
+      before_called = false
+      Resque.before_pause { before_called = true }
+
+      rd, wr = IO.pipe
+
+      Thread.start { sleep(0.5); wr.write 'x' }
+
+      IO.stub(:pipe, [rd,wr]) do
+        begin
+          worker = Resque::Worker.new(:foo, :client => client)
+          worker.pause
+        ensure
+          wr.write 'x' unless rd.closed?
+        end
+      end
+
+      assert before_called
+    end
+  end
 end
