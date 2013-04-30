@@ -615,6 +615,8 @@ module Resque
     def worker_pids
       if RUBY_PLATFORM =~ /solaris/
         solaris_worker_pids
+      elsif RUBY_PLATFORM =~ /mingw32/
+        windows_worker_pids
       else
         linux_worker_pids
       end
