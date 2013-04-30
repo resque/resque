@@ -1,7 +1,13 @@
 require 'test_helper'
 require 'minitest/mock'
 
+actual_logger = Resque.logger
+
 describe "Resque::Logging" do
+  after do
+    Resque.logger = actual_logger
+  end
+
   it "sets and receives the active logger" do
     my_logger = Object.new
     Resque.logger = my_logger
