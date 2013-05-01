@@ -130,7 +130,7 @@ module Resque
   end
 
   def inline?
-    @inline ||= false
+    @inline if defined?(@inline)
   end
 
   #
