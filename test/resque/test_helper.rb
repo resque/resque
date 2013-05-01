@@ -29,3 +29,23 @@ module Kernel
     defined?(JRUBY_VERSION)
   end
 end
+
+module WorkerTestHelper
+  def self.pause(worker)
+    IO.pipe do |r,w|
+      rd, wr = IO.pipe
+
+      Thread.start { sleep(0.5); wr.write 'x'; w.write 'x' }
+
+      IO.stub(:pipe, [rd,wr]) do
+        begin
+          worker.pause
+        ensure
+          wr.write 'x' unless rd.closed?
+        end
+      end
+
+      r.read 1
+    end
+  end
+end

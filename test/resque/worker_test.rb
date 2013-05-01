@@ -125,18 +125,7 @@ describe Resque::Worker do
       before_called = false
       Resque.before_pause { before_called = true }
 
-      rd, wr = IO.pipe
-
-      Thread.start { sleep(0.5); wr.write 'x' }
-
-      IO.stub(:pipe, [rd,wr]) do
-        begin
-          worker = Resque::Worker.new(:foo, :client => client)
-          worker.pause
-        ensure
-          wr.write 'x' unless rd.closed?
-        end
-      end
+      WorkerTestHelper.pause Resque::Worker.new(:foo, :client => client)
 
       assert before_called
     end
