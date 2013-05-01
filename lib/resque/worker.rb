@@ -355,7 +355,12 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') { raise TermException.new("SIGTERM") }
+      trap('TERM') do
+        trap ('TERM') do 
+          # ignore subsequent terms               
+        end  
+        raise TermException.new("SIGTERM") 
+      end 
       trap('INT', 'DEFAULT')
 
       begin
