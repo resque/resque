@@ -3,6 +3,7 @@ require 'redis/distributed'
 require 'resque/logging'
 require 'resque/core_ext/hash'
 require 'resque/worker_registry'
+require 'resque/worker_queue_list'
 require 'resque/errors'
 require 'resque/backend'
 
@@ -24,6 +25,8 @@ module Resque
 
     attr_reader :logger
 
+    attr_reader :worker_queues
+
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
     # queue given for a job. If none is found, it will check the
@@ -37,14 +40,14 @@ module Resque
     # removed without needing to restart workers using this method.
     def initialize(queues = [], options = {})
       @options = default_options.merge(options.symbolize_keys)
-      @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
+      @worker_queues = WorkerQueueList.new(queues)
       @shutdown = nil
       @paused = nil
       @logger = @options.delete(:logger)
 
       @client = @options.fetch(:client) { Backend.new(Resque.backend.store, @logger) }
 
-      if @queues.nil? || @queues.empty?
+      if @worker_queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
     end
@@ -91,7 +94,7 @@ module Resque
         else
           break if interval.zero?
           logger.debug "Timed out after #{interval} seconds"
-          procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
+          procline paused? ? "Paused" : "Waiting for #{@worker_queues}"
         end
       end
 
@@ -114,13 +117,7 @@ module Resque
     # can be placed after a splat to ensure execution after all other dynamic
     # queues.
     def queues
-      @queues.map do |queue|
-        if queue == "*"
-          (Resque.queues - @queues).sort
-        else
-          queue
-        end
-      end.flatten.uniq
+      @worker_queues.search_order
     end
 
     # Schedule this worker for shutdown. Will finish processing the
@@ -259,7 +256,7 @@ module Resque
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
     def to_s
-      @to_s ||= "#{hostname}:#{pid}:#{@queues.join(',')}"
+      @to_s ||= "#{hostname}:#{pid}:#{@worker_queues}"
     end
     alias_method :id, :to_s
 
@@ -472,7 +469,7 @@ module Resque
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
     def reserve(interval = 5)
-      multi_queue = MultiQueue.from_queues(queues)
+      multi_queue = MultiQueue.from_queues(@worker_queues.search_order)
 
       if interval < 1
         begin
