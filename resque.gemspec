@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name              = "resque"
   s.version           = Resque::Version
   s.summary           = "Resque is a Redis-backed queueing system."
-  s.homepage          = "https://github.com/defunkt/resque"
+  s.homepage          = "https://github.com/resque/resque"
   s.email             = ["steve@steveklabnik.com", "hone02@gmail.com","chris@ozmm.org"]
   s.authors           = ["Steve Klabnik", "Terence Lee", "Chris Wanstrath"]
 
