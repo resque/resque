@@ -1,11 +1,8 @@
 require 'test_helper'
-
 require 'resque/worker_queue_list'
 
 describe Resque::WorkerQueueList do
-
   describe "#initialize" do
-
    it "accepts a single queue name" do
      worker_queue_list = Resque::WorkerQueueList.new(:bar)
      assert_equal 1, worker_queue_list.queues.length
@@ -22,7 +19,6 @@ describe Resque::WorkerQueueList do
   end
 
   describe "#empty?" do
-
     it "is true when queues are empty" do
       worker_queue_list = Resque::WorkerQueueList.new([])
       assert worker_queue_list.empty?
