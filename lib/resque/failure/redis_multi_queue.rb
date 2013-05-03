@@ -43,7 +43,7 @@ module Resque
         Array(Resque.backend.store.smembers(:failed_queues))
       end
 
-      include Each
+      extend Each
 
       def self.clear(queue = :failed)
         Resque.backend.store.del(queue)

@@ -41,7 +41,7 @@ module Resque
         Resque.list_range(:failed, offset, limit)
       end
 
-      include Each
+      extend Each
 
       def self.clear(queue = nil)
         check_queue(queue)
