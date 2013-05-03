@@ -22,6 +22,7 @@ describe Resque::Worker do
       worker = Resque::Worker.new [:foo, :bar]
       assert_equal worker.queues.size, 2
       assert_equal :foo.to_s, worker.queues.first
+      assert_equal :bar.to_s, worker.queues.last
     end
 
     it "throws NoQueueError when no queues were provided" do
