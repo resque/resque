@@ -5,7 +5,7 @@ First of all: thank you! We appreciate any help you can give Resque.
 
 The main way to contribute to Resque is to write some code! Here's how:
 
-1. [Fork][1] Resque
+1. [Fork](https://help.github.com/articles/fork-a-repo) Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
 4. Create a [Pull Request](http://help.github.com/pull-requests/) from your
