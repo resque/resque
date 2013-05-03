@@ -338,7 +338,7 @@ so using the `resque:workers` rake task:
 
     $ COUNT=5 QUEUE=* rake resque:workers
 
-This will spawn five Resque workers, each in its own thread. Hitting
+This will spawn five Resque workers, each in its own process. Hitting
 ctrl-c should be sufficient to stop them all.
 
 
