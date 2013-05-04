@@ -17,7 +17,7 @@ module Resque
       @redis = case server
       when String
         if server['redis://']
-          redis = Redis.connect(:url => server, :thread_safe => true)
+          redis = Backend.connect(server)
         else
           server, namespace = server.split('/', 2)
           host, port, db = server.split(':')

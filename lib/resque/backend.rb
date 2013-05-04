@@ -23,6 +23,10 @@ module Resque
       @store = store
       @logger = logger
     end
+
+    def connect(server)
+      Redis.connect(:url => server, :thread_safe => true)
+    end
     
     # Reconnects to the store
     #
