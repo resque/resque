@@ -122,7 +122,7 @@ describe Resque::Worker do
   end
 
   describe "#pause" do
-    it "will run before hooks" do
+    it "will run before_hooks" do
       before_called = false
       Resque.before_pause { before_called = true }
 
