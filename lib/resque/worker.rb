@@ -6,6 +6,7 @@ require 'resque/worker_registry'
 require 'resque/worker_queue_list'
 require 'resque/errors'
 require 'resque/backend'
+require 'resque/ioawaiter'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -46,6 +47,8 @@ module Resque
       @logger = @options.delete(:logger)
 
       @client = @options.fetch(:client) { Backend.new(Resque.backend.store, @logger) }
+
+      @awaiter = @options.fetch(:awaiter) { IOAwaiter.new }
 
       if @worker_queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
@@ -183,16 +186,12 @@ module Resque
     alias :paused? :should_pause?
 
     def pause
-      rd, wr = IO.pipe
-      trap('CONT') {
-        logger.info "CONT received; resuming job processing"
-        @paused = false
-        wr.write 'x'
-        wr.close
-      }
       run_hook :before_pause, self
-      rd.read 1
-      rd.close
+      @paused = true
+
+      awaiter.await
+
+      @paused = false
       run_hook :after_pause, self
     end
 
