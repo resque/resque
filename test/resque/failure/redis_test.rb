@@ -35,7 +35,7 @@ describe Resque::Failure::Redis do
     it 'should requeue a new job to the queue of the failed job' do
       save_failure
 
-      failure = Resque::Failure::Redis.all
+      failure = Resque::Failure::Redis.all.first
       assert_nil failure['retried_at']
 
       Resque::Failure::Redis.requeue(0)
@@ -44,7 +44,7 @@ describe Resque::Failure::Redis do
       assert_equal 'some_class', job.payload['class']
       assert_equal ['some_args'], job.args
 
-      failure = Resque::Failure::Redis.all
+      failure = Resque::Failure::Redis.all.first
       refute_nil failure['retried_at']
     end
   end
@@ -53,7 +53,7 @@ describe Resque::Failure::Redis do
     it 'should requeue a new job to the desired queue' do
       save_failure
 
-      failure = Resque::Failure::Redis.all
+      failure = Resque::Failure::Redis.all.first
       assert_nil failure['retried_at']
 
       Resque::Failure::Redis.requeue_to(0, :new_queue)
@@ -62,7 +62,7 @@ describe Resque::Failure::Redis do
       assert_equal 'some_class', job.payload['class']
       assert_equal ['some_args'], job.args
 
-      failure = Resque::Failure::Redis.all
+      failure = Resque::Failure::Redis.all.first
       refute_nil failure['retried_at']
     end
   end
@@ -96,8 +96,8 @@ describe Resque::Failure::Redis do
       Resque::Failure::Redis.remove_queue('queue1')
 
       assert_equal 2, Resque::Failure.count
-      assert_equal 'queue2', Resque::Failure::Redis.all(0)['queue']
-      assert_equal 'queue3', Resque::Failure::Redis.all(1)['queue']
+      assert_equal 'queue2', Resque::Failure::Redis.all(0).first['queue']
+      assert_equal 'queue3', Resque::Failure::Redis.all(1).first['queue']
     end
   end
 

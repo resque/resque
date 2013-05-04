@@ -15,7 +15,7 @@ describe Resque::Failure::RedisMultiQueue do
     it 'should requeue a new job to the queue of the failed job' do
       save_failure
 
-      failure = Resque::Failure::RedisMultiQueue.all(0, 1, :failed_failed)
+      failure = Resque::Failure::RedisMultiQueue.all(0, 1, :failed_failed).first
       assert_nil failure['retried_at']
 
       Resque::Failure::RedisMultiQueue.requeue(0, :failed_failed)
@@ -24,7 +24,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'some_class', job.payload['class']
       assert_equal ['some_args'], job.args
 
-      failure = Resque::Failure::RedisMultiQueue.all(0, 1, :failed_failed)
+      failure = Resque::Failure::RedisMultiQueue.all(0, 1, :failed_failed).first
       refute_nil failure['retried_at']
     end
   end
