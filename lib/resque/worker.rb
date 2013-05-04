@@ -189,7 +189,7 @@ module Resque
       run_hook :before_pause, self
       @paused = true
 
-      awaiter.await
+      @awaiter.await
 
       @paused = false
       run_hook :after_pause, self
