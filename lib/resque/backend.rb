@@ -24,10 +24,15 @@ module Resque
       @logger = logger
     end
 
-    def connect(server)
-      Redis.connect(:url => server, :thread_safe => true)
+    def namespaced(host, port, db )
+      # Redis.new(
+      #       :host => host,
+      #       :port => port,
+      #       :db => db,
+      #       :thread_safe => true
+      #     )
     end
-    
+
     # Reconnects to the store
     #
     # Maybe your store died, maybe you've just forked. Whatever the

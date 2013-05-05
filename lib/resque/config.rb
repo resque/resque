@@ -17,10 +17,12 @@ module Resque
       @redis = case server
       when String
         if server['redis://']
-          redis = Backend.connect(server)
+          Redis.connect(:url => server, :thread_safe => true)
         else
           server, namespace = server.split('/', 2)
           host, port, db = server.split(':')
+
+          # redis = Resque.backend.namespaced(host, port, db )
 
           redis = Redis.new(
             :host => host,

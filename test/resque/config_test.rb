@@ -24,6 +24,13 @@ describe Resque::Config do
       config.redis = distributed
       assert_equal distributed, config.redis
     end
+
+    it "works with connecting through the backend" do
+      backend = MiniTest::Mock.new
+      distributed = Redis::Distributed.new(%w(redis://localhost:6379 redis://localhost:6380))
+      config.redis = distributed
+      backend.expect(:namespaced, distributed)
+    end
   end
 
   describe "#redis_id" do
