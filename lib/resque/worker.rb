@@ -459,7 +459,7 @@ module Resque
       all_workers.each do |worker|
         host, pid, worker_queues_raw = worker.id.split(':')
         worker_queues = worker_queues_raw.split(",")
-        unless @queues.include("*") || (worker_queues.to_set == @queues.to_set)
+        unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
           # If the worker we are trying to prune does not belong to the queues
           # we are listening to, we should not touch it. 
           # Attempt to prune a worker from different queues may easily result in
