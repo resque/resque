@@ -1,4 +1,5 @@
 require 'time'
+require 'set'
 require 'redis/distributed'
 require 'resque/logging'
 require 'resque/core_ext/hash'
@@ -209,7 +210,16 @@ module Resque
       coordinator = ProcessCoordinator.new
       known_workers = coordinator.worker_pids unless all_workers.empty?
       all_workers.each do |worker|
-        host, pid, _ = worker.id.split(':')
+        host, pid, workers_queues_raw = worker.id.split(':')
+        workers_queues = workers_queues_raw.split(",")
+        unless worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)
+          # If the worker we are trying to prune does not belong to the queues
+          # we are listening to, we should not touch it. 
+          # Attempt to prune a worker from different queues may easily result in
+          # an unknown class exception, since that worker could easily be even 
+          # written in different language.
+          next
+        end        
         next unless host == hostname
         next if known_workers.include?(pid)
         logger.debug "Pruning dead worker: #{worker}"
