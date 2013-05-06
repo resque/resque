@@ -1,4 +1,5 @@
 require 'time'
+require 'set'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -456,7 +457,16 @@ module Resque
       all_workers = Worker.all
       known_workers = worker_pids unless all_workers.empty?
       all_workers.each do |worker|
-        host, pid, queues = worker.id.split(':')
+        host, pid, worker_queues_raw = worker.id.split(':')
+        worker_queues = worker_queues_raw.split(",")
+        unless @queues.include("*") || (worker_queues.to_set == @queues.to_set)
+          # If the worker we are trying to prune does not belong to the queues
+          # we are listening to, we should not touch it. 
+          # Attempt to prune a worker from different queues may easily result in
+          # an unknown class exception, since that worker could easily be even 
+          # written in different language.
+          next
+        end
         next unless host == hostname
         next if known_workers.include?(pid)
         log! "Pruning dead worker: #{worker}"
