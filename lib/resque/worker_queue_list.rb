@@ -1,3 +1,5 @@
+require 'set'
+
 module Resque
 
   class WorkerQueueList
@@ -21,6 +23,14 @@ module Resque
 
     def to_s
       queues.join(',')
+    end
+
+    def to_set
+      queues.to_set
+    end
+
+    def all_queues?
+      queues.include?("*")
     end
 
     # Returns a list of queues to use when searching for a job.
