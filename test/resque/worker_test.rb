@@ -6,6 +6,7 @@ require 'socket'
 
 describe Resque::Worker do
   let(:client) { MiniTest::Mock.new }
+  let(:awaiter) { MiniTest::Mock.new }
 
   describe "#initialize" do
     it "contains the correct default options" do
@@ -118,5 +119,44 @@ describe Resque::Worker do
         assert 27415, worker.pid
       end
     end
+  end
+
+  describe "#pause" do
+    it "will run before_hooks" do
+      before_called = false
+      Resque.before_pause { before_called = true }
+
+      awaiter.expect(:await, nil)
+
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+
+      worker.pause
+
+      assert before_called
+    end
+
+    it "will run after_hooks" do
+      after_called = false
+      Resque.after_pause { after_called = true }
+
+      awaiter.expect(:await, nil)
+
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+
+      worker.pause
+
+      assert after_called
+    end
+
+    it "no longer paused after pause returns" do
+      awaiter.expect(:await, nil)
+
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+
+      worker.pause
+
+      refute worker.paused?
+    end
+
   end
 end
