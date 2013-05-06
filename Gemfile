@@ -5,6 +5,7 @@ gemspec
 group :development do
   gem 'rake'
   gem 'yard'
+  gem 'pry'
 end
 
 group :documentation do
