@@ -54,6 +54,10 @@ module Resque
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
+    # should term kill workers gracefully (vs. immediately)
+    # Makes SIGTERM work like SIGQUIT
+    attr_accessor :graceful_term
+
     # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
     # registered in the application. Otherwise, forked workers exit with `exit!`
     attr_accessor :run_at_exit_hooks
@@ -336,7 +340,7 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { shutdown!  }
+      trap('TERM') { graceful_term ? shutdown : shutdown!  }
       trap('INT')  { shutdown!  }
 
       begin
