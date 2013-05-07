@@ -12,6 +12,10 @@ describe Resque::Config do
       assert_equal 'localhost', config.redis.client.host
     end
 
+    it "raises an argument error when given an invalid parameter" do 
+      assert_raises(ArgumentError) { config.redis = 1 }
+    end
+
     it "can set a namespace through a url-like string" do
       config.redis = Redis.new
       assert config.redis

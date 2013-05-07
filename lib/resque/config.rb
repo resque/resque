@@ -11,31 +11,11 @@ module Resque
     #   4. A Redis URL String 'redis://host:port'
     #   5. An instance of `Redis`, `Redis::Backend`, `Redis::DistRedis`,
     #      or `Redis::Namespace`.
+
     def redis=(server)
       return if server == "" or server.nil?
-
-      @redis = case server
-      when String
-        if BackEnd.redis_url? server #server['redis://']
-          redis = Redis.connect(:url => server, :thread_safe => true)
-        else
-          server, namespace, host, port = BackEnd.parse_redis_url(server)
-          # server, namespace = server.split('/', 2)
-          # host, port, db = server.split(':')
-
-          redis = Redis.new(
-            :host => host,
-            :port => port,
-            :db => db,
-            :thread_safe => true
-          )
-        end
-        Redis::Namespace.new(namespace || :resque, :redis => redis)
-      when Redis::Namespace, Redis::Distributed
-        server
-      when Redis
-        Redis::Namespace.new(:resque, :redis => server)
-      end
+      
+      @redis = Backend.connect(server)
     end
 
     def redis_id
