@@ -4,6 +4,17 @@ describe Resque::Config do
   let(:config){ Resque::Config.new }
 
   describe "#redis=" do
+    it "can take a redis://... string" do
+      config.redis = 'redis://localhost:9736'
+      assert_equal :resque, config.redis.namespace
+      assert_equal 9736, config.redis.client.port
+      assert_equal 'localhost', config.redis.client.host
+    end
+
+    it "raises an argument error when given an invalid parameter" do 
+      assert_raises(ArgumentError) { config.redis = 1 }
+    end
+
     it "can set a namespace through a url-like string" do
       config.redis = Redis.new
       assert config.redis
