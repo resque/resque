@@ -4,7 +4,6 @@ describe Resque::Config do
   let(:config){ Resque::Config.new }
 
   describe "#redis=" do
-
     it "can take a redis://... string" do
       config.redis = 'redis://localhost:9736'
       assert_equal :resque, config.redis.namespace

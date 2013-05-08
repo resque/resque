@@ -11,7 +11,6 @@ module Resque
     #   4. A Redis URL String 'redis://host:port'
     #   5. An instance of `Redis`, `Redis::Backend`, `Redis::DistRedis`,
     #      or `Redis::Namespace`.
-
     def redis=(server)
       return if server == "" or server.nil?
       
