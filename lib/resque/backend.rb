@@ -23,7 +23,43 @@ module Resque
       @store = store
       @logger = logger
     end
-    
+
+    def self.connect(server)
+      case server
+      when String
+        if server['redis://']
+          redis = connect_to(server)
+        else
+          redis, namespace = parse_redis_url(server)
+        end
+        Redis::Namespace.new(namespace || :resque, :redis => redis)
+      when Redis::Namespace, Redis::Distributed
+        server
+      when Redis
+        Redis::Namespace.new(:resque, :redis => server)
+      else
+        raise ArgumentError, "Invalid Server: #{server.inspect}"
+      end
+    end
+
+    def self.connect_to(server)
+      Redis.connect(:url => server, :thread_safe => true)
+    end
+
+    def self.parse_redis_url(server)
+      server, namespace = server.split('/', 2)
+      host, port, db = server.split(':')
+
+      redis = Redis.new(
+        :host => host,
+        :port => port,
+        :db => db,
+        :thread_safe => true
+      )
+
+      [redis, namespace]
+    end
+
     # Reconnects to the store
     #
     # Maybe your store died, maybe you've just forked. Whatever the
