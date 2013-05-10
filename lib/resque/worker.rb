@@ -29,8 +29,6 @@ module Resque
 
     attr_reader :worker_queues
 
-    attr_accessor :graceful_term
-
     # Workers should be initialized with an array of string queue
     # names. The order is important: a Worker will check the first
     # queue given for a job. If none is found, it will check the
@@ -362,7 +360,7 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { graceful_term ? shutdown : shutdown!  }
+      trap('TERM') { graceful_term? ? shutdown : shutdown!  }
       trap('INT')  { shutdown!  }
 
       begin
@@ -493,6 +491,10 @@ module Resque
 
       logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if (queue && job)
+    end
+
+    def graceful_term?
+      options[:graceful_term]
     end
 
   private
