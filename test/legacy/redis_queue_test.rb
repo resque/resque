@@ -29,7 +29,8 @@ describe "Resque::Queue" do
     assert_equal x, queue.pop
   end
 
-  it "blocks on pop" do
+  100.times do |n|
+  it "#{n} blocks on pop" do
     queue1 = q
     queue2 = q
 
@@ -38,6 +39,7 @@ describe "Resque::Queue" do
 
     queue2.push x
     assert_equal x, t.join.value
+  end
   end
 
   it "nonblocking pop works" do
