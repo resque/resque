@@ -8,6 +8,7 @@ require 'resque/worker_queue_list'
 require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
+require 'resque/processor/fork'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -138,7 +139,7 @@ module Resque
     # Kill the child and shutdown immediately.
     def shutdown!
       shutdown
-      kill_child
+      halt_processing
     end
 
     # Should this worker shutdown as soon as current job is finished?
@@ -149,35 +150,8 @@ module Resque
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
-    def kill_child
-      return unless @child_pid
-
-      if Process.waitpid(@child_pid, Process::WNOHANG)
-        logger.debug "Child #{@child_pid} already quit."
-        return
-      end
-
-      signal_child("TERM", @child_pid)
-
-      signal_child("KILL", @child_pid) unless quit_gracefully?(@child_pid)
-    rescue SystemCallError
-      logger.debug "Child #{@child_pid} already quit and reaped."
-    end
-
-    # send a signal to a child, have it logged.
-    def signal_child(signal, child)
-      logger.debug "Sending #{signal} signal to child #{child}"
-      Process.kill(signal, child)
-    end
-
-    # has our child quit gracefully within the timeout limit?
-    def quit_gracefully?(child)
-      (options[:timeout].to_f * 10).round.times do |i|
-        sleep(0.1)
-        return true if Process.waitpid(child, Process::WNOHANG)
-      end
-
-      false
+    def halt_processing
+      @processor && @processor.halt_processing
     end
 
     # are we paused?
@@ -294,6 +268,22 @@ module Resque
       client.reconnect
     end
 
+    def before_fork(job)
+      run_hook :before_fork, job
+    end
+    def after_fork(job)
+      run_hook :after_fork, job
+      unregister_signal_handlers
+    end
+
+    # Given a string, sets the procline ($0) and logs.
+    # Procline is always in the format of:
+    #   resque-VERSION: STRING
+    def procline(string)
+      $0 = "resque-#{Resque::Version}: #{string}"
+      logger.debug $0
+    end
+
     protected
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
@@ -304,13 +294,6 @@ module Resque
 
     def hostname
       Socket.gethostname
-    end
-
-    def fork(job, &block)
-      return unless will_fork?
-
-      run_hook :before_fork, job
-      Kernel.fork(&block)
     end
 
     # Runs all the methods needed when a worker begins its lifecycle.
@@ -367,7 +350,7 @@ module Resque
         # The signal QUIT & USR1 is in use by the JVM and will not work correctly on jRuby
         unless jruby?
           trap('QUIT') { shutdown   }
-          trap('USR1') { kill_child }
+          trap('USR1') { halt_processing }
         end
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
@@ -407,14 +390,6 @@ module Resque
       options[:fork_per_job]
     end
 
-    # Given a string, sets the procline ($0) and logs.
-    # Procline is always in the format of:
-    #   resque-VERSION: STRING
-    def procline(string)
-      $0 = "resque-#{Resque::Version}: #{string}"
-      logger.debug $0
-    end
-
     # Runs a named hook, passing along any arguments.
     def run_hook(name, *args)
       return unless hooks = Resque.send(name)
@@ -434,44 +409,17 @@ module Resque
       worker_registry.done
     end
 
-    def wait_for_child
-      srand # Reseeding
-      procline "Forked #{@child_pid} at #{Time.now.to_i}"
-      begin
-        Process.waitpid(@child_pid)
-      rescue SystemCallError
-        nil
-      end
-    end
-
     def process_job(job, &block)
       logger.info "got: #{job.inspect}"
 
       worker_registry.working_on self, job
 
-      fork_for_child(job, &block)
+      @processor = Resque::Processor::Fork.new(self)
+      @processor.process_job(job, &block)
 
     ensure
+      @processor = nil
       done_working
-    end
-
-    def fork_for_child(job, &block)
-      @child_pid = fork(job) do
-        reconnect
-        run_hook :after_fork, job
-        unregister_signal_handlers
-        perform(job, &block)
-        exit! unless options[:run_at_exit_hooks]
-      end
-
-      if @child_pid
-        wait_for_child
-        job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
-      else
-        perform(job, &block)
-      end
-    ensure
-      @child_pid = nil
     end
 
     # Attempts to grab a job off one of the provided queues. Returns

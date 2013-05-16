@@ -20,16 +20,29 @@ describe "Resque::MultiQueue" do
     assert_nil queue.poll(1)
   end
 
-  it "blocks on pop" do
-    foo   = Resque::Queue.new 'foo', redis, coder
-    bar   = Resque::Queue.new 'bar', redis, coder
-    queue = Resque::MultiQueue.new([foo, bar], redis)
-    t     = Thread.new { queue.pop }
+  it "multi-q blocks on pop" do
+    timeout_count = 0
+    10.times do
+      foo   = Resque::Queue.new 'foo', redis, coder
+      bar   = Resque::Queue.new 'bar', redis, coder
+      queue = Resque::MultiQueue.new([foo, bar], redis)
+      t     = Thread.new { queue.pop }
 
-    job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
-    bar << job
+      job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
+      bar << job
 
-    assert_equal [bar, job], t.join.value
+      begin
+        timeout(20) do
+          assert_equal [bar, job], t.join.value
+        end
+      rescue Timeout::Error => e
+        timeout_count += 1
+        puts e.inspect
+        puts e.backtrace.join("\n")
+      end
+    end
+    puts timeout_count.inspect
+    assert timeout_count < 10, "Should have passed at least once. Failed #{timeout_count} times."
   end
 
   it "nonblocking pop works" do

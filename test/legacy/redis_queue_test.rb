@@ -30,14 +30,28 @@ describe "Resque::Queue" do
   end
 
   it "blocks on pop" do
-    queue1 = q
-    queue2 = q
+    timeout_count = 0
+    10.times do
+      queue1 = q
+      queue2 = q
 
-    t = Thread.new { queue1.pop }
-    x = Thing.new
+      t = Thread.new { queue1.pop }
+      x = Thing.new
 
-    queue2.push x
-    assert_equal x, t.join.value
+      queue2.push x
+
+      begin
+        timeout(20) do
+          assert_equal x, t.join.value
+        end
+      rescue Timeout::Error => e
+        timeout_count += 1
+        puts e.inspect
+        puts e.backtrace.join("\n")
+      end
+    end
+    puts timeout_count.inspect
+    assert timeout_count < 10, "Should have passed at least once. Failed #{timeout_count} times."
   end
 
   it "nonblocking pop works" do

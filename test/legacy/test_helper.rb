@@ -4,6 +4,13 @@ require 'bundler/setup'
 require 'redis/namespace'
 require 'minitest/autorun'
 
+Minitest::Test.class_eval do
+  def before_setup
+    puts self.name
+    super
+  end
+end
+
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
