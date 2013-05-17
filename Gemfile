@@ -9,5 +9,5 @@ group :test do
   gem "hoptoad_notifier"
   gem "airbrake"
   gem "i18n"
-  gem "minitest"
+  gem "minitest", "4.7.0"
 end
