@@ -90,14 +90,6 @@ describe Resque::Worker do
     end
   end
 
-  describe "#reconnect" do
-    it "delegates to the client" do
-      client.expect :reconnect, nil
-      worker = Resque::Worker.new :foo, :client => client
-      worker.reconnect
-    end
-  end
-
   describe "#==" do
     it "compares the same worker" do
       worker1 = Resque::Worker.new([:foo], :client => client)
