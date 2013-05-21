@@ -72,6 +72,37 @@ context "Resque::Worker" do
 
   end
 
+  class ::RaiseExceptionOnFailure
+
+    def self.on_failure_record_failure(exception,*args)
+      $TESTING = true
+      raise "The worker threw an exception"
+    end
+
+    def self.perform
+      ""
+    end
+  end
+
+  test "should not treat SystemExit as an exception in the child with run_at_exit_hooks == true" do
+
+    if worker_pid = Kernel.fork
+      Process.waitpid(worker_pid)
+    else
+      # ensure we actually fork
+      $TESTING = false
+      Resque.redis.client.reconnect
+      Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
+      worker = Resque::Worker.new(:not_failing_job)
+      worker.run_at_exit_hooks = true
+      suppress_warnings do
+        worker.work(0)
+      end
+      exit
+    end
+
+  end
+
   test "does not execute at_exit hooks by default" do
     tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
     FileUtils.rm_f tmpfile
