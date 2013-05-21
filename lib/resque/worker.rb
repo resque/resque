@@ -202,6 +202,8 @@ module Resque
       end
 
       unregister_worker
+    rescue SystemExit => exception
+      raise unless run_at_exit_hooks && @child != nil
     rescue Exception => exception
       log "Failed to start worker : #{exception.inspect}"
 
