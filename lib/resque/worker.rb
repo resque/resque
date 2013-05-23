@@ -183,14 +183,18 @@ module Resque
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             unregister_signal_handlers if will_fork? && term_child
+            begin
 
-            reconnect
-            perform(job, &block)
+              reconnect
+              perform(job, &block)
 
-            if will_fork?
-              run_at_exit_hooks ? exit : exit!
+            rescue Exception => exception
+              report_failed_job(job,exception)
             end
+
+            do_exit
           end
+
           done_working
           @child = nil
         else
