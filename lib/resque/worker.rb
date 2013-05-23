@@ -192,7 +192,7 @@ module Resque
               report_failed_job(job,exception)
             end
 
-            do_exit
+            do_exit_or_exit!
           end
 
           done_working
@@ -212,17 +212,13 @@ module Resque
       unregister_worker(exception)
     end
 
-    def do_exit
-      if will_fork?
-        if run_at_exit_hooks
-          begin
-            exit
-          rescue SystemExit
-            nil
-          end
-        else
-          exit!
-        end
+    def do_exit_or_exit!
+      return unless will_fork?
+      exit! unless run_at_exit_hooks
+      begin
+        exit
+      rescue SystemExit
+        nil
       end
     end
 
