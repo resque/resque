@@ -8,6 +8,7 @@ require 'resque/worker_queue_list'
 require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
+require 'resque/processor/basic'
 require 'resque/processor/fork'
 
 module Resque
@@ -414,7 +415,11 @@ module Resque
 
       worker_registry.working_on self, job
 
-      @processor = Resque::Processor::Fork.new(self)
+      if will_fork?
+        @processor = Resque::Processor::Fork.new(self)
+      else
+        @processor = Resque::Processor::Basic.new(self)
+      end
       @processor.process_job(job, &block)
 
     ensure

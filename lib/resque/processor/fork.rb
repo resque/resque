@@ -1,14 +1,7 @@
+require 'resque/processor/basic'
 module Resque
   module Processor
-    class Fork
-
-      def initialize(worker)
-        @worker = worker
-      end
-
-      def logger
-        @worker.logger
-      end
+    class Fork < Basic
 
       def process_job(job, &block)
         fork_for_child(job, &block)
@@ -32,16 +25,12 @@ module Resque
         if @child_pid
           wait_for_child
           job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
-        else
-          @worker.perform(job, &block)
         end
       ensure
         @child_pid = nil
       end
 
       def fork(job, &block)
-        return unless @worker.will_fork?
-
         @worker.before_fork job
         Kernel.fork(&block)
       end
