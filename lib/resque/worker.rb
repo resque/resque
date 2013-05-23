@@ -206,12 +206,24 @@ module Resque
       end
 
       unregister_worker
-    rescue SystemExit => exception
-      raise unless run_at_exit_hooks && @child != nil
     rescue Exception => exception
       log "Failed to start worker : #{exception.inspect}"
 
       unregister_worker(exception)
+    end
+
+    def do_exit
+      if will_fork?
+        if run_at_exit_hooks
+          begin
+            exit
+          rescue SystemExit
+            nil
+          end
+        else
+          exit!
+        end
+      end
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
