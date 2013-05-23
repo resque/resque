@@ -234,19 +234,28 @@ module Resque
       done_working
     end
 
+    # Reports the exception and marks the job as failed
+    def report_failed_job(job,exception)
+      log "#{job.inspect} failed: #{exception.inspect}"
+      begin
+        job.fail(exception)
+      rescue Object => exception
+        log "Received exception when reporting failure: #{exception.inspect}"
+      end
+      begin
+        failed!
+      rescue Object => exception
+        log "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
+      end
+    end
+
     # Processes a given job in the child.
     def perform(job)
       begin
         run_hook :after_fork, job if will_fork?
         job.perform
       rescue Object => e
-        log "#{job.inspect} failed: #{e.inspect}"
-        begin
-          job.fail(e)
-        rescue Object => e
-          log "Received exception when reporting failure: #{e.inspect}"
-        end
-        failed!
+        report_failed_job(job,e)
       else
         log "done: #{job.inspect}"
       ensure
