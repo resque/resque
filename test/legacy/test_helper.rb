@@ -199,5 +199,9 @@ end
 reset_logger
 
 def stub_to_fork(worker, should_fork, &block)
-  worker.options.stub(:fork_per_job, should_fork, &block)
+  if should_fork
+    worker.options.stub(:child_processor, Resque::ChildProcessor::Fork, &block)
+  else
+    worker.options.stub(:child_processor, Resque::ChildProcessor::Basic, &block)
+  end
 end

@@ -11,7 +11,7 @@ describe "Resque Hooks" do
     Resque.after_perform = nil
 
     Resque::Worker.__send__(:public, :pause_processing)
-    Resque::Options.__send__(:public, :fork_per_job)
+    Resque::Options.__send__(:public, :child_processor)
 
     @worker = Resque::Worker.new(:jobs, :interval => 0)
 

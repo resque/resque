@@ -6,7 +6,6 @@ require 'resque/core_ext/hash'
 require 'resque/worker_registry'
 require 'resque/worker_queue_list'
 require 'resque/worker_hooks'
-require 'resque/child_process'
 require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
@@ -378,7 +377,7 @@ module Resque
     end
 
     def run_child(job, &block)
-      @child = ChildProcess.create(self)
+      @child = options.child_processor.new(self)
       @child.perform(job, &block)
     rescue => e
       puts e.inspect

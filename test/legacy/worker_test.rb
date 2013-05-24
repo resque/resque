@@ -16,7 +16,7 @@ describe "Resque::Worker" do
 
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Worker.__send__(:public, :pause_processing)
-    Resque::Options.__send__(:public, :fork_per_job)
+    Resque::Options.__send__(:public, :child_processor)
     Resque::Worker.__send__(:public, :reserve)
   end
 
@@ -583,7 +583,7 @@ describe "Resque::Worker" do
     assert($BEFORE_FORK_CALLED)
   end
 
-  it "Will not call a before_fork hook when the worker can't fork" do
+  it "Will not call a before_fork hook when the worker can't fork (and support the legacy option: fork_per_job)" do
     Resque.backend.store.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
