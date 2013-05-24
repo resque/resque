@@ -16,7 +16,7 @@ describe "Resque::Worker" do
 
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Worker.__send__(:public, :pause_processing)
-    Resque::Worker.__send__(:public, :will_fork?)
+    Resque::Options.__send__(:public, :fork_per_job)
     Resque::Worker.__send__(:public, :reserve)
   end
 
@@ -51,7 +51,7 @@ describe "Resque::Worker" do
 
   it "unavailable job definition reports exception and message" do
     Resque::Job.create(:jobs, 'NoJobDefinition')
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       worker.work
       assert_equal 1, Resque::Failure.count, 'failure not reported'
       assert_equal('NameError', Resque::Failure.all['exception'])
@@ -307,7 +307,7 @@ describe "Resque::Worker" do
 
 
     worker = Resque::Worker.new("*", test_options)
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       processed_queues = []
 
       worker.work do |job|
@@ -320,7 +320,7 @@ describe "Resque::Worker" do
 
   it "can work with dynamically added queues when using wildcard" do
     worker = Resque::Worker.new("*", test_options)
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
 
       assert_equal ["jobs"], Resque.queues
 
@@ -489,7 +489,7 @@ describe "Resque::Worker" do
   end
 
   it "sets $0 while working" do
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       worker.work do
         ver = Resque::Version
         assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
@@ -578,7 +578,9 @@ describe "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work
-    assert $BEFORE_FORK_CALLED == workerA.will_fork?
+    #Was: assert $BEFORE_FORK_CALLED == workerA.will_fork?
+    #TODO: was this test implying we shouldn't call this hook if we don't plan to fork (because legacy behavior is that we do...)
+    assert($BEFORE_FORK_CALLED)
   end
 
   it "Will not call a before_fork hook when the worker can't fork" do
@@ -804,7 +806,7 @@ describe "Resque::Worker" do
     end
 
     it "will notify failure hooks when a job is killed by a signal" do
-      worker.stub(:will_fork?, true) do
+      stub_to_fork(worker, true) do
         Resque.enqueue(SuicidalJob)
         worker.work
         assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class

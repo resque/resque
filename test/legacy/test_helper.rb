@@ -197,3 +197,7 @@ def reset_logger
 end
 
 reset_logger
+
+def stub_to_fork(worker, should_fork, &block)
+  worker.options.stub(:fork_per_job, should_fork, &block)
+end
