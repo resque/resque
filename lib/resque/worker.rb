@@ -10,6 +10,7 @@ require 'resque/child_process'
 require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
+require 'resque/options'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -45,7 +46,7 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(queues = [], options = {})
-      @options = default_options.merge(options.symbolize_keys)
+      @options = Options.new(options)
       @worker_queues = WorkerQueueList.new(queues)
       @shutdown = nil
       @paused = nil
@@ -259,10 +260,6 @@ module Resque
       end
     end
 
-    def will_fork?
-      options[:fork_per_job]
-    end
-
     protected
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
@@ -404,27 +401,6 @@ module Resque
 
       logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if (queue && job)
-    end
-
-  private
-    def default_options
-      {
-        # Termination timeout
-        :timeout => 5,
-        # Worker's poll interval
-        :interval => 5,
-        # Run as deamon
-        :daemon => false,
-        # Path to file file where worker's pid will be save
-        :pid_file => nil,
-        # Use fork(2) on performing jobs
-        :fork_per_job => true,
-        # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
-        # registered in the application. Otherwise, forked workers exit with `exit!`
-        :run_at_exit_hooks => false,
-        # the logger we're going to use.
-        :logger => Resque.logger,
-      }
     end
 
   end
