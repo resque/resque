@@ -35,17 +35,10 @@ module Resque
     end
 
     def fork(job, &block)
-      return unless will_fork?
+      return unless worker.options.fork_per_job
 
       worker_hooks.run_hook :before_fork, job
       Kernel.fork(&block)
-    end
-
-    # We cannot simply move this method out of the worker
-    # without breaking the legacy tests (which are stubbing 
-    # the will_fork? method)
-    def will_fork?
-      worker.will_fork?
     end
 
     def reconnect
