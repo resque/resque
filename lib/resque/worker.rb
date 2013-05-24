@@ -6,7 +6,6 @@ require 'resque/core_ext/hash'
 require 'resque/worker_registry'
 require 'resque/worker_queue_list'
 require 'resque/worker_hooks'
-require 'resque/child_process'
 require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
@@ -371,15 +370,19 @@ module Resque
 
       worker_registry.working_on self, job
 
-      fork_for_child(job, &block)
+      run_child(job, &block)
 
     ensure
       done_working
     end
 
-    def fork_for_child(job, &block)
-      @child = ChildProcess.new(self)
-      @child.fork_and_perform(job, &block)
+    def run_child(job, &block)
+      @child = options.child_processor.new(self)
+      @child.perform(job, &block)
+    rescue => e
+      puts e.inspect
+      puts e.backtrace.join("\n")
+      raise e
     ensure
       @child = nil
     end

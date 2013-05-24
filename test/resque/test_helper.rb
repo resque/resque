@@ -29,3 +29,11 @@ module Kernel
     defined?(JRUBY_VERSION)
   end
 end
+
+class SelfLoggingTestJob
+  def self.perform(logger_path)
+    File.open(logger_path, "w+") do |fp|
+      fp.write("SelfLoggingTestJob:#{Process.pid}")
+    end
+  end
+end
