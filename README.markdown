@@ -620,7 +620,7 @@ Don't forget you can define a `resque:setup` hook in
 
 ### In a Rails 2.x app, as a plugin
 
-    $ ./script/plugin install git://github.com/defunkt/resque
+    $ ./script/plugin install git://github.com/resque/resque
 
 That's it! Resque will automatically be available when your Rails app
 loads.
@@ -722,11 +722,11 @@ Plugins and Hooks
 -----------------
 
 For a list of available plugins see
-<http://wiki.github.com/defunkt/resque/plugins>.
+<http://wiki.github.com/resque/resque/plugins>.
 
 If you'd like to write your own plugin, or want to customize Resque
 using hooks (such as `Resque.after_fork`), see
-[docs/HOOKS.md](http://github.com/defunkt/resque/blob/master/docs/HOOKS.md).
+[docs/HOOKS.md](http://github.com/resque/resque/blob/master/docs/HOOKS.md).
 
 
 Namespaces
@@ -778,7 +778,7 @@ send patches for any tweaks or improvements you can make to it.
 Questions
 ---------
 
-Please add them to the [FAQ](https://github.com/defunkt/resque/wiki/FAQ) or
+Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or
 ask on the Mailing List. The Mailing List is explained further below
 
 
@@ -789,7 +789,7 @@ Want to hack on Resque?
 
 First clone the repo and run the tests:
 
-    git clone git://github.com/defunkt/resque.git
+    git clone git://github.com/resque/resque.git
     cd resque
     rake test
 
@@ -842,10 +842,10 @@ The archive can be found at <http://librelist.com/browser/resque/>.
 Meta
 ----
 
-* Code: `git clone git://github.com/defunkt/resque.git`
-* Home: <http://github.com/defunkt/resque>
-* Docs: <http://defunkt.github.com/resque/>
-* Bugs: <http://github.com/defunkt/resque/issues>
+* Code: `git clone git://github.com/resque/resque.git`
+* Home: <http://github.com/resque/resque>
+* Docs: <http://resque.github.com/resque/>
+* Bugs: <http://github.com/resque/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
 * Gems: <http://gemcutter.org/gems/resque>
@@ -860,7 +860,7 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
 [0]: http://github.com/blog/542-introducing-resque
 [1]: http://help.github.com/forking/
-[2]: http://github.com/defunkt/resque/issues
+[2]: http://github.com/resque/resque/issues
 [sv]: http://semver.org/
-[rs]: http://github.com/defunkt/redis-namespace
-[cb]: http://wiki.github.com/defunkt/resque/contributing
+[rs]: http://github.com/resque/redis-namespace
+[cb]: http://wiki.github.com/resque/resque/contributing
