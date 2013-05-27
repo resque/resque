@@ -132,19 +132,17 @@ module Resque
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.
     def perform
-      begin
-        hooks = {
-          :before => before_hooks,
-          :around => around_hooks,
-          :after => after_hooks
-        }
-        JobPerformer.new.perform(payload_class, args, hooks)
-      # If an exception occurs during the job execution, look for an
-      # on_failure hook then re-raise.
-      rescue Object => e
-        run_failure_hooks(e)
-        raise e
-      end
+      hooks = {
+        :before => before_hooks,
+        :around => around_hooks,
+        :after => after_hooks
+      }
+      JobPerformer.new.perform(payload_class, args, hooks)
+    # If an exception occurs during the job execution, look for an
+    # on_failure hook then re-raise.
+    rescue Object => e
+      run_failure_hooks(e)
+      raise e
     end
 
     # Returns the actual class constant represented in this job's payload.
@@ -185,16 +183,14 @@ module Resque
     # the Failure module.
     def fail(exception)
       Resque.logger.info "#{inspect} failed: #{exception.inspect}"
-      begin
-        run_failure_hooks(exception) if has_payload_class?
-        Failure.create \
-          :payload   => payload,
-          :exception => exception,
-          :worker    => worker,
-          :queue     => queue
-      rescue Exception => e
-        Resque.logger.info "Received exception when reporting failure: #{e.inspect}"
-      end
+      run_failure_hooks(exception) if has_payload_class?
+      Failure.create \
+        :payload   => payload,
+        :exception => exception,
+        :worker    => worker,
+        :queue     => queue
+    rescue Exception => e
+      Resque.logger.info "Received exception when reporting failure: #{e.inspect}"
     end
 
     # Creates an identical job, essentially placing this job back on
@@ -233,16 +229,14 @@ module Resque
     end
 
     def run_failure_hooks(exception)
-      begin
-        job_args = args || []
-        unless @failure_hooks_ran
-          failure_hooks.each do |hook|
-            payload_class.send(hook, exception, *job_args)
-          end
+      job_args = args || []
+      unless @failure_hooks_ran
+        failure_hooks.each do |hook|
+          payload_class.send(hook, exception, *job_args)
         end
-      ensure
-        @failure_hooks_ran = true
       end
+    ensure
+      @failure_hooks_ran = true
     end
 
     protected

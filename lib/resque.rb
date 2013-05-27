@@ -160,11 +160,9 @@ module Resque
   #
   # Returns a Ruby object.
   def pop(queue)
-    begin
-      queue(queue).pop(true)
-    rescue ThreadError
-      nil
-    end
+    queue(queue).pop(true)
+  rescue ThreadError
+    nil
   end
 
   # Returns an integer representing the size of a queue.

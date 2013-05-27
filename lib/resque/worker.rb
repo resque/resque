@@ -246,18 +246,16 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-      begin
-        worker_hooks.run_hook :before_perform, job
-        job.perform
-        worker_hooks.run_hook :after_perform, job
-      rescue Object => e
-        job.fail(e)
-        failed!
-      else
-        logger.info "done: #{job.inspect}"
-      ensure
-        yield job if block_given?
-      end
+      worker_hooks.run_hook :before_perform, job
+      job.perform
+      worker_hooks.run_hook :after_perform, job
+    rescue Object => e
+      job.fail(e)
+      failed!
+    else
+      logger.info "done: #{job.inspect}"
+    ensure
+      yield job if block_given?
     end
 
     protected
