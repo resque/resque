@@ -11,21 +11,16 @@ module Resque
 
   class JsonCoder < Coder
     def encode(object)
-      begin
-        JSON.dump object
-      rescue ENCODING_EXCEPTION => e
-        raise EncodeException, e.message, e.backtrace
-      end
+      JSON.dump object
+    rescue ENCODING_EXCEPTION => e
+      raise EncodeException, e.message, e.backtrace
     end
 
     def decode(object)
       return unless object
-
-      begin
-        JSON.load object
-      rescue JSON::ParserError => e
-        raise DecodeException, e.message, e.backtrace
-      end
+      JSON.load object
+    rescue JSON::ParserError => e
+      raise DecodeException, e.message, e.backtrace
     end
   end
 end
