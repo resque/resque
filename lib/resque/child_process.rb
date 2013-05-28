@@ -1,4 +1,5 @@
 require 'resque/worker_hooks'
+require 'resque/signal_trapper'
 
 module Resque
   # A child process processes a single job. It is created by a Resque Worker.
@@ -46,15 +47,12 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') { raise TermException.new("SIGTERM") }
-      trap('INT', 'DEFAULT')
+      SignalTrapper.trap('TERM') { raise TermException.new("SIGTERM") }
+      SignalTrapper.trap('INT', 'DEFAULT')
 
-      begin
-        trap('QUIT', 'DEFAULT')
-        trap('USR1', 'DEFAULT')
-        trap('USR2', 'DEFAULT')
-      rescue ArgumentError
-      end
+      SignalTrapper.trap_or_warn('QUIT', 'DEFAULT')
+      SignalTrapper.trap_or_warn('USR1', 'DEFAULT')
+      SignalTrapper.trap_or_warn('USR2', 'DEFAULT')
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
