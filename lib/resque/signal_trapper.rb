@@ -6,13 +6,11 @@ module Resque
   #   Trap a signal, but don't raise exception if unsupported signal:
   #     SignalTrapper.trap_or_warn('INT') { do_stuff }
   module SignalTrapper
-    extend self
-
-    def trap(*args, &block)
+    def self.trap(*args, &block)
       Signal.trap(*args, &block)
     end
 
-    def trap_or_warn(*args, &block)
+    def self.trap_or_warn(*args, &block)
       trap(*args, &block)
     rescue ArgumentError => e
       warn e
