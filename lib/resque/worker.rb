@@ -11,6 +11,7 @@ require 'resque/errors'
 require 'resque/backend'
 require 'resque/ioawaiter'
 require 'resque/options'
+require 'resque/signal_trapper'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
@@ -312,27 +313,20 @@ module Resque
 
     # Registers the various signal handlers a worker responds to.
     #
-    # TERM: Shutdown immediately, stop processing jobs.
-    #  INT: Shutdown immediately, stop processing jobs.
+    # TERM/INT: Shutdown immediately, stop processing jobs.
     # QUIT: Shutdown after the current job has finished processing.
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
-    # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { shutdown!  }
-      trap('INT')  { shutdown!  }
+      SignalTrapper.trap('TERM') { shutdown! }
+      SignalTrapper.trap('INT')  { shutdown! }
 
-      begin
-        # The signal QUIT & USR1 is in use by the JVM and will not work correctly on jRuby
-        unless jruby?
-          trap('QUIT') { shutdown   }
-          trap('USR1') { @child.kill }
-        end
-        trap('USR2') { pause_processing }
-        trap('CONT') { unpause_processing }
-      rescue ArgumentError
-        warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
+      # these signals are in use by the JVM and will not work correctly on jRuby
+      unless jruby?
+        SignalTrapper.trap_or_warn('QUIT') { shutdown }
+        SignalTrapper.trap_or_warn('USR1') { @child.kill }
       end
+      SignalTrapper.trap_or_warn('USR2') { pause_processing }
 
       logger.debug "Registered signals"
     end
@@ -343,13 +337,11 @@ module Resque
       Stat << "processed:#{self}"
     end
 
-
     # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
       Stat << "failed:#{self}"
     end
-
 
     # Given a string, sets the procline ($0) and logs.
     # Procline is always in the format of:

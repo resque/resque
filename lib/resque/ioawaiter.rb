@@ -1,8 +1,9 @@
+require 'resque/signal_trapper'
 module Resque
   class IOAwaiter
     def await
       rd, wr = IO.pipe
-      trap('CONT') {
+      SignalTrapper.trap('CONT') {
         wr.write 'x'
         wr.close
       }
@@ -10,7 +11,7 @@ module Resque
       rd.read 1
       rd.close
 
-      trap('CONT', 'DEFAULT')
+      SignalTrapper.trap('CONT', 'DEFAULT')
     end
   end
 end
