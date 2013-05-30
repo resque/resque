@@ -185,12 +185,12 @@ module Resque
         workers_queues = workers_queues_raw.split(",")
         unless worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)
           # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it. 
+          # we are listening to, we should not touch it.
           # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even 
+          # an unknown class exception, since that worker could easily be even
           # written in different language.
           next
-        end        
+        end
         next unless host == hostname
         next if known_workers.include?(pid)
         logger.debug "Pruning dead worker: #{worker}"
@@ -327,6 +327,10 @@ module Resque
       SignalTrapper.trap_or_warn('USR2') { pause_processing }
 
       logger.debug "Registered signals"
+    end
+
+    def jruby?
+      defined?(JRUBY_VERSION)
     end
 
     # Tell Redis we've processed a job.
