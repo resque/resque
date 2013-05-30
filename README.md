@@ -63,6 +63,8 @@ gem "resque", "~> 2.0.0.pre.1"
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
 
+If you are on rails, you can easily setup resque by running `rails g resque:install`
+
 ### Requirements
 
 Resque is used by a large number of people, across a diverse set of codebases.
