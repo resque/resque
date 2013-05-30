@@ -30,7 +30,7 @@ describe "Resque::Worker" do
       worker.work
       assert_equal 1, Resque::Failure.count
     ensure
-      Resque.redis = $mock_redis 
+      Resque.redis = $mock_redis
     end
   end
 
@@ -84,6 +84,10 @@ describe "Resque::Worker" do
     registry = Resque::WorkerRegistry.new(worker)
     registry.working_on worker, job
     assert_equal now, registry.processing['run_at']
+  end
+
+  it "defines the jruby? method" do
+    assert worker.respond_to? :jruby?
   end
 
   unless jruby?
