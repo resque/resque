@@ -38,10 +38,10 @@ module Resque
 
       def self.all(offset = 0, limit = 1, queue = nil)
         check_queue(queue)
-        Resque.list_range(:failed, offset, limit)
+        [Resque.list_range(:failed, offset, limit)].flatten
       end
 
-      include Each
+      extend Each
 
       def self.clear(queue = nil)
         check_queue(queue)
@@ -49,14 +49,14 @@ module Resque
       end
 
       def self.requeue(id)
-        item = all(id)
+        item = all(id).first
         item['retried_at'] = Time.now.rfc2822
         Resque.backend.store.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
       def self.requeue_to(id, queue_name)
-        item = all(id)
+        item = all(id).first
         item['retried_at'] = Time.now.rfc2822
         Resque.backend.store.lset(:failed, id, Resque.encode(item))
         Job.create(queue_name, item['payload']['class'], *item['payload']['args'])
@@ -70,7 +70,7 @@ module Resque
 
       def self.requeue_queue(queue)
         i = 0
-        while job = all(i)
+        while job = all(i).first
            requeue(i) if job['queue'] == queue
            i += 1
         end
@@ -78,7 +78,7 @@ module Resque
 
       def self.remove_queue(queue)
         i = 0
-        while job = all(i)
+        while job = all(i).first
           if job['queue'] == queue
             # This will remove the failure from the array so do not increment the index.
             remove(i)

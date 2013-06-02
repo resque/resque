@@ -36,21 +36,21 @@ module Resque
       end
 
       def self.all(offset = 0, limit = 1, queue = :failed)
-        Resque.list_range(queue, offset, limit)
+        [Resque.list_range(queue, offset, limit)].flatten
       end
 
       def self.queues
         Array(Resque.backend.store.smembers(:failed_queues))
       end
 
-      include Each
+      extend Each
 
       def self.clear(queue = :failed)
         Resque.backend.store.del(queue)
       end
 
       def self.requeue(id, queue = :failed)
-        item = all(id, 1, queue)
+        item = all(id, 1, queue).first
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
         Resque.backend.store.lset(queue, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
