@@ -42,8 +42,9 @@ describe "Resque::Worker" do
     begin
       Resque::Job.create(:jobs, BadJobWithSyntaxError)
       worker.work
-      assert_equal('SyntaxError', Resque::Failure.all['exception'])
-      assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+      assert_equal 1, Resque::Failure.count
+      assert_equal('SyntaxError', Resque::Failure.all.first['exception'])
+      assert_equal('Extra Bad job!', Resque::Failure.all.first['error'])
     ensure
       Resque.redis = $mock_redis
     end
@@ -54,8 +55,8 @@ describe "Resque::Worker" do
     stub_to_fork(worker, false) do
       worker.work
       assert_equal 1, Resque::Failure.count, 'failure not reported'
-      assert_equal('NameError', Resque::Failure.all['exception'])
-      assert_match('uninitialized constant', Resque::Failure.all['error'])
+      assert_equal('NameError', Resque::Failure.all.first['exception'])
+      assert_match('uninitialized constant', Resque::Failure.all.first['error'])
     end
   end
 
@@ -129,7 +130,7 @@ describe "Resque::Worker" do
     registry.working_on(worker, job)
     registry.unregister
     assert_equal 1, Resque::Failure.count
-    assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
+    assert_equal('Resque::DirtyExit', Resque::Failure.all.first['exception'])
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
@@ -138,7 +139,7 @@ describe "Resque::Worker" do
     registry.working_on worker, job
     registry.unregister(StandardError.new)
     assert_equal 1, Resque::Failure.count
-    assert_equal('StandardError', Resque::Failure.all['exception'])
+    assert_equal('StandardError', Resque::Failure.all.first['exception'])
   end
 
   class ::SimpleJobWithFailureHandling
@@ -639,8 +640,8 @@ describe "Resque::Worker" do
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
     Resque::Failure.requeue_queue(queue)
-    assert Resque::Failure.all(0).has_key?('retried_at')
-    assert !Resque::Failure.all(1).has_key?('retried_at')
+    assert Resque::Failure.all(0).first.has_key?('retried_at')
+    assert !Resque::Failure.all(1).first.has_key?('retried_at')
   end
 
   it "remove failed queue" do
@@ -650,7 +651,7 @@ describe "Resque::Worker" do
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2, test_options), :queue => queue2, :payload => {'class' => 'SomeJob'})
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.remove_queue(queue)
-    assert_equal queue2, Resque::Failure.all(0)['queue']
+    assert_equal queue2, Resque::Failure.all(0).first['queue']
     assert_equal 1, Resque::Failure.count
   end
 
