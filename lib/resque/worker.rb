@@ -183,14 +183,18 @@ module Resque
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
             unregister_signal_handlers if will_fork? && term_child
+            begin
 
-            reconnect
-            perform(job, &block)
+              reconnect
+              perform(job, &block)
 
-            if will_fork?
-              run_at_exit_hooks ? exit : exit!
+            rescue Exception => exception
+              report_failed_job(job,exception)
             end
+
+            do_exit_or_exit!
           end
+
           done_working
           @child = nil
         else
@@ -208,6 +212,16 @@ module Resque
       unregister_worker(exception)
     end
 
+    def do_exit_or_exit!
+      return unless will_fork?
+      exit! unless run_at_exit_hooks
+      begin
+        exit
+      rescue SystemExit
+        nil
+      end
+    end
+
     # DEPRECATED. Processes a single job. If none is given, it will
     # try to produce one. Usually run in the child.
     def process(job = nil, &block)
@@ -220,19 +234,28 @@ module Resque
       done_working
     end
 
+    # Reports the exception and marks the job as failed
+    def report_failed_job(job,exception)
+      log "#{job.inspect} failed: #{exception.inspect}"
+      begin
+        job.fail(exception)
+      rescue Object => exception
+        log "Received exception when reporting failure: #{exception.inspect}"
+      end
+      begin
+        failed!
+      rescue Object => exception
+        log "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
+      end
+    end
+
     # Processes a given job in the child.
     def perform(job)
       begin
         run_hook :after_fork, job if will_fork?
         job.perform
       rescue Object => e
-        log "#{job.inspect} failed: #{e.inspect}"
-        begin
-          job.fail(e)
-        rescue Object => e
-          log "Received exception when reporting failure: #{e.inspect}"
-        end
-        failed!
+        report_failed_job(job,e)
       else
         log "done: #{job.inspect}"
       ensure
