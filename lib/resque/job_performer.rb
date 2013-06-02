@@ -26,12 +26,10 @@ module Resque
 
     private
     def call_before_hooks
-      begin
-        call_hooks(:before)
-        true
-      rescue Resque::DontPerform
-        false
-      end
+      call_hooks(:before)
+      true
+    rescue Resque::DontPerform
+      false
     end
 
     def execute_job

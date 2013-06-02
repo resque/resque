@@ -16,7 +16,7 @@ describe "Resque::Worker" do
 
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     Resque::Worker.__send__(:public, :pause_processing)
-    Resque::Worker.__send__(:public, :will_fork?)
+    Resque::Options.__send__(:public, :fork_per_job)
     Resque::Worker.__send__(:public, :reserve)
   end
 
@@ -30,7 +30,7 @@ describe "Resque::Worker" do
       worker.work
       assert_equal 1, Resque::Failure.count
     ensure
-      Resque.redis = $mock_redis 
+      Resque.redis = $mock_redis
     end
   end
 
@@ -42,8 +42,9 @@ describe "Resque::Worker" do
     begin
       Resque::Job.create(:jobs, BadJobWithSyntaxError)
       worker.work
-      assert_equal('SyntaxError', Resque::Failure.all['exception'])
-      assert_equal('Extra Bad job!', Resque::Failure.all['error'])
+      assert_equal 1, Resque::Failure.count
+      assert_equal('SyntaxError', Resque::Failure.all.first['exception'])
+      assert_equal('Extra Bad job!', Resque::Failure.all.first['error'])
     ensure
       Resque.redis = $mock_redis
     end
@@ -51,11 +52,11 @@ describe "Resque::Worker" do
 
   it "unavailable job definition reports exception and message" do
     Resque::Job.create(:jobs, 'NoJobDefinition')
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       worker.work
       assert_equal 1, Resque::Failure.count, 'failure not reported'
-      assert_equal('NameError', Resque::Failure.all['exception'])
-      assert_match('uninitialized constant', Resque::Failure.all['error'])
+      assert_equal('NameError', Resque::Failure.all.first['exception'])
+      assert_match('uninitialized constant', Resque::Failure.all.first['error'])
     end
   end
 
@@ -84,6 +85,10 @@ describe "Resque::Worker" do
     registry = Resque::WorkerRegistry.new(worker)
     registry.working_on worker, job
     assert_equal now, registry.processing['run_at']
+  end
+
+  it "defines the jruby? method" do
+    assert worker.respond_to? :jruby?
   end
 
   unless jruby?
@@ -125,7 +130,7 @@ describe "Resque::Worker" do
     registry.working_on(worker, job)
     registry.unregister
     assert_equal 1, Resque::Failure.count
-    assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
+    assert_equal('Resque::DirtyExit', Resque::Failure.all.first['exception'])
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
@@ -134,7 +139,7 @@ describe "Resque::Worker" do
     registry.working_on worker, job
     registry.unregister(StandardError.new)
     assert_equal 1, Resque::Failure.count
-    assert_equal('StandardError', Resque::Failure.all['exception'])
+    assert_equal('StandardError', Resque::Failure.all.first['exception'])
   end
 
   class ::SimpleJobWithFailureHandling
@@ -307,7 +312,7 @@ describe "Resque::Worker" do
 
 
     worker = Resque::Worker.new("*", test_options)
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       processed_queues = []
 
       worker.work do |job|
@@ -320,7 +325,7 @@ describe "Resque::Worker" do
 
   it "can work with dynamically added queues when using wildcard" do
     worker = Resque::Worker.new("*", test_options)
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
 
       assert_equal ["jobs"], Resque.queues
 
@@ -489,7 +494,7 @@ describe "Resque::Worker" do
   end
 
   it "sets $0 while working" do
-    worker.stub(:will_fork?, false) do
+    stub_to_fork(worker, false) do
       worker.work do
         ver = Resque::Version
         assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
@@ -578,7 +583,9 @@ describe "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
     workerA.work
-    assert $BEFORE_FORK_CALLED == workerA.will_fork?
+    #Was: assert $BEFORE_FORK_CALLED == workerA.will_fork?
+    #TODO: was this test implying we shouldn't call this hook if we don't plan to fork (because legacy behavior is that we do...)
+    assert($BEFORE_FORK_CALLED)
   end
 
   it "Will not call a before_fork hook when the worker can't fork" do
@@ -633,8 +640,8 @@ describe "Resque::Worker" do
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
     Resque::Failure.requeue_queue(queue)
-    assert Resque::Failure.all(0).has_key?('retried_at')
-    assert !Resque::Failure.all(1).has_key?('retried_at')
+    assert Resque::Failure.all(0).first.has_key?('retried_at')
+    assert !Resque::Failure.all(1).first.has_key?('retried_at')
   end
 
   it "remove failed queue" do
@@ -644,7 +651,7 @@ describe "Resque::Worker" do
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2, test_options), :queue => queue2, :payload => {'class' => 'SomeJob'})
     Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
     Resque::Failure.remove_queue(queue)
-    assert_equal queue2, Resque::Failure.all(0)['queue']
+    assert_equal queue2, Resque::Failure.all(0).first['queue']
     assert_equal 1, Resque::Failure.count
   end
 
@@ -804,7 +811,7 @@ describe "Resque::Worker" do
     end
 
     it "will notify failure hooks when a job is killed by a signal" do
-      worker.stub(:will_fork?, true) do
+      stub_to_fork(worker, true) do
         Resque.enqueue(SuicidalJob)
         worker.work
         assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class

@@ -23,29 +23,62 @@ module Resque
       @store = store
       @logger = logger
     end
-    
+
+    def self.connect(server)
+      case server
+      when String
+        if server['redis://']
+          redis = connect_to(server)
+        else
+          redis, namespace = parse_redis_url(server)
+        end
+        Redis::Namespace.new(namespace || :resque, :redis => redis)
+      when Redis::Namespace, Redis::Distributed
+        server
+      when Redis
+        Redis::Namespace.new(:resque, :redis => server)
+      else
+        raise ArgumentError, "Invalid Server: #{server.inspect}"
+      end
+    end
+
+    def self.connect_to(server)
+      Redis.connect(:url => server, :thread_safe => true)
+    end
+
+    def self.parse_redis_url(server)
+      server, namespace = server.split('/', 2)
+      host, port, db = server.split(':')
+
+      redis = Redis.new(
+        :host => host,
+        :port => port,
+        :db => db,
+        :thread_safe => true
+      )
+
+      [redis, namespace]
+    end
+
     # Reconnects to the store
     #
     # Maybe your store died, maybe you've just forked. Whatever the
     # reason, this method will attempt to reconnect to the store.
-    # 
-    # If it can't connect, it will attempt to rety the connection after
-    # sleeping, and after 3 failures will throw an exception.
+    #
+    # If it can't reconnect, it will attempt to retry the connection after
+    # sleeping, throwing an exception if exceeding MAX_RECONNECT_ATTEMPTS.
+    MAX_RECONNECT_ATTEMPTS = 3
     def reconnect
-      tries = 0
-      begin
-        store.client.reconnect
-      rescue Redis::BaseConnectionError
-        tries += 1
-
-        if tries == 3
-          logger.info "Error reconnecting to Redis; quitting"
-          raise ConnectionError
-        end
-
+      store.client.reconnect
+    rescue Redis::BaseConnectionError
+      tries ||= 0
+      if (tries += 1) < MAX_RECONNECT_ATTEMPTS
         logger.info "Error reconnecting to Redis; retrying"
         sleep(tries)
         retry
+      else
+        logger.info "Error reconnecting to Redis; quitting"
+        raise ConnectionError
       end
     end
   end

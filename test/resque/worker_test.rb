@@ -11,12 +11,12 @@ describe Resque::Worker do
   describe "#initialize" do
     it "contains the correct default options" do
       worker = Resque::Worker.new [:foo, :bar]
-      assert_equal worker.options, {:timeout => 5, :interval => 5, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
+      assert_equal worker.options.to_hash, {:timeout => 5, :interval => 5, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
     end
 
     it "overrides default options with its parameter" do
       worker = Resque::Worker.new [:foo, :bar], :interval => 10
-      assert_equal worker.options, {:timeout => 5, :interval => 10, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
+      assert_equal worker.options.to_hash, {:timeout => 5, :interval => 10, :daemon => false, :pid_file => nil, :fork_per_job => true, :run_at_exit_hooks => false }
     end
 
     it "initalizes the specified queues" do
@@ -87,14 +87,6 @@ describe Resque::Worker do
           assert_equal "#<Worker test.com:1234:foo,bar>", worker.inspect
         end
       end
-    end
-  end
-
-  describe "#reconnect" do
-    it "delegates to the client" do
-      client.expect :reconnect, nil
-      worker = Resque::Worker.new :foo, :client => client
-      worker.reconnect
     end
   end
 
