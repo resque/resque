@@ -88,7 +88,7 @@ describe "Resque::Worker" do
   end
 
   it "defines the jruby? method" do
-    assert worker.respond_to? :jruby?
+    worker.send(:jruby?) #doesn't raise exception
   end
 
   unless jruby?
