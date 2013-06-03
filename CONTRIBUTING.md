@@ -39,6 +39,12 @@ anything.
 A simple `bundle exec rake` will run all the tests. Make sure they pass when
 you submit a pull request.
 
+To run a specific test, for example:
+
+```
+bundle exec ruby -Ilib -Itest/resque test/resque/job_performer_test.rb
+```
+
 Please include tests with your pull request.
 
 Documentation

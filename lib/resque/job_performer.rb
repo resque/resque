@@ -1,3 +1,4 @@
+require 'resque/errors'
 module Resque
   class JobPerformer
     attr_reader :job, :job_args, :hooks

@@ -1,3 +1,4 @@
+require 'resque/job_performer'
 require 'test_helper'
 
 describe Resque::JobPerformer do

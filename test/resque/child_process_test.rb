@@ -1,6 +1,8 @@
 require 'test_helper'
 
+require 'resque/globals'
 require 'resque/child_process'
+require 'resque/worker'
 
 describe Resque::ChildProcess do
   let(:client) { MiniTest::Mock.new }

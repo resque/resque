@@ -1,6 +1,9 @@
 require 'test_helper'
 require 'minitest/mock'
 
+require 'resque/globals'
+require 'resque/logging'
+
 actual_logger = Resque.logger
 
 describe "Resque::Logging" do

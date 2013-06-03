@@ -1,8 +1,14 @@
 require 'test_helper'
+
+require 'resque/globals'
 require 'resque/failure/redis_multi_queue'
 
 describe Resque::Failure::RedisMultiQueue do
   before do
+    #Previously this was getting set by the CLI test being run first
+    #Should the knowledge of the default 'localhost:6379/resque' be consolidated somewhere?
+    Resque.redis = "localhost:6379/resque"
+
     Resque::Failure.backend = Resque::Failure::RedisMultiQueue
   end
 

@@ -1,4 +1,7 @@
+require 'resque/failure'
+require 'resque/failure/base'
 require 'resque/failure/each'
+require 'resque/job'
 
 module Resque
   module Failure

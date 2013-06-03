@@ -1,4 +1,6 @@
 require 'test_helper'
+
+require 'resque/globals'
 require 'resque/worker_queue_list'
 
 describe Resque::WorkerQueueList do
