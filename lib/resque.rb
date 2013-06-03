@@ -30,9 +30,6 @@ module Resque
     yield config
   end
 
-  # Returns the current Redis connection. If none has been created, will
-  # create a new one.
-
   def redis_id
     config.redis_id
   end

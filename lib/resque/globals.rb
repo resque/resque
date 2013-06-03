@@ -7,7 +7,49 @@ module Resque
 
   class << self
 
+    def encode(object)
+      Resque.coder.encode(object)
+    end
+
+    def decode(object)
+      Resque.coder.decode(object)
+    end
+
     extend Forwardable
+
+    def config=(options = {})
+      @config = Config.new(options)
+    end
+
+    def config
+      @config ||= Config.new
+    end
+
+    def backend
+      @backend ||= Backend.new(config.redis, Resque.logger)
+    end
+
+    def redis=(server)
+      config.redis = server
+
+      @queues = Hash.new do |h,name|
+        h[name] = Resque::Queue.new(name, config.redis, coder)
+      end
+
+      @backend = Backend.new(config.redis, Resque.logger)
+
+      config.redis
+    end
+
+    # Encapsulation of encode/decode. Overwrite this to use it across Resque.
+    # This defaults to JSON for backwards compatibility.
+    def coder
+      @coder ||= JsonCoder.new
+    end
+    attr_writer :coder
+
+    # Set or retrieve the current logger object
+    attr_accessor :logger
 
     def hook_register
       @hook_register ||= HookRegister.new
@@ -28,14 +70,6 @@ module Resque
       :before_perform=,
       :after_perform,
       :after_perform=
-
-    def config=(options = {})
-      @config = Config.new(options)
-    end
-
-    def config
-      @config ||= Config.new
-    end
 
     # If 'inline' is true Resque will call #perform method inline
     # without queuing it into Redis and without any Resque callbacks.
@@ -90,6 +124,18 @@ module Resque
       nil
     end
 
+    # Does the dirty work of fetching a range of items from a Redis list
+    # and converting them into Ruby objects.
+    def list_range(key, start = 0, count = 1)
+      if count == 1
+        decode(backend.store.lindex(key, start))
+      else
+        Array(backend.store.lrange(key, start, start+count-1)).map do |item|
+          decode(item)
+        end
+      end
+    end
+
     # Returns an array of all known Resque queues as strings.
     def queues
       Array(backend.store.smembers(:queues))
@@ -116,52 +162,6 @@ module Resque
         raise NoClassError.new("Jobs must be given a class.")
       end
     end
-
-    def redis=(server)
-      config.redis = server
-
-      @queues = Hash.new do |h,name|
-        h[name] = Resque::Queue.new(name, config.redis, coder)
-      end
-
-      @backend = Backend.new(config.redis, Resque.logger)
-
-      config.redis
-    end
-
-    def backend
-      @backend ||= Backend.new(config.redis, Resque.logger)
-    end
-
-    def encode(object)
-      Resque.coder.encode(object)
-    end
-
-    def decode(object)
-      Resque.coder.decode(object)
-    end
-
-    # Does the dirty work of fetching a range of items from a Redis list
-    # and converting them into Ruby objects.
-    def list_range(key, start = 0, count = 1)
-      if count == 1
-        decode(backend.store.lindex(key, start))
-      else
-        Array(backend.store.lrange(key, start, start+count-1)).map do |item|
-          decode(item)
-        end
-      end
-    end
-
-    # Set or retrieve the current logger object
-    attr_accessor :logger
-
-    # Encapsulation of encode/decode. Overwrite this to use it across Resque.
-    # This defaults to JSON for backwards compatibility.
-    def coder
-      @coder ||= JsonCoder.new
-    end
-    attr_writer :coder
 
   end
 
