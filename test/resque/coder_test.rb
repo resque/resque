@@ -1,5 +1,7 @@
 require 'test_helper'
 
+require 'resque/coder'
+
 describe Resque::Coder do
   before do
     @coder = Resque::Coder.new

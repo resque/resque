@@ -1,4 +1,8 @@
 require 'test_helper'
+require 'redis'
+
+require 'resque/config'
+require 'resque/backend'
 
 describe Resque::Config do
   let(:config){ Resque::Config.new }

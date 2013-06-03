@@ -1,10 +1,17 @@
 require 'test_helper'
+require 'mono_logger'
 
+require 'resque/globals'
 require 'resque/worker'
 require 'resque/errors'
 require 'socket'
 
 describe Resque::Worker do
+  before do
+    # copied from resque.rb:
+    # Should the default logger be a concern of logger class instead?
+    Resque.logger = MonoLogger.new(STDOUT)
+  end
   let(:client) { MiniTest::Mock.new }
   let(:awaiter) { MiniTest::Mock.new }
 

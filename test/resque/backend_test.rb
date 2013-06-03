@@ -1,5 +1,7 @@
 require 'test_helper'
 require 'tempfile'
+require 'logger'
+require 'redis'
 
 require 'resque/backend'
 

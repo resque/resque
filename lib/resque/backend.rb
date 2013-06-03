@@ -1,3 +1,6 @@
+require 'redis-namespace'
+require 'redis/distributed'
+
 ##
 # Resque::Backend is a wrapper around all things Redis.
 #

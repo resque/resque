@@ -1,6 +1,7 @@
 require 'resque/core_ext/string'
 require 'resque/errors'
 require 'resque/job_performer'
+require 'resque/queue'
 
 module Resque
   # A Resque::Job represents a unit of work. Each job lives on a
