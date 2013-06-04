@@ -316,7 +316,7 @@ module Resque
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     def register_signal_handlers
-      SignalTrapper.trap('TERM') { shutdown! }
+      SignalTrapper.trap('TERM') { graceful_term? ? shutdown : shutdown! }
       SignalTrapper.trap('INT')  { shutdown! }
 
       # these signals are in use by the JVM and will not work correctly on jRuby
@@ -395,6 +395,10 @@ module Resque
 
       logger.debug "Found job on #{queue}"
       Job.new(queue.name, job) if (queue && job)
+    end
+
+    def graceful_term?
+      options[:graceful_term]
     end
 
   end
