@@ -18,12 +18,13 @@ module Resque
     end
 
     desc "work", "Start processing jobs."
-    option :queues,       :aliases => ["-q"], :type => :string, :default => "default"
-    option :require,      :aliases => ["-r"], :type => :string
-    option :pid_file,     :aliases => ["-p"], :type => :string
-    option :interval,     :aliases => ["-i"], :type => :numeric
-    option :daemon,       :aliases => ["-d"], :type => :boolean
-    option :timeout,      :aliases => ["-t"], :type => :numeric
+    option :queues,        :aliases => ["-q"], :type => :string, :default => "default"
+    option :require,       :aliases => ["-r"], :type => :string
+    option :pid_file,      :aliases => ["-p"], :type => :string
+    option :interval,      :aliases => ["-i"], :type => :numeric
+    option :daemon,        :aliases => ["-d"], :type => :boolean
+    option :timeout,       :aliases => ["-t"], :type => :numeric
+    option :graceful_term, :aliases => ["-g"], :type => :boolean
     def work
       load_enviroment(options[:require])
 

@@ -796,6 +796,62 @@ describe "Resque::Worker" do
           end
         end
       end
+
+      it "SIGTERM with graceful_term allows job to complete" do
+        begin
+          Resque.redis = $real_redis
+          class LongRunningJob
+            @queue = :long_running_job
+
+            #warning: previous definition of perform was here
+            silence_warnings do
+              def self.perform( run_time, rescue_time=nil )
+                Resque.backend.store.client.reconnect # get its own connection
+                Resque.backend.store.rpush( 'sigterm-test:start', Process.pid )
+                sleep 0.1
+                Resque.backend.store.rpush( 'sigterm-test:result', 'Finished Normally' )
+              end
+            end
+          end
+
+          Resque.enqueue(LongRunningJob, 5)
+
+          worker_pid = Kernel.fork do
+            # reconnect since we just forked
+            Resque.backend.store.client.reconnect
+
+            worker = Resque::Worker.new(:long_running_job, test_options.merge(:graceful_term => true))
+            worker.work
+
+            exit!
+          end
+
+          # ensure the worker is started
+          start_status = Resque.backend.store.blpop( 'sigterm-test:start', 5 )
+          refute_nil start_status
+          child_pid = start_status[1].to_i
+          assert_operator child_pid, :>, 0
+
+          # send signal to abort the worker
+          Process.kill('TERM', worker_pid)
+          Process.waitpid(worker_pid)
+
+          # wait to see how it all came down
+          result = Resque.backend.store.blpop( 'sigterm-test:result', 5 )
+          refute_nil result
+          assert result[1].start_with?('Finished Normally')
+
+          # ensure that the child pid is no longer running
+          child_not_running = `ps -p #{child_pid.to_s} -o pid=`.empty?
+          assert child_not_running
+
+        ensure
+          remaining_keys = Resque.backend.store.keys('sigterm-test:*') || []
+          Resque.backend.store.del(*remaining_keys) unless remaining_keys.empty?
+          Resque.redis = $mock_redis
+        end
+      end
+
     end
 
     class SuicidalJob
