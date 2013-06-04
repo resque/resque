@@ -307,6 +307,16 @@ describe "Resque" do
     assert !Resque.inline?
   end
 
+  it "inline block doesn't change inline to false if already inline" do
+    begin
+      Resque.inline = true
+      Resque.inline { }
+      assert Resque.inline?
+    ensure
+      Resque.inline = false
+    end
+  end
+
   it "inline without block is alias to inline?" do
     begin
       assert_equal Resque.inline?, Resque.inline
