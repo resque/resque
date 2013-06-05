@@ -192,7 +192,9 @@ module Resque
               report_failed_job(job,exception)
             end
 
-            do_exit_or_exit!
+            if will_fork?
+             run_at_exit_hooks ? exit : exit!
+            end
           end
 
           done_working
@@ -207,18 +209,10 @@ module Resque
 
       unregister_worker
     rescue Exception => exception
-      log "Failed to start worker : #{exception.inspect}"
+      unless exception.class == SystemExit && !@child && run_at_exit_hooks
+        log "Failed to start worker : #{exception.inspect}"
 
-      unregister_worker(exception)
-    end
-
-    def do_exit_or_exit!
-      return unless will_fork?
-      exit! unless run_at_exit_hooks
-      begin
-        exit
-      rescue SystemExit
-        nil
+        unregister_worker(exception)
       end
     end
 
