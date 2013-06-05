@@ -172,11 +172,7 @@ module Resque
           working_on job
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-          if @child = fork(job) do
-              unregister_signal_handlers if will_fork? && term_child
-              reconnect_and_perform(job, &block)
-              exit! unless @run_at_exit_hooks
-            end
+          if @child = fork(job)
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
@@ -186,7 +182,17 @@ module Resque
             end
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
-            reconnect_and_perform(job, &block)
+            unregister_signal_handlers if will_fork? && term_child
+            begin
+
+              reconnect
+              perform(job, &block)
+
+            rescue Exception => exception
+              report_failed_job(job,exception)
+            end
+
+            do_exit_or_exit!
           end
 
           done_working
@@ -206,13 +212,13 @@ module Resque
       unregister_worker(exception)
     end
 
-
-    def reconnect_and_perform(job, &block)
+    def do_exit_or_exit!
+      return unless will_fork?
+      exit! unless run_at_exit_hooks
       begin
-        reconnect
-        perform(job, &block)
-      rescue Exception => exception
-        report_failed_job(job,exception)
+        exit
+      rescue SystemExit
+        nil
       end
     end
 
@@ -302,7 +308,7 @@ module Resque
 
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
-    def fork(job,&block)
+    def fork(job)
       return if @cant_fork
 
       # Only run before_fork hooks if we're actually going to fork
@@ -312,7 +318,7 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork &block if will_fork?
+          Kernel.fork if will_fork?
         else
           raise NotImplementedError
         end
@@ -751,4 +757,3 @@ module Resque
     end
   end
 end
-
