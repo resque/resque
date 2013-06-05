@@ -19,7 +19,7 @@ module Resque
     def self.redis
       Resque.redis
     end
-    
+
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
@@ -193,7 +193,7 @@ module Resque
             end
 
             if will_fork?
-             run_at_exit_hooks ? exit : exit!
+              run_at_exit_hooks ? exit : exit!
             end
           end
 
