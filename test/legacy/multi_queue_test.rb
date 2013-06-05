@@ -21,15 +21,18 @@ describe "Resque::MultiQueue" do
   end
 
   it "blocks on pop" do
-    foo   = Resque::Queue.new 'foo', redis, coder
-    bar   = Resque::Queue.new 'bar', redis, coder
-    queue = Resque::MultiQueue.new([foo, bar], redis)
-    t     = Thread.new { queue.pop }
+    as_long_as_it_mostly_works do
+      $reset_mock_redis.call
+      foo   = Resque::Queue.new 'foo', redis, coder
+      bar   = Resque::Queue.new 'bar', redis, coder
+      queue = Resque::MultiQueue.new([foo, bar], redis)
+      t     = Thread.new { queue.pop }
 
-    job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
-    bar << job
+      job = { 'class' => 'GoodJob', 'args' => [35, 'tar'] }
+      bar << job
 
-    assert_equal [bar, job], t.join.value
+      assert_equal [bar, job], t.join.value
+    end
   end
 
   it "nonblocking pop works" do
