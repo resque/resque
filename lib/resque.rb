@@ -123,10 +123,11 @@ module Resque
   end
 
   def inline_block
+    old_inline = inline?
     self.inline = true
     yield
   ensure
-    self.inline = false
+    self.inline = old_inline
   end
 
   def inline?
