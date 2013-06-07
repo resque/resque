@@ -393,8 +393,10 @@ module Resque
         queue, job = multi_queue.poll(interval)
       end
 
-      logger.debug "Found job on #{queue}"
-      Job.new(queue.name, job) if (queue && job)
+      if queue && job
+        logger.debug "Found job on #{queue}"
+        Job.new(queue.name, job)
+      end
     end
 
     def graceful_term?
