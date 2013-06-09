@@ -92,7 +92,7 @@ detailed examples of what needs to be done.
 ## Jobs
 
 What deserves to be a background job? Anything that's not always super fast.
-There are tons of stuff that a applications do does that fall under the 'not
+There are tons of stuff that an application does that falls under the 'not
 always fast' category:
 
 * Warming caches
