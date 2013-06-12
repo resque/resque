@@ -72,8 +72,7 @@ module Resque
       end
 
       def filter_backtrace(backtrace)
-        index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
-        backtrace.first(index.to_i)
+        backtrace.take_while { |item| !item.include?('/lib/resque/job.rb') }
       end
     end
   end
