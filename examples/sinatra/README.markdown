@@ -44,7 +44,7 @@ You can also use `-vverbose` (`-vv`) (very verbose) if you want to see more:
     Processed a job!
     ** [05:55:10 2009-09-16] 90401: done: (Job{default} | Demo::Job | [{}])
 
-Notice that you need to pass path to `job.rb` file in `-r` (`--requre`) option. This
+Notice that you need to pass path to `job.rb` file in `-r` (`--require`) option. This
 ensures that workers can access the job classes.
 
 ### That's it!
