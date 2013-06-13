@@ -22,7 +22,7 @@ Now in another shell terminal start the worker:
 
     $ cd resque/examples/sinatra
     $ bundle install
-    $ bundle exec resque work -q default,failing -r ./job
+    $ bundle exec resque work -q default,failing -r ./job.rb
 
 You should see the following output:
 
