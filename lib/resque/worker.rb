@@ -88,6 +88,7 @@ module Resque
       startup
       work_loop(&block)
       worker_registry.unregister
+      delete_pid_file(options[:pid_file]) if options[:pid_file]
     rescue Exception => exception
       worker_registry.unregister(exception)
     end
@@ -299,6 +300,11 @@ module Resque
     # Save worker's pid to file
     def write_pid_file(path = nil)
       File.open(path, 'w'){ |f| f << self.pid } if path
+    end
+
+    # Delete worker's pid file
+    def delete_pid_file(path = nil)
+      File.delete(path)
     end
 
     # Enables GC Optimizations if you're running REE.
