@@ -303,8 +303,8 @@ module Resque
     end
 
     # Delete worker's pid file
-    def delete_pid_file(path = nil)
-      File.delete(path)
+    def delete_pid_file(path)
+      File.delete(path) if path
     end
 
     # Enables GC Optimizations if you're running REE.
