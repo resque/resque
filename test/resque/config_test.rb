@@ -38,7 +38,7 @@ describe Resque::Config do
     end
     describe 'when the underlying connection is a redis connection' do
       it 'should not raise' do
-        redis_connection = Redis::Namespace.new(:resque, redis: MockRedis.new)
+        redis_connection = Redis::Namespace.new(:resque, :redis => MockRedis.new)
         config.redis = redis_connection
         assert_equal redis_connection, config.redis
       end
