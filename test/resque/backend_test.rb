@@ -15,6 +15,34 @@ describe Resque::Backend do
     end
   end
 
+  describe "::connect" do
+    it "can take a redis://... string" do
+      redis = Resque::Backend::connect('redis://localhost:9736')
+      assert_equal :resque, redis.namespace
+      assert_equal 9736, redis.client.port
+      assert_equal 'localhost', redis.client.host
+    end
+
+    it "can set a namespace through a url-like string" do
+      redis = Resque::Backend::connect('localhost:9736/namespace')
+      assert redis
+      assert_equal 'namespace', redis.namespace
+    end
+
+    it "works correctly with a Redis::Namespace param" do
+      bare_redis = Redis.new(:host => "localhost", :port => 9736)
+      namespace = Redis::Namespace.new("namespace", :redis => bare_redis)
+      redis = Resque::Backend.connect(namespace)
+      assert_equal namespace, redis
+    end
+
+    it "works with Redis::Distributed" do
+      distributed = Redis::Distributed.new(%w(redis://localhost:6379 redis://localhost:6380))
+      redis = Resque::Backend.connect(distributed)
+      assert_equal distributed, redis
+    end
+  end
+
   describe "#reconnect" do
     it "attempts to retry three times" do
       redis = Class.new do

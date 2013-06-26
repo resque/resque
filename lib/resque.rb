@@ -54,10 +54,11 @@ module Resque
     @backend ||= Backend.new(config.redis, Resque.logger)
   end
 
+  # @see Redis::Backend::connect
   def redis=(server)
-    config.redis = server
+    config.redis = Backend.connect(server) unless server.nil?
 
-    @queues = Hash.new do |h,name|
+    @queues = Hash.new do |h, name|
       h[name] = Resque::Queue.new(name, config.redis, coder)
     end
 
