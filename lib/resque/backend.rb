@@ -23,7 +23,7 @@ module Resque
       @store = store
       @logger = logger
     end
-    
+
     # @param server [String] - a redis url string 'redis://host:port'
     # @param server [String] - 'hostname:port'
     # @param server [String] - 'hostname:port:db'
