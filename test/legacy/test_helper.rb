@@ -4,6 +4,22 @@ require 'bundler/setup'
 require 'redis/namespace'
 require 'minitest/autorun'
 
+def as_long_as_it_mostly_works(&block)
+  retry_count = 0
+  timeout(10) do
+    yield
+  end
+rescue => e
+  retry_count += 1
+  if retry_count > 4
+    raise e
+  else
+    puts e.inspect
+    puts e.backtrace.join("\n")
+    retry
+  end
+end
+
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 require 'resque'
@@ -37,8 +53,12 @@ end
 
 require 'mock_redis'
 puts "Using a mock Redis"
-r = MockRedis.new :host => "localhost", :port => 9736, :db => 0
-$mock_redis = Redis::Namespace.new :resque, :redis => r
+$reset_mock_redis = Proc.new do
+  r = MockRedis.new :host => "localhost", :port => 9736, :db => 0
+  $mock_redis = Redis::Namespace.new :resque, :redis => r
+  Resque.redis = $mock_redis
+end
+$reset_mock_redis.call
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'
@@ -52,8 +72,6 @@ else
   `redis-server #{$dir}/redis-test.conf`
   $real_redis = 'localhost:9736'
 end
-
-Resque.redis = $mock_redis
 
 class DummyLogger
   attr_reader :messages
