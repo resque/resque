@@ -23,16 +23,21 @@ module Resque
   # their master, and can react accordingly.
   class Worker
     # Config options
+    # @return [Hash<Symbol,Object>] (see #initialize)
     attr_accessor :options
 
     attr_writer :to_s
 
+    # @return [Resque::Backend]
     attr_reader :client
 
+    # @return [#warn,#unknown,#error,#info,#debug] duck-typed ::Logger
     attr_reader :logger
 
+    # @return [WorkerQueueList]
     attr_reader :worker_queues
 
+    # @return [WorkerHooks]
     attr_reader :worker_hooks
 
     # Workers should be initialized with an array of string queue
@@ -46,6 +51,13 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
+    #
+    # @param queues [Array<#to_s>] (see WorkerQueueList#initialize)
+    # @param options [Hash<Symbol,Object>]
+    # @option options [Boolean] :graceful_term
+    # @option options [#warn,#unknown,#error,#info,#debug] :logger duck-typed ::Logger
+    # @option options [#await] :awaiter (IOAwaiter.new)
+    # @option options [Resque::Backend] :client
     def initialize(queues = [], options = {})
       @options = Options.new(options)
       @worker_queues = WorkerQueueList.new(queues)
@@ -63,7 +75,7 @@ module Resque
       end
     end
 
-
+    # @return [Resque::WorkerRegistry]
     def worker_registry
       @worker_registry ||= WorkerRegistry.new(self)
     end
@@ -84,6 +96,9 @@ module Resque
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
+    # @yieldparam (see #work_loop)
+    # @yieldreturn (see #work_loop)
+    # @return [void]
     def work(&block)
       startup
       work_loop(&block)
@@ -94,6 +109,8 @@ module Resque
     end
 
     # Jobs are pulled from a queue and processed.
+    # @yieldparam (see #process_job)
+    # @yieldreturn (see #process_job)
     def work_loop(&block)
       interval = Float(options[:interval])
       loop do
@@ -114,6 +131,9 @@ module Resque
 
     # DEPRECATED. Processes a single job. If none is given, it will
     # try to produce one. Usually run in the child.
+    # @param job [Resque::Job] (#reserve)
+    # @yieldparam (see #perform)
+    # @yieldreturn (see #perform)
     def process(job = nil, &block)
       return unless job ||= reserve
 
@@ -128,6 +148,7 @@ module Resque
     # can be useful for dynamically adding new queues. Low priority queues
     # can be placed after a splat to ensure execution after all other dynamic
     # queues.
+    # @return (see WorkerQueueList#search_order)
     def queues
       @worker_queues.search_order
     end
@@ -136,6 +157,8 @@ module Resque
     # current job.
     #
     # If passed true, mark the shutdown in Redis to signal a remote shutdown
+    # @param remote [Boolean] (false)
+    # @return [void]
     def shutdown(remote = false)
       logger.info 'Exiting...'
 
@@ -144,22 +167,28 @@ module Resque
     end
 
     # Kill the child and shutdown immediately.
+    # @return (see Resque::ChildProcess#kill)
     def shutdown!
       shutdown
       @child.kill
     end
 
     # Should this worker shutdown as soon as current job is finished?
+    # @return [Boolean]
     def shutdown?
       @shutdown || worker_registry.remote_shutdown?
     end
 
     # are we paused?
+    # @return [Boolean]
     def should_pause?
       @paused
     end
     alias :paused? :should_pause?
 
+    # Uses the @awaiter to pause execution.
+    # Runs :before_pause and after_pause hooks with self as its argument
+    # @return [void]
     def pause
       worker_hooks.run_hook :before_pause, self
       @awaiter.await
@@ -177,6 +206,7 @@ module Resque
     #
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
+    # @return [void]
     def prune_dead_workers
       all_workers = WorkerRegistry.all
       coordinator = ProcessCoordinator.new
@@ -201,51 +231,65 @@ module Resque
     end
 
     # How many jobs has this worker processed? Returns an int.
+    # @return [Integer]
     def processed
       Stat["processed:#{self}"]
     end
 
     # How many failed jobs has this worker seen? Returns an int.
+    # @return [Integer]
     def failed
       Stat["failed:#{self}"]
     end
 
     # Boolean - true if working, false if not
+    # @return [Boolean]
     def working?
       worker_registry.state == :working
     end
 
-    # Boolean - true if idle, false if not
+    # true if idle, false if not
+    # @return [Boolean]
     def idle?
       worker_registry.state == :idle
     end
 
+    # @return (see WorkerRegistry#state)
     def state
       worker_registry.state
     end
 
     # Is this worker the same as another worker?
+    # @return [Boolean]
     def ==(other)
       to_s == other.to_s
     end
 
+    # @return [String]
     def inspect
       "#<Worker #{to_s}>"
     end
 
     # The string representation is the same as the id for this worker
     # instance. Can be used with `Worker.find`.
+    # @return [String]
     def to_s
       @to_s ||= "#{hostname}:#{pid}:#{@worker_queues}"
     end
     alias_method :id, :to_s
 
     # Returns Integer PID of running worker
+    # @return [Integer]
     def pid
       @pid ||= Process.pid
     end
 
     # Processes a given job in the child.
+    # @param job [Resque::Job]
+    # @yieldparam [Resque::Job] if block was given, yields the job after
+    #                           execution is complete regardless of outcome
+    # @yieldreturn [void]
+    # @return [void]
     def perform(job)
       procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
       worker_hooks.run_hook :before_perform, job
@@ -263,16 +307,19 @@ module Resque
     protected
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
+    # @return [void]
     def pause_processing
       logger.info "USR2 received; pausing job processing"
       @paused = true
     end
 
+    # @return [String]
     def hostname
       Socket.gethostname
     end
 
     # Runs all the methods needed when a worker begins its lifecycle.
+    # @return [void]
     def startup
       procline "Starting"
       daemonize if options[:daemonize]
@@ -288,7 +335,10 @@ module Resque
       $stdout.sync = true
     end
 
-    # Daemonize process (ruby 1.9 only)
+    # Daemonize process (ruby >= 1.9 only)
+    # @return [void] Ruby ~>1.8
+    # @return [0] Ruby 1.9+ (see Process::daemon)
+    # @raise [Errno] on failure
     def daemonize
       if Process.respond_to?(:daemon)
         Process.daemon(true, true)
@@ -298,12 +348,14 @@ module Resque
     end
 
     # Save worker's pid to file
+    # @return [void]
     def write_pid_file(path = nil)
       File.open(path, 'w'){ |f| f << self.pid } if path
     end
 
     # Enables GC Optimizations if you're running REE.
     # http://www.rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
+    # @return [void]
     def enable_gc_optimizations
       if GC.respond_to?(:copy_on_write_friendly=)
         GC.copy_on_write_friendly = true
@@ -316,6 +368,7 @@ module Resque
     # QUIT: Shutdown after the current job has finished processing.
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
+    # @return [void]
     def register_signal_handlers
       SignalTrapper.trap('TERM') { graceful_term? ? shutdown : shutdown! }
       SignalTrapper.trap('INT')  { shutdown! }
@@ -330,17 +383,20 @@ module Resque
       logger.debug "Registered signals"
     end
 
+    # @return [Boolean]
     def jruby?
       defined?(JRUBY_VERSION)
     end
 
     # Tell Redis we've processed a job.
+    # @return [void]
     def processed!
       Stat << "processed"
       Stat << "processed:#{self}"
     end
 
     # Tells Redis we've failed a job.
+    # @return [void]
     def failed!
       Stat << "failed"
       Stat << "failed:#{self}"
@@ -349,6 +405,8 @@ module Resque
     # Given a string, sets the procline ($0) and logs.
     # Procline is always in the format of:
     #   resque-VERSION: STRING
+    # @param string [String]
+    # @return [void]
     def procline(string)
       $0 = "resque-#{Resque::Version}: #{string}"
       logger.debug $0
@@ -356,11 +414,16 @@ module Resque
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
+    # @return [void]
     def done_working
       processed!
       worker_registry.done
     end
 
+    # @param job [Resque::Job]
+    # @yieldparam (see #fork_for_child)
+    # @yieldreturn (see #fork_for_child)
+    # @return [void]
     def process_job(job, &block)
       logger.info "got: #{job.inspect}"
 
@@ -372,6 +435,10 @@ module Resque
       done_working
     end
 
+    # @param job [Resque::Job]
+    # @yieldparam (see ChildProcess#fork_and_perform)
+    # @yieldreturn (see ChildProcess#fork_and_perform)
+    # @return [void]
     def fork_for_child(job, &block)
       @child = ChildProcess.new(self)
       @child.fork_and_perform(job, &block)
@@ -381,6 +448,10 @@ module Resque
 
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
+    # @param interval [Numeric] (5) positive number (0...Float::INFINITY)
+    #                           that is used to determine the popping mechanism
+    # @return [Resque::Job] if job was found
+    # @return [nil] if no job found
     def reserve(interval = 5)
       multi_queue = MultiQueue.from_queues(@worker_queues.search_order)
 
@@ -400,6 +471,7 @@ module Resque
       end
     end
 
+    # @return [Boolean]
     def graceful_term?
       options[:graceful_term]
     end
