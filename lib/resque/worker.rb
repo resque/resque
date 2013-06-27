@@ -90,6 +90,7 @@ module Resque
       worker_registry.unregister
     rescue Exception => exception
       worker_registry.unregister(exception)
+      raise exception
     end
 
     # Jobs are pulled from a queue and processed.
