@@ -18,5 +18,4 @@ group :test do
   gem "json"
   gem "minitest", '4.7.0'
   gem "sinatra"
-  gem "capybara", "~> 2.0.3"
 end
