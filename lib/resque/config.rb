@@ -10,6 +10,8 @@ module Resque
       end
     end
 
+    # Get the ID of the underlying redis connection
+    # @return [String]
     def redis_id
       if redis.respond_to?(:nodes) # distributed
         redis.nodes.map(&:id).join(', ')

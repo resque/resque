@@ -25,36 +25,56 @@ require 'resque/hook_register'
 
 require 'forwardable'
 
+# Resque is the singleton from which all operations take place.
+# TODO: for resque-2.0.0 - break this functionality out into
+# something that can be instantiated.
 module Resque
   extend self
 
+  # Serialize an object with the current coder
+  # @param object [Object] - the object you with to serialize
+  # @return [String] - the serialized object
   def encode(object)
     Resque.coder.encode(object)
   end
 
+  # Deserialize an object with the current coder
+  # @param object [String] - the object you with to deserialize
+  # @return [Object] - the deserialized object
   def decode(object)
     Resque.coder.decode(object)
   end
 
-  extend Forwardable
-
+  # Set the config by overriding the current config with a hash
+  # @param options [Hash] (see Resque::Config#initialize)
+  # @return [void]
   def self.config=(options = {})
     @config = Config.new(options)
   end
 
+  # Get the current config
+  # @return [Resque::Config]
   def self.config
     @config ||= Config.new
   end
 
+  # Configure Resque with a blcok
+  # @blockparam config [Resque::Config]
+  # @blockreturn [void]
+  # @return [void]
   def self.configure
     yield config
   end
 
+  # Get the current backend
+  # @return [Redis::Backend]
   def backend
     @backend ||= Backend.new(config.redis, Resque.logger)
   end
 
-  # @see Redis::Backend::connect
+  # Set the redis connection by creating a new Redis::Backend
+  # @param server (see Redis::Backend::connect)
+  # @return [Redis::Namespace,Redis::Distributed]
   def redis=(server)
     config.redis = Backend.connect(server) unless server.nil?
 
@@ -67,22 +87,25 @@ module Resque
     config.redis
   end
 
-  # Returns the current Redis connection. If none has been created, will
-  # create a new one.
-
+  # Returns information about the current Redis connection.
+  # @return (see Resque::Config#redis_id)
   def redis_id
     config.redis_id
   end
 
   # Encapsulation of encode/decode. Overwrite this to use it across Resque.
   # This defaults to JSON for backwards compatibility.
+  # @return [Resque::Coder,#encode,#decode]
   def coder
     @coder ||= JsonCoder.new
   end
   attr_writer :coder
 
   # Set or retrieve the current logger object
+  # @return [#warn,#debug,#info,#unknown,#fatal,#error] duck-typed ::Logger
   attr_accessor :logger
+
+  extend Forwardable
 
   @hook_register = HookRegister.new
 
@@ -102,6 +125,7 @@ module Resque
     :after_perform,
     :after_perform=
 
+  # @return [String]
   def to_s
     "Resque Backend connected to #{redis_id}"
   end
@@ -109,12 +133,16 @@ module Resque
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
   # The 'inline' is false Resque jobs will be put in queue regularly.
+  # @return [Boolean]
   attr_writer :inline
 
+  # If block is supplied, this is an alias for #inline_block
+  # Otherwise it's an alias for #inline?
   def inline(&block)
     block ? inline_block(&block) : inline?
   end
 
+  # Run the given block with inline set to true
   def inline_block
     old_inline = inline?
     self.inline = true
@@ -123,6 +151,7 @@ module Resque
     self.inline = old_inline
   end
 
+  # @return [Boolean] run jobs inline?
   def inline?
     @inline if defined?(@inline)
   end
@@ -146,6 +175,11 @@ module Resque
   #   Resque.push('archive', 'class' => 'Archive', 'args' => [ 35, 'tar' ])
   #
   # Returns nothing
+  # @param queue (see #queue)
+  # @param item [Hash<String,Object>]
+  # @options item [Class] 'class'
+  # @options item [Array<Object>] 'args'
+  # @return [void]
   def push(queue, item)
     queue(queue) << item
   end
@@ -153,6 +187,8 @@ module Resque
   # Pops a job off a queue. Queue name should be a string.
   #
   # Returns a Ruby object.
+  # @param queue (see #queue)
+  # @return (see Resque::Queue#pop)
   def pop(queue)
     queue(queue).pop(true)
   rescue ThreadError
@@ -161,6 +197,8 @@ module Resque
 
   # Returns an integer representing the size of a queue.
   # Queue name should be a string.
+  # @param queue (see #queue)
+  # @return [Integer]
   def size(queue)
     queue(queue).size
   end
@@ -173,6 +211,10 @@ module Resque
   #
   # To get the 3rd page of a 30 items, paginated list one would use:
   #   Resque.peek('my_list', 59, 30)
+  # @param queue (see #queue)
+  # @param start [Integer]
+  # @param count [Integer]
+  # @return [Array<Hash<String,Object>] (see Redis::Queue#slice)
   def peek(queue, start = 0, count = 1)
     result = queue(queue).slice(start, count)
 
@@ -187,6 +229,10 @@ module Resque
 
   # Does the dirty work of fetching a range of items from a Redis list
   # and converting them into Ruby objects.
+  # @param queue (see #queue)
+  # @param start [Integer]
+  # @param count [Integer]
+  # @return [Array<Hash<String,Object>]
   def list_range(key, start = 0, count = 1)
     if count == 1
       decode(backend.store.lindex(key, start))
@@ -198,17 +244,22 @@ module Resque
   end
 
   # Returns an array of all known Resque queues as strings.
+  # @return [Array<String>]
   def queues
     Array(backend.store.smembers(:queues))
   end
 
   # Given a queue name, completely deletes the queue.
+  # @param queue (see #queue)
+  # @return [void]
   def remove_queue(queue)
     queue(queue).destroy
     @queues.delete(queue.to_s)
   end
 
   # Return the Resque::Queue object for a given name
+  # @param queue [#to_s]
+  # @return [Resque::Queue]
   def queue(name)
     @queues[name.to_s]
   end
@@ -234,6 +285,8 @@ module Resque
   # before_enqueue hook.
   #
   # This method is considered part of the `stable` API.
+  # @param klass (see #enqueue_to)
+  # @param args (see #enqueue_to)
   def enqueue(klass, *args)
     enqueue_to(queue_from_class(klass), klass, *args)
   end
@@ -247,6 +300,9 @@ module Resque
   # before_enqueue hook.
   #
   # This method is considered part of the `stable` API.
+  # @param queue (see #queue)
+  # @param klass [Class]
+  # @param args [Array<Object>] a splatted array of arguments
   def enqueue_to(queue, klass, *args)
     validate(klass, queue)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
@@ -291,6 +347,9 @@ module Resque
   #   Resque.dequeue(GitHub::Jobs::UpdateNetworkGraph, 'repo:135325')
   #
   # This method is considered part of the `stable` API.
+  # @param klass [Class]
+  # @param args [Array<Object>] a splatted array of arguments
+  # @return (see Job::destroy)
   def dequeue(klass, *args)
     # Perform before_dequeue hooks. Don't perform dequeue if any hook returns false
     before_hooks = Plugin.before_dequeue_hooks(klass).collect do |hook|
@@ -318,13 +377,17 @@ module Resque
   # from performing one of the above operations to determine the queue.
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
-
+  # @param klass [Class]
+  # @param args [Array<Object>] a splatted array of arguments
+  # @return (see Job::queued)
   def queued(klass, *args)
     Job.queued(queue_from_class(klass), klass, *args)
   end
 
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
+  # @param klass [Class]
+  # @return [#to_s]
   def queue_from_class(klass)
     if klass.instance_variable_defined?(:@queue)
       klass.instance_variable_get(:@queue)
@@ -338,6 +401,10 @@ module Resque
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
   #
   # If given klass is nil this method will raise a `Resque::NoClassError`
+  # @param klass [Class]
+  # @param queue [#to_s] (see #queue_from_class(klass))
+  # @raise [NoQueueError] if queue cannot be detected
+  # @raise [NoClassError] if klass not valid
   def validate(klass, queue = nil)
     queue ||= queue_from_class(klass)
 
@@ -355,6 +422,7 @@ module Resque
   #
 
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
+  # @return [Hash<Object>]
   def info
     {
       :pending   => pending_queues,
@@ -368,20 +436,27 @@ module Resque
     }
   end
 
+  # The total number of queued items
+  # @return [Integer]
   def pending_queues
     queues.inject(0) { |m,k| m + size(k) }
   end
 
+  # The total number of failed jobs in the failed queue
+  # @return [Integer]
   def failed_job_count
     Resque.backend.store.llen(:failed).to_i
   end
 
+  # The environment string
+  # @return [String]
   def environment
     ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
   end
 
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
+  # @return [Array<String>]
   def keys
     backend.store.keys("*").map do |key|
       key.sub("#{backend.store.namespace}:", '')
