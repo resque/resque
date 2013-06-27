@@ -87,6 +87,12 @@ module Resque
     config.redis
   end
 
+  # Get the redis connection
+  # @return [Redis::Namespace,Redis::Distributed]
+  def redis
+    config.redis
+  end
+
   # Returns information about the current Redis connection.
   # @return (see Resque::Config#redis_id)
   def redis_id
