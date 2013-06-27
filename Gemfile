@@ -1,6 +1,7 @@
 source "https://rubygems.org"
 
 gemspec
+gem "redis-namespace", :git => "https://github.com/resque/redis-namespace.git"
 
 group :development do
   gem 'rake'
@@ -18,4 +19,5 @@ group :test do
   gem "json"
   gem "minitest", '4.7.0'
   gem "sinatra"
+  gem 'mock_redis', :git => "https://github.com/causes/mock_redis.git"
 end
