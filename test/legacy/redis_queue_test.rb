@@ -10,7 +10,7 @@ describe "Resque::Queue" do
     end
 
     def == other
-      super || @inside == other.inside
+      super || @inside == (other && other.inside)
     end
   end
 
@@ -30,14 +30,17 @@ describe "Resque::Queue" do
   end
 
   it "blocks on pop" do
-    queue1 = q
-    queue2 = q
+    as_long_as_it_mostly_works do
+      $reset_mock_redis.call
+      queue1 = q
+      queue2 = q
 
-    t = Thread.new { queue1.pop }
-    x = Thing.new
+      t = Thread.new { queue1.pop }
+      x = Thing.new
 
-    queue2.push x
-    assert_equal x, t.join.value
+      queue2.push x
+      assert_equal x, t.join.value
+    end
   end
 
   it "nonblocking pop works" do
