@@ -13,6 +13,7 @@ Gem::Specification.new do |s|
   s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   s.test_files    = s.files.grep(%r{^(test|spec|features)/})
   s.require_paths = ["lib"]
+  s.required_ruby_version     = '>= 1.9.3'
 
   s.extra_rdoc_files  = [ "LICENSE.txt", "CHANGELOG.md", "README.md", "CONTRIBUTING.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
