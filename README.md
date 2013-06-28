@@ -66,7 +66,7 @@ Then run `bundle`. If you're not using Bundler, just `gem install resque`.
 ### Requirements
 
 Resque is used by a large number of people, across a diverse set of codebases.
-There is no official requirement other than Ruby newer than 1.8.7. We of course
+There is no official requirement other than Ruby 1.9.3 or newer. We of course
 recommend Ruby 2.0.0, but test against many Rubies, as you can see from our
 [.travis.yml](https://github.com/resque/resque/blob/master/.travis.yml).
 
