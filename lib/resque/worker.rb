@@ -16,7 +16,7 @@ require 'resque/signal_trapper'
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
   # the worker will fork off a child to process each job. This ensures
-  # a clean slate when beginning the next job and cuts down on gradual
+  # a clean state when beginning the next job and cuts down on gradual
   # memory growth as well as low level failures.
   #
   # It also ensures workers are always listening to signals from you,
