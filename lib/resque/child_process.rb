@@ -9,11 +9,16 @@ module Resque
     attr_reader :pid
     attr_reader :worker_hooks
 
+    # @param worker [Resque::Worker]
     def initialize(worker)
       @worker = worker
       @worker_hooks = WorkerHooks.new(logger)
     end
 
+    # @param job [Resque::Job]
+    # @return [void]
+    # @yieldparam (see Resque::Worker#perform)
+    # @yieldreturn (see Resque::Worker#perform)
     def child_job(job, &block)
       reconnect
       worker_hooks.run_hook :after_fork, job
@@ -22,6 +27,10 @@ module Resque
       exit! unless worker.options[:run_at_exit_hooks]
     end
 
+    # @param job [Resque::Job]
+    # @return [void]
+    # @yieldparam (see Resque::Worker#perform)
+    # @yieldreturn (see Resque::Worker#perform)
     def fork_and_perform(job, &block)
       @pid = fork(job) do
         child_job(job, &block)
@@ -35,6 +44,9 @@ module Resque
       end
     end
 
+    # @param job [Resque::Job]
+    # @return [Object] result of the supplied block
+    # @yieldparam [Integer,nil] (see Kernel::fork)
     def fork(job, &block)
       return unless worker.options.fork_per_job
 
@@ -42,10 +54,12 @@ module Resque
       Kernel.fork(&block)
     end
 
+    # @return [void]
     def reconnect
       worker.client.reconnect
     end
 
+    # @return [void]
     def unregister_signal_handlers
       SignalTrapper.trap('TERM') { raise TermException.new("SIGTERM") }
       SignalTrapper.trap('INT', 'DEFAULT')
@@ -58,6 +72,7 @@ module Resque
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
+    # @return [void]
     def kill
       return unless pid
 
@@ -73,12 +88,15 @@ module Resque
     end
 
     # send a signal to a child, have it logged.
+    # @return [void]
     def signal_child(signal, child)
       logger.debug "Sending #{signal} signal to child #{child}"
       Process.kill(signal, child)
     end
 
     # has our child quit gracefully within the timeout limit?
+    # @param child [Integer]
+    # @return [Boolean]
     def quit_gracefully?(child)
       (worker.options[:timeout].to_f * 10).round.times do |i|
         sleep(0.1)
@@ -88,6 +106,8 @@ module Resque
       false
     end
 
+    # @return [Integer] on success
+    # @return [nil] on SystemCallError failure
     def wait
       srand # Reseeding
       procline "Forked #{pid} at #{Time.now.to_i}"
@@ -104,11 +124,14 @@ module Resque
     #
     # TODO: This is a duplication of Rescue::Worker#procline
     # which is a protected method. Can we DRY this up?
+    # @param string [String]
+    # @return [void]
     def procline(string)
       $0 = "resque-#{Resque::Version}: #{string}"
       logger.debug $0
     end
 
+    # @return (see Resque::Worker#logger)
     def logger
       worker.logger
     end
