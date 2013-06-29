@@ -1,6 +1,8 @@
 require 'resque/signal_trapper'
 module Resque
   class IOAwaiter
+    # block until SIGCONT is received
+    # @return [void]
     def await
       rd, wr = IO.pipe
       SignalTrapper.trap('CONT') {

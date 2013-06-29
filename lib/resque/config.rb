@@ -4,6 +4,8 @@ module Resque
   class Config
     attr_accessor :redis
     
+    # @param options [Hash<Symbol,Object>]
+    # @option options [Redis::Namespace,Redis::Distributed] :redis
     def initialize(options = {})
       options.each do |key, value|
         public_send("#{key}=", value)
