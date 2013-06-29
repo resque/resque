@@ -19,6 +19,8 @@ module Resque
 
     attr_reader :store, :logger
 
+    # @param store [Redis::Namespace, Redis::Distributed]
+    # @param logger [#warn,#unknown,#error,#info,#debug] duck-typed ::Logger
     def initialize(store, logger)
       @store = store
       @logger = logger
@@ -30,6 +32,7 @@ module Resque
     # @param server [String] - 'hostname:port/namespace'
     # @param server [Redis] - a redis connection that will be namespaced :resque
     # @param server [Redis::Namespace, Redis::Distributed]
+    # @return [Redis::Namespace, Redis::Distributed]
     def self.connect(server)
       case server
       when String
@@ -48,10 +51,14 @@ module Resque
       end
     end
 
+    # @param server [String] a redis connection url
+    # @return [Redis]
     def self.connect_to(server)
       Redis.connect(:url => server, :thread_safe => true)
     end
 
+    # @param server [String] host:port:db/namespace
+    # @return [Array<Object>] a [redis_connection, namespace_string] tuple
     def self.parse_redis_url(server)
       server, namespace = server.split('/', 2)
       host, port, db = server.split(':')
@@ -66,6 +73,9 @@ module Resque
       [redis, namespace]
     end
 
+    # The number of reconnect attempts allowed in #reconnect
+    MAX_RECONNECT_ATTEMPTS = 3
+
     # Reconnects to the store
     #
     # Maybe your store died, maybe you've just forked. Whatever the
@@ -73,7 +83,7 @@ module Resque
     #
     # If it can't reconnect, it will attempt to retry the connection after
     # sleeping, throwing an exception if exceeding MAX_RECONNECT_ATTEMPTS.
-    MAX_RECONNECT_ATTEMPTS = 3
+    # @return [void]
     def reconnect
       store.client.reconnect
     rescue Redis::BaseConnectionError
