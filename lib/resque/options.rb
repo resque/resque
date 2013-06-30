@@ -1,32 +1,43 @@
 module Resque
   class Options
-
+    # @param options [Hash<#to_sym,Object>]
     def initialize(options)
       @options = default_options.merge(options.symbolize_keys)
     end
 
+    # @param val [Symbol]
+    # @return [Object]
     def [](val)
       @options[val]
     end
 
+    # @param val [Symbol]
+    # @return [Object]
     def delete(val)
       @options.delete(val)
     end
 
+    # @param val [Symbol]
+    # @yield - if no value found at key, returns the result
+    #          of evaluating the block instead.
+    # @return [Object]
     def fetch(val, &block)
       @options.fetch(val, &block)
     end
 
+    # @return [Boolean]
     def fork_per_job
       self[:fork_per_job]
     end
 
+    # @return [Hash<#to_sym,Object>]
     def to_hash
       @options
     end
 
   private
 
+    # @param [Hash<#to_sym,Object>]
     def default_options
       {
         # Termination timeout

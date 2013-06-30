@@ -2,6 +2,7 @@ module Resque
   class ProcessCoordinator
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
+    # @return [Array<Integer>]
     def worker_pids
       if RUBY_PLATFORM =~ /solaris/
         solaris_worker_pids
@@ -18,6 +19,8 @@ module Resque
     #
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
+    # @param command [String] the system command to execute and parse
+    # @return [Array<Integer>] an array of worker pids
     def get_worker_pids(command)
       active_worker_pids = []
 
@@ -39,6 +42,7 @@ module Resque
     #
     # Returns an Array of string pids of all the other workers on this
     # machine. Useful when pruning dead workers on startup.
+    # @return (see #worker_pids)
     def windows_worker_pids
       lines = `tasklist  /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap).split($/)
 
@@ -48,12 +52,14 @@ module Resque
 
     # Find Resque worker pids on Linux and OS X.
     #
+    # @return (see #worker_pids)
     def linux_worker_pids
       get_worker_pids('ps -A -o pid,command')
     end
 
     # Find Resque worker pids on Solaris.
     #
+    # @return (see #worker_pids)
     def solaris_worker_pids
       get_worker_pids('ps -A -o pid,args')
     end
