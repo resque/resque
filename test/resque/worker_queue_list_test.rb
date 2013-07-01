@@ -84,10 +84,10 @@ describe Resque::WorkerQueueList do
       end
     end
 
-    it "puts dynamic queues (splats) in front" do
-      worker_queue_list = Resque::WorkerQueueList.new(["*", :last])
-      Resque.stub(:queues, ["foo", "bar", "stuff"]) do
-        assert_equal ["bar", "foo", "stuff", "last"], worker_queue_list.search_order
+    it "preserves explicit ordering with dynamic queues (splats)" do
+      worker_queue_list = Resque::WorkerQueueList.new([:first, '*', :last])
+      Resque.stub(:queues, %w(alpha kappa beta first last zeta delta)) do
+        assert_equal  %w(first alpha beta delta kappa zeta last), worker_queue_list.search_order
       end
     end
   end
