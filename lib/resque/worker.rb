@@ -475,7 +475,5 @@ module Resque
     def graceful_term?
       options[:graceful_term]
     end
-
   end
-
 end
