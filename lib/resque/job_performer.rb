@@ -73,7 +73,7 @@ module Resque
       job.__send__(hook, *job_args, &block)
     end
 
-    # @reurn [Object] the result of job.perform(*job_args)
+    # @return [Object] the result of job.perform(*job_args)
     def perform_job
       result = job.perform(*job_args)
       job_performed

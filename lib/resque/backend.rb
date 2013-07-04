@@ -26,12 +26,18 @@ module Resque
       @logger = logger
     end
 
-    # @param server [String] - a redis url string 'redis://host:port'
-    # @param server [String] - 'hostname:port'
-    # @param server [String] - 'hostname:port:db'
-    # @param server [String] - 'hostname:port/namespace'
-    # @param server [Redis] - a redis connection that will be namespaced :resque
-    # @param server [Redis::Namespace, Redis::Distributed]
+    # @overload connect(server)
+    #   @param server [String] - a redis url string 'redis://host:port'
+    # @overload connect(server)
+    #   @param server [String] - 'hostname:port'
+    # @overload connect(server)
+    #   @param server [String] - 'hostname:port:db'
+    # @overload connect(server)
+    #   @param server [String] - 'hostname:port/namespace'
+    # @overload connect(server)
+    #   @param server [Redis] - a redis connection that will be namespaced :resque
+    # @overload connect(server)
+    #   @param server [Redis::Namespace, Redis::Distributed]
     # @return [Redis::Namespace, Redis::Distributed]
     def self.connect(server)
       case server

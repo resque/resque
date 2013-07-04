@@ -68,8 +68,8 @@ module Resque
       end
 
       # Clear all failure objects
-      # @overload self.clear(queue = nil)
-      # @param queue [#to_s]
+      # @overload clear(queue = nil)
+      #   @param queue [#to_s]
       def self.clear(*args)
       end
 
