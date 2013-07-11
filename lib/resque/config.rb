@@ -1,6 +1,7 @@
 require "resque/core_ext/hash"
 
 module Resque
+  # A container for configuration parameters
   class Config
     attr_accessor :redis
     

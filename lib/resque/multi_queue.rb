@@ -11,6 +11,8 @@ module Resque
 
     ###
     # Create a new MultiQueue using the +queues+ from the +redis+ connection
+    # @param queues [Array<Resque::Queue>]
+    # @param redis [Redis::Namespace,Redis::Distributed]
     def initialize(queues, redis)
       super()
 
@@ -26,6 +28,8 @@ module Resque
 
     # Factory method, given a list of queues, give us a
     # multiqueue
+    # @param queues [Array<#to_s>]
+    # @return [Resque::MultiQueue]
     def self.from_queues(queues)
       new_queues = queues.map do |queue|
         Queue.new(queue, Resque.backend.store, Resque.coder)
@@ -39,6 +43,10 @@ module Resque
     #
     # Pass +true+ for a non-blocking pop.  If nothing is read on a non-blocking
     # pop, a ThreadError is raised.
+    # @param non_block [Boolean] (false)
+    # @return [Array<Object>]
+    #   a tuple whose first element is the queue [Resque::Queue]
+    #   and whose second element is the decoded payload [Hash<String,Object>]
     def pop(non_block = false)
       if non_block
         synchronize do
@@ -70,6 +78,7 @@ module Resque
     #
     # Blocks for +timeout+ seconds if the queue is empty, and returns nil if
     # the timeout expires.
+    # @param timeout [Numeric]
     def poll(timeout)
       queue_names = @queues.map {|queue| queue.redis_name }
       if queue_names.any?

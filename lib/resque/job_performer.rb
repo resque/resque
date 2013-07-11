@@ -1,4 +1,5 @@
 module Resque
+  # @see {Resque::JobPerformer#initialize}
   class JobPerformer
     attr_reader :job, :job_args, :hooks
 

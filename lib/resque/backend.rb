@@ -1,16 +1,16 @@
-##
-# Resque::Backend is a wrapper around all things Redis.
-#
-# This provides a level of indirection so that the rest of our code
-# doesn't need to know anything about Redis, and allows us to someday
-# maybe even move away from Redis to another data store if we need to.
-#
-# Also helps because we can mock this out in our tests. Only mock
-# stuff you own.
-#
-# Also, we can theoretically have multiple Redis/Resques going on
-# one project.
 module Resque
+  ##
+  # Resque::Backend is a wrapper around all things Redis.
+  #
+  # This provides a level of indirection so that the rest of our code
+  # doesn't need to know anything about Redis, and allows us to someday
+  # maybe even move away from Redis to another data store if we need to.
+  #
+  # Also helps because we can mock this out in our tests. Only mock
+  # stuff you own.
+  #
+  # Also, we can theoretically have multiple Redis/Resques going on
+  # one project.
   class Backend
 
     # This error is thrown if we have a problem connecting to
@@ -27,17 +27,12 @@ module Resque
     end
 
     # @overload connect(server)
-    #   @param server [String] - a redis url string 'redis://host:port'
-    # @overload connect(server)
-    #   @param server [String] - 'hostname:port'
-    # @overload connect(server)
-    #   @param server [String] - 'hostname:port:db'
-    # @overload connect(server)
-    #   @param server [String] - 'hostname:port/namespace'
-    # @overload connect(server)
-    #   @param server [Redis] - a redis connection that will be namespaced :resque
-    # @overload connect(server)
-    #   @param server [Redis::Namespace, Redis::Distributed]
+    #   @param server [String, Redis, Redis::Namespace, Redis::Distributed]
+    #      String - a redis url string (e.g., 'redis://host:port')
+    #      String - 'hostname:port[:db][/namespace]'
+    #      Redis - a redis connection that will be namespaced :resque
+    #      Redis::Namespace - a namespaced redis connection that will be used as-is
+    #      Redis::Distributed - a distributed redis connection that will be used as-is
     # @return [Redis::Namespace, Redis::Distributed]
     def self.connect(server)
       case server

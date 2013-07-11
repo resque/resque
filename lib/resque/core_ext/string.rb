@@ -1,3 +1,5 @@
+# encoding: utf-8
+# Core extensions on String
 class String
   # Tries to find a constant with the name specified in the argument string.
   #
@@ -17,6 +19,8 @@ class String
   #
   # NameError is raised when the name is not in CamelCase or the constant is
   # unknown.
+  # Defined IFF not already defined elsewhere (e.g., ActiveSupport)
+  # @return [Object] - typically returns a Class or Module
   def constantize
     names = self.split('::')
     names.shift if names.empty? || names.first.empty?
