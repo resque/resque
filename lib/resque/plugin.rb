@@ -31,7 +31,7 @@ module Resque
     @job_methods = {}
 
     # Caches the object's method names
-    # @param [Object]
+    # @param job [Object]
     # @return [Array<String>] - an array of method names
     def job_methods(job)
       @job_methods[job] ||= job.methods.collect{|m| m.to_s}

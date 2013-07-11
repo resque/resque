@@ -4,8 +4,10 @@ require 'json'
 module Resque
   # Sweet jruby --1.8 hax.
   if defined?(Encoding)
+    # >= 1.9 Support
     ENCODING_EXCEPTION = Encoding::UndefinedConversionError
   else
+    # ~> 1.8.7 Support
     ENCODING_EXCEPTION = JSON::GeneratorError
   end
 

@@ -49,7 +49,7 @@ module Resque
     # Raises an exception if no queue or class is given.
     # @param queue (see Resque::validate)
     # @param klass (see Resque::validate)
-    # @param *args [Array<Object>] #coder-serializable array of job arguments
+    # @param args [Array<Object>] #coder-serializable array of job arguments
     # @return (see #perform) if Resque::inline?
     # @return [void] unless Resque::inline?
     def self.create(queue, klass, *args)
@@ -90,7 +90,7 @@ module Resque
     #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
     # @param queue (see #process_queue)
     # @param klass (see #process_queue)
-    # @param *args (see #process_queue) optional
+    # @param args (see #process_queue) optional
     # @return [Integer] - the number of jobs destroyed
     def self.destroy(queue, klass, *args)
       coder = Resque.coder
@@ -128,7 +128,7 @@ module Resque
     #   Resque::Job.queued(queue, 'UpdateGraph', 'mojombo')
     # @param queue (see #process_queue)
     # @param klass (see #process_queue)
-    # @param *args (see #process_queue) optional
+    # @param args (see #process_queue) optional
     # @return [Array<Resque::Job>]
     def self.queued(queue, klass, *args)
       coder = Resque.coder

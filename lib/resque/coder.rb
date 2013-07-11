@@ -1,7 +1,15 @@
 module Resque
+  # An exception raised when the coder can't encode
   class EncodeException < StandardError; end
+
+  # An exception raised when the coder can't decode
   class DecodeException < StandardError; end
 
+  # A wrapper around any coder.
+  # @see {Resque::JsonCoder} for reference implementation
+  # @abstract - subclass and implement #encode and #decode,
+  #             ensuring that EncodeException and DecodeException
+  #             are raised when encoding or decoding is exceptional.
   class Coder
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
