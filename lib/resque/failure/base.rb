@@ -4,6 +4,7 @@ module Resque
     #
     # When a job fails, a new instance of your Failure backend is created
     # and #save is called.
+    # @abstract
     class Base
       # The exception object raised by the failed job
       attr_accessor :exception
@@ -39,6 +40,10 @@ module Resque
       end
 
       # The number of failures.
+      # @param queue [#to_s] (nil) if provided, use specified queue
+      #                            instead of :failed
+      # @param class_name [String] (nil) if provided, limit to jobs with
+      #                                  the provided class_name
       # @return [Integer]
       def self.count(queue = nil, class_name = nil)
         0
@@ -68,8 +73,8 @@ module Resque
       end
 
       # Clear all failure objects
-      # @overload self.clear(queue = nil)
-      # @param queue [#to_s]
+      # @overload clear(queue = nil)
+      #   @param queue [#to_s]
       def self.clear(*args)
       end
 

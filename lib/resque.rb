@@ -59,8 +59,8 @@ module Resque
   end
 
   # Configure Resque with a blcok
-  # @blockparam config [Resque::Config]
-  # @blockreturn [void]
+  # @yieldparam config [Resque::Config]
+  # @yieldreturn [void]
   # @return [void]
   def self.configure
     yield config
@@ -177,8 +177,8 @@ module Resque
   # Returns nothing
   # @param queue (see #queue)
   # @param item [Hash<String,Object>]
-  # @options item [Class] 'class'
-  # @options item [Array<Object>] 'args'
+  # @option item [Class] 'class'
+  # @option item [Array<Object>] 'args'
   # @return [void]
   def push(queue, item)
     queue(queue) << item
@@ -258,7 +258,7 @@ module Resque
   end
 
   # Return the Resque::Queue object for a given name
-  # @param queue [#to_s]
+  # @param name [#to_s]
   # @return [Resque::Queue]
   def queue(name)
     @queues[name.to_s]
