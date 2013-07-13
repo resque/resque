@@ -1,34 +1,52 @@
 require 'set'
 
 module Resque
-
+  # An interface for working with specified lists of queues.
+  # @todo: [kill all singletons](#1015) WorkerQueueList#search_order ties directly
+  #   into the Resque singleton for ::queues
   class WorkerQueueList
+    # @return [Array<String>]
     attr_reader :queues
 
+    # @param queues [Array<#to_s>]
     def initialize(queues)
       @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
     end
 
+    # Returns true if this queue list contains no queues.
+    # Note: this has nothing to do with the contents of the queues themselves
+    # @return [Boolean]
     def empty?
       queues.nil? || queues.empty?
     end
 
+    # Returns the number of queues in this queue list, including splat '*' queue.
+    # Note: this has nothing to do with the contents of the queues themselves
+    # @return [Integer]
     def size
       queues.size
     end
 
+    # Returns the first queue in this list, after applying search_order.
+    # @return [String, nil]
     def first
       search_order.first
     end
 
+    # @return [String] comma-separated in-order queues including splat '*' queue
     def to_s
       queues.join(',')
     end
 
+    # Returns a Set instance with the contents of this queue list.
+    # Note: Set does not enforce input-ordering in 1.8.x
+    # @return [Set<String>]
     def to_set
       queues.to_set
     end
 
+    # Returns true if the queues specified include a splat '*' for all-queues
+    # @return [Boolean]
     def all_queues?
       queues.include?("*")
     end

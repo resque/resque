@@ -21,6 +21,7 @@ class String
     # NameError is raised when the name is not in CamelCase or the constant is
     # unknown.
     # Defined IFF not already defined elsewhere (e.g., ActiveSupport)
+    # @overload constantize()
     # @return [Object] - typically returns a Class or Module
     def constantize
       names = self.split('::')

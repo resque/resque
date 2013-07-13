@@ -52,7 +52,7 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     #
-    # @param queues [Array<#to_s>] (see WorkerQueueList#initialize)
+    # @param queues (see WorkerQueueList#initialize)
     # @param options [Hash<Symbol,Object>]
     # @option options [Boolean] :graceful_term
     # @option options [#warn,#unknown,#error,#info,#debug] :logger duck-typed ::Logger
