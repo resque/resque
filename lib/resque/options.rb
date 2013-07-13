@@ -1,4 +1,6 @@
 module Resque
+  # A collection of options for Resque
+  # @todo reconcile with Resque::Config (issue #1080)
   class Options
     # @param options [Hash<#to_sym,Object>]
     def initialize(options)
