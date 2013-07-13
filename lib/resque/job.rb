@@ -252,21 +252,25 @@ module Resque
         args == other.args
     end
 
+    # The before_hooks for the payload_class
     # @return (see Plugin::before_hooks(payload_class))
     def before_hooks
       @before_hooks ||= Plugin.before_hooks(payload_class)
     end
 
+    # The around_hooks for the payload_class
     # @return (see Plugin::around_hooks(payload_class))
     def around_hooks
       @around_hooks ||= Plugin.around_hooks(payload_class)
     end
 
+    # The after_hooks for the payload_class
     # @return (see Plugin::after_hooks(payload_class))
     def after_hooks
       @after_hooks ||= Plugin.after_hooks(payload_class)
     end
 
+    # The failure_hooks for the payload_class
     # @return (see Plugin::failure_hooks(payload_class))
     def failure_hooks
       @failure_hooks ||= Plugin.failure_hooks(payload_class)

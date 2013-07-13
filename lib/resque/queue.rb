@@ -115,10 +115,18 @@ module Resque
       @destroyed
     end
 
+    # @overload (see Resque::Coder#encode)
+    # @param (see Resque::Coder#encode)
+    # @return (see Resque::Coder#encode)
+    # @raise (see Resque::Coder#encode)
     def encode object
       @coder.dump object
     end
 
+    # @overload (see Resque::Coder#decode)
+    # @param (see Resque::Coder#decode)
+    # @return (see Resque::Coder#decode)
+    # @raise (see Resque::Coder#decode)
     def decode object
       @coder.load object
     end

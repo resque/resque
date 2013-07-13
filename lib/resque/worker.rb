@@ -254,7 +254,7 @@ module Resque
       worker_registry.state == :idle
     end
 
-    # @return (see WorkerRegistry#state)
+    # @return (see Resque::WorkerRegistry#state)
     def state
       worker_registry.state
     end

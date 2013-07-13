@@ -1,7 +1,10 @@
 module Resque
+  # A Namespace (and linting tools) for Resque Plugins.
   module Plugin
     extend self
 
+    # An error that is raised when a plugin doesn't pass
+    # Resque's requirements
     LintError = Class.new(RuntimeError)
 
     # Ensure that your plugin conforms to good hook naming conventions.
