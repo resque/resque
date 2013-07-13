@@ -3,6 +3,7 @@ require 'thor'
 require "resque"
 
 module Resque
+  # The command-line interface for Resque
   class CLI < Thor
     class_option :config,    :aliases => ["-c"], :type => :string
     class_option :redis,     :aliases => ["-R"], :type => :string
@@ -94,7 +95,8 @@ module Resque
 
 
     protected
-
+      # Loads the environment from the given configuration file.
+      # @api private
       def load_enviroment(file = nil)
         file ||= "."
 

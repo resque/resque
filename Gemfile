@@ -10,6 +10,8 @@ end
 
 group :documentation do
   gem 'rdoc'
+  gem 'yard'
+  gem 'yard-thor', '~>0.2', :github => 'lsegal/yard-thor'
   gem 'kramdown'
   gem 'coveralls', :require => false
 end
