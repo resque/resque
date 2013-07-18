@@ -90,5 +90,19 @@ describe Resque::WorkerQueueList do
         assert_equal  %w(first alpha beta delta kappa zeta last), worker_queue_list.search_order
       end
     end
+
+    it "handles queue globbing correctly" do
+      worker_queue_list = Resque::WorkerQueueList.new("a_*")
+      Resque.stub(:queues, ["a_foo", "b_bar", "a_stuff"]) do
+        assert_equal ["a_foo", "a_stuff"], worker_queue_list.search_order
+      end
+    end
+
+    it "correctly orders the queue with globs and wildcard" do
+      worker_queue_list = Resque::WorkerQueueList.new(["first", "a_*", "*", "last"])
+      Resque.stub(:queues, %w(a_one first b a_two a last a_three)) do
+        assert_equal %w(first a_one a_two a_three a b last), worker_queue_list.search_order
+      end
+    end
   end
 end
