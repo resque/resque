@@ -535,8 +535,9 @@ describe "Resque::Worker" do
 
     # then we prune them
     worker.work do
-      assert_equal 1, Resque::WorkerRegistry.all.size
+      # noop
     end
+    assert_equal 1, Resque::WorkerRegistry.all.size
   end
 
   it "worker_pids returns pids" do
