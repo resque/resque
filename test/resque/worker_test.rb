@@ -120,7 +120,7 @@ describe Resque::Worker do
 
       awaiter.expect(:await, nil)
 
-      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter, :logger => MonoLogger.new("/dev/null"))
 
       worker.pause
 
@@ -133,7 +133,7 @@ describe Resque::Worker do
 
       awaiter.expect(:await, nil)
 
-      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter, :logger => MonoLogger.new("/dev/null"))
 
       worker.pause
 
@@ -143,7 +143,7 @@ describe Resque::Worker do
     it "no longer paused after pause returns" do
       awaiter.expect(:await, nil)
 
-      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter)
+      worker = Resque::Worker.new(:foo, :client => client, :awaiter => awaiter, :logger => MonoLogger.new("/dev/null"))
 
       worker.pause
 
