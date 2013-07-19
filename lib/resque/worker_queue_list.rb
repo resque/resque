@@ -10,7 +10,7 @@ module Resque
 
     # @param queues [Array<#to_s>]
     def initialize(queues)
-      @queues = (queues.is_a?(Array) ? queues : [queues]).map { |queue| queue.to_s.strip }
+      @queues = Array(queues).map { |queue| queue.to_s.strip }
     end
 
     # Returns true if this queue list contains no queues.
@@ -64,13 +64,26 @@ module Resque
     #
     # @return [Array<String>]
     def search_order
-      queues.map do |queue|
-        if queue == "*"
-          (Resque.queues - queues).sort
+      search_order = queues.map do |queue|
+        case queue
+        when "*"
+          queue
+        when /\*/
+          glob_match(queue)
         else
           queue
         end
-      end.flatten.uniq
+      end
+      if wild = search_order.index("*")
+        search_order[wild] = (Resque.queues - search_order).sort
+      end
+
+      search_order.flatten.uniq
+    end
+
+    def glob_match(pattern)
+      regex = Regexp.new("^#{pattern.gsub(/\*/, ".*")}$")
+      Resque.queues.grep(regex)
     end
   end
 
