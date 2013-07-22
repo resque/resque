@@ -15,7 +15,7 @@ module Resque
       end
 
       def self.count(queue = nil, class_name = nil)
-        # We can't get the total # of errors from Hoptoad so we fake it
+        # We can't get the total # of errors from Airbrake so we fake it
         # by asking Resque how many errors it has seen.
         Stat[:failed]
       end
