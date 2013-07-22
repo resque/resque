@@ -298,20 +298,19 @@ module Resque
     # can be useful for dynamically adding new queues.
     def queues
       @queues.map do |queue|
-        case queue
-        when '*'
-          Resque.queues.sort
-        when /\*/
-          glob_match(queue)
-        else
+        queue.strip!
+        if (matched_queues = glob_match(queue)).empty?
           queue
+        else
+          matched_queues
         end
       end.flatten.uniq
     end
 
     def glob_match(pattern)
-      regex = Regexp.new("^#{pattern.gsub(/\*/, ".*")}$")
-      Resque.queues.grep(regex)
+      Resque.queues.select do |queue|
+        File.fnmatch?(pattern, queue)
+      end.sort
     end
 
     # Not every platform supports fork. Here we do our magic to
