@@ -297,7 +297,20 @@ module Resque
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+      @queues.map do |queue|
+        queue.strip!
+        if (matched_queues = glob_match(queue)).empty?
+          queue
+        else
+          matched_queues
+        end
+      end.flatten.uniq
+    end
+
+    def glob_match(pattern)
+      Resque.queues.select do |queue|
+        File.fnmatch?(pattern, queue)
+      end.sort
     end
 
     # Not every platform supports fork. Here we do our magic to

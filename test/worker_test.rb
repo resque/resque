@@ -298,6 +298,19 @@ context "Resque::Worker" do
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
+  test "works with globs" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:test_one, GoodJob)
+    Resque::Job.create(:test_two, GoodJob)
+
+    worker = Resque::Worker.new("test_*")
+
+    worker.work(0)
+    assert_equal 1, Resque.size(:critical)
+    assert_equal 0, Resque.size(:test_one)
+    assert_equal 0, Resque.size(:test_two)
+  end
+
   test "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end
