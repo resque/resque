@@ -3,7 +3,7 @@ require "resque/core_ext/hash"
 module Resque
   # A container for configuration parameters
   class Config
-    attr_accessor :redis
+    attr_writer :redis
     
     # @param options [Hash<Symbol,Object>]
     # @option options [Redis::Namespace,Redis::Distributed] :redis
@@ -11,6 +11,14 @@ module Resque
       options.each do |key, value|
         public_send("#{key}=", value)
       end
+    end
+
+    # Returns the current redis connection, or raises
+    # an exception if it doesn't exist.
+    # @return [Redis::Namespace,Redis::Distributed]
+    # @raise [RuntimeError] if redis is not configured.
+    def redis
+      @redis || raise('redis connection not configured!')
     end
 
     # Get the ID of the underlying redis connection
