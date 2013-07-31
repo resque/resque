@@ -2,23 +2,26 @@ require 'resque/coder'
 require 'json'
 
 module Resque
-  # Sweet jruby --1.8 hax.
-  if defined?(Encoding)
-    # >= 1.9 Support
-    ENCODING_EXCEPTION = Encoding::UndefinedConversionError
-  else
-    # ~> 1.8.7 Support
-    ENCODING_EXCEPTION = JSON::GeneratorError
-  end
-
   # The default coder for JSON serialization
   class JsonCoder < Coder
+
+    # Different exceptions in different environments.
+    # This wrapper attempts to mitigate that.
+    module MultiEncodeExceptionWrapper
+      def self.===(exception)
+        if defined?(Encoding)
+          return true if Encoding::UndefinedConversionError === exception
+        end
+        JSON::GeneratorError === exception
+      end
+    end
+
     # @param object (see Resque::Coder#encode)
     # @raise (see Resque::Coder#encode)
     # @return (see Resque::Coder#encode)
     def encode(object)
       JSON.dump object
-    rescue ENCODING_EXCEPTION => e
+    rescue MultiEncodeExceptionWrapper => e
       raise EncodeException, e.message, e.backtrace
     end
 
