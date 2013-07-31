@@ -322,7 +322,7 @@ module Resque
     # @return [void]
     def startup
       procline "Starting"
-      daemonize if options[:daemonize]
+      daemonize if options[:daemon]
       write_pid_file(options[:pid_file]) if options[:pid_file]
       enable_gc_optimizations
       register_signal_handlers
