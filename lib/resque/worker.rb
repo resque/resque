@@ -171,6 +171,7 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
+        ensure_working_on job
         run_hook :after_fork, job
         job.perform
       rescue Object => e
@@ -387,6 +388,26 @@ module Resque
       Stat.clear("failed:#{self}")
     end
 
+    
+    # Ensures that a worker is processing a right job.
+    # Normally working_on and done_working methods are called before and after perform call,
+    # however resque-jobs-per-fork handles multiple jobs without setting proper context,
+    # so it is important to make sure that worker knows which job it is actually processsing.
+    # also see resque-jobs-per-fork gem
+    def ensure_working_on(job)
+      return if working_on?(job)
+      done_working
+      working_on(job)
+    end
+
+    # checks whether a worker is processing a job it thinks it is processing 
+    def working_on?(job)
+      data = redis.get("worker:#{self}")
+      return false unless data
+      data = decode( data )
+      return data[:payload] == job.payload && data[:queue].to_s == job.queue.to_s
+    end
+    
     # Given a job, tells Redis we're working on it. Useful for seeing
     # what workers are doing and when.
     def working_on(job)
