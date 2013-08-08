@@ -9,8 +9,8 @@ module Resque
     # This wrapper attempts to mitigate that.
     module MultiEncodeExceptionWrapper
       def self.===(exception)
-        if defined?(Encoding)
-          return true if Encoding::UndefinedConversionError === exception
+        if defined?(EncodingError)
+          return true if EncodingError === exception
         end
         JSON::GeneratorError === exception
       end
