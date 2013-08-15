@@ -39,7 +39,6 @@ module Resque
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
-        #all_items = Array(all(offset, limit, queue))
         all_items = limit == 1 ? [all(offset,limit,queue)] : Array(all(offset, limit, queue))
         reversed = false
         if order.eql? 'desc'
