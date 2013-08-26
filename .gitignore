@@ -9,3 +9,4 @@ pkg
 log
 *.swp
 coverage
+tmp
