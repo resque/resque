@@ -213,7 +213,7 @@ which is commonly used with a service such as Heroku, or locally with
 
 ## Hooks and Plugins
 
-Coming soon.
+Separate documentation files are available on [hooks](https://github.com/resque/resque/blob/master/docs/HOOKS.md) and [plugins](https://github.com/resque/resque/blob/master/docs/PLUGINS.md).
 
 
 ### A note about branches
