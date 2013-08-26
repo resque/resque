@@ -9,56 +9,13 @@ them later.
   - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
   - [![Coverage Status](https://coveralls.io/repos/resque/resque/badge.png?branch=master)](https://coveralls.io/r/resque/resque)
 
-### A note about branches
-
-This branch is the master branch, which contains work towards Resque 2.0. If
-you're currently using Resque, you'll want to check out [the 1-x-stable
-branch](https://github.com/resque/resque/tree/1-x-stable), and particularly
-[its README](https://github.com/resque/resque/blob/1-x-stable/README.markdown),
-which is more accurate for the code you're running in production.
-
-Also, this README is written first, so lots of things in here may not work the
-exact way that they say they might here. Yay 2.0!
-
-### Back to your regularly scheduled README.
-
-You can't always do work right away. Sometimes, you need to do it later. Resque
-is a really simple way to manage a pile of work that your application needs
-to do: 1.5 million installs can't be wrong!
-
-To define some work, make a job. Jobs need a `work` method:
-
-```ruby
-class ImageConversionJob
-  def work
-    # convert some kind of image here
-  end
-end
-```
-
-Next, we need to procrastinate! Let's put your job on the queue:
-
-```ruby
-resque = Resque.new
-resque << ImageConversionJob.new
-```
-
-Neat! This unit of work will be stored in Redis. We can spin up a worker to
-grab some work off of the queue and do the work:
-
-```
-bin/resque work
-```
-
-This process polls Redis, grabs any jobs that need to be done, and then does
-them. :metal:
 
 ## Installation
 
 To install Resque, add the gem to your Gemfile:
 
 ```
-gem "resque", "~> 2.0.0.pre.1", github: "resque/resque"
+gem "resque", "~> 2.0.0", github: "resque/resque"
 ```
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
@@ -77,19 +34,51 @@ allow failure in our CI.
 We officially support Rails 2.3.x and newer, though we recommend that you're on
 Rails 3.2 or 4.
 
-### Backwards Compatibility
+## Usage
 
-Resque uses [SemVer](http://semver.org/), and takes it seriously. If you find
-an interface regression, please [file an issue](https://github.com/resque/resque/issues)
-so that we can address it.
+After adding Resque to your Gemfile, you'll need to setup jobs and add them 
+to the queue.
 
-If you have previously used Resque 1.23, the transition to 2.0 shouldn't be
-too painful: we've tried to upgrade _interfaces_ but leave _semantics_ largely
-in place. Check out
-[UPGRADING.md](https://github.com/resque/resque/blob/master/UPGRADING.md) for
-detailed examples of what needs to be done.
+Jobs are defined as modules and in Rails often kept in separate ruby files in 
+`app/jobs`.
 
-## Jobs
+Each job will need a name; a queue name, and a module method of `self.perform` 
+which can optionally take arguments.
+
+```ruby
+module JobName
+  @queue = :default
+
+  def self.perform
+    sleep 1
+    puts "This job just waits one second. Code here is executed outside of Rails"
+    puts "If the worker has access to the environment variables,"
+    puts "it can access anything a Rake task could."
+  end
+end
+```
+
+Then anywhere in your Rails code you can queue the job to be excuted later:
+
+```ruby
+  Resque.enqueue(Job)
+```
+
+If the job needed arguments, the `self.perform` method would look like 
+`self.perform(arg1, arg2)` and when queued the `enqueue` method would 
+have two extra arguments and would look like `Resque.enqueue(Job, one, two)`.
+
+This unit of work will be stored in Redis. We can spin up a worker from your 
+terminal to grab some work off of the queue and do the work:
+
+```
+$ resque work
+```
+
+This process polls Redis, grabs any jobs that need to be done, and then processes
+them.
+
+### Jobs
 
 What deserves to be a background job? Anything that's not always super fast.
 There are tons of stuff that an application does that falls under the 'not
@@ -105,6 +94,41 @@ always fast' category:
 
 And it's not always web stuff, either. A command-line client application that
 does web scraping and crawling is a great use of jobs, too.
+
+### Workers
+
+You can start up a worker with 
+
+```
+$ resque work
+```
+
+This will basically loop over and over, polling for jobs and doing the work.
+You can have workers work on a specific queue with the `--queue` option:
+
+```
+$ resque work --queues=high,low
+$ resque work --queues=high
+```
+
+This starts two workers working on the `high` queue, one of which also polls
+the `low` queue.
+
+You can control the length of the poll with `interval`:
+
+```
+$ resque work --interval=1
+```
+
+Now workers will check for a new job every second. The default is 5.
+
+Resque workers respond to a few different signals:
+
+    QUIT - Wait for child to finish processing then exit
+    TERM / INT - Immediately kill child then exit
+    USR1 - Immediately kill child but don't exit
+    USR2 - Don't start to process any new jobs
+    CONT - Start to process new jobs again after a USR2
 
 ### In Redis
 
@@ -131,47 +155,32 @@ json["vars"].each {|k, v| job.instance_variable_set("@#{k}", v) }
 job.work
 ```
 
-Ta da! Simple.
-
 ### Failure
 
 When jobs fail, the failure is stored in Redis, too, so you can check them out
-and possibly re-queue them.
+and possibly re-queue them. You can inspect these by running the following 
+from a Ruby console.
 
-## Workers
+To view the number of failed jobs:
 
-You can start up a worker with 
-
-```
-$ bin/resque work
-```
-
-This will basically loop over and over, polling for jobs and doing the work.
-You can have workers work on a specific queue with the `--queue` option:
-
-```
-$ bin/resque work --queues=high,low
-$ bin/resque work --queue=high
+```ruby
+Resque::Failure.count
 ```
 
-This starts two workers working on the `high` queue, one of which also polls
-the `low` queue.
+To inspect the individual failed jobs:
 
-You can control the length of the poll with `interval`:
-
+```ruby
+Resque::Failure.all(0,20).each { |job|
+   puts "#{job["exception"]}  #{job["backtrace"]}"
+}
 ```
-$ bin/resque work --interval=1
+
+
+To retry all failed jobs:
+
+```ruby
+(Resque::Failure.count-1).downto(0).each { |i| Resque::Failure.requeue(i) }
 ```
-
-Now workers will check for a new job every second. The default is 5.
-
-Resque workers respond to a few different signals:
-
-    QUIT - Wait for child to finish processing then exit
-    TERM / INT - Immediately kill child then exit
-    USR1 - Immediately kill child but don't exit
-    USR2 - Don't start to process any new jobs
-    CONT - Start to process new jobs again after a USR2
 
 ## Configuration
 
@@ -182,17 +191,47 @@ You can configure Resque via a `.resque` file in the root of your project:
 --interval=1
 ```
 
-These act just like you passed them in to `bin/resque work`.
+These act just like you passed them in to `resque work`.
 
-You can also configure
+You can also configure a [Procfile](https://devcenter.heroku.com/articles/procfile), 
+which is commonly used with a service such as Heroku, or locally with 
+[Foreman](https://github.com/ddollar/foreman):
+
+`worker: env QUEUE=* bundle exec rake resque:work`
+
 
 ## Hooks and Plugins
 
 Coming soon.
 
+
+### A note about branches
+
+This branch is the master branch, which contains work towards Resque 2.0. If
+you're currently using Resque, you'll want to check out [the 1-x-stable
+branch](https://github.com/resque/resque/tree/1-x-stable), and particularly
+[its README](https://github.com/resque/resque/blob/1-x-stable/README.markdown),
+which is more accurate for the code you're running in production.
+
+Also, this README is written first, so lots of things in here may not work the
+exact way that they say they might here. Yay 2.0!
+
+### Backwards Compatibility
+
+Resque uses [SemVer](http://semver.org/), and takes it seriously. If you find
+an interface regression, please [file an issue](https://github.com/resque/resque/issues)
+so that we can address it.
+
+If you have previously used Resque 1.23, the transition to 2.0 shouldn't be
+too painful: we've tried to upgrade _interfaces_ but leave _semantics_ largely
+in place. Check out
+[UPGRADING.md](https://github.com/resque/resque/blob/master/UPGRADING.md) for
+detailed examples of what needs to be done.
+
 ## Contributing
 
-Please see [CONTRIBUTING.md](https://github.com/resque/resque/blob/master/CONTRIBUTING.md).
+Please see [CONTRIBUTING.md](https://github.com/resque/resque/blob/master/CONTRIBUTING.md) 
+for information on running tests, legacy code and contributing to this project.
 
 ## Anything we missed?
 
