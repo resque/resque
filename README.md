@@ -19,6 +19,8 @@ gem "resque", "~> 2.0.0", github: "resque/resque"
 ```
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
+You'll also need Redis installed. On OS X this can be installed with the 
+Homebrew backage manager: `brew install redis`.
 
 ### Requirements
 
@@ -37,7 +39,10 @@ Rails 3.2 or 4.
 ## Usage
 
 After adding Resque to your Gemfile, you'll need to setup jobs and add them 
-to the queue.
+to the queue. A basic example can be found in the `examples/simple` directory.
+
+A Redis server must be running, which can be run locally with `redis-server`.
+Resque assumes by default that the server is hosted at `localhost`.
 
 Jobs are defined as modules and in Rails often kept in separate ruby files in 
 `app/jobs`.
@@ -122,6 +127,13 @@ $ resque work --interval=1
 
 Now workers will check for a new job every second. The default is 5.
 
+Outside of Rails, you'll probably need to tell the resque worker where the
+worker modules are manually, which can be done with the `-r` flag
+
+```
+$ resque work -r ./my_job.rb
+```
+
 Resque workers respond to a few different signals:
 
     QUIT - Wait for child to finish processing then exit
@@ -174,7 +186,6 @@ Resque::Failure.all(0,20).each { |job|
    puts "#{job["exception"]}  #{job["backtrace"]}"
 }
 ```
-
 
 To retry all failed jobs:
 
