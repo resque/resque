@@ -15,14 +15,19 @@ The main way to contribute to Resque is to write some code! Here's how:
 If you're not doing some sort of refactoring, a CHANGELOG entry is appropriate.
 Please include them in pull requests adding features or fixing bugs.
 
-Oh, and 80 character columns, please!
+### Code Style
+
+* 80 Columns
+* No trailing whitespace
+* Clear variable names
+* Two (2) spaces for tabs
 
 Branches
 --------
 
-The `1-x-stable` branch is what is currently being released as `1.x.y`.
+The `1-x-stable` branch is the legacy branch of version 1.x. 
 
-The `master` branch is what will become 2.0.
+The `master` branch is for version 2.0 and is now the master branch.
 
 It's suggested that you make your pull request against the master branch by
 default, and backport the fix with a second pull request where applicable.
