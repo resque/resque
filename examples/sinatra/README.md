@@ -7,23 +7,24 @@ This is a dirt simple Resque setup for you to play with.
 ### Starting the Demo App
 
 Here's how to run the Sinatra app:
-
+```
     $ git clone git://github.com/resque/resque.git
     $ cd resque/examples/sinatra
+    $ bundle install
     $ ruby app.rb
-    $ open http://localhost:9292/
-
+    $ open http://localhost:4567/
+```
 Click 'Create New Job' a few times. You should see the number of
 pending jobs rising.
 
 ### Starting the Demo Worker
 
 Now in another shell terminal start the worker:
-
+```
     $ cd resque/examples/sinatra
     $ bundle install
     $ bundle exec resque work -q default,failing -r ./job.rb
-
+```
 You should see the following output:
 
     *** Starting worker hostname:90185:default
