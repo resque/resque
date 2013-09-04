@@ -15,7 +15,7 @@ them later.
 To install Resque, add the gem to your Gemfile:
 
 ```
-gem "resque", "~> 2.0.0", github: "resque/resque"
+gem 'resque', '~> 2.0.0.pre.1', github: 'resque/resque'
 ```
 
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
@@ -208,7 +208,7 @@ You can also configure a [Procfile](https://devcenter.heroku.com/articles/procfi
 which is commonly used with a service such as Heroku, or locally with 
 [Foreman](https://github.com/ddollar/foreman):
 
-`worker: env QUEUE=* bundle exec rake resque:work`
+`worker: env QUEUE=* bundle exec resque work`
 
 
 ## Hooks and Plugins
