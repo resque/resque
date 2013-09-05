@@ -39,12 +39,20 @@ module Resque
         classes.first.count(*args)
       end
 
-      # Returns a paginated array of failure objects.
+      # Returns an array of all failure objects, filtered by options
       # @override (see Resque::Failure::Base::all)
       # @param (see Resque::Failure::Base::all)
       # @return (see Resque::Failure::Base::all)
       def self.all(*args)
         classes.first.all(*args)
+      end
+
+      # Returns a paginated array of failure objects.
+      # @override (see Resque::Failure::Base::all)
+      # @param (see Resque::Failure::Base::all)
+      # @return (see Resque::Failure::Base::all)
+      def self.slice(*args)
+        classes.first.slice(*args)
       end
 
       # Iterate across failed objects

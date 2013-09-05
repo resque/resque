@@ -184,22 +184,6 @@ describe "Resque::Worker" do
     assert_equal 1, SimpleFailingJob.exception_count
   end
 
-  it "can peek at failed jobs" do
-    # This test forks so we'll use the real redis
-    Resque.redis = $real_redis
-    Resque.backend.store.flushall
-
-    begin
-      10.times { Resque::Job.create(:jobs, BadJob) }
-      worker.work
-      assert_equal 10, Resque::Failure.count
-
-      assert_equal 10, Resque::Failure.all(0, 20).size
-    ensure
-      Resque.redis = $mock_redis
-    end
-  end
-
   it "can clear failed jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
@@ -634,26 +618,6 @@ describe "Resque::Worker" do
 
   it "returns PID of running process" do
     assert_equal worker.to_s.split(":")[1].to_i, worker.pid
-  end
-
-  it "requeue failed queue" do
-    queue = 'good_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => 'some_job', :payload => {'class' => 'SomeJob'})
-    Resque::Failure.requeue_queue(queue)
-    assert Resque::Failure.all(0).first.has_key?('retried_at')
-    assert !Resque::Failure.all(1).first.has_key?('retried_at')
-  end
-
-  it "remove failed queue" do
-    queue = 'good_job'
-    queue2 = 'some_job'
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue2, test_options), :queue => queue2, :payload => {'class' => 'SomeJob'})
-    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new(queue, test_options), :queue => queue, :payload => {'class' => 'GoodJob'})
-    Resque::Failure.remove_queue(queue)
-    assert_equal queue2, Resque::Failure.all(0).first['queue']
-    assert_equal 1, Resque::Failure.count
   end
 
   it "reconnects to redis after fork" do
