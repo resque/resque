@@ -67,16 +67,23 @@ module Resque
       backend.count(queue, class_name)
     end
 
+    # Returns all failure objects filtered by options
+    # @param opts (see Resque::Failure::Base::all)
+    # @return (see Resque::Failure::Base::all)
+    def self.all(opts = {})
+      backend.all(opts)
+    end
+
     # Returns an array of all the failures, paginated.
     #
     # `offset` is the int of the first item in the page, `limit` is the
     # number of items to return.
-    # @param offset (see Resque::Failure::Base::all)
-    # @param limit (see Resque::Failure::Base::all)
-    # @param queue (see Resque::Failure::Base::all)
-    # @return (see Resque::Failure::Base::all)
-    def self.all(offset = 0, limit = 1, queue = nil)
-      backend.all(offset, limit, queue)
+    # @param offset (see Resque::Failure::Base::slice)
+    # @param limit (see Resque::Failure::Base::slice)
+    # @param queue (see Resque::Failure::Base::slice)
+    # @return (see Resque::Failure::Base::slice)
+    def self.slice(offset = 0, limit = 1, queue = nil)
+      backend.slice(offset, limit, queue)
     end
 
     # Iterate across all failures with the given options
