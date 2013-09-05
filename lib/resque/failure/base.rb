@@ -18,12 +18,10 @@ module Resque
       # The payload object associated with the failed job
       attr_accessor :payload
 
-      # @option options [Exception]           :exception - The Exception object
-      # @option options [Resque::Worker]      :worker    - The Worker object who is
-      #                                                    reporting the failure
-      # @option options [String]              :queue     - The string name of the queue
-      #                                                    from which the job was pulled
-      # @option options [Hash<String,Object>] :payload   - The job's payload
+      # @param exception [Exception] The Exception object
+      # @param worker [Resque::Worker] The Worker object who is reporting the failure
+      # @param queue [String] The string name of the queue from which the job was pulled
+      # @param payload [Hash<String,Object>] The job's payload
       def initialize(exception, worker, queue, payload)
         @exception = exception
         @worker    = worker
