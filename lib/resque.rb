@@ -246,6 +246,16 @@ module Resque
       end
     end
   end
+  
+  # Retrieves the complete list from Redis with the given key and
+  # converts each item into a Ruby object
+  # @param queue (see #queue)
+  # @return [Array<Hash{String=>Object}>]
+  def full_list(key)
+    Array(backend.store.lrange(key, 0, -1)).map do |item|
+      decode(item)
+    end
+  end
 
   # Returns an array of all known Resque queues as strings.
   # @return [Array<String>]
