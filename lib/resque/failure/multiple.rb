@@ -51,8 +51,8 @@ module Resque
       # @override (see Resque::Failure::Each#each)
       # @param (see Resque::Failure::Each#each)
       # @return (see Resque::Failure::Each#each)
-      def self.each(*args, &block)
-        classes.first.each(*args, &block)
+      def self.each(options = {}, &block)
+        classes.first.each(options, &block)
       end
 
       # A URL where someone can go to view failures.

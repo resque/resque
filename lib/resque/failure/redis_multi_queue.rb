@@ -29,7 +29,11 @@ module Resque
         if queue
           if class_name
             n = 0
-            each(0, count(queue), queue, class_name) { n += 1 } 
+            each(
+              :limit => count(queue),
+              :queue => queue,
+              :class_name => class_name
+            ) { n += 1 }
             n
           else
             Resque.backend.store.llen(queue).to_i
@@ -91,7 +95,10 @@ module Resque
       # @return [void]
       def self.requeue_queue(queue)
         failure_queue = Resque::Failure.failure_queue_name(queue)
-        each(0, count(failure_queue), failure_queue) { |id, _| requeue(id, failure_queue) }
+        each(
+          :limit => count(failure_queue),
+          :queue => failure_queue
+        ) { |id, _| requeue(id, failure_queue) }
       end
 
       # Remove all items from failed queue where their original queue was

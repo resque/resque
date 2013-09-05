@@ -80,14 +80,14 @@ module Resque
     end
 
     # Iterate across all failures with the given options
-    # @param offset (see Resque::Failure::Base::each)
-    # @param limit (see Resque::Failure::Base::each) (Resque::Failure::count)
-    # @param queue (see Resque::Failure::Base::each)
+    # @param options (see Resque::Failure::Base::each)
     # @return (see Resque::Failure::Base::each)
     # @yieldparam (see Resque::Failure::Base::each)
     # @yieldreturn (see Resque::Failure::Base::each)
-    def self.each(offset = 0, limit = self.count, queue = nil, class_name = nil, &block)
-      backend.each(offset, limit, queue, class_name, &block)
+    def self.each(options = {}, &block)
+      default_options = { :queue => nil }
+      options = default_options.merge(options.symbolize_keys)
+      backend.each(options, &block)
     end
 
     # The string url of the backend's web interface, if any.

@@ -66,5 +66,26 @@ describe Resque::CLI do
       end
     end
   end
+
+  describe "#sort_failures" do
+    it "sorts the 'failed' queue for the redis_multi_queue failure backend" do
+      Resque.backend.store.flushall
+
+      failures = 3.times.map do |i|
+        Resque::Failure::Redis.new(Exception.new,
+                                           nil, "sample_#{i%2}".to_sym,
+                                           {'class' => 'some_class',
+                                            'args' => 'some_args'})
+      end
+      failures.each(&:save)
+
+      cli = Resque::CLI.new
+      capture_io { cli.sort_failures }
+      assert_equal(Resque.backend.store.llen('sample_0_failed').to_i, 2)
+      assert_equal(Resque.backend.store.llen('sample_1_failed').to_i, 1)
+
+      Resque.backend.store.flushall
+    end
+  end
 end
 
