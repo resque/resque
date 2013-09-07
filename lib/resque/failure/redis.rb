@@ -34,9 +34,7 @@ module Resque
         check_queue(queue)
 
         if class_name
-          n = 0
-          each(0, count(queue), queue, class_name) { n += 1 }
-          n
+          all(:class_name => class_name).size
         else
           Resque.backend.store.llen(:failed).to_i
         end
