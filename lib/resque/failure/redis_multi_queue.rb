@@ -31,16 +31,17 @@ module Resque
       def self.count(queue = nil, class_name = nil)
         if queue
           if class_name
-            n = 0
-            each(0, count(queue), queue, class_name) { n += 1 }
-            n
+            result = all(:queue => queue, :class_name => class_name)
+            if result.is_a? Array
+              result.size
+            else
+              result.values.reduce(0) { |memo, fails| memo += fails.size }
+            end
           else
             Resque.backend.store.llen(queue).to_i
           end
         else
-          total = 0
-          queues.each { |q| total += count(q) }
-          total
+          queues.reduce(0) { |memo, q| memo += count(q) }
         end
       end
 
