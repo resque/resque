@@ -172,8 +172,8 @@ module Resque
       # @api private
       def self.find_by_queue(queue)
         if queue.is_a? Array
-          queue.each_with_object({}) do |queue, hash|
-            hash[queue] = Resque.full_list queue
+          queue.each_with_object({}) do |queue_name, hash|
+            hash[queue_name] = find_by_queue queue_name
           end
         else
           Resque.full_list queue

@@ -19,8 +19,7 @@ describe Resque::Failure::Redis do
 
     it 'should return an empty array if there are no items in the :failed queue' do
       result = Resque::Failure::Redis.all
-      assert_instance_of Array, result
-      assert_equal 0, result.size
+      assert_equal [], result
     end
   end
 
