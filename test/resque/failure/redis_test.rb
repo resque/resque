@@ -7,7 +7,7 @@ describe Resque::Failure::Redis do
   end
 
   describe '::all' do
-    it 'should return all failures from the :failed queue' do
+    it 'returns all failures from the :failed queue' do
       save_failure :failed, 'class1'
       save_failure :failed, 'class2'
 
@@ -17,14 +17,14 @@ describe Resque::Failure::Redis do
         result.map { |failure| failure.class_name }
     end
 
-    it 'should return an empty array if there are no items in the :failed queue' do
+    it 'returns an empty array if there are no items in the :failed queue' do
       result = Resque::Failure::Redis.all
       assert_equal [], result
     end
   end
 
   describe '#count' do
-    it 'should count all failures' do
+    it 'counts all failures' do
       save_failure
       save_failure
       save_failure
@@ -32,7 +32,7 @@ describe Resque::Failure::Redis do
       assert_equal 3, Resque::Failure::Redis.count
     end
 
-    it 'should count all failures for the given queue and class' do
+    it 'counts all failures for the given queue and class' do
       save_failure(:failed, 'some_class')
       save_failure(:failed, 'another_class')
       save_failure(:failed, 'another_class')
@@ -43,13 +43,13 @@ describe Resque::Failure::Redis do
   end
 
   describe '#queues' do
-    it 'should return the failure queue' do
+    it 'returns the failure queue' do
       assert_equal [:failed], Resque::Failure::Redis.queues
     end
   end
 
   describe '#requeue' do
-    it 'should requeue a new job to the queue of the failed job' do
+    it 'requeues a new job to the queue of the failed job' do
       save_failure
 
       failure = Resque::Failure::Redis.all.first
@@ -67,7 +67,7 @@ describe Resque::Failure::Redis do
   end
 
   describe '#requeue_to' do
-    it 'should requeue a new job to the desired queue' do
+    it 'requeues a new job to the desired queue' do
       save_failure
 
       failure = Resque::Failure::Redis.all.first
@@ -85,7 +85,7 @@ describe Resque::Failure::Redis do
   end
 
   describe '#requeue_queue' do
-    it 'should requeue all failures for the desired queue' do
+    it 'requeues all failures for the desired queue' do
       save_failure('queue1')
       save_failure('queue2')
       save_failure('queue1')
@@ -104,7 +104,7 @@ describe Resque::Failure::Redis do
   end
 
   describe '#remove_queue' do
-    it 'should remove all failures for the desired queue' do
+    it 'removes all failures for the desired queue' do
       save_failure('queue1')
       save_failure('queue2')
       save_failure('queue1')
