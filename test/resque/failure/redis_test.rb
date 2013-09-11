@@ -7,7 +7,7 @@ describe Resque::Failure::Redis do
   end
 
   describe '::all' do
-    it 'should return all failures from the :failed queue' do
+    it 'returns all failures from the :failed queue' do
       save_failure :failed, 'class1'
       save_failure :failed, 'class2'
 
@@ -17,7 +17,7 @@ describe Resque::Failure::Redis do
         result.map { |failure| failure.class_name }
     end
 
-    it 'should return an empty array if there are no items in the :failed queue' do
+    it 'returns an empty array if there are no items in the :failed queue' do
       result = Resque::Failure::Redis.all
       assert_equal [], result
     end

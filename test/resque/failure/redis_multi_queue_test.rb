@@ -117,7 +117,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
   
   describe '#all' do
-    it 'should return an Array of all failures matching a single queue name' do
+    it 'returns an Array of all failures matching a single queue name' do
       # matching
       save_failure('queue1')
 
@@ -130,7 +130,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'queue1', result.first.queue
     end
 
-    it 'should return a Hash of all failures matching an array of queue names' do
+    it 'returns a Hash of all failures matching an array of queue names' do
       # matching
       save_failure('queue1')
       save_failure('queue2')
@@ -147,17 +147,17 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'queue2', result[:queue2_failed].first.queue
     end
 
-    it 'should return an empty array for no results with a single queue name' do
+    it 'returns an empty array for no results with a single queue name' do
       result = Resque::Failure::RedisMultiQueue.all(:queue => :foo)
       assert_equal [], result
     end
 
-    it 'should return a hash with empty array values for no results with multiple queues' do
+    it 'returns a hash with empty array values for no results with multiple queues' do
       result = Resque::Failure::RedisMultiQueue.all(:queue => [:foo, :bar])
       assert_equal({ :foo => [], :bar => [] }, result)
     end
 
-    it 'should return all failures matching a single class name' do
+    it 'returns all failures matching a single class name' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class1')
@@ -173,7 +173,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class1', result[:queue2_failed].first.class_name
     end
 
-    it 'should return all failures matching an array of class names' do
+    it 'returns all failures matching an array of class names' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class2')
@@ -191,7 +191,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class2', result[:queue2_failed].first.class_name
     end
 
-    it 'should return all failures matching a single queue name and single class name' do
+    it 'returns all failures matching a single queue name and single class name' do
       # matching
       save_failure('queue1', 'class1')
 
@@ -209,7 +209,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class1', result.first.class_name
     end
 
-    it 'should return all failures matching a single queue name and an array of class names' do
+    it 'returns all failures matching a single queue name and an array of class names' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue1', 'class2')
@@ -230,7 +230,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class2', result.last.class_name
     end
 
-    it 'should return all failures matching an array of queue names and a single class name' do
+    it 'returns all failures matching an array of queue names and a single class name' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class1')
@@ -251,7 +251,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class1', result[:queue2_failed].first.class_name
     end
 
-    it 'should return all failures matching arrays of queue and class names' do
+    it 'returns all failures matching arrays of queue and class names' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue1', 'class2')
@@ -272,7 +272,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 2, result[:queue2_failed].size
     end
 
-    it 'should offset the number of failures by the given offset across all queues (single queue exists)' do
+    it 'offsets the number of failures by the given offset across all queues (single queue exists)' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
 
@@ -287,7 +287,7 @@ describe Resque::Failure::RedisMultiQueue do
         result[:queue1_failed].map { |failure| failure.class_name }
     end
 
-    it 'should offset the number of failures by the given offset across all queues (multiple queues exist)' do
+    it 'offsets the number of failures by the given offset across all queues (multiple queues exist)' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class3')
@@ -303,7 +303,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class4', result[:queue2_failed].first.class_name
     end
 
-    it 'should restrict the number of failures to the given limit across all queues (single queue exists)' do
+    it 'restricts the number of failures to the given limit across all queues (single queue exists)' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue1', 'class2')
@@ -318,7 +318,7 @@ describe Resque::Failure::RedisMultiQueue do
         result[:queue1_failed].map { |failure| failure.class_name }
     end
 
-    it 'should restrict the number of failures to the given limit across all queues (multiple queues exist)' do
+    it 'restricts the number of failures to the given limit across all queues (multiple queues exist)' do
       # matching
       save_failure('queue1', 'class1')
       save_failure('queue1', 'class2')
@@ -338,7 +338,7 @@ describe Resque::Failure::RedisMultiQueue do
         result[:queue2_failed].map { |failure| failure.class_name }
     end
 
-    it 'should offset and limit results when given limit and offset options across all queues (single queue exists)' do
+    it 'offsets and limits results when given limit and offset options across all queues (single queue exists)' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
 
@@ -355,7 +355,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class2', result[:queue1_failed].first.class_name
     end
 
-    it 'should offset and limit results when given limit and offset options across all queues (multiple queues exist)' do
+    it 'offsets and limits results when given limit and offset options across all queues (multiple queues exist)' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class4')
@@ -377,7 +377,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class5', result[:queue2_failed].first.class_name
     end
 
-    it 'should offset and limit failures from the single given queue' do
+    it 'offsets and limits failures from the single given queue' do
       # not matching
       save_failure('queue1', 'class1') # fails offset
       save_failure('queue2', 'class1') # fails offset and queue name
@@ -399,7 +399,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class2', result.first.class_name
     end
 
-    it 'should offset and limit failures from the array of given queues' do
+    it 'offsets and limits failures from the array of given queues' do
       # not matching
       save_failure('queue1', 'class1') # fails offset
       save_failure('queue2', 'class4') # fails offset
@@ -426,7 +426,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 'class5', result[:queue2_failed].first.class_name
     end
 
-    it 'should offset and limit failures then filter by the single given class name' do
+    it 'offsets and limits failures then filters by the single given class name' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class1')
@@ -451,7 +451,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 0, result[:queue2_failed].size
     end
 
-    it 'should offset and limit failures then filter by the array of given class names' do
+    it 'offsets and limits failures then filters by the array of given class names' do
       # not matching (fails offset)
       save_failure('queue1', 'class1')
       save_failure('queue2', 'class1')
