@@ -16,7 +16,7 @@ describe Resque::Failure::RedisMultiQueue do
       save_failure
 
       failure = Resque::Failure::RedisMultiQueue.slice(0, 1, :failed_failed).first
-      assert_nil failure['retried_at']
+      assert_nil failure.retried_at
 
       Resque::Failure::RedisMultiQueue.requeue(0, :failed_failed)
 
@@ -25,7 +25,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal ['some_args'], job.args
 
       failure = Resque::Failure::RedisMultiQueue.slice(0, 1, :failed_failed).first
-      refute_nil failure['retried_at']
+      refute_nil failure.retried_at
     end
   end
 
@@ -115,7 +115,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 2, Resque::Failure::RedisMultiQueue.count('queue1_failed', 'another_class')
     end
   end
-
+  
   describe '#all' do
     it 'should return an Array of all failures matching a single queue name' do
       # matching
@@ -127,7 +127,7 @@ describe Resque::Failure::RedisMultiQueue do
       result = Resque::Failure::RedisMultiQueue.all(:queue => :queue1_failed)
       assert_instance_of Array, result
       assert_equal 1, result.size
-      assert_equal 'queue1', result.first['queue']
+      assert_equal 'queue1', result.first.queue
     end
 
     it 'should return a Hash of all failures matching an array of queue names' do
@@ -143,8 +143,8 @@ describe Resque::Failure::RedisMultiQueue do
       )
       assert_instance_of Hash, result
       assert_equal 2, result.size
-      assert_equal 'queue1', result[:queue1_failed].first['queue']
-      assert_equal 'queue2', result[:queue2_failed].first['queue']
+      assert_equal 'queue1', result[:queue1_failed].first.queue
+      assert_equal 'queue2', result[:queue2_failed].first.queue
     end
 
     it 'should return an empty array for no results with a single queue name' do
@@ -169,8 +169,8 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'class1', result[:queue1_failed].first['payload']['class']
-      assert_equal 'class1', result[:queue2_failed].first['payload']['class']
+      assert_equal 'class1', result[:queue1_failed].first.class_name
+      assert_equal 'class1', result[:queue2_failed].first.class_name
     end
 
     it 'should return all failures matching an array of class names' do
@@ -187,8 +187,8 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'class1', result[:queue1_failed].first['payload']['class']
-      assert_equal 'class2', result[:queue2_failed].first['payload']['class']
+      assert_equal 'class1', result[:queue1_failed].first.class_name
+      assert_equal 'class2', result[:queue2_failed].first.class_name
     end
 
     it 'should return all failures matching a single queue name and single class name' do
@@ -205,8 +205,8 @@ describe Resque::Failure::RedisMultiQueue do
       )
       assert_instance_of Array, result
       assert_equal 1, result.size
-      assert_equal 'queue1', result.first['queue']
-      assert_equal 'class1', result.first['payload']['class']
+      assert_equal 'queue1', result.first.queue
+      assert_equal 'class1', result.first.class_name
     end
 
     it 'should return all failures matching a single queue name and an array of class names' do
@@ -224,10 +224,10 @@ describe Resque::Failure::RedisMultiQueue do
       )
       assert_instance_of Array, result
       assert_equal 2, result.size
-      assert_equal 'queue1', result.first['queue']
-      assert_equal 'class1', result.first['payload']['class']
-      assert_equal 'queue1', result.last['queue']
-      assert_equal 'class2', result.last['payload']['class']
+      assert_equal 'queue1', result.first.queue
+      assert_equal 'class1', result.first.class_name
+      assert_equal 'queue1', result.last.queue
+      assert_equal 'class2', result.last.class_name
     end
 
     it 'should return all failures matching an array of queue names and a single class name' do
@@ -245,10 +245,10 @@ describe Resque::Failure::RedisMultiQueue do
       )
       assert_instance_of Hash, result
       assert_equal 2, result.size
-      assert_equal 'queue1', result[:queue1_failed].first['queue']
-      assert_equal 'class1', result[:queue1_failed].first['payload']['class']
-      assert_equal 'queue2', result[:queue2_failed].first['queue']
-      assert_equal 'class1', result[:queue2_failed].first['payload']['class']
+      assert_equal 'queue1', result[:queue1_failed].first.queue
+      assert_equal 'class1', result[:queue1_failed].first.class_name
+      assert_equal 'queue2', result[:queue2_failed].first.queue
+      assert_equal 'class1', result[:queue2_failed].first.class_name
     end
 
     it 'should return all failures matching arrays of queue and class names' do
@@ -284,7 +284,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 1, result.size
       assert_equal ['class2', 'class3'],
-        result[:queue1_failed].map { |val| val['payload']['class'] }
+        result[:queue1_failed].map { |failure| failure.class_name }
     end
 
     it 'should offset the number of failures by the given offset across all queues (multiple queues exist)' do
@@ -299,8 +299,8 @@ describe Resque::Failure::RedisMultiQueue do
       result = Resque::Failure::RedisMultiQueue.all(:offset => 1)
       assert_instance_of Hash, result
       assert_equal 2, result.size
-      assert_equal 'class2', result[:queue1_failed].first['payload']['class']
-      assert_equal 'class4', result[:queue2_failed].first['payload']['class']
+      assert_equal 'class2', result[:queue1_failed].first.class_name
+      assert_equal 'class4', result[:queue2_failed].first.class_name
     end
 
     it 'should restrict the number of failures to the given limit across all queues (single queue exists)' do
@@ -315,7 +315,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 1, result.size
       assert_equal ['class1', 'class2'],
-        result[:queue1_failed].map { |val| val['payload']['class'] }
+        result[:queue1_failed].map { |failure| failure.class_name }
     end
 
     it 'should restrict the number of failures to the given limit across all queues (multiple queues exist)' do
@@ -333,9 +333,9 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal ['class1', 'class2'],
-        result[:queue1_failed].map { |val| val['payload']['class'] }
+        result[:queue1_failed].map { |failure| failure.class_name }
       assert_equal ['class4', 'class5'],
-        result[:queue2_failed].map { |val| val['payload']['class'] }
+        result[:queue2_failed].map { |failure| failure.class_name }
     end
 
     it 'should offset and limit results when given limit and offset options across all queues (single queue exists)' do
@@ -352,7 +352,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 1, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'class2', result[:queue1_failed].first['payload']['class']
+      assert_equal 'class2', result[:queue1_failed].first.class_name
     end
 
     it 'should offset and limit results when given limit and offset options across all queues (multiple queues exist)' do
@@ -372,9 +372,9 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'class2', result[:queue1_failed].first['payload']['class']
+      assert_equal 'class2', result[:queue1_failed].first.class_name
       assert_equal 1, result[:queue2_failed].size
-      assert_equal 'class5', result[:queue2_failed].first['payload']['class']
+      assert_equal 'class5', result[:queue2_failed].first.class_name
     end
 
     it 'should offset and limit failures from the single given queue' do
@@ -396,7 +396,7 @@ describe Resque::Failure::RedisMultiQueue do
       )
       assert_instance_of Array, result
       assert_equal 1, result.size
-      assert_equal 'class2', result.first['payload']['class']
+      assert_equal 'class2', result.first.class_name
     end
 
     it 'should offset and limit failures from the array of given queues' do
@@ -421,9 +421,9 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'class2', result[:queue1_failed].first['payload']['class']
+      assert_equal 'class2', result[:queue1_failed].first.class_name
       assert_equal 1, result[:queue2_failed].size
-      assert_equal 'class5', result[:queue2_failed].first['payload']['class']
+      assert_equal 'class5', result[:queue2_failed].first.class_name
     end
 
     it 'should offset and limit failures then filter by the single given class name' do
@@ -447,7 +447,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 1, result[:queue1_failed].size
-      assert_equal 'arg1', result[:queue1_failed].first['payload']['args']
+      assert_equal 'arg1', result[:queue1_failed].first.args
       assert_equal 0, result[:queue2_failed].size
     end
 
@@ -474,20 +474,20 @@ describe Resque::Failure::RedisMultiQueue do
       assert_instance_of Hash, result
       assert_equal 2, result.size
       assert_equal 2, result[:queue1_failed].size
-      assert_equal 'arg1', result[:queue1_failed].first['payload']['args']
-      assert_equal 'arg2', result[:queue1_failed].last['payload']['args']
+      assert_equal 'arg1', result[:queue1_failed].first.args
+      assert_equal 'arg2', result[:queue1_failed].last.args
       assert_equal 1, result[:queue2_failed].size
-      assert_equal 'arg3', result[:queue2_failed].first['payload']['args']
+      assert_equal 'arg3', result[:queue2_failed].first.args
     end
   end
 
   private
 
   def save_failure(queue = :failed, klass = 'some_class', args = 'some_args')
-    failure = Resque::Failure::RedisMultiQueue.new(Exception.new,
-                                         nil, queue,
-                                         {'class' => klass,
-                                          'args' => args})
-    failure.save
+    failure = Resque::Failure.create(
+      :raw_exception => Exception.new,
+      :queue => queue,
+      :payload => { 'class' => klass, 'args' => args }
+    )
   end
 end

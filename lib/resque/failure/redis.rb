@@ -2,7 +2,7 @@ require 'time'
 require 'resque/failure/each'
 
 module Resque
-  module Failure
+  class Failure
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class Redis < Base
@@ -12,18 +12,9 @@ module Resque
       # @param (see Resque::Failure::Base#save)
       # @raise (see Resque::Failure::Base#save)
       # @return (see Resque::Failure::Base#save)
-      def save
-        data = {
-          :failed_at => Time.now.rfc2822,
-          :payload   => payload,
-          :exception => exception.class.to_s,
-          :error     => exception.to_s,
-          :backtrace => filter_backtrace(Array(exception.backtrace)),
-          :worker    => worker.to_s,
-          :queue     => queue
-        }
-        data = Resque.encode(data)
-        Resque.backend.store.rpush(:failed, data)
+      def self.save(failure)
+        encoded_data = Resque.encode(failure.data)
+        Resque.backend.store.rpush(:failed, encoded_data)
       end
 
       # @overload (see Resque::Failure::Base::count)
@@ -69,7 +60,7 @@ module Resque
         failures = if opts[:offset] || opts[:limit]
           slice_from_options opts
         else
-          Resque.full_list(:failed)
+          Resque::Failure.full_list(:failed)
         end
 
         if opts[:class_name]
@@ -86,7 +77,7 @@ module Resque
       # @return [Array<Hash{String=>Object}>]
       def self.slice(offset = 0, limit = 1, queue = nil)
         check_queue(queue)
-        [Resque.list_range(:failed, offset, limit)].flatten
+        [Resque::Failure.list_range(:failed, offset, limit)].flatten
       end
 
       # @overload (see Resque::Failure::Base::clear)
@@ -100,11 +91,9 @@ module Resque
       # @overload (see Resque::Failure::Base::requeue)
       # @param (see Resque::Failure::Base::requeue)
       # @return (see Resque::Failure::Base::requeue)
-      def self.requeue(id)
+      def self.requeue(id, queue = :failed)
         item = slice(id).first
-        item['retried_at'] = Time.now.rfc2822
-        Resque.backend.store.lset(:failed, id, Resque.encode(item))
-        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        item.retry if item
       end
 
       # @param id [Integer] index of item to requeue
@@ -112,17 +101,15 @@ module Resque
       # @return [void]
       def self.requeue_to(id, queue_name)
         item = slice(id).first
-        item['retried_at'] = Time.now.rfc2822
-        Resque.backend.store.lset(:failed, id, Resque.encode(item))
-        Job.create(queue_name, item['payload']['class'], *item['payload']['args'])
+        item.retry queue_name if item
       end
 
       # @overload (see Resque::Failure::Base::remove)
       # @param (see Resque::Failure::Base::remove)
       # @return (see Resque::Failure::Base::remove)
-      def self.remove(id)
+      def self.remove(index, queue = :failed)
         sentinel = ""
-        Resque.backend.store.lset(:failed, id, sentinel)
+        Resque.backend.store.lset(:failed, index, sentinel)
         Resque.backend.store.lrem(:failed, 1,  sentinel)
       end
 
@@ -131,10 +118,8 @@ module Resque
       # @param queue [String]
       # @return [void]
       def self.requeue_queue(queue)
-        i = 0
-        while job = slice(i).first
-           requeue(i) if job['queue'] == queue
-           i += 1
+        all.each do |failure|
+          failure.retry if failure.queue == queue
         end
       end
 
@@ -143,15 +128,13 @@ module Resque
       # @param queue [String]
       # @return [void]
       def self.remove_queue(queue)
-        i = 0
-        while job = slice(i).first
-          if job['queue'] == queue
-            # This will remove the failure from the array so do not increment the index.
-            remove(i)
-          else
-            i += 1
-          end
+        # removal is a two step process because deletion is currently based on
+        # an index position, so first we clear the entry in the Redis list,
+        # then we delete all cleared entries with ::sweep_cleared_failures
+        all.each do |failure|
+          failure.clear if failure.queue == queue
         end
+        sweep_cleared_failures
       end
 
       # Ensures that the given queue is either nil or its to_s returns 'failed'
@@ -162,11 +145,11 @@ module Resque
         raise ArgumentError, "invalid queue: #{queue}" if queue && queue.to_s != "failed"
       end
 
-      # Filter a backtrace, stripping everything above 'lib/resque/job.rb'
-      # @param backtrace [Array<String>]
-      # @return [Array<String>]
-      def filter_backtrace(backtrace)
-        backtrace.take_while { |item| !item.include?('/lib/resque/job.rb') }
+      private
+
+      def self.sweep_cleared_failures
+        sentinel = ''
+        Resque.backend.store.lrem(:failed, 0, sentinel)
       end
     end
   end
