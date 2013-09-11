@@ -34,32 +34,6 @@ describe "Resque::Worker" do
     end
   end
 
-  it "failed jobs report exception and message" do
-    # we fork, so let's use real redis
-    Resque.redis = $real_redis
-    Resque.backend.store.flushall
-
-    begin
-      Resque::Job.create(:jobs, BadJobWithSyntaxError)
-      worker.work
-      assert_equal 1, Resque::Failure.count
-      assert_equal('SyntaxError', Resque::Failure.all.first['exception'])
-      assert_equal('Extra Bad job!', Resque::Failure.all.first['error'])
-    ensure
-      Resque.redis = $mock_redis
-    end
-  end
-
-  it "unavailable job definition reports exception and message" do
-    Resque::Job.create(:jobs, 'NoJobDefinition')
-    stub_to_fork(worker, false) do
-      worker.work
-      assert_equal 1, Resque::Failure.count, 'failure not reported'
-      assert_equal('NameError', Resque::Failure.all.first['exception'])
-      assert_match('uninitialized constant', Resque::Failure.all.first['error'])
-    end
-  end
-
   it "validates jobs before enquing them." do
     assert_raises Resque::NoQueueError do
       Resque.enqueue(JobWithNoQueue)
@@ -122,24 +96,6 @@ describe "Resque::Worker" do
       end
 
     end
-  end
-
-  it "fails uncompleted jobs with DirtyExit by default on exit" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on(worker, job)
-    registry.unregister
-    assert_equal 1, Resque::Failure.count
-    assert_equal('Resque::DirtyExit', Resque::Failure.all.first['exception'])
-  end
-
-  it "fails uncompleted jobs with worker exception on exit" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    registry = Resque::WorkerRegistry.new(worker)
-    registry.working_on worker, job
-    registry.unregister(StandardError.new)
-    assert_equal 1, Resque::Failure.count
-    assert_equal('StandardError', Resque::Failure.all.first['exception'])
   end
 
   class ::SimpleJobWithFailureHandling

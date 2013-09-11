@@ -311,14 +311,6 @@ module Resque
       Resque.backend.store.lset(failed_queue, index, sentinel)
     end
 
-    # Invoke instance methods via []
-    # Provides backward compatibility with old hash-based interface.
-    # @param [String,Symbol] The name of the method to invoke
-    # @return [Object]
-    def [](key)
-      public_send(key)
-    end
-
     private
 
     # The actual exception object gets lost in the round trip to Redis, (it's

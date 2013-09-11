@@ -190,14 +190,6 @@ describe Resque::Failure do
     end
   end
 
-  describe '#[]' do
-    it "allows access to the failure instance's public methods to support the legacy hash interface" do
-      failure = save_failure
-      assert_equal 'some_class', failure['payload']['class']
-      assert_equal 'some_args', failure['payload']['args']
-    end
-  end
-
   private
 
   def save_failure(options = {})
