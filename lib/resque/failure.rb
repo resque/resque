@@ -9,38 +9,20 @@ module Resque
     @backend = nil
 
     # @return [String] The name of the worker object who detected the failure
-    attr_accessor :worker
+    attr_reader :worker
 
     # @return [String] The name of the queue from which the failed job was pulled
-    attr_accessor :queue
+    attr_reader :queue
 
     # @return [Hash] The payload object associated with the failed job
-    attr_accessor :payload
+    attr_reader :payload
 
     # @return [String] The time when the failure was last retried
-    attr_accessor :retried_at
+    attr_reader :retried_at
 
     # It's currently possible for this to get out of sync due to deletions, so use with caution.
     # @return [Integer] The index of the failure in the Redis list.
-    attr_accessor :index
-
-    # @return [Exception] The exception object raised by the failed job
-    attr_writer :raw_exception
-
-    # @return [#to_s] The name of the Redis failure queue this failure was pushed to
-    attr_writer :failed_queue
-
-    # @return [#to_s] The name of the Redis failure queue this failure was pushed to
-    attr_writer :failed_at
-
-    # @return [String] The name of the exception class raised by the failed job
-    attr_writer :exception
-
-    # @return [String] The contents of the exception raised by the failed job
-    attr_writer :error
-
-    # @return [String] The filtered exception backtrace
-    attr_writer :backtrace
+    attr_reader :index
 
     # @param options [Hash] The options hash used to instantiate a failure
     # @option options [Exception]           :raw_exception - The Exception object
@@ -49,7 +31,7 @@ module Resque
     # @option options [Hash<String,Object>] :payload       - The job's payload
     def initialize(options = {})
       options.each do |attribute, value|
-        public_send("#{attribute}=", value)
+        send("#{attribute}=", value)
       end
     end
 
@@ -312,15 +294,54 @@ module Resque
     end
 
     private
-
+    
     # The actual exception object gets lost in the round trip to Redis, (it's
-    # converted into String parts stored in #exception and #error). This is
-    # marked as private to avoid the impression that it's available after
-    # deserialization
-    # @return [Exception]
+    # converted into String parts stored in #exception and #error).
+    # @return [Exception] The exception object raised by the failed job
     # @api private
-    attr_reader :raw_exception
+    attr_accessor :raw_exception
+    
+    # The name of the Redis failure queue this failure was pushed to
+    # @api private
+    attr_writer :failed_queue
 
+    # The name of the Redis failure queue this failure was pushed to
+    # @api private
+    attr_writer :failed_at
+
+    # The name of the exception class raised by the failed job
+    # @api private
+    attr_writer :exception
+
+    # The contents of the exception raised by the failed job
+    # @api private
+    attr_writer :error
+
+    # The filtered exception backtrace
+    # @api private
+    attr_writer :backtrace
+    
+    # @return [String] The name of the worker object who detected the failure
+    # @api private
+    attr_writer :worker
+    
+    # @return [String] The name of the queue from which the failed job was pulled
+    # @api private
+    attr_writer :queue
+    
+    # @return [Hash] The payload object associated with the failed job
+    # @api private
+    attr_writer :payload
+    
+    # @return [String] The time when the failure was last retried
+    # @api private
+    attr_writer :retried_at
+    
+    # It's currently possible for this to get out of sync due to deletions, so use with caution.
+    # @return [Integer] The index of the failure in the Redis list.
+    # @api private
+    attr_writer :index
+    
     # Time format helper method
     # @return [String]
     # @api private
