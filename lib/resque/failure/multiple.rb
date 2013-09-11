@@ -1,5 +1,5 @@
 module Resque
-  module Failure
+  class Failure
     # A Failure backend that uses multiple backends
     # delegates all queries to the first backend
     class Multiple < Base
@@ -21,14 +21,13 @@ module Resque
       # @return (see Resque::Failure::Base#initialize)
       def initialize(*args)
         super
-        @backends = self.class.classes.map {|klass| klass.new(*args)}
       end
 
       # @override (see Resque::Failure::Base#save)
       # @param (see Resque::Failure::Base#save)
       # @return (see Resque::Failure::Base#save)
-      def save
-        @backends.each(&:save)
+      def self.save(failure)
+        classes.each { |klass| klass.save(failure) }
       end
 
       # The number of failures.
@@ -89,8 +88,8 @@ module Resque
       # @override (see Resque::Failure::Base::remove)
       # @param (see Resque::Failure::Base::remove)
       # @return (see Resque::Failure::Base::remove)
-      def self.remove(index)
-        classes.each { |klass| klass.remove(index) }
+      def self.remove(index, queue = :failed)
+        classes.each { |klass| klass.remove(index, queue) }
       end
     end
   end

@@ -232,29 +232,34 @@ module Resque
   end
 
   # Does the dirty work of fetching a range of items from a Redis list
-  # and converting them into Ruby objects.
+  # and converting them into Ruby objects. Accepts an optional block which
+  # gets the record hash and its index passed to yield.
   # @param queue (see #queue)
   # @param start [Integer]
   # @param count [Integer]
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
+  # @yieldparam index [Integer] The item's index in the Redis list.
   # @return [Array<Hash<String,Object>]
-  def list_range(key, start = 0, count = 1)
+  def list_range(key, start = 0, count = 1, &block)
     if count == 1
-      decode(backend.store.lindex(key, start))
+      result = backend.store.lindex(key, start)
+      process_results(result, start, &block).first
     else
-      Array(backend.store.lrange(key, start, start+count-1)).map do |item|
-        decode(item)
-      end
+      results = backend.store.lrange(key, start, start+count-1)
+      process_results results, start, &block
     end
   end
-  
+
   # Retrieves the complete list from Redis with the given key and
-  # converts each item into a Ruby object
+  # converts each item into a Ruby object. Accepts an optional block which
+  # gets the record hash and its index passed to yield.
   # @param queue (see #queue)
   # @return [Array<Hash{String=>Object}>]
-  def full_list(key)
-    Array(backend.store.lrange(key, 0, -1)).map do |item|
-      decode(item)
-    end
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
+  # @yieldparam index [Integer] The item's index in the Redis list.
+  def full_list(key, &block)
+    results = backend.store.lrange(key, 0, -1)
+    process_results results, 0, &block
   end
 
   # Returns an array of all known Resque queues as strings.
@@ -485,6 +490,21 @@ module Resque
   def keys
     backend.store.keys("*").map do |key|
       key.sub("#{backend.store.namespace}:", '')
+    end
+  end
+
+  private
+
+  # Decodes raw result objects from Redis and optionally yields them to a block
+  # @api private
+  def process_results(results, index, &block)
+    Array(results).map.with_index(index) do |item, i|
+      result = decode(item)
+      if block_given?
+        yield result, i
+      else
+        result
+      end
     end
   end
 end
