@@ -1,42 +1,15 @@
 module Resque
-  module Failure
+  class Failure
     # All Failure classes are expected to subclass Base.
     #
-    # When a job fails, a new instance of your Failure backend is created
-    # and #save is called.
+    # When a job fails, a new Resque::Failure instance is created and handed to
+    # the ::save method for your backend
     # @abstract
     class Base
-      # The exception object raised by the failed job
-      attr_accessor :exception
-
-      # The worker object who detected the failure
-      attr_accessor :worker
-
-      # The string name of the queue from which the failed job was pulled
-      attr_accessor :queue
-
-      # The payload object associated with the failed job
-      attr_accessor :payload
-
-      # @option options [Exception]           :exception - The Exception object
-      # @option options [Resque::Worker]      :worker    - The Worker object who is
-      #                                                    reporting the failure
-      # @option options [String]              :queue     - The string name of the queue
-      #                                                    from which the job was pulled
-      # @option options [Hash<String,Object>] :payload   - The job's payload
-      def initialize(exception, worker, queue, payload)
-        @exception = exception
-        @worker    = worker
-        @queue     = queue
-        @payload   = payload
-      end
-
-      # When a job fails, a new instance of your Failure backend is created
-      # and #save is called.
-      #
       # This is where you POST or PUT or whatever to your Failure service.
+      # @param failure [Resque::Failure] The Failure instance wrapping the failed job
       # @return [void]
-      def save
+      def self.save(failure)
       end
 
       # The number of failures.
@@ -94,12 +67,12 @@ module Resque
 
       # @overload self.requeue(index)
       # @param index [Integer]
-      def self.requeue(index)
+      def self.requeue(index, queue = :failed)
       end
 
       # @overload self.remove(index)
       # @param index [Integer]
-      def self.remove(index)
+      def self.remove(index, queue = :failed)
       end
 
       private
@@ -110,12 +83,12 @@ module Resque
       def self.filter_by_class_name_from(collection, class_name)
         class_names = Set.new Array(class_name)
         if collection.is_a? Array
-          collection.select! do |failures|
-            failures['payload'] && class_names.include?(failures['payload']['class'])
+          collection.select! do |failure|
+            class_names.include?(failure.class_name)
           end
         else
-          collection.each do |queue, failures|
-            filter_by_class_name_from(failures, class_name)
+          collection.each do |queue, failure|
+            filter_by_class_name_from(failure, class_name)
           end
         end
       end

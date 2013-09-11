@@ -13,7 +13,7 @@ describe Resque::Failure::Each do
       n = 0
       Resque::Failure::Redis.each do |i, failure|
         assert_equal 0, i
-        assert_equal 'T1', failure['payload']['class']
+        assert_equal 'T1', failure.class_name
         n = n + 1
       end
 
@@ -27,7 +27,7 @@ describe Resque::Failure::Each do
       n = 0
       Resque::Failure::Redis.each do |i, failure|
         assert_equal n, i
-        assert_equal expected_failure_classes[n], failure['payload']['class']
+        assert_equal expected_failure_classes[n], failure.class_name
         n = n + 1
       end
 
@@ -40,7 +40,7 @@ describe Resque::Failure::Each do
       n = 0
       Resque::Failure::Redis.each(1, 1) do |i, failure|
         assert_equal 1, i
-        assert_equal 'T2', failure['payload']['class']
+        assert_equal 'T2', failure.class_name
         n = n + 1
       end
 
@@ -53,7 +53,7 @@ describe Resque::Failure::Each do
       n = 0
       Resque::Failure::Redis.each(0, 2, :failed, 'T2') do |i, failure|
         assert_equal 1, i
-        assert_equal 'T2', failure['payload']['class']
+        assert_equal 'T2', failure.class_name
         n = n + 1
       end
 
@@ -66,7 +66,7 @@ describe Resque::Failure::Each do
       n = 0
       Resque::Failure::Redis.each(2, 4, :failed, 'T2') do |i, failure|
         assert_equal 2, i
-        assert_equal 'T2', failure['payload']['class']
+        assert_equal 'T2', failure.class_name
         n = n + 1
       end
 
@@ -78,9 +78,11 @@ describe Resque::Failure::Each do
 
   def save_failures(*classes)
     classes.each do |klass|
-      failure = Resque::Failure::Redis.new(Exception.new,
-                                           nil, :test, {'class' => klass})
-      failure.save
+      failure = Resque::Failure.create(
+        :raw_exception => Exception.new,
+        :queue => :test,
+        :payload => {'class' => klass}
+      )
     end
   end
 end

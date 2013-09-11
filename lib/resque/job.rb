@@ -223,7 +223,7 @@ module Resque
       run_failure_hooks(exception) if has_payload_class?
       Failure.create \
         :payload   => payload,
-        :exception => exception,
+        :raw_exception => exception,
         :worker    => worker,
         :queue     => queue
     rescue Exception => e
