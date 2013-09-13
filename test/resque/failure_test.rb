@@ -22,6 +22,14 @@ describe Resque::Failure do
     end
   end
 
+  describe '::next_failure_id' do
+    it 'returns the next id from the :next_failure_id Redis counter' do
+      assert_equal 1, Resque::Failure.next_failure_id
+      assert_equal 2, Resque::Failure.next_failure_id
+      assert_equal 3, Resque::Failure.next_failure_id
+    end
+  end
+
   describe '::failure_queue_name' do
     it 'returns the failure queue name given a normal queue name' do
       assert_equal 'foo_failed', Resque::Failure.failure_queue_name('foo')
@@ -63,6 +71,13 @@ describe Resque::Failure do
       failure.save
 
       Resque::Failure.backend.verify
+    end
+
+    it 'assigns a redis_id to the failure' do
+      failure_one = save_failure
+      failure_two = save_failure
+      assert_equal 1, failure_one.redis_id
+      assert_equal 2, failure_two.redis_id
     end
   end
 
