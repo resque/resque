@@ -24,6 +24,9 @@ module Resque
     # @return [Integer] The index of the failure in the Redis list.
     attr_reader :index
 
+    # @return [Integer] The unique id of the failure in Redis
+    attr_reader :redis_id
+
     # @param options [Hash] The options hash used to instantiate a failure
     # @option options [Exception]           :raw_exception - The Exception object
     # @option options [Resque::Worker]      :worker        - The Worker object who is reporting the failure
@@ -38,10 +41,16 @@ module Resque
     # Creates a new failure, which is delegated to the appropriate backend.
     # @param (see Resque::Failure#initialize)
     def self.create(options)
-      failure = new(options)
+      failure = new(options.merge(:redis_id => next_failure_id))
       failure.save
 
       failure
+    end
+
+    # Returns an integer from a Redis counter to be used as the failure id
+    # @return [Integer] The id to be assigned to the failure
+    def self.next_failure_id
+      Resque.backend.store.incr :next_failure_id
     end
 
     # Sets the current backend. Expects a class descendant of
@@ -218,7 +227,8 @@ module Resque
         :backtrace  => backtrace,
         :worker     => worker.to_s,
         :queue      => queue,
-        :retried_at => retried_at
+        :retried_at => retried_at,
+        :redis_id   => redis_id
       }
     end
 
@@ -294,13 +304,13 @@ module Resque
     end
 
     private
-    
+
     # The actual exception object gets lost in the round trip to Redis, (it's
     # converted into String parts stored in #exception and #error).
     # @return [Exception] The exception object raised by the failed job
     # @api private
     attr_accessor :raw_exception
-    
+
     # The name of the Redis failure queue this failure was pushed to
     # @api private
     attr_writer :failed_queue
@@ -320,28 +330,31 @@ module Resque
     # The filtered exception backtrace
     # @api private
     attr_writer :backtrace
-    
+
     # @return [String] The name of the worker object who detected the failure
     # @api private
     attr_writer :worker
-    
+
     # @return [String] The name of the queue from which the failed job was pulled
     # @api private
     attr_writer :queue
-    
+
     # @return [Hash] The payload object associated with the failed job
     # @api private
     attr_writer :payload
-    
+
     # @return [String] The time when the failure was last retried
     # @api private
     attr_writer :retried_at
-    
+
     # It's currently possible for this to get out of sync due to deletions, so use with caution.
     # @return [Integer] The index of the failure in the Redis list.
     # @api private
     attr_writer :index
-    
+
+    # @return [Integer] The unique id of the failure in Redis
+    attr_writer :redis_id
+
     # Time format helper method
     # @return [String]
     # @api private
