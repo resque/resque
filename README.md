@@ -194,6 +194,14 @@ Coming soon.
 
 Please see [CONTRIBUTING.md](https://github.com/resque/resque/blob/master/CONTRIBUTING.md).
 
+## Other Implementations
+
+You can write your Resque workers in other langauges, too:
+
+* [Go](http://www.goworker.org/)
+* [Java](https://github.com/gresrun/jesque)
+* [CoffeeScript](https://github.com/technoweenie/coffee-resque)
+
 ## Anything we missed?
 
 If there's anything at all that you need or want to know, please email either
