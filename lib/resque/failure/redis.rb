@@ -33,7 +33,11 @@ module Resque
 
         if class_name
           n = 0
-          each(0, count(queue), queue, class_name) { n += 1 } 
+          each(
+            :limit => count(queue),
+            :queue => queue,
+            :class_name => class_name
+          ) { n += 1 }
           n
         else
           Resque.backend.store.llen(:failed).to_i

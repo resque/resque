@@ -63,7 +63,7 @@ module Resque
 
       # Iterate across failed objects
       # @overload (see Resque::Failure::Each#each)
-      def self.each(*args)
+      def self.each(options = {})
       end
 
       # A URL where someone can go to view failures.

@@ -14,7 +14,7 @@ describe Resque::Failure::Each do
       Resque::Failure::Redis.each do |i, failure|
         assert_equal 0, i
         assert_equal 'T1', failure['payload']['class']
-        n = n + 1
+        n += 1
       end
 
       assert_equal 1, n
@@ -28,7 +28,7 @@ describe Resque::Failure::Each do
       Resque::Failure::Redis.each do |i, failure|
         assert_equal n, i
         assert_equal expected_failure_classes[n], failure['payload']['class']
-        n = n + 1
+        n += 1
       end
 
       assert_equal 2, n
@@ -38,10 +38,10 @@ describe Resque::Failure::Each do
       save_failures('T1', 'T2', 'T3')
 
       n = 0
-      Resque::Failure::Redis.each(1, 1) do |i, failure|
+      Resque::Failure::Redis.each(:offset => 1, :limit => 1) do |i, failure|
         assert_equal 1, i
         assert_equal 'T2', failure['payload']['class']
-        n = n + 1
+        n += 1
       end
 
       assert_equal 1, n
@@ -51,10 +51,14 @@ describe Resque::Failure::Each do
       save_failures('T1', 'T2')
 
       n = 0
-      Resque::Failure::Redis.each(0, 2, :failed, 'T2') do |i, failure|
+      Resque::Failure::Redis.each(
+        :limit => 2,
+        :queue => :failed,
+        :class_name => 'T2'
+      ) do |i, failure|
         assert_equal 1, i
         assert_equal 'T2', failure['payload']['class']
-        n = n + 1
+        n += 1
       end
 
       assert_equal 1, n
@@ -64,10 +68,15 @@ describe Resque::Failure::Each do
       save_failures('T1', 'T2', 'T2', 'T3')
 
       n = 0
-      Resque::Failure::Redis.each(2, 4, :failed, 'T2') do |i, failure|
+      Resque::Failure::Redis.each(
+        :offset => 2,
+        :limit => 4,
+        :queue => :failed,
+        :class_name => 'T2'
+      ) do |i, failure|
         assert_equal 2, i
         assert_equal 'T2', failure['payload']['class']
-        n = n + 1
+        n += 1
       end
 
       assert_equal 1, n
