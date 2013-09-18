@@ -14,9 +14,10 @@ module Resque
       # @return (see Resque::Failure::Base#save)
       def self.save(failure)
         encoded_data = Resque.encode failure.data
+        id = failure.redis_id
         Resque.backend.store.pipelined do
-          Resque.backend.store.hset :failed, failure.redis_id, encoded_data
-          Resque.backend.store.rpush :failed_ids, failure.redis_id
+          Resque.backend.store.hset :failed, id, encoded_data
+          Resque.backend.store.zadd :failed_ids, id, id
         end
       end
 
@@ -132,7 +133,7 @@ module Resque
       def self.remove(*ids)
         Resque.backend.store.pipelined do
           ids.each do |id|
-            Resque.backend.store.lrem :failed_ids, 1, id
+            Resque.backend.store.zrem :failed_ids, id
             Resque.backend.store.hdel :failed, id
           end
         end

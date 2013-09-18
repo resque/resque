@@ -209,7 +209,7 @@ module Resque
     # @param count [Integer] The maximum number of ids to retrieve
     # @return [Array<String>] List of failure ids
     def self.list_ids_range(key, start = 0, count = 1)
-      Resque.backend.store.lrange key, start, start+count-1
+      Resque.backend.store.zrange key, start, start+count-1
     end
 
     # Delegates to Resque::hash_find to retrieve records from Redis, then
