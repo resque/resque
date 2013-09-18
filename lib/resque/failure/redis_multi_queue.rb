@@ -12,9 +12,26 @@ module Resque
       # @param (see Resque::Failure::Base#save)
       # @return (see Resque::Failure::Base#save)
       def self.save(failure)
-        encoded_data = Resque.encode(failure.data)
-        Resque.backend.store.sadd(:failed_queues, failure.failed_queue)
-        Resque.backend.store.rpush(failure.failed_queue, encoded_data)
+        encoded_data = Resque.encode failure.data
+        Resque.backend.store.pipelined do
+          Resque.backend.store.sadd :failed_queues, failure.failed_queue
+          Resque.backend.store.hset failure.failed_queue, failure.redis_id, encoded_data
+          Resque.backend.store.rpush failure.failed_id_queue, failure.redis_id
+        end
+      end
+
+      # Find the failure(s) with the given id(s) (optionally limited by queue)
+      # @param ids (see Resque::Failure::Base::find)
+      # @param opts (see Resque::Failure::Base::find)
+      # @return (see Resque::Failure::Base::find)
+      def self.find(*args)
+        queues = args.last.is_a?(Hash) ? Array(args.pop[:queue]) : self.queues
+        ids = args
+        failures = queues.each_with_object([]) do |key, ary|
+          ary.concat Resque::Failure.hash_find(*ids, key).compact
+          break ary if ary.size == ids.size
+        end
+        args.size > 1 ? failures : failures.first
       end
 
       # @overload (see Resque::Failure::Base::count)
@@ -27,10 +44,10 @@ module Resque
             if result.is_a? Array
               result.size
             else
-              result.values.reduce(0) { |memo, fails| memo += fails.size }
+              result.values.reduce(0) { |memo, failures| memo += failures.size }
             end
           else
-            Resque.backend.store.llen(queue).to_i
+            Resque.backend.store.hlen(queue).to_i
           end
         else
           queues.reduce(0) { |memo, q| memo += count(q) }
@@ -38,7 +55,7 @@ module Resque
       end
 
       # @overload all(opts = {})
-      #   The main finder method for failure objects.
+      #   Get all failures, filtered by options
       #
       #   When no options are provided, it will return all failure objects across
       #   all failure queues in a hash, so be careful if you have tons of failures.
@@ -61,7 +78,7 @@ module Resque
       #   @option opts [String, Array<String>] :class_name - the name of the class(es) to filter by
       #   @option opts [Integer] :offset - the number of failures to offset the results by (ex. pagination)
       #   @option opts [Integer] :limit - the maximum number of failures returned (ex. pagination)
-      #   @return [Array<Hash>, Hash{Symbol=>Array<Hash>}]
+      #   @return [Array<Resque::Failure>, Hash{Symbol=>Array<Resque::Failure>}]
       def self.all(opts = {})
         failures = if opts[:offset] || opts[:limit]
           slice_from_options opts
@@ -82,21 +99,23 @@ module Resque
       #   Returns a paginated array of failure objects.
       #   @param offset [Integer] The index to begin retrieving records from the Redis list
       #   @param limit [Integer] The maximum number of records to return
-      #   @param queue [#to_s] The queue to slice from
-      #   @return [Array<Hash{String=>Object}>]
+      #   @param queue [#to_s] The failure queue to slice from
+      #   @return [Array<Resque::Failure>]
       # @overload slice(offset, limit, array_of_queue_names)
       #   Returns a hash with keys as queue names and values as arrays of failure objects
       #   @param offset [Integer] The index to begin retrieving records from the Redis list
       #   @param limit [Integer] The maximum number of records to return
-      #   @param queue [Array<#to_s>] The queues to slice from
-      #   @return [<Hash{Symbol=>Array<Hash{String=>Object}>}>]
+      #   @param queue [Array<#to_s>] The failure queues to slice from
+      #   @return [<Hash{Symbol=>Array<Resque::Failure>}>]
       def self.slice(offset = 0, limit = 1, queue = queues)
         if queue.is_a? Array
           queue.each_with_object({}) do |queue_name, hash|
             hash[queue_name.to_sym] = slice offset, limit, queue_name
           end
         else
-          [Resque::Failure.list_range(Array(queue).first, offset, limit)].flatten
+          ids = Resque::Failure.list_ids_range(
+            Resque::Failure.failure_ids_queue_name(queue), offset, limit)
+          Array(find *ids, :queue => queue)
         end
       end
 
@@ -107,28 +126,47 @@ module Resque
         Array(Resque.backend.store.smembers(:failed_queues))
       end
 
-      # @overload (see Resque::Failure::Base::clear)
+      # Clear all failure objects from the given queue
       # @param (see Resque::Failure::Base::clear)
       # @return (see Resque::Failure::Base::clear)
       def self.clear(queue = :failed)
-        Resque.backend.store.del(queue)
+        Resque.backend.store.pipelined do
+          Resque.backend.store.del queue
+          Resque.backend.store.del Resque::Failure.failure_ids_queue_name(queue)
+          Resque.backend.store.srem :failed_queues, queue
+        end
       end
 
-      # @param index (see Resque::Failure::Base::requeue)
-      # @param queue [#to_s]
+      # Requeue jobs with the given id(s)
+      # @param ids (see Resque::Failure::Base::requeue)
+      # @param opts (see Resque::Failure::Base::requeue)
       # @return (see Resque::Failure::Base::requeue)
-      def self.requeue(index, queue = :failed)
-        item = slice(index, 1, queue).first
-        item.retry if item
+      def self.requeue(*args)
+        failures = find *args
+        Array(failures).map &:retry
       end
 
-      # @param index (see Resque::Failure::Base::remove)
-      # @param queue [#to_s]
+      # Requeue jobs with the given id(s) on the specified queue
+      # @param ids (see Resque::Failure::Base::requeue_to)
+      # @param opts (see Resque::Failure::Base::requeue_to)
+      # @param queue_name (see Resque::Failure::Base::requeue_to)
+      # @return (see Resque::Failure::Base::requeue_to)
+      def self.requeue_to(*args, queue_name)
+        failures = find *args
+        Array(failures).map { |failure| failure.retry queue_name }
+      end
+
+      # @param ids (see Resque::Failure::Base::remove)
+      # @param opts (see Resque::Failure::Base::remove)
       # @return [void]
-      def self.remove(index, queue = :failed)
-        sentinel = ""
-        Resque.backend.store.lset(queue, index, sentinel)
-        Resque.backend.store.lrem(queue, 1, sentinel)
+      def self.remove(*args)
+        failures = Array(find *args)
+        Resque.backend.store.pipelined do
+          failures.each do |failure|
+            Resque.backend.store.hdel failure.failed_queue, failure.redis_id
+            Resque.backend.store.lrem failure.failed_id_queue, 1, failure.redis_id
+          end
+        end
       end
 
       # Requeue all items from failed queue where their original queue was
@@ -145,7 +183,7 @@ module Resque
       # @param queue [String]
       # @return [void]
       def self.remove_queue(queue)
-        Resque.backend.store.del(Resque::Failure.failure_queue_name(queue))
+        clear Resque::Failure.failure_queue_name(queue)
       end
 
       private
@@ -159,7 +197,7 @@ module Resque
             hash[queue_name] = find_by_queue queue_name
           end
         else
-          Resque::Failure.full_list queue
+          Resque::Failure.full_hash queue
         end
       end
     end

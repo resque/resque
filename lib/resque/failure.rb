@@ -20,10 +20,6 @@ module Resque
     # @return [String] The time when the failure was last retried
     attr_reader :retried_at
 
-    # It's currently possible for this to get out of sync due to deletions, so use with caution.
-    # @return [Integer] The index of the failure in the Redis list.
-    attr_reader :index
-
     # @return [Integer] The unique id of the failure in Redis
     attr_reader :redis_id
 
@@ -82,6 +78,13 @@ module Resque
       "#{job_queue_name}_failed"
     end
 
+    # Obtain the failure ids queue name for a given failure queue
+    # @param failure_queue_name [#to_s]
+    # @return [String]
+    def self.failure_ids_queue_name(failure_queue_name)
+      "#{failure_queue_name}_ids"
+    end
+
     # Obtain the job queue name for a given failure queue
     # @param failure_queue_name [String]
     # @return [String]
@@ -108,6 +111,13 @@ module Resque
     # @return (see Resque::Failure::Base::all)
     def self.all(opts = {})
       backend.all(opts)
+    end
+
+    # Find the failure objects with the given args
+    # @param args (see Resque::Failure::Base::find)
+    # @return (see Resque::Failure::Base::find)
+    def self.find(*args)
+      backend.find(*args)
     end
 
     # Returns an array of all the failures, paginated.
@@ -146,34 +156,34 @@ module Resque
       backend.clear(queue)
     end
 
-    # Requeue an item by its index
-    # @param index (see Resque::Failure::Base::requeue)
+    # Requeue an item by its id
+    # @param ids (see Resque::Failure::Base::requeue)
     # @return (see Resque::Failure::Base::requeue)
-    def self.requeue(index, queue = :failed)
-      backend.requeue(index, queue)
+    def self.requeue(*ids)
+      backend.requeue(*ids)
     end
 
-    # Requeue an item by its index and remove it
-    # @param index (see Resque::Failure::Base::requeue)
+    # Requeue an item by its id and remove it
+    # @param ids (see Resque::Failure::Base::requeue)
     # @return (see Resque::Failure::Base::remove)
-    def self.requeue_and_remove(index)
-      backend.requeue(index)
-      backend.remove(index)
+    def self.requeue_and_remove(*ids)
+      backend.requeue(*ids)
+      backend.remove(*ids)
     end
 
-    # Requeue an item by its index to a specific queue
-    # @param index (see Resque::Failure::Base::requeue_to)
+    # Requeue an item by its id to a specific job queue
+    # @param ids (see Resque::Failure::Base::requeue_to)
     # @param queue_name (see Resque::Failure::Base::requeue_to)
     # @return (see Resque::Failure::Base::requeue_to)
-    def self.requeue_to(index, queue_name)
-      backend.requeue_to(index, queue_name)
+    def self.requeue_to(*ids, queue_name)
+      backend.requeue_to(*ids, queue_name)
     end
 
-    # Remove an item by its index
-    # @param index (see Resque::Failure::Base::remove)
+    # Remove an item by its id
+    # @param ids (see Resque::Failure::Base::remove)
     # @return (see Resque::Failure::Base::remove)
-    def self.remove(index, queue = :failed)
-      backend.remove(index, queue)
+    def self.remove(*ids)
+      backend.remove(*ids)
     end
 
     # Requeues all failed jobs in a specific queue.
@@ -190,23 +200,36 @@ module Resque
       backend.remove_queue(queue)
     end
 
-    # Delegates to Resque::list_range to retrieve records from Redis, then
+    # Retrieves a list of failure ids from the given key. This command (and the
+    # underlying list structure) is used to simplify slicing/pagination. Failure
+    # objects are stored in unordered Redis hashes, so slicing would always
+    # incur the cost of sorting.
+    # @param key [#to_s] The name of the Redis list of failure ids
+    # @param start [Integer] The zero-based index to start from
+    # @param count [Integer] The maximum number of ids to retrieve
+    # @return [Array<String>] List of failure ids
+    def self.list_ids_range(key, start = 0, count = 1)
+      Resque.backend.store.lrange key, start, start+count-1
+    end
+
+    # Delegates to Resque::hash_find to retrieve records from Redis, then
     # instantiates each result as a Failure instance
-    # @param (see Resque#list_range)
+    # @param ids [#to_s] (see Resque::hash_find)
+    # @param queue [#to_s] (see Resque::hash_find)
     # @return [Array<Resque::Failure>]
-    def self.list_range(key, start = 0, count = 1)
-      Resque.list_range(key, start, count) do |item, i|
-        failure_for item, i, key
+    def self.hash_find(*ids, queue)
+      Resque.hash_find *ids, queue do |item|
+        failure_for item, queue
       end
     end
 
-    # Delegates to Resque::full_list to retrieve records from Redis, then
+    # Delegates to Resque::full_hash to retrieve records from Redis, then
     # instantiates each result as a Failure instance
-    # @param queue (see #queue)
+    # @param queue [#to_s] (see Resque::full_hash)
     # @return [Array<Resque::Failure>]
-    def self.full_list(key)
-      Resque.full_list key do |item, i|
-        failure_for item, i, key
+    def self.full_hash(queue)
+      Resque.full_hash queue do |item|
+        failure_for item, queue
       end
     end
 
@@ -264,6 +287,12 @@ module Resque
       @failed_queue ||= self.class.failure_queue_name queue
     end
 
+    # The name of the sorted Redis list of failure ids
+    # @return [String]
+    def failed_id_queue
+      @failed_id_queue ||= self.class.failure_ids_queue_name failed_queue
+    end
+
     # Convenience method for accessing the class name from the payload
     # @return [String]
     def class_name
@@ -283,24 +312,15 @@ module Resque
     # @return (see Resque::Job::create)
     def retry(queue_name = queue)
       self.retried_at = formatted_now
-      Resque.backend.store.lset(failed_queue, index, Resque.encode(data))
+      Resque.backend.store.hset failed_queue, redis_id, Resque.encode(data)
       Job.create(queue_name, class_name, *args)
     end
 
     # Deletes the Failure record in Redis and freezes the instance
     # @return [Resque::Failure] frozen Failure instance
     def destroy
-      self.class.remove(index, failed_queue)
+      self.class.remove redis_id
       freeze
-    end
-
-    # Clear out the data in Redis backing this Failure instance.
-    # Used for two step removal when batch deleting with conditions.
-    # See Resque::Failure::Redis::remove_queue for example
-    # @return [String, Object]
-    def clear
-      sentinel = ''
-      Resque.backend.store.lset(failed_queue, index, sentinel)
     end
 
     private
@@ -347,11 +367,6 @@ module Resque
     # @api private
     attr_writer :retried_at
 
-    # It's currently possible for this to get out of sync due to deletions, so use with caution.
-    # @return [Integer] The index of the failure in the Redis list.
-    # @api private
-    attr_writer :index
-
     # @return [Integer] The unique id of the failure in Redis
     attr_writer :redis_id
 
@@ -365,10 +380,9 @@ module Resque
     # Instantiates new failure instances with raw Redis query results
     # @return [Resque::Failure]
     # @api private
-    def self.failure_for(item, index, failed_queue)
+    def self.failure_for(item, failed_queue)
       if item
         Resque::Failure.new item.merge(
-          :index => index,
           :failed_queue => failed_queue
         )
       end
