@@ -12,6 +12,27 @@ module Resque
       def self.save(failure)
       end
 
+      # @overload find(id, [:queue => :foo_failed])
+      #   Find the failure object with the given id (optionally limited by queue)
+      #   @param id [#to_s] The id of the record to retrieve
+      #   @param opts [Hash] An optional hash to specify the name of the :queue to restrict the find to
+      #   @return [Resque::Failure]
+      #   @example Find a single failure across all failure queues
+      #     Resque::Failure.find 1
+      #   @example Find a single failure on a specific failure queue
+      #     Resque::Failure.find 1, :queue => :foo_failed
+      # @overload find(id, id, ..., [:queue => :foo_failed])
+      #   Find the failure objects with the given ids (optionally limited by queue)
+      #   @param ids [#to_s] A list of ids for the records to retrieve
+      #   @param opts [Hash] An optional hash to specify the name of the :queue to restrict the find to
+      #   @return [Array<Resque::Failure>]
+      #   @example Find multiple failures across all failure queues
+      #     Resque::Failure.find 1, 2, 3
+      #   @example Find multiple failures on a specific failure queue
+      #     Resque::Failure.find 1, 2, 3, :queue => :foo_failed
+      def self.find(*args)
+      end
+
       # The number of failures.
       # @param queue [#to_s] (nil) if provided, use specified queue
       #                            instead of :failed
@@ -34,7 +55,7 @@ module Resque
       # @option opts [String, Array<String>] :class_name - the name of the class(es) to filter by
       # @option opts [Integer] :offset - the number of failures to offset the results by (ex. pagination)
       # @option opts [Integer] :limit - the maximum number of failures returned (ex. pagination)
-      # @return [Array<Hash>, Hash{Symbol=>Array<Hash>}]
+      # @return [Array<Resque::Failure>, Hash{Symbol=>Array<Resque::Failure>}]
       def self.all(opts = {})
         []
       end
@@ -59,20 +80,50 @@ module Resque
       def self.url
       end
 
-      # Clear all failure objects
-      # @overload clear(queue = nil)
-      #   @param queue [#to_s]
-      def self.clear(*args)
+      # Clear all failure objects from the given queue
+      # @param queue [#to_s] Name of queue to clear
+      def self.clear(queue = nil)
       end
 
-      # @overload self.requeue(index)
-      # @param index [Integer]
-      def self.requeue(index, queue = :failed)
+      # @overload requeue(id, [:queue => :foo_failed])
+      #   Requeue the job for the failure object with the given id (optionally limited by queue)
+      #   @param id [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @return [Resque::Job] The job that was created from the #retry
+      # @overload requeue(id, id, ..., [:queue => :foo_failed])
+      #   Requeue the jobs for the failure objects with the given ids (optionally limited by queue)
+      #   @param ids [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @return [Array<Resque::Job>] The jobs created from #retry
+      def self.requeue(*args)
       end
 
-      # @overload self.remove(index)
-      # @param index [Integer]
-      def self.remove(index, queue = :failed)
+      # @overload requeue_to(id, [:queue => :foo_failed], queue_name)
+      #   Requeue the job for the failure object with the given id (optionally limited by queue) to the given queue
+      #   @param id [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @param queue_name [#to_s] The name of the queue to push the job to
+      #   @return [Resque::Job] The job that was created from the #retry
+      # @overload requeue_to(id, id, ..., [:queue => :foo_failed], queue_name)
+      #   Requeue the jobs for the failure objects with the given ids (optionally limited by queue) to the given queue name
+      #   @param ids [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @param queue_name [#to_s] The name of the queue to push the jobs to
+      #   @return [Array<Resque::Job>] The jobs created from #retry
+      def self.requeue_to(*args, queue_name)
+      end
+
+      # @overload remove(id, [:queue => :foo_failed])
+      #   Remove the failure object with the given id (optionally limited by queue)
+      #   @param id [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @return [void]
+      # @overload remove(id, id, ..., [:queue => :foo_failed])
+      #   Remove the failure objects with the given ids (optionally limited by queue)
+      #   @param ids [#to_s] (see Resque::Failure::Base::find)
+      #   @param opts [#to_s] (see Resque::Failure::Base::find)
+      #   @return [void]
+      def self.remove(*args)
       end
 
       private

@@ -16,8 +16,9 @@ describe Resque::Failure do
   describe '::create' do
     it 'initializes and creates a new Failure instance with the given options' do
       failure = save_failure :queue => :queue1
-      result = Resque.backend.store.lindex(:queue1_failed, 0)
+      result = Resque.backend.store.hget(:queue1_failed, failure.redis_id)
       assert_match failure.queue.to_s, result
+      assert_match failure.redis_id.to_s, result
       assert_instance_of Resque::Failure, failure
     end
   end
@@ -36,25 +37,63 @@ describe Resque::Failure do
     end
   end
 
+  describe '::failure_ids_queue_name' do
+    it 'returns the failure ids queue name given a failure queue name' do
+      assert_equal 'foo_failed_ids', Resque::Failure.failure_ids_queue_name('foo_failed')
+    end
+  end
+
   describe '::job_queue_name' do
     it 'returns the normal queue name given a failure queue name' do
       assert_equal 'foo', Resque::Failure.job_queue_name('foo_failed')
     end
   end
 
-  describe '::list_range' do
-    it 'returns instances of the Resque::Failure class' do
-      save_failure
-      result = Resque::Failure.list_range :queue1_failed
-      assert_instance_of Resque::Failure, result
+  describe '::list_ids_range' do
+    it 'returns the ids for failures from the given queue with the given start/offset' do
+      failures = 4.times.map { save_failure }
+      target_ids = failures[1, 2].map { |f| f.redis_id.to_s }
+      results = Resque::Failure.list_ids_range :queue1_failed_ids, 1, 2
+      assert_equal target_ids, results
     end
   end
 
-  describe '::full_list' do
-    it 'returns instances of the Resque::Failure class' do
-      save_failure
-      result = Resque::Failure.full_list :queue1_failed
-      assert_instance_of Resque::Failure, result.first
+  describe '::hash_find' do
+    it 'returns an array of failures with the given ids from the given queue' do
+      failures = 3.times.map { save_failure }
+      target_ids = failures.take(2).map(&:redis_id)
+      results = Resque::Failure.hash_find *target_ids, :queue1_failed
+      assert_instance_of Resque::Failure, results.first
+      assert_equal 2, results.size
+      assert_equal target_ids, results.map(&:redis_id)
+    end
+
+    it 'returns an array with one failure with the given id from the given queue' do
+      failure = save_failure
+      results = Resque::Failure.hash_find failure.redis_id, :queue1_failed
+      assert_equal 1, results.size
+      assert_instance_of Resque::Failure, results.first
+    end
+
+    it 'returns an empty array when the given id does not exist in the queue' do
+      failure = save_failure
+      results = Resque::Failure.hash_find (failure.redis_id + 1), :queue1_failed
+      assert_empty results
+    end
+  end
+
+  describe '::full_hash' do
+    it 'returns an array of failures from the given queue' do
+      failures = 3.times.map { save_failure }
+      results = Resque::Failure.full_hash :queue1_failed
+      assert_instance_of Resque::Failure, results.first
+      assert_equal 3, results.size
+      assert_equal failures.map(&:redis_id), results.map(&:redis_id).sort
+    end
+
+    it 'returns an empty array when the given queue does not exist' do
+      results = Resque::Failure.full_hash :foo_bar_baz
+      assert_empty results
     end
   end
 
@@ -137,6 +176,13 @@ describe Resque::Failure do
     end
   end
 
+  describe '#failed_id_queue' do
+    it 'returns the name of the failure id list that is storing the failure id' do
+      failure = save_failure
+      assert_equal 'queue1_failed_ids', failure.failed_id_queue
+    end
+  end
+
   describe '#class_name' do
     it 'returns the original job class name' do
       failure = save_failure
@@ -186,22 +232,15 @@ describe Resque::Failure do
   describe '#destroy' do
     it 'deletes the failure record from Redis' do
       failure = save_failure
+      refute_empty Resque::Failure.all[:queue1_failed]
       failure.destroy
-      assert_nil Resque::Failure.all[:queue1_failed].first
+      assert_empty Resque::Failure.all[:queue1_failed]
     end
 
     it 'freezes the failure object' do
       failure = save_failure
       failure.destroy
       assert failure.frozen?
-    end
-  end
-
-  describe '#clear' do
-    it 'clears the failure record in Redis (but not delete it)' do
-      failure = save_failure
-      failure.clear
-      assert_equal [''], Resque.backend.store.lrange('queue1_failed', 0, -1)
     end
   end
 

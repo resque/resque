@@ -74,8 +74,8 @@ module Resque
       # @override (see Resque::Failure::Base::clear)
       # @param (see Resque::Failure::Base::clear)
       # @return (see Resque::Failure::Base::clear)
-      def self.clear(*args)
-        classes.first.clear(*args)
+      def self.clear(queue = nil)
+        classes.first.clear(queue)
       end
 
       # @override (see Resque::Failure::Base::requeue)
@@ -88,8 +88,8 @@ module Resque
       # @override (see Resque::Failure::Base::remove)
       # @param (see Resque::Failure::Base::remove)
       # @return (see Resque::Failure::Base::remove)
-      def self.remove(index, queue = :failed)
-        classes.each { |klass| klass.remove(index, queue) }
+      def self.remove(*args)
+        classes.each { |klass| klass.remove(*args) }
       end
     end
   end
