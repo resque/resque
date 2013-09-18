@@ -54,14 +54,6 @@ module Resque
         classes.first.slice(*args)
       end
 
-      # Iterate across failed objects
-      # @override (see Resque::Failure::Each#each)
-      # @param (see Resque::Failure::Each#each)
-      # @return (see Resque::Failure::Each#each)
-      def self.each(*args, &block)
-        classes.first.each(*args, &block)
-      end
-
       # A URL where someone can go to view failures.
       # @override (see Resque::Failure::Base::url)
       # @param (see Resque::Failure::Base::url)

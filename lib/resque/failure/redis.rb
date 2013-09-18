@@ -1,12 +1,10 @@
 require 'time'
-require 'resque/failure/each'
 
 module Resque
   class Failure
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class Redis < Base
-      extend Each
 
       # @overload (see Resque::Failure::Base#save)
       # @param (see Resque::Failure::Base#save)

@@ -69,11 +69,6 @@ module Resque
         []
       end
 
-      # Iterate across failed objects
-      # @overload (see Resque::Failure::Each#each)
-      def self.each(*args)
-      end
-
       # A URL where someone can go to view failures.
       # @return [String] if backend supports web interface
       # @return [nil] if backend does not support a web interface

@@ -1,4 +1,3 @@
-require 'resque/failure/each'
 require 'set'
 
 module Resque
@@ -6,7 +5,6 @@ module Resque
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class RedisMultiQueue < Base
-      extend Each
 
       # @overload (see Resque::Failure::Base#save)
       # @param (see Resque::Failure::Base#save)
