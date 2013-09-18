@@ -14,9 +14,9 @@ describe Resque::Failure::Redis do
     end
 
     it "saves the failure's redis_id to the :failed_ids list" do
-      assert_equal 0, Resque.backend.store.llen(:failed_ids)
+      assert_equal 0, Resque.backend.store.zcard(:failed_ids)
       save_failure
-      assert_equal 1, Resque.backend.store.llen(:failed_ids)
+      assert_equal 1, Resque.backend.store.zcard(:failed_ids)
     end
   end
 
@@ -170,10 +170,10 @@ describe Resque::Failure::Redis do
       save_failure
       failure_ids = 2.times.map { save_failure.redis_id }
 
-      assert_equal 3, Resque.backend.store.llen(:failed_ids)
+      assert_equal 3, Resque.backend.store.zcard(:failed_ids)
       assert_equal 3, Resque.backend.store.hlen(:failed)
       Resque::Failure::Redis.remove *failure_ids
-      assert_equal 1, Resque.backend.store.llen(:failed_ids)
+      assert_equal 1, Resque.backend.store.zcard(:failed_ids)
       assert_equal 1, Resque.backend.store.hlen(:failed)
     end
   end

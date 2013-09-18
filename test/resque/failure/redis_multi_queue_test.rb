@@ -19,9 +19,9 @@ describe Resque::Failure::RedisMultiQueue do
     end
 
     it "saves the failure's redis_id to the failed queue ids list" do
-      assert_equal 0, Resque.backend.store.llen(:queue1_failed_ids)
+      assert_equal 0, Resque.backend.store.zcard(:queue1_failed_ids)
       save_failure
-      assert_equal 1, Resque.backend.store.llen(:queue1_failed_ids)
+      assert_equal 1, Resque.backend.store.zcard(:queue1_failed_ids)
     end
 
     it 'saves the failed queue name to the :failed_queues set' do
@@ -193,11 +193,11 @@ describe Resque::Failure::RedisMultiQueue do
       save_failure
 
       assert_equal 2, Resque::Failure.count('queue1_failed')
-      assert_equal 2, Resque.backend.store.llen('queue1_failed_ids')
+      assert_equal 2, Resque.backend.store.zcard('queue1_failed_ids')
       assert_equal 1, Resque.backend.store.scard('failed_queues')
       Resque::Failure::RedisMultiQueue.clear('queue1_failed')
       assert_equal 0, Resque::Failure.count('queue1_failed')
-      assert_equal 0, Resque.backend.store.llen('queue1_failed_ids')
+      assert_equal 0, Resque.backend.store.zcard('queue1_failed_ids')
       assert_equal 0, Resque.backend.store.scard('failed_queues')
     end
   end
@@ -208,10 +208,10 @@ describe Resque::Failure::RedisMultiQueue do
       failure_ids = 2.times.map { save_failure.redis_id }
 
       assert_equal 3, Resque::Failure.count('queue1_failed')
-      assert_equal 3, Resque.backend.store.llen('queue1_failed_ids')
+      assert_equal 3, Resque.backend.store.zcard('queue1_failed_ids')
       Resque::Failure::RedisMultiQueue.remove *failure_ids
       assert_equal 1, Resque::Failure.count('queue1_failed')
-      assert_equal 1, Resque.backend.store.llen('queue1_failed_ids')
+      assert_equal 1, Resque.backend.store.zcard('queue1_failed_ids')
     end
   end
 
