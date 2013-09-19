@@ -228,19 +228,56 @@ module Resque
   end
 
   # Does the dirty work of fetching a range of items from a Redis list
-  # and converting them into Ruby objects.
-  # @param queue (see #queue)
+  # and converting them into Ruby objects. Accepts an optional block for
+  # additional processing which receives the record hash.
+  # @param key (see #queue)
   # @param start [Integer]
   # @param count [Integer]
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
   # @return [Array<Hash<String,Object>]
-  def list_range(key, start = 0, count = 1)
+  def list_range(key, start = 0, count = 1, &block)
     if count == 1
-      decode(backend.store.lindex(key, start))
+      result = backend.store.lindex(key, start)
+      process_results(result, &block).first
     else
-      Array(backend.store.lrange(key, start, start+count-1)).map do |item|
-        decode(item)
-      end
+      results = backend.store.lrange(key, start, start+count-1)
+      process_results results, &block
     end
+  end
+
+  # Retrieves the complete list from Redis with the given key and
+  # converts each item into a Ruby object. Accepts an optional block for
+  # additional processing which receives the record hash.
+  # @param key (see #queue)
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
+  # @return [Array<Hash{String=>Object}>]
+  def full_list(key, &block)
+    results = backend.store.lrange(key, 0, -1)
+    process_results results, &block
+  end
+
+  # Retrieves items from a Redis hash by field then converts each item to a
+  # Ruby object. Accepts an optional block for additonal processing which
+  # receives the record hash.
+  # @param ids [#to_s] The id(s) of the records to retrieve
+  # @param key [#to_s] The name of the Redis key for the hash
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
+  # @return [Array<Hash{String=>Object}>]
+  def hash_find(*ids, key, &block)
+    return [] if ids.empty?
+    results = backend.store.hmget(key, *ids).compact
+    process_results results, &block
+  end
+
+  # Retrieves all values from a Redis hash then converts each item to a
+  # Ruby object. Accepts an optional block for additonal processing which
+  # receives the record hash.
+  # @param key [#to_s] The name of the Redis hash key
+  # @yieldparam item [Hash{String=>Object}] The decoded record from Redis.
+  # @return [Array<Hash{String=>Object}>]
+  def full_hash(key, &block)
+    results = backend.store.hvals key
+    process_results results, &block
   end
 
   # Returns an array of all known Resque queues as strings.
@@ -445,7 +482,7 @@ module Resque
   # The total number of failed jobs in the failed queue
   # @return [Integer]
   def failed_job_count
-    Resque.backend.store.llen(:failed).to_i
+    Resque::Failure.count
   end
 
   # The environment string
@@ -460,6 +497,21 @@ module Resque
   def keys
     backend.store.keys("*").map do |key|
       key.sub("#{backend.store.namespace}:", '')
+    end
+  end
+
+  private
+
+  # Decodes raw result objects from Redis and optionally yields them to a block
+  # @api private
+  def process_results(results, &block)
+    Array(results).map do |item|
+      result = decode(item)
+      if block_given?
+        yield result
+      else
+        result
+      end
     end
   end
 end

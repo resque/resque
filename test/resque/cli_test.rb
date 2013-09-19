@@ -66,5 +66,37 @@ describe Resque::CLI do
       end
     end
   end
+
+  describe 'migrate_failures' do
+    it 'migrates existing failure queues from lists to hashes with ids' do
+      redis = Resque.backend.store
+      redis.flushall
+
+      redis.pipelined do
+        3.times do
+          failure = Resque::Failure.new(
+            :raw_exception => Exception.new,
+            :queue => 'awesome',
+            :payload => { 'class' => 'George', 'args' => 'Harrison' }
+          )
+          redis.rpush :failed, failure.data
+          redis.rpush :foo_failed, failure.data
+          redis.sadd :failed_queues, :foo_failed
+        end
+      end
+
+      cli = Resque::CLI.new
+      out, _ = capture_io { cli.migrate_failures }
+      assert_match /Done!/, out.chomp
+      assert_equal 'hash', redis.type(:failed)
+      assert_equal 'hash', redis.type(:foo_failed)
+      assert_equal 3, redis.hlen(:failed)
+      assert_equal 3, redis.zcard(:failed_ids)
+      assert_equal 3, redis.hlen(:foo_failed)
+      assert_equal 3, redis.zcard(:foo_failed_ids)
+
+      redis.flushall
+    end
+  end
 end
 

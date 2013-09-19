@@ -86,11 +86,37 @@ module Resque
       require 'resque/failure/redis'
 
       warn "Sorting #{Resque::Failure.count} failures..."
-      Resque::Failure.each(0, Resque::Failure.count) do |_, failure|
-        data = Resque.encode(failure)
-        Resque.backend.store.rpush(Resque::Failure.failure_queue_name(failure['queue']), data)
+      Resque::Failure.all do |failure|
+        Resque::Failure::RedisMultiQueue.save(failure)
       end
       warn "done!"
+    end
+
+    desc "migrate_failures", "Migrate existing failure queues from lists to hashes with ids"
+    def migrate_failures
+      require 'resque/failure/redis_multi_queue'
+
+      redis = Resque.backend.store
+      failure_queues = (Resque::Failure::Redis.queues +
+        Resque::Failure::RedisMultiQueue.queues).uniq
+
+      failure_queues.each do |failure_queue|
+        if redis.exists(failure_queue) && redis.type(failure_queue) == 'list'
+          puts "Migrating :#{failure_queue} failure queue..."
+          temp_queue = "#{failure_queue}_migrating"
+          failure_ids_queue = Resque::Failure.failure_ids_queue_name failure_queue
+
+          redis.lrange(failure_queue, 0, -1).each do |failure_string|
+            id = Resque::Failure.next_failure_id
+            redis.hset temp_queue, id, failure_string
+            redis.zadd failure_ids_queue, id, id
+          end
+
+          redis.rename temp_queue, failure_queue
+        end
+      end
+
+      puts 'Done!'
     end
 
 
