@@ -170,7 +170,7 @@ module Resque
     # @return (see Resque::ChildProcess#kill)
     def shutdown!
       shutdown
-      @child.kill
+      @child.kill if @child
     end
 
     # Should this worker shutdown as soon as current job is finished?
