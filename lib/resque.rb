@@ -105,7 +105,7 @@ module Resque
   # @return [#warn,#debug,#info,#unknown,#fatal,#error] duck-typed ::Logger
   attr_accessor :logger
 
-  extend Forwardable
+  extend ::Forwardable
 
   @hook_register = HookRegister.new
 
