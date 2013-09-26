@@ -1,3 +1,7 @@
+## 1.25.1 (2013-9-26)
+
+* Actually require Forwardable from the standard library.
+
 ## 1.25.0 (TBD)
 * Updates fork method so [resque-multi-job-forks](https://github.com/stulentsev/resque-multi-job-forks)
   monkey patching works again. See discussion at https://github.com/defunkt/resque/pull/895 for more
