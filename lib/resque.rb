@@ -113,6 +113,22 @@ module Resque
   # Set or retrieve the current logger object
   attr_accessor :logger
 
+  # The `after_background` hook will be run in the **parent** process
+  # only once, right after the process was put into the background and before
+  # `before_first_fork` will run. Be careful- any changes you make will be 
+  # permanent for the lifespan of the worker.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def after_background(&block)
+    block ? register_hook(:after_background, block) : hooks(:after_background)
+  end
+
+  # Register a before_first_fork proc.
+  def after_background=(block)
+    register_hook(:after_background, block)
+  end
+
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
   # changes you make will be permanent for the lifespan of the
