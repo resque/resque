@@ -55,9 +55,23 @@ module Resque
         []
       end
 
+      # Returns an array of all failure objects.
+      # @param [Hash] opts The options to filter the failures by. When omitted, returns all failures across all failure queues.
+      # @option opts [String, Symbol, Array<String, Symbol>] :queue - the name(s) of the queue(s) to filter by
+      # @option opts [String, Array<String>] :class_name - the name of the class(es) to filter by
+      # @option opts [Integer] :offset - the number of failures to offset the results by (ex. pagination)
+      # @option opts [Integer] :limit - the maximum number of failures returned (ex. pagination)
+      # @return [Array<Hash>, Hash{Symbol=>Array<Hash>}]
+      def self.all(opts = {})
+        []
+      end
+
       # Returns a paginated array of failure objects.
+      # @param offset [Integer] The index to begin retrieving records from the Redis list
+      # @param limit [Integer] The maximum number of records to return
+      # @param queue [#to_s] The queue to retrieve records from
       # @return (see Resque::list_range)
-      def self.all(offset = 0, limit = 1)
+      def self.slice(offset = 0, limit = 1, queue = nil)
         []
       end
 
@@ -86,6 +100,37 @@ module Resque
       # @overload self.remove(index)
       # @param index [Integer]
       def self.remove(index)
+      end
+
+      private
+
+      # Utility method used by ::all.
+      # Filters the given set of failures by class name(s).
+      # @api private
+      def self.filter_by_class_name_from(collection, class_name)
+        class_names = Set.new Array(class_name)
+        if collection.is_a? Array
+          collection.select! do |failures|
+            failures['payload'] && class_names.include?(failures['payload']['class'])
+          end
+        else
+          collection.each do |queue, failures|
+            filter_by_class_name_from(failures, class_name)
+          end
+        end
+      end
+
+      # Utility method used by ::all.
+      # Calls ::slice with the provided options.
+      # @api private
+      def self.slice_from_options(opts)
+        slice_defaults = {
+          :offset => 0,
+          :limit => -1,
+          :queue => queues
+        }
+        opts = slice_defaults.merge(opts)
+        slice(opts[:offset], opts[:limit], opts[:queue])
       end
     end
   end
