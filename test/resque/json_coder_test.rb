@@ -26,4 +26,3 @@ describe Resque::JsonCoder do
     end
   end
 end
-

@@ -1,11 +1,11 @@
 require 'test_helper'
 
 describe Resque::Config do
-  
+
   describe '#initialize' do
     describe 'with empty hash' do
       let(:args_hash) { {} }
-      
+
       it 'should initialize' do
         Resque::Config::new(args_hash)
       end
@@ -14,7 +14,7 @@ describe Resque::Config do
 
   describe "#redis_id" do
     let(:config) { Resque::Config.new }
-  
+
     it "redis" do
       redis = Redis.new
       config.redis = redis
