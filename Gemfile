@@ -6,6 +6,7 @@ gem "redis-namespace", :git => "https://github.com/resque/redis-namespace.git"
 group :development do
   gem 'rake'
   gem 'yard'
+  gem 'pry'
 end
 
 group :documentation do
