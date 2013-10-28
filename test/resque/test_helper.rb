@@ -9,6 +9,7 @@ require 'coveralls'
 Coveralls.wear!
 
 require 'minitest/autorun'
+require 'minitest/stub_const'
 
 ##
 # Add helper methods to Kernel
