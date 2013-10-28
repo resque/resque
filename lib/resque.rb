@@ -70,6 +70,7 @@ module Resque
   #   4. A Redis URL String 'redis://host:port'
   #   5. An instance of `Redis`, `Redis::Client`, `Redis::DistRedis`,
   #      or `Redis::Namespace`.
+  #   6. An Hash of a redis connection {:host => 'localhost', :port => 6379, :db => 0}
   def redis=(server)
     case server
     when String
@@ -86,6 +87,8 @@ module Resque
       @redis = Redis::Namespace.new(namespace, :redis => redis)
     when Redis::Namespace
       @redis = server
+    when Hash
+      @redis = Redis::Namespace.new(:resque, :redis => Redis.new(server))
     else
       @redis = Redis::Namespace.new(:resque, :redis => server)
     end
@@ -359,7 +362,7 @@ module Resque
     Plugin.after_dequeue_hooks(klass).each do |hook|
       klass.send(hook, *args)
     end
-    
+
     destroyed
   end
 
