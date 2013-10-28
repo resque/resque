@@ -3,6 +3,7 @@ require 'erb'
 require 'resque'
 require 'resque/version'
 require 'time'
+require 'yaml'
 
 if defined? Encoding
   Encoding.default_external = Encoding::UTF_8
