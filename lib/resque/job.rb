@@ -96,7 +96,7 @@ module Resque
       coder = Resque.coder
       redis = Resque.backend.store
       klass = klass.to_s
-      
+
       destroyed_count = 0
 
       destroyed_count = process_queue(queue, coder, redis, klass, args) do |decoded, new_queue, temp_queue, requeue_queue|

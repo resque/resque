@@ -140,7 +140,7 @@ and possibly re-queue them.
 
 ## Workers
 
-You can start up a worker with 
+You can start up a worker with
 
 ```
 $ bin/resque work

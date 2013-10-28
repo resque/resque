@@ -49,7 +49,7 @@ describe Resque::Backend do
         def client
           @client ||= Class.new do
             attr_accessor :count
-            
+
             def reconnect
               @count ||= 0
               @count += 1

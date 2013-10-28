@@ -18,4 +18,3 @@ module FailingJob
     puts "Processed a job!"
   end
 end
-

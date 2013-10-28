@@ -67,4 +67,3 @@ describe Resque::CLI do
     end
   end
 end
-

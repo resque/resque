@@ -4,7 +4,7 @@ module Resque
   # A container for configuration parameters
   class Config
     attr_accessor :redis
-    
+
     # @param options [Hash<Symbol,Object>]
     # @option options [Redis::Namespace,Redis::Distributed] :redis
     def initialize(options = {})

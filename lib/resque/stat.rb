@@ -7,7 +7,7 @@ module Resque
   #   Kill a stat: Stat.clear(name)
   module Stat
     extend self
-    
+
     # Direct access to the Redis instance.
     # @return [Redis::Namespace,Redis::Distributed]
     def redis
