@@ -69,14 +69,14 @@ module Resque
         raise DecodeException, e.message, e.backtrace
       end
     end
-    
+
     # Given a word with dashes, returns a camel cased version of it.
     #
     # classify('job-name') # => 'JobName'
     def classify(dashed_word)
       dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
     end
-    
+
     # Tries to find a constant with the name specified in the argument string:
     #
     # constantize("Module") # => Module
@@ -290,6 +290,7 @@ module Resque
     # the Failure module.
     def fail(exception)
       run_failure_hooks(exception)
+      return if exception.is_a?(DontFail)
       Failure.create \
         :payload   => payload,
         :exception => exception,

@@ -10,4 +10,7 @@ module Resque
 
   # Raised when child process is TERM'd so job can rescue this to do shutdown work.
   class TermException < SignalException; end
+
+  # Raised from a on_failure hook to prevent a Resque::Failure from being created
+  class DontFail < StandardError; end
 end

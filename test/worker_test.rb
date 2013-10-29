@@ -172,6 +172,22 @@ context "Resque::Worker" do
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
   end
 
+  class ::SimpleJobWithFailureHandlingNoFail
+    def self.on_failure_record_failure(exception, *job_args)
+      @@exception = exception
+      raise Resque::DontFail.new
+    end
+  end
+
+  test "does not call failure hook" do
+    job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandlingNoFail', 'args' => ""})
+    @worker.working_on(job)
+    assert_raise(Resque::DontFail) do
+      @worker.unregister_worker
+    end
+    assert_equal 0, Resque::Failure.count
+  end
+
   class ::SimpleFailingJob
     @@exception_count = 0
 
