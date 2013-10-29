@@ -141,6 +141,7 @@ Modules are even better because jobs can use many of them.
       def on_failure_retry(e, *args)
         Logger.info "Performing #{self} caused an exception (#{e}). Retrying..."
         Resque.enqueue self, *args
+        raise Resque::DontFail.new # Don't add the failed job to the Resque::Failure backend
       end
     end
 
