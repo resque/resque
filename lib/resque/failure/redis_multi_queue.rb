@@ -80,10 +80,10 @@ module Resque
       #   @return [Array<Resque::Failure>, Hash{Symbol=>Array<Resque::Failure>}]
       def self.all(opts = {})
         failures = if opts[:offset] || opts[:limit]
-          slice_from_options opts
-        else
-          find_by_queue(opts[:queue] || queues)
-        end
+                     slice_from_options opts
+                   else
+                     find_by_queue(opts[:queue] || queues)
+                   end
 
         if opts[:class_name]
           failures = filter_by_class_name_from failures, opts[:class_name]
