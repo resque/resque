@@ -10,6 +10,7 @@ module Resque
       # @param failure [Resque::Failure] The Failure instance wrapping the failed job
       # @return [void]
       def self.save(failure)
+        raise NotImplementedError, '::save must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # @overload find(id, [:queue => :foo_failed])
@@ -31,6 +32,7 @@ module Resque
       #   @example Find multiple failures on a specific failure queue
       #     Resque::Failure.find 1, 2, 3, :queue => :foo_failed
       def self.find(*args)
+        raise NotImplementedError, '::find must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # The number of failures.
@@ -40,13 +42,13 @@ module Resque
       #                                  the provided class_name
       # @return [Integer]
       def self.count(queue = nil, class_name = nil)
-        0
+        raise NotImplementedError, '::count must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # Returns an array of all available failure queues
       # @return [Array<#to_s>]
       def self.queues
-        []
+        raise NotImplementedError, '::queues must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # Returns an array of all failure objects.
@@ -57,7 +59,7 @@ module Resque
       # @option opts [Integer] :limit - the maximum number of failures returned (ex. pagination)
       # @return [Array<Resque::Failure>, Hash{Symbol=>Array<Resque::Failure>}]
       def self.all(opts = {})
-        []
+        raise NotImplementedError, '::all must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # Returns a paginated array of failure objects.
@@ -66,18 +68,20 @@ module Resque
       # @param queue [#to_s] The queue to retrieve records from
       # @return (see Resque::list_range)
       def self.slice(offset = 0, limit = 1, queue = nil)
-        []
+        raise NotImplementedError, '::slice must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # A URL where someone can go to view failures.
       # @return [String] if backend supports web interface
       # @return [nil] if backend does not support a web interface
       def self.url
+        raise NotImplementedError, '::url must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # Clear all failure objects from the given queue
       # @param queue [#to_s] Name of queue to clear
       def self.clear(queue = nil)
+        raise NotImplementedError, '::clear must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # @overload requeue(id, [:queue => :foo_failed])
@@ -91,6 +95,7 @@ module Resque
       #   @param opts [#to_s] (see Resque::Failure::Base::find)
       #   @return [Array<Resque::Job>] The jobs created from #retry
       def self.requeue(*args)
+        raise NotImplementedError, '::requeue must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # @overload requeue_to(id, [:queue => :foo_failed], queue_name)
@@ -106,6 +111,7 @@ module Resque
       #   @param queue_name [#to_s] The name of the queue to push the jobs to
       #   @return [Array<Resque::Job>] The jobs created from #retry
       def self.requeue_to(*args, queue_name)
+        raise NotImplementedError, '::requeue_to must be implemented in subclasses of Resque::Failure::Base'
       end
 
       # @overload remove(id, [:queue => :foo_failed])
@@ -119,6 +125,7 @@ module Resque
       #   @param opts [#to_s] (see Resque::Failure::Base::find)
       #   @return [void]
       def self.remove(*args)
+        raise NotImplementedError, '::remove must be implemented in subclasses of Resque::Failure::Base'
       end
 
       private
