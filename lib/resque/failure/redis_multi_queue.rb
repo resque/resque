@@ -74,7 +74,7 @@ module Resque
       #
       #   @param [Hash] opts The options to filter the failures by. When omitted, returns all failures across all failure queues.
       #   @option opts [String, Symbol, Array<String, Symbol>] :queue - the name(s) of the queue(s) to filter by
-      #   @option opts [String, Array<String>] :class_name - the name of the class(es) to filter by
+      #   @option opts [String, Array<String>] :class_name - the name of the class(es) to filter by (NOTE: offset and limit will be applied before filtering by class name)
       #   @option opts [Integer] :offset - the number of failures to offset the results by (ex. pagination)
       #   @option opts [Integer] :limit - the maximum number of failures returned (ex. pagination)
       #   @return [Array<Resque::Failure>, Hash{Symbol=>Array<Resque::Failure>}]
