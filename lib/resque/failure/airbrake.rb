@@ -31,8 +31,9 @@ module Resque
         )
       end
 
-      # Returns the payload class's name, underscored.
+      # Returns the payload class' name, underscored.
       # This is used internally by {#save}
+      # @param failure [Resque::Failure]
       # @return [String]
       # @api private
       def action(failure)

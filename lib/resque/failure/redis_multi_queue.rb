@@ -188,7 +188,14 @@ module Resque
       private
 
       # Utility method used by ::all.
-      # Finds failures for the given queue(s)
+      # @overload find_by_queue(:foo_queue)
+      #   Finds failures for the given queue
+      #   @param queue [String, Symbol] the name of the failure queue to retrieve
+      #   @return [Array<Resque::Failure>]
+      # @overload find_by_queue([:foo_queue, :bar_queue])
+      #   Finds failures for the given queues
+      #   @param queue [Array<String, Symbol>] the names of the failure queues to retrieve
+      #   @return [Hash{[String, Symbol] => Array<Resque::Failure>}]
       # @api private
       def self.find_by_queue(queue)
         if queue.is_a? Array

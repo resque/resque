@@ -131,7 +131,16 @@ module Resque
       private
 
       # Utility method used by ::all.
-      # Filters the given set of failures by class name(s).
+      # @overload filter_by_class_name_from([failure, failure, ...], 'FooClass')
+      #   Filters the given array of failures by class name(s).
+      #   @param collection [Array<Resque::Failure>] An array of failure objects to filter
+      #   @param class_name [String, Array<String>] The class name(s) to filter by
+      #   @return [Array<Resque::Failure>]
+      # @overload filter_by_class_name_from({:foo_queue => [failure, ...], :bar_queue => [failure, ...]}, ['FooClass', 'BarClass'])
+      #   Filters the given hash of failures by class name(s).
+      #   @param collection [Hash{Symbol => Array<Resque::Failure>}] An array of failure objects to filter
+      #   @param class_name [String, Array<String>] The class name(s) to filter by
+      #   @return [Hash{Symbol => Array<Resque::Failure>}]
       # @api private
       def self.filter_by_class_name_from(collection, class_name)
         class_names = Set.new Array(class_name)
@@ -151,6 +160,7 @@ module Resque
 
       # Utility method used by ::all.
       # Calls ::slice with the provided options.
+      # @param opts [Hash{Symbol => Object}]
       # @api private
       def self.slice_from_options(opts)
         slice_defaults = {

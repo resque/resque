@@ -367,6 +367,8 @@ module Resque
     end
 
     # Instantiates new failure instances with raw Redis query results
+    # @param item [Hash{String=>Object}] serialized result from Redis
+    # @param failed_queue [String, Symbol] the name of the failure queue this record was retrieved from
     # @return [Resque::Failure]
     # @api private
     def self.failure_for(item, failed_queue)
