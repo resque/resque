@@ -135,14 +135,17 @@ module Resque
       # @api private
       def self.filter_by_class_name_from(collection, class_name)
         class_names = Set.new Array(class_name)
-        if collection.is_a? Array
-          collection.select! do |failure|
+        case collection
+        when Array
+          collection.select do |failure|
             class_names.include?(failure.class_name)
           end
-        else
-          collection.each do |queue, failure|
-            filter_by_class_name_from(failure, class_name)
+        when Hash
+          collection.each_with_object({}) do |(queue, failures), hash|
+            hash[queue] = filter_by_class_name_from(failures, class_name)
           end
+        else
+          raise TypeError, "expected Array or Hash, #{collection.class} given."
         end
       end
 
