@@ -449,21 +449,43 @@ context "Resque::Worker" do
   end
 
   test "cleans up dead worker info on start (crash recovery)" do
-    # first we fake out two dead workers
+    # first we fake out several dead workers
+    # 1: matches queue and hostname; gets pruned.
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     workerA.register_worker
 
-    workerB = Resque::Worker.new(:high, :low)
-    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:2:high,low")
+    # 2. matches queue but not hostname; no prune.
+    workerB = Resque::Worker.new(:jobs)
+    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:2:jobs")
     workerB.register_worker
 
-    assert_equal 2, Resque.workers.size
+    # 3. matches hostname but not queue; no prune.
+    workerB = Resque::Worker.new(:high)
+    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:3:high")
+    workerB.register_worker
+
+    # 4. matches neither hostname nor queue; no prune.
+    workerB = Resque::Worker.new(:high)
+    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:4:high")
+    workerB.register_worker
+
+    assert_equal 4, Resque.workers.size
 
     # then we prune them
-    @worker.work(0) do
-      assert_equal 1, Resque.workers.size
-    end
+    @worker.work(0)
+
+    worker_strings = Resque::Worker.all.map(&:to_s)
+
+    assert_equal 3, Resque.workers.size
+
+    # pruned
+    assert !worker_strings.include?("#{`hostname`.chomp}:1:jobs")
+
+    # not pruned
+    assert worker_strings.include?("#{`hostname`.chomp}-foo:2:jobs")
+    assert worker_strings.include?("#{`hostname`.chomp}:3:high")
+    assert worker_strings.include?("#{`hostname`.chomp}-foo:4:high")
   end
 
   test "worker_pids returns pids" do
