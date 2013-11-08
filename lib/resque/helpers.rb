@@ -23,6 +23,12 @@ module Resque
 
     # Direct access to the Redis instance.
     def redis
+      # No infinite recursions, please.
+      # Some external libraries depend on Resque::Helpers being mixed into
+      # Resque, but this method causes recursions. If we have a super method,
+      # assume it is canonical. (see #1150)
+      return super if defined?(super)
+
       Resque.redis
     end
 
