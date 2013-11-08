@@ -131,6 +131,10 @@ class SomeIvarJob < SomeJob
   @queue = :ivar
 end
 
+class InferredWorker < SomeJob; end
+class InferredJob    < SomeJob; end
+class JobNotAmI      < SomeJob; end
+
 class NestedJob
   @queue = :nested
   def self.perform

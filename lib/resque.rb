@@ -31,6 +31,10 @@ require 'forwardable'
 module Resque
   extend self
 
+  # List of class name suffixes which will be considered to indicate
+  # a class capable of performing work
+  SUFFIXES = %w(Job Worker).freeze
+
   # Serialize an object with the current coder
   # @param object [Object] - the object you with to serialize
   # @return [String] - the serialized object
@@ -368,12 +372,13 @@ module Resque
 
   # This method will return an array of `Resque::Job` object in a queue.
   # It assumes the class you're passing it is a real Ruby class (not
-  # a string or reference) which either:
+  # a string or reference) which:
   #
   #   a) has a @queue ivar set
   #   b) responds to `queue`
+  #   c) is named semantically, e.g. 'FooBarWorker'
   #
-  # If either of those conditions are met, it will use the value obtained
+  # If any of those conditions are met, it will use the value obtained
   # from performing one of the above operations to determine the queue.
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
@@ -384,16 +389,18 @@ module Resque
     Job.queued(queue_from_class(klass), klass, *args)
   end
 
-  # Given a class, try to extrapolate an appropriate queue based on a
-  # class instance variable or `queue` method.
+  # Given a class, try to extrapolate an appropriate queue based on a class
+  # instance variable, `queue` method, or (finally) the class name
   # @param klass [Class]
   # @return [#to_s]
   def queue_from_class(klass)
-    if klass.instance_variable_defined?(:@queue)
-      klass.instance_variable_get(:@queue)
-    else
-      (klass.respond_to?(:queue) and klass.queue)
-    end
+    queue   = klass.instance_variable_get(:@queue)
+    queue ||= klass.queue if klass.respond_to?(:queue)
+
+    suffix  = /(#{SUFFIXES.join('|')})$/
+    queue ||= klass.to_s.gsub(suffix,'').gsub(/(.)([A-Z])/,'\1_\2').downcase if klass.to_s =~ suffix
+
+    queue
   end
 
   # Validates if the given klass could be a valid Resque job

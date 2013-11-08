@@ -150,14 +150,110 @@ describe "Resque" do
 
   it "needs to infer a queue with enqueue" do
     assert_raises Resque::NoQueueError do
-      Resque.enqueue(SomeJob, 20, '/tmp')
+      Resque.enqueue(JobNotAmI, 20, '/tmp')
     end
   end
 
   it "validates job for queue presence" do
     assert_raises Resque::NoQueueError do
-      Resque.validate(SomeJob)
+      Resque.validate(JobNotAmI)
     end
+  end
+
+  it "can put jobs on a queue inferred from class name ending in 'Worker'" do
+    assert_equal 0, Resque.size(:inferred)
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+
+    job = Resque::Job.reserve(:inferred)
+
+    assert_kind_of Resque::Job, job
+    assert_equal InferredWorker, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+
+    assert Resque::Job.reserve(:inferred)
+    assert_equal nil, Resque::Job.reserve(:inferred)
+  end
+
+  it "can put jobs on a queue inferred from class name ending in 'Job'" do
+    assert_equal 0, Resque.size(:inferred)
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+
+    job = Resque::Job.reserve(:inferred)
+
+    assert_kind_of Resque::Job, job
+    assert_equal InferredJob, job.payload_class
+    assert_equal 20, job.args[0]
+    assert_equal '/tmp', job.args[1]
+
+    assert Resque::Job.reserve(:inferred)
+    assert_equal nil, Resque::Job.reserve(:inferred)
+  end
+
+  it "can remove jobs from a queue inferred from class name ending in 'Worker'" do
+    assert_equal 0, Resque.size(:inferred)
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+    assert Resque.enqueue(InferredWorker, 30, '/tmp')
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+    assert Resque::Job.create(:inferred, 'blah-job', 20, '/tmp')
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+    assert_equal 5, Resque.size(:inferred)
+
+    assert_equal 1, Resque.dequeue(InferredWorker, 30, '/tmp')
+    assert_equal 4, Resque.size(:inferred)
+    assert_equal 3, Resque.dequeue(InferredWorker)
+    assert_equal 1, Resque.size(:inferred)
+  end
+
+  it "can remove jobs from a queue inferred from class name ending in 'Job'" do
+    assert_equal 0, Resque.size(:inferred)
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+    assert Resque.enqueue(InferredJob, 30, '/tmp')
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+    assert Resque::Job.create(:inferred, 'blah-job', 20, '/tmp')
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+    assert_equal 5, Resque.size(:inferred)
+
+    assert_equal 1, Resque.dequeue(InferredJob, 30, '/tmp')
+    assert_equal 4, Resque.size(:inferred)
+    assert_equal 3, Resque.dequeue(InferredJob)
+    assert_equal 1, Resque.size(:inferred)
+  end
+
+  it "can find queued jobs inferred from class name ending in 'Worker'" do
+    assert Resque.enqueue(InferredWorker, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(InferredWorker, 30, '/tmp')
+
+    expected_jobs = [
+      Resque::Job.new(:inferred, {'class' => InferredWorker, 'args' => [20, '/tmp']}),
+      Resque::Job.new(:inferred, {'class' => InferredWorker, 'args' => [30, '/tmp']})
+    ]
+
+    #assert_equal expected_jobs, Resque.queued(InferredWorker)
+    assert_equal 2, Resque.queued(InferredWorker).size
+    assert_equal 1, Resque.queued(InferredWorker, 20, '/tmp').size
+    assert_equal 1, Resque.queued(InferredWorker, 30, '/tmp').size
+    assert_equal 1, Resque.queued(SomeMethodJob, 20, '/tmp').size
+  end
+
+  it "can find queued jobs inferred from class name ending in 'Job'" do
+    assert Resque.enqueue(InferredJob, 20, '/tmp')
+    assert Resque.enqueue(SomeMethodJob, 20, '/tmp')
+    assert Resque.enqueue(InferredJob, 30, '/tmp')
+
+    expected_jobs = [
+      Resque::Job.new(:inferred, {'class' => InferredJob, 'args' => [20, '/tmp']}),
+      Resque::Job.new(:inferred, {'class' => InferredJob, 'args' => [30, '/tmp']})
+    ]
+
+    #assert_equal expected_jobs, Resque.queued(InferredJob)
+    assert_equal 2, Resque.queued(InferredJob).size
+    assert_equal 1, Resque.queued(InferredJob, 20, '/tmp').size
+    assert_equal 1, Resque.queued(InferredJob, 30, '/tmp').size
+    assert_equal 1, Resque.queued(SomeMethodJob, 20, '/tmp').size
   end
 
   it "can put items on a queue" do
