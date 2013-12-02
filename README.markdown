@@ -210,7 +210,7 @@ loop do
   if job = reserve
     job.process
   else
-    sleep 5 # Polling frequency = 5 
+    sleep 5 # Polling frequency = 5
   end
 end
 shutdown
@@ -277,7 +277,7 @@ worker is started.
 
 ### Polling frequency
 
-You can pass an INTERVAL option which is a float representing the polling frequency. 
+You can pass an INTERVAL option which is a float representing the polling frequency.
 The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
 
     $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
@@ -818,7 +818,7 @@ sort it out.
 Contributing
 ------------
 
-Read the [Contributing][cb] wiki page first. 
+Read the [Contributing][cb] wiki page first.
 
 Once you've made your great commits:
 
@@ -844,7 +844,7 @@ Meta
 
 * Code: `git clone git://github.com/resque/resque.git`
 * Home: <http://github.com/resque/resque>
-* Docs: <http://resque.github.com/resque/>
+* Docs: <http://rubydoc.info/gems/resque>
 * Bugs: <http://github.com/resque/resque/issues>
 * List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
