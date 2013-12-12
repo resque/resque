@@ -135,6 +135,26 @@ describe "Resque::Worker" do
     assert_equal('StandardError', Resque::Failure.all['exception'])
   end
 
+  test "does not mask exception when timeout getting job metadata" do
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    @worker.working_on(job)
+    Resque.redis.stubs(:get).raises(Redis::CannotConnectError)
+
+    error_message = "Something bad happened"
+    exception_caught = assert_raises Redis::CannotConnectError do
+      @worker.unregister_worker(raised_exception(StandardError,error_message))
+    end
+    assert_match /StandardError/, exception_caught.message
+    assert_match /#{error_message}/, exception_caught.message
+    assert_match /Redis::CannotConnectError/, exception_caught.message
+  end
+
+  def raised_exception(klass,message)
+    raise klass,message
+  rescue Exception => ex
+    ex
+  end
+
   class ::SimpleJobWithFailureHandling
     def self.on_failure_record_failure(exception, *job_args)
       @@exception = exception

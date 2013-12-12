@@ -581,6 +581,15 @@ module Resque
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")
       end
+    rescue Exception => exception_while_unregistering
+      message = exception_while_unregistering.message
+      if exception
+        message << "\nOriginal Exception (#{exception.class}): #{exception.message}\n"
+        message << "  #{exception.backtrace.join("  \n")}"
+      end
+      fail(exception_while_unregistering.class,
+           message,
+           exception_while_unregistering.backtrace)
     end
 
     # Given a job, tells Redis we're working on it. Useful for seeing
