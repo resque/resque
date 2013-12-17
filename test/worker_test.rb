@@ -435,6 +435,11 @@ context "Resque::Worker" do
   test "can be found" do
     @worker.extend(AssertInWorkBlock).work(0) do
       found = Resque::Worker.find(@worker.to_s)
+
+      # we ensure that the found ivar @pid is set to the correct value since
+      # Resque::Worker#pid will use it instead of Process.pid if present
+      assert_equal @worker.pid, found.instance_variable_get(:@pid)
+
       assert_equal @worker.to_s, found.to_s
       assert found.working?
       assert_equal @worker.job, found.job
