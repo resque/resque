@@ -89,6 +89,36 @@ module PerformJob
   end
 end
 
+##
+# Helper to make Minitest::Assertion exceptions work properly
+# in the block given to Resque::Worker#work.
+#
+module AssertInWorkBlock
+  # if a block is given, ensure that it is run, and that any assertion
+  # failures that occur inside it propagate up to the test.
+  def work(*args, &block)
+    return super unless block_given?
+
+    ex = catch(:exception_in_block) do
+      block_called = nil
+      retval = super(*args) do |*bargs|
+        begin
+          block_called = true
+          block.call(*bargs)
+        rescue MiniTest::Assertion => ex
+          throw :exception_in_block, ex
+        end
+      end
+
+      raise "assertion block not called!" unless block_called
+
+      return retval
+    end
+
+    ex && raise(ex)
+  end
+end
+
 #
 # fixture classes
 #

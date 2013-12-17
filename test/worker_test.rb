@@ -331,13 +331,13 @@ context "Resque::Worker" do
   end
 
   test "inserts itself into the 'workers' list on startup" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert_equal @worker, Resque.workers[0]
     end
   end
 
   test "removes itself from the 'workers' list on shutdown" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert_equal @worker, Resque.workers[0]
     end
 
@@ -345,7 +345,7 @@ context "Resque::Worker" do
   end
 
   test "removes worker with stringified id" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       worker_id = Resque.workers[0].to_s
       Resque.remove_worker(worker_id)
       assert_equal [], Resque.workers
@@ -353,7 +353,7 @@ context "Resque::Worker" do
   end
 
   test "records what it is working on" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       task = @worker.job
       assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
       assert task['run_at']
@@ -367,7 +367,7 @@ context "Resque::Worker" do
   end
 
   test "knows when it is working" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert @worker.working?
     end
   end
@@ -378,7 +378,7 @@ context "Resque::Worker" do
   end
 
   test "knows who is working" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert_equal [@worker], Resque.working
     end
   end
@@ -413,27 +413,27 @@ context "Resque::Worker" do
 
   test "knows when it started" do
     time = Time.now
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert Time.parse(@worker.started) - time < 0.1
     end
   end
 
   test "knows whether it exists or not" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       assert Resque::Worker.exists?(@worker)
       assert !Resque::Worker.exists?('blah-blah')
     end
   end
 
   test "sets $0 while working" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       ver = Resque::Version
       assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i}", $0
     end
   end
 
   test "can be found" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       found = Resque::Worker.find(@worker.to_s)
       assert_equal @worker.to_s, found.to_s
       assert found.working?
@@ -442,7 +442,7 @@ context "Resque::Worker" do
   end
 
   test "doesn't find fakes" do
-    @worker.work(0) do
+    @worker.extend(AssertInWorkBlock).work(0) do
       found = Resque::Worker.find('blah-blah')
       assert_equal nil, found
     end
