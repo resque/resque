@@ -283,6 +283,7 @@ context "Resque::Job before_enqueue" do
   end
 
   test "a before enqueue hook that returns false should prevent the job from getting queued" do
+    Resque.remove_queue(:jobs)
     history = []
     @worker = Resque::Worker.new(:jobs)
     assert_nil Resque.enqueue(BeforeEnqueueJobAbort, history)
