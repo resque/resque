@@ -136,7 +136,7 @@ module Resque
 
   # If 'inline' is true Resque will call #perform method inline
   # without queuing it into Redis and without any Resque callbacks.
-  # The 'inline' is false Resque jobs will be put in queue regularly.
+  # If 'inline' is false Resque jobs will be put in queue regularly.
   # @return [Boolean]
   attr_writer :inline
 
