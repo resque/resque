@@ -178,8 +178,13 @@ Resque workers respond to a few different signals:
 You can configure Resque via a `.resque` file in the root of your project:
 
 ```
---queue=*
+--queues=high,med,low
+--require='some_context.rb'
+--pid_file='tmp/pids/resque.pid'
 --interval=1
+--daemon=true
+--timeout=5
+--graceful_term=false
 ```
 
 These act just like you passed them in to `bin/resque work`.
