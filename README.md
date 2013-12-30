@@ -175,21 +175,21 @@ Resque workers respond to a few different signals:
 
 ## Configuration
 
-You can configure Resque via a `.resque` file in the root of your project:
+You can configure Resque via a YAML `.resque` file in the root of your project:
 
 ```
---queues=high,med,low
---require='some_context.rb'
---pid_file='tmp/pids/resque.pid'
---interval=1
---daemon=true
---timeout=5
---graceful_term=false
+queues: 'high,med,low'
+require: 'some_context.rb'
+pid_file: 'tmp/pids/resque.pid'
+interval: 1
+daemon: true
+timeout: 5
+graceful_term: false
 ```
 
-These act just like you passed them in to `bin/resque work`.
+Then pass the configuration to the resque CLI: `bin/resque work -c='./.resque'`.
 
-You can also configure Resque via `.configure`:
+You can also configure Resque via `Resque.configure`:
 
 ```ruby
 Resque.configure do |config|
