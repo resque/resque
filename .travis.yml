@@ -1,5 +1,6 @@
 language: ruby
 script: bundle exec rake ci
+services: redis
 rvm:
   - 1.9.3
   - 2.0.0
