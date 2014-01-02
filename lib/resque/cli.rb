@@ -8,11 +8,12 @@ module Resque
     class_option :config,    :aliases => ["-c"], :type => :string
     class_option :redis,     :aliases => ["-R"], :type => :string
 
-    def initialize(args = [], opts = [], config = {})
+    def initialize(args = [], opts = {}, config = {})
       super(args, opts, config)
 
       if options[:config] && File.exists?(options[:config])
-        @options = YAML.load_file(options[:config]).symbolize_keys.merge(@options.symbolize_keys)
+        config_options = YAML.load_file(options[:config]).symbolize_keys
+        @options = @options.symbolize_keys.merge(config_options)
       end
 
       Resque.redis = options[:redis] || "localhost:6379/resque"
