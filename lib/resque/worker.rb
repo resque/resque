@@ -208,26 +208,57 @@ module Resque
     # environment, we can determine if Redis is old and clean it up a bit.
     # @return [void]
     def prune_dead_workers
-      all_workers = WorkerRegistry.all
-      coordinator = ProcessCoordinator.new
-      known_workers = coordinator.worker_pids unless all_workers.empty?
-      all_workers.each do |worker|
-        host, pid, workers_queues_raw = worker.id.split(':')
-        workers_queues = workers_queues_raw.split(",")
-        unless worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)
-          # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it.
-          # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even
-          # written in different language.
-          next
-        end
-        next unless host == hostname
-        next if known_workers.include?(pid)
-        logger.debug "Pruning dead worker: #{worker}"
-        registry = WorkerRegistry.new(worker)
-        registry.unregister
+      WorkerRegistry.all.each do |worker|
+        prune_dead_worker(worker)
       end
+    end
+
+    # Given a worker, if it's defined as prunable it gets unregistered
+    # from the WorkerRegistry
+    # @return [void]
+    def prune_dead_worker(worker)
+      if dead_worker?(worker)
+        logger.debug "Pruning dead worker: #{worker}"
+        WorkerRegistry.new(worker).unregister
+      end
+    end
+
+    # If the worker we are trying to prune does not belong to the queues
+    # we are listening to, we should not touch it.
+    #
+    # Attempt to prune a worker from different queues may easily result in
+    # an unknown class exception, since that worker could easily be even
+    # written in different language.
+    # @return [Boolean]
+    def dead_worker?(worker)
+      host, pid, workers_queues = worker.info.values_at(:host, :pid, :queues)
+
+      (worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)) &&
+        host == hostname && !known_workers.include?(pid)
+    end
+
+    # Helper to get an array of worker pids from the ProcessCoordinator
+    # @return [Array<String>]
+    def known_workers
+      ProcessCoordinator.new.worker_pids unless WorkerRegistry.all.empty?
+    end
+
+    # Returns some basic information about this worker in hash format
+    # {
+    #   :host   => String,
+    #   :pid    => String,
+    #   :queues => Array
+    # }
+    # @return [Hash<Symbol,Object>]
+    def info
+      host, pid, workers_queues_raw = id.split(':')
+      workers_queues                = workers_queues_raw.split(",")
+
+      {
+        :host   => host,
+        :pid    => pid,
+        :queues => workers_queues
+      }
     end
 
     # How many jobs has this worker processed? Returns an int.

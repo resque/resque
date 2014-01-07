@@ -151,4 +151,32 @@ describe Resque::Worker do
     end
 
   end
+
+  describe "#prune" do
+    it "removes workers from Redis that aren't running" do
+      redis = Resque.backend.store
+
+      workers = ['*', :foo].map do |queue|
+        worker = Resque::Worker.new(queue, :logger => MonoLogger.new("/dev/null"))
+        # Force registration of the worker without actually starting the worker
+        redis.pipelined do
+          redis.sadd(Resque::WorkerRegistry::REDIS_WORKERS_KEY, worker)
+        end
+        worker
+      end
+
+      coordinator = Resque::ProcessCoordinator.new
+      Resque::ProcessCoordinator.stub(:new, coordinator) do
+        coordinator.stub(:worker_pids, []) do
+          # Make sure we successfully added the worker (this is here so that if the interface
+          # changes the test will fail)
+          assert_equal workers.count, Resque::WorkerRegistry.all.count
+
+          workers.each(&:prune_dead_workers)
+
+          assert_equal 0, Resque::WorkerRegistry.all.count
+        end
+      end
+    end
+  end
 end
