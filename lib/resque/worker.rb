@@ -233,7 +233,7 @@ module Resque
     def dead_worker?(worker)
       host, pid, workers_queues = worker.info.values_at(:host, :pid, :queues)
 
-      (worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)) &&
+      (worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set) || workers_queues.empty?) &&
         host == hostname && !known_workers.include?(pid)
     end
 
