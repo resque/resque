@@ -152,7 +152,7 @@ describe Resque::Worker do
 
   end
 
-  describe "#prune" do
+  describe "#prune_dead_workers" do
     it "removes workers from Redis that aren't running" do
       redis = Resque.backend.store
 

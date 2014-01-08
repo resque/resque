@@ -209,18 +209,24 @@ module Resque
     # @return [void]
     def prune_dead_workers
       WorkerRegistry.all.each do |worker|
-        prune_dead_worker(worker)
+        prune_worker_if_dead(worker)
       end
     end
 
     # Given a worker, if it's defined as prunable it gets unregistered
     # from the WorkerRegistry
     # @return [void]
-    def prune_dead_worker(worker)
+    def prune_worker_if_dead(worker)
       if dead_worker?(worker)
         logger.debug "Pruning dead worker: #{worker}"
         WorkerRegistry.new(worker).unregister
       end
+    end
+
+    # Checks to see if another worker is able to be pruned
+    # @return [Boolean]
+    def dead_worker?(worker)
+      shares_queues?(worker) && shares_host?(worker) && unknown_worker?(worker)
     end
 
     # If the worker we are trying to prune does not belong to the queues
@@ -230,11 +236,25 @@ module Resque
     # an unknown class exception, since that worker could easily be even
     # written in different language.
     # @return [Boolean]
-    def dead_worker?(worker)
-      host, pid, workers_queues = worker.info.values_at(:host, :pid, :queues)
+    def shares_queues?(worker)
+      workers_queues = worker.info[:queues]
+      worker_queues.all_queues? ||
+        (workers_queues.to_set == worker_queues.to_set) ||
+        workers_queues.empty?
+    end
 
-      (worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set) || workers_queues.empty?) &&
-        host == hostname && !known_workers.include?(pid)
+    # Checks to see if a different worker shares a host with this worker
+    # @return [Boolean]
+    def shares_host?(worker)
+      host = worker.info[:host]
+      host == hostname
+    end
+
+    # Checks to see if the WorkerRegistry knows about this worker
+    # @return [Boolean]
+    def unknown_worker?(worker)
+      pid = worker.info[:pid]
+      !known_workers.include?(pid)
     end
 
     # Helper to get an array of worker pids from the ProcessCoordinator
