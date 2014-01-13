@@ -185,6 +185,7 @@ interval: 1
 daemon: true
 timeout: 5
 graceful_term: false
+log_file: '/var/log/resque.log'
 ```
 
 Then pass the configuration to the resque CLI: `bin/resque work -c='./.resque'`.

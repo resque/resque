@@ -17,6 +17,7 @@ module Resque
       end
 
       Resque.redis = options[:redis] || "localhost:6379/resque"
+      Resque.logger = MonoLogger.new(options[:log_file]) if options[:log_file]
     end
 
     desc "work", "Start processing jobs."
