@@ -12,6 +12,8 @@ module Resque
   #   klass = Resque::Job.constantize(job.payload['class'])
   #   klass.perform(*job.payload['args'])
   class Job
+    include Helpers
+    extend Helpers
     def redis
       Resque.redis
     end
