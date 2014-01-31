@@ -45,10 +45,6 @@ module Resque
       end
     end
 
-    # Boolean indicating whether this worker can or can not fork.
-    # Automatically set if a fork(2) fails.
-    attr_accessor :cant_fork
-
     attr_accessor :term_timeout
 
     # decide whether to use new_kill_child logic
@@ -322,7 +318,7 @@ module Resque
       return unless will_fork?
 
       # Only run before_fork hooks if we're actually going to fork
-      # (after checking @cant_fork)
+      # (after checking will_fork?)
       run_hook :before_fork, job
 
       begin
