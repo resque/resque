@@ -410,10 +410,19 @@ module Resque
     end
 
     # Kill the child and shutdown immediately.
+    # If not forking, abort this process.
     def shutdown!
       shutdown
       if term_child
-        new_kill_child
+        if fork_per_job?
+          new_kill_child
+        else
+          # Raise TermException in the same process
+          trap('TERM') do
+            # ignore subsequent terms
+          end
+          raise TermException.new("SIGTERM")
+        end
       else
         kill_child
       end
@@ -620,7 +629,11 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && !$TESTING && (ENV["FORK_PER_JOB"] != 'false')
+      !@cant_fork && !$TESTING && fork_per_job?
+    end
+
+    def fork_per_job?
+      ENV["FORK_PER_JOB"] != 'false'
     end
 
     # Returns a symbol representing the current worker state,
