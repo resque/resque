@@ -497,7 +497,7 @@ describe "Resque::Worker" do
     stub_to_fork(worker, false) do
       worker.work do
         ver = Resque::Version
-        assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
+        assert_equal "resque-#{ver}: Processing jobs since #{Time.now.iso8601} [SomeJob]", $0
       end
     end
   end

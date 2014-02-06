@@ -291,7 +291,7 @@ module Resque
     # @yieldreturn [void]
     # @return [void]
     def perform(job)
-      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
+      procline "Processing #{job.queue} since #{Time.now.iso8601} [#{job.payload_class_name}]"
       worker_hooks.run_hook :before_perform, job
       job.perform
       worker_hooks.run_hook :after_perform, job
