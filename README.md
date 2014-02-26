@@ -57,7 +57,7 @@ them. :metal:
 
 To install Resque, add the gem to your Gemfile:
 
-```
+```ruby
 gem "resque", "~> 2.0.0.pre.1", github: "resque/resque"
 ```
 
