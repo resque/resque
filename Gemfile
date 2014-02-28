@@ -37,7 +37,6 @@ platforms :rbx do
   gem 'rubysl-uri'
   gem 'rubysl-timeout'
   gem 'rubysl-zlib'
-  gem 'rubysl-json'
   gem 'rubysl-stringio'
   gem 'rubysl-test-unit'
   gem 'rubysl-mutex_m'
