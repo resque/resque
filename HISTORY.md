@@ -1,3 +1,15 @@
+## 1.25.2 (TBD)
+
+* Respect TERM_CHILD setting when not forking (@ggilder)
+* implementation of backend connection with a hash (Andrea Rossi)
+* require yaml for show_args support (@yaauie)
+* use redis-namespace 1.3 (Andrea Rossi)
+* fix DOCS link in README (@cade)
+* Fix worker prune test to actually run its assertion & cover reality. (@yaauie)
+* Eliminate infinite recursion when Resque::Helpers mixed into Resque (@yaml)
+* use ruby, avoid shelling out. google++ (@hone)
+* Failed Assertions Don't Fail Tests :rage: (@yaauie)
+
 ## 1.25.1 (2013-9-26)
 
 * Actually require Forwardable from the standard library.
@@ -8,7 +20,7 @@
   context (@jonhyman)
 * Use Redis.pipelined to group batches of redis commands.
   https://github.com/resque/resque/pull/902 (@jonhyman)
-* Fixed uninitialize constant for the module/class that contains the perform 
+* Fixed uninitialize constant for the module/class that contains the perform
   method causing job failures to no be reported, #792 (@sideshowcoder)
 * Fix Resque::Failure::Base.all to have the correct signature.
   (@rentalutions)
