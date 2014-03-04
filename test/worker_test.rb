@@ -921,6 +921,71 @@ context "Resque::Worker" do
       end
     end
 
+    test "exits with Resque::TermException when using TERM_CHILD and not forking" do
+      begin
+        class LongRunningJob
+          @queue = :long_running_job
+
+          def self.perform(run_time)
+            Resque.redis.client.reconnect # get its own connection
+            Resque.redis.rpush('term-exception-test:start', Process.pid)
+            sleep run_time
+            Resque.redis.rpush('term-exception-test:result', 'Finished Normally')
+          rescue Resque::TermException => e
+            Resque.redis.rpush('term-exception-test:result', %Q(Caught TermException: #{e.inspect}))
+          ensure
+            Resque.redis.rpush('term-exception-test:final', 'exiting.')
+          end
+        end
+
+        Resque.enqueue(LongRunningJob, 5)
+
+        worker_pid = Kernel.fork do
+          # reconnect to redis
+          Resque.redis.client.reconnect
+
+          # ensure we don't fork (in worker)
+          $TESTING = false
+          ENV['FORK_PER_JOB'] = 'false'
+
+          worker = Resque::Worker.new(:long_running_job)
+          worker.term_timeout = 1
+          worker.term_child = 1
+
+          worker.work(0)
+          exit!
+        end
+
+        # ensure the worker is started
+        start_status = Resque.redis.blpop('term-exception-test:start', 5)
+        assert_not_nil start_status
+        child_pid = start_status[1].to_i
+        assert_operator child_pid, :>, 0
+
+        # send signal to abort the worker
+        Process.kill('TERM', worker_pid)
+        Process.waitpid(worker_pid)
+
+        # wait to see how it all came down
+        result = Resque.redis.blpop('term-exception-test:result', 5)
+        assert_not_nil result
+        assert !result[1].start_with?('Finished Normally'), 'Job finished normally. Sleep not long enough?'
+        assert result[1].start_with?('Caught TermException'), 'TermException not raised in child.'
+
+        # ensure that the child pid is no longer running
+        child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
+        assert !child_still_running
+
+        # see if post-cleanup occurred.
+        post_cleanup_occurred = Resque.redis.lpop( 'term-exception-test:final' )
+        assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?'
+
+      ensure
+        remaining_keys = Resque.redis.keys('term-exception-test:*') || []
+        Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
+      end
+    end
+
     test "displays warning when not using term_child" do
       begin
         $TESTING = false

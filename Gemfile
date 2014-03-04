@@ -10,4 +10,5 @@ group :test do
   gem "activesupport", "~> 3.0"
   gem "i18n"
   gem "minitest", "4.7.0"
+  gem "json"
 end
