@@ -23,7 +23,6 @@ group :test do
   gem "json"
   gem "minitest", '4.7.0'
   gem "minitest-stub-const"
-  gem "sinatra"
   gem 'mock_redis', :git => "https://github.com/causes/mock_redis.git"
 end
 
