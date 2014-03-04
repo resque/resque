@@ -1,3 +1,7 @@
+## 1.25.3 (TBD)
+
+None yet.
+
 ## 1.25.2 (2014-3-3)
 
 * Respect TERM_CHILD setting when not forking (@ggilder)
