@@ -1,4 +1,4 @@
-## 1.25.2 (TBD)
+## 1.25.2 (2014-3-3)
 
 * Respect TERM_CHILD setting when not forking (@ggilder)
 * implementation of backend connection with a hash (Andrea Rossi)
@@ -14,7 +14,7 @@
 
 * Actually require Forwardable from the standard library.
 
-## 1.25.0 (TBD)
+## 1.25.0 (2013-4-16)
 * Updates fork method so [resque-multi-job-forks](https://github.com/stulentsev/resque-multi-job-forks)
   monkey patching works again. See discussion at https://github.com/defunkt/resque/pull/895 for more
   context (@jonhyman)
