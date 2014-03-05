@@ -68,5 +68,10 @@ module Resque
       job.methods.grep(/^before_job_create/).sort
     end
 
+    # Given an object, returns a list `after_job_complete` hook names.
+    def after_job_complete_hooks(job)
+      job.methods.grep(/^after_job_complete/).sort
+    end
+
   end
 end

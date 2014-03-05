@@ -150,6 +150,10 @@ module Resque
           job.send(hook, *job_args)
         end
 
+        after_job_complete_hooks.each do |hook|
+          job.send(hook, queue, payload_class, *job_args)
+        end
+
         # Return true if the job was performed
         return job_was_performed
 
@@ -211,6 +215,10 @@ module Resque
 
     def after_hooks
       @after_hooks ||= Plugin.after_hooks(payload_class)
+    end
+
+    def after_job_complete_hooks
+      @after_job_complete_hooks ||= Plugin.after_job_complete_hooks(payload_class)
     end
 
     def failure_hooks
