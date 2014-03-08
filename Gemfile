@@ -19,7 +19,6 @@ group :development, :documentation do
 end
 
 group :test do
-  gem "rack-test", "~> 0.5"
   gem "json"
   gem "minitest", '4.7.0'
   gem "minitest-stub-const"
