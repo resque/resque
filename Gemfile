@@ -19,11 +19,9 @@ group :development, :documentation do
 end
 
 group :test do
-  gem "rack-test", "~> 0.5"
   gem "json"
   gem "minitest", '4.7.0'
   gem "minitest-stub-const"
-  gem "sinatra"
   gem 'mock_redis', :git => "https://github.com/causes/mock_redis.git"
 end
 
@@ -37,7 +35,6 @@ platforms :rbx do
   gem 'rubysl-uri'
   gem 'rubysl-timeout'
   gem 'rubysl-zlib'
-  gem 'rubysl-json'
   gem 'rubysl-stringio'
   gem 'rubysl-test-unit'
   gem 'rubysl-mutex_m'

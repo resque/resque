@@ -5,9 +5,9 @@ Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing
 them later.
 
-  - [![Code Climate](https://codeclimate.com/github/resque/resque.png)](https://codeclimate.com/github/resque/resque)
-  - [![Build Status](https://travis-ci.org/resque/resque.png?branch=master)](https://travis-ci.org/resque/resque)
-  - [![Coverage Status](https://coveralls.io/repos/resque/resque/badge.png?branch=master)](https://coveralls.io/r/resque/resque)
+  - [![Code Climate](https://img.shields.io/codeclimate/github/resque/resque.svg)](https://codeclimate.com/github/resque/resque)
+  - [![Build Status](https://img.shields.io/travis/resque/resque/master.svg)](https://travis-ci.org/resque/resque)
+  - [![Coverage Status](https://img.shields.io/coveralls/resque/resque/master.svg)](https://coveralls.io/r/resque/resque)
 
 ### A note about branches
 
@@ -57,7 +57,7 @@ them. :metal:
 
 To install Resque, add the gem to your Gemfile:
 
-```
+```ruby
 gem "resque", "~> 2.0.0.pre.1", github: "resque/resque"
 ```
 
