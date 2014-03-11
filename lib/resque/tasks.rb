@@ -8,7 +8,7 @@ namespace :resque do
   task :work => [ :preload, :setup ] do
     require 'resque'
 
-    queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    queues = (ENV['QUEUES'] || ENV['QUEUE'] || '*').to_s.split(',')
 
     begin
       worker = Resque::Worker.new(*queues)
