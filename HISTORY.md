@@ -1,6 +1,6 @@
-## 1.25.3 (TBD)
+## 1.25.3 (2014-3-14)
 
-None yet.
+* Fix child reuse of Redis process (@saizai)
 
 ## 1.25.2 (2014-3-3)
 
