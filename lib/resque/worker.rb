@@ -388,11 +388,11 @@ module Resque
 
     def unregister_signal_handlers
       trap('TERM') do
-        trap ('TERM') do
-          # ignore subsequent terms
-        end
-        raise TermException.new("SIGTERM")
-      end
+        trap ('TERM') do 
+          # ignore subsequent terms               
+        end  
+        raise TermException.new("SIGTERM") 
+      end 
       trap('INT', 'DEFAULT')
 
       begin
@@ -506,9 +506,9 @@ module Resque
         worker_queues = worker_queues_raw.split(",")
         unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
           # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it.
+          # we are listening to, we should not touch it. 
           # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even
+          # an unknown class exception, since that worker could easily be even 
           # written in different language.
           next
         end
