@@ -697,7 +697,8 @@ context "Resque::Worker" do
         alias_method :original_reconnect, :reconnect
 
         def reconnect
-          raise Redis::BaseConnectionError
+          # Only test reconnection failure in worker, not parent
+          raise Redis::BaseConnectionError if caller[1][/`([^']*)'/, 1] =~ /work/
         end
       end
 
