@@ -100,6 +100,7 @@ module Resque
     # @yieldreturn (see #work_loop)
     # @return [void]
     def work(&block)
+      reconnect unless Process.pid == @pid && @pid == redis.client.instance_variable_get(:@pid)
       startup
       work_loop(&block)
       worker_registry.unregister
