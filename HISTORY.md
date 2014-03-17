@@ -1,6 +1,6 @@
 ## 1.25.3 (TBD)
 
-None yet.
+ * rake: when BACKGROUND, ensure worker.reconnect after daemonizing (@yaauie)
 
 ## 1.25.2 (2014-3-3)
 
