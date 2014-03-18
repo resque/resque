@@ -277,18 +277,22 @@ module Resque
 
     # Reconnect to Redis to avoid sharing a connection with the parent,
     # retry up to 3 times with increasing delay before giving up.
+    # For a worker processes multi jobs, just reconnect once
     def reconnect
-      tries = 0
-      begin
-        redis.client.reconnect
-      rescue Redis::BaseConnectionError
-        if (tries += 1) <= 3
-          log "Error reconnecting to Redis; retrying"
-          sleep(tries)
-          retry
-        else
-          log "Error reconnecting to Redis; quitting"
-          raise
+      if @reconnected.nil?
+        tries = 0
+        begin
+          redis.client.reconnect
+          @reconnected = true
+        rescue Redis::BaseConnectionError
+          if (tries += 1) <= 3
+            log "Error reconnecting to Redis; retrying"
+            sleep(tries)
+            retry
+          else
+            log "Error reconnecting to Redis; quitting"
+            raise
+          end
         end
       end
     end
