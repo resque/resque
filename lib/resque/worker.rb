@@ -12,9 +12,9 @@ module Resque
   class Worker
     include Resque::Logging
 
-    HEARTBEAT_INTERVAL = 60
-    PRUNE_INTERVAL     = HEARTBEAT_INTERVAL * 5
-    WORKER_PULSE_KEY   = "workers:pulse"
+    HEARTBEAT_INTERVAL   = 60
+    PRUNE_INTERVAL       = HEARTBEAT_INTERVAL * 5
+    WORKER_HEARTBEAT_KEY = "workers:heartbeat"
 
     def redis
       Resque.redis
@@ -344,7 +344,7 @@ module Resque
       Kernel.warn "WARNING: This way of doing signal handling is now deprecated. Please see http://hone.heroku.com/resque/2012/08/21/resque-signals.html for more info." unless term_child or $TESTING
       enable_gc_optimizations
       register_signal_handlers
-      start_pulsing
+      start_heartbeat
       prune_dead_workers
       run_hook :before_first_fork
       register_worker
@@ -452,26 +452,27 @@ module Resque
       end
     end
 
-    def pulse
-      redis.hget(WORKER_PULSE_KEY, self.to_s).to_i
+    def heartbeat
+      Time.at(redis.hget(WORKER_HEARTBEAT_KEY, self.to_s).to_i)
     end
 
-    def pulse!(time = Time.now.to_i)
-      redis.hset(WORKER_PULSE_KEY, self.to_s, time.to_s)
+    def heartbeat!(time = Time.now.to_i)
+      redis.hset(WORKER_HEARTBEAT_KEY, self.to_s, time.to_s)
     end
 
-    def start_pulsing
-      pulse!
-      @pulser = Thread.new {
+    def start_heartbeat
+      heartbeat!
+      puts "starting heart"
+      @heart = Thread.new {
         loop do
-          sleep(PULSE_INTERVAL)
-          pulse!
+          sleep(HEARTBEAT_INTERVAL)
+          heartbeat!
         end
       }
     end
 
-    def seconds_since_heartbeat(pulses)
-      Time.now.to_i - pulses[self.to_s].to_i
+    def seconds_since_heartbeat(heartbeats)
+      Time.now.to_i - heartbeats[self.to_s].to_i
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -527,11 +528,11 @@ module Resque
     def prune_dead_workers
       all_workers = Worker.all
       known_workers = worker_pids unless all_workers.empty?
-      pulses = redis.hgetall(WORKER_PULSE_KEY)
+      heartbeats = redis.hgetall(WORKER_HEARTBEAT_KEY)
 
       all_workers.each do |worker|
         # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
-        if pulses[worker.to_s].nil? || worker.seconds_since_heartbeat(pulses) > PRUNE_INTERVAL
+        if heartbeats[worker.to_s].nil? || worker.seconds_since_heartbeat(heartbeats) > PRUNE_INTERVAL
           worker.unregister_worker
           next
         end
@@ -586,13 +587,13 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
-      @pulser.kill if @pulser
+      @heart.kill if @heart
 
       redis.pipelined do
         redis.srem(:workers, self)
         redis.del("worker:#{self}")
         redis.del("worker:#{self}:started")
-        redis.hdel(WORKER_PULSE_KEY, self.to_s)
+        redis.hdel(WORKER_HEARTBEAT_KEY, self.to_s)
 
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")

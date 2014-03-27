@@ -454,14 +454,14 @@ context "Resque::Worker" do
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "bar:3:jobs")
     workerA.register_worker
-    workerA.pulse!(now - Resque::Worker::PRUNE_INTERVAL - 1)
+    workerA.heartbeat!(now - Resque::Worker::PRUNE_INTERVAL - 1)
 
     assert_equal 1, Resque.workers.size
 
     workerB = Resque::Worker.new(:jobs)
     workerB.instance_variable_set(:@to_s, "foo:5:jobs")
     workerB.register_worker
-    workerB.pulse!(now)
+    workerB.heartbeat!(now)
 
     assert_equal 2, Resque.workers.size
 
@@ -476,25 +476,25 @@ context "Resque::Worker" do
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     workerA.register_worker
-    workerA.pulse!
+    workerA.heartbeat!
 
     # 2. matches queue but not hostname; no prune.
     workerB = Resque::Worker.new(:jobs)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:2:jobs")
     workerB.register_worker
-    workerB.pulse!
+    workerB.heartbeat!
 
     # 3. matches hostname but not queue; no prune.
     workerB = Resque::Worker.new(:high)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:3:high")
     workerB.register_worker
-    workerB.pulse!
+    workerB.heartbeat!
 
     # 4. matches neither hostname nor queue; no prune.
     workerB = Resque::Worker.new(:high)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:4:high")
     workerB.register_worker
-    workerB.pulse!
+    workerB.heartbeat!
 
     assert_equal 4, Resque.workers.size
 
