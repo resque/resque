@@ -14,7 +14,7 @@ module Resque
 
     PULSE_INTERVAL   = 60
     PRUNE_INTERVAL   = PULSE_INTERVAL * 5
-    WORKER_PULSE_KEY = "worker:pulse"
+    WORKER_PULSE_KEY = "workers:pulse"
 
     def redis
       Resque.redis
@@ -583,7 +583,7 @@ module Resque
         redis.srem(:workers, self)
         redis.del("worker:#{self}")
         redis.del("worker:#{self}:started")
-        redis.del("worker:#{self}:pulse")
+        redis.hdel(WORKER_PULSE_KEY, self.to_s)
 
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")
