@@ -456,16 +456,16 @@ module Resque
       redis.hget(WORKER_PULSE_KEY, self.to_s).to_i
     end
 
-    def pulse!
-      redis.hset(WORKER_PULSE_KEY, self.to_s, Time.now.to_i.to_s)
+    def pulse!(time = Time.now.to_i)
+      redis.hset(WORKER_PULSE_KEY, self.to_s, time.to_s)
     end
 
     def start_pulsing
       pulse!
-      Thread.new do
+      @pulser = Thread.new {
         sleep(PULSE_INTERVAL)
         pulse!
-      end
+      }
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -525,7 +525,7 @@ module Resque
 
       all_workers.each do |worker|
         # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
-        if Time.now.to_i - pulses[worker.to_s] > PRUNE_INTERVAL
+        if !pulses[worker.to_s] || Time.now.to_i - pulses[worker.to_s].to_i > PRUNE_INTERVAL
           worker.unregister_worker
           next
         end
@@ -579,6 +579,8 @@ module Resque
         job.worker = self
         job.fail(exception || DirtyExit.new)
       end
+
+      @pulser.kill if @pulser
 
       redis.pipelined do
         redis.srem(:workers, self)

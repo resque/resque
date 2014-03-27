@@ -448,27 +448,53 @@ context "Resque::Worker" do
     end
   end
 
+  test "prune dead workers with pulse older than prune interval" do
+    now = Time.now.to_i
+
+    workerA = Resque::Worker.new(:jobs)
+    workerA.instance_variable_set(:@to_s, "bar:3:jobs")
+    workerA.register_worker
+    workerA.pulse!(now - Resque::Worker::PRUNE_INTERVAL - 1)
+
+    assert_equal 1, Resque.workers.size
+
+    workerB = Resque::Worker.new(:jobs)
+    workerB.instance_variable_set(:@to_s, "foo:5:jobs")
+    workerB.register_worker
+    workerB.pulse!(now)
+
+    assert_equal 2, Resque.workers.size
+
+    @worker.prune_dead_workers
+
+    assert_equal 1, Resque.workers.size
+  end
+
   test "cleans up dead worker info on start (crash recovery)" do
     # first we fake out several dead workers
     # 1: matches queue and hostname; gets pruned.
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
     workerA.register_worker
+    workerA.pulse!
 
     # 2. matches queue but not hostname; no prune.
     workerB = Resque::Worker.new(:jobs)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:2:jobs")
     workerB.register_worker
+    workerB.pulse!
 
     # 3. matches hostname but not queue; no prune.
     workerB = Resque::Worker.new(:high)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:3:high")
     workerB.register_worker
+    workerB.pulse!
 
     # 4. matches neither hostname nor queue; no prune.
     workerB = Resque::Worker.new(:high)
     workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:4:high")
     workerB.register_worker
+    workerB.pulse!
 
     assert_equal 4, Resque.workers.size
 
@@ -1077,4 +1103,5 @@ context "Resque::Worker" do
 
     assert stderr.match(/WARNING:/)
   end
+
 end
