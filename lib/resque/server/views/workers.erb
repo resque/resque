@@ -9,6 +9,7 @@
       <th>Host</th>
       <th>Pid</th>
       <th>Started</th>
+      <th>Heartbeat</th>
       <th>Queues</th>
       <th>Processed</th>
       <th>Failed</th>
@@ -21,6 +22,7 @@
       <td><%= host %></td>
       <td><%= pid %></td>
       <td><span class="time"><%= worker.started %></span></td>
+      <td><span class="time"><%= worker.heartbeat %></span></td>
       <td class='queues'><%= queues.split(',').map { |q| '<a class="queue-tag" href="' + u("/queues/#{q}") + '">' + q + '</a>'}.join('') %></td>
       <td><%= worker.processed %></td>
       <td><%= worker.failed %></td>
