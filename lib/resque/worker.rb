@@ -12,9 +12,9 @@ module Resque
   class Worker
     include Resque::Logging
 
-    PULSE_INTERVAL   = 60
-    PRUNE_INTERVAL   = PULSE_INTERVAL * 5
-    WORKER_PULSE_KEY = "workers:pulse"
+    HEARTBEAT_INTERVAL = 60
+    PRUNE_INTERVAL     = HEARTBEAT_INTERVAL * 5
+    WORKER_PULSE_KEY   = "workers:pulse"
 
     def redis
       Resque.redis
@@ -463,9 +463,15 @@ module Resque
     def start_pulsing
       pulse!
       @pulser = Thread.new {
-        sleep(PULSE_INTERVAL)
-        pulse!
+        loop do
+          sleep(PULSE_INTERVAL)
+          pulse!
+        end
       }
+    end
+
+    def seconds_since_heartbeat(pulses)
+      Time.now.to_i - pulses[self.to_s].to_i
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -525,7 +531,7 @@ module Resque
 
       all_workers.each do |worker|
         # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
-        if !pulses[worker.to_s] || Time.now.to_i - pulses[worker.to_s].to_i > PRUNE_INTERVAL
+        if pulses[worker.to_s].nil? || worker.seconds_since_heartbeat(pulses) > PRUNE_INTERVAL
           worker.unregister_worker
           next
         end
