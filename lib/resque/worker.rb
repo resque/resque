@@ -341,6 +341,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
+      start_pulsing
       run_hook :before_first_fork
       register_worker
 
@@ -447,6 +448,21 @@ module Resque
       end
     end
 
+    def pulse
+      redis.get("worker:#{self}:pulse").to_i
+    end
+
+    def start_pulsing
+      Thread.new do
+        pulse!
+        sleep 60
+      end
+    end
+
+    def pulse!
+      redis.set("worker:#{self}:pulse", Time.now.to_i.to_s)
+    end
+
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
@@ -501,6 +517,12 @@ module Resque
       all_workers = Worker.all
       known_workers = worker_pids unless all_workers.empty?
       all_workers.each do |worker|
+        # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
+        if Time.now.to_i - worker.pulse > 5 * 60
+          worker.unregister_worker
+          next
+        end
+
         host, pid, worker_queues_raw = worker.id.split(':')
         worker_queues = worker_queues_raw.split(",")
         unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
@@ -555,6 +577,7 @@ module Resque
         redis.srem(:workers, self)
         redis.del("worker:#{self}")
         redis.del("worker:#{self}:started")
+        redis.del("worker:#{self}:pulse")
 
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")
