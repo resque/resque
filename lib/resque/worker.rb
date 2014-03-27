@@ -65,8 +65,8 @@ module Resque
     attr_writer :to_s
 
     # Returns an array of all worker objects.
-    def self.all
-      Array(redis.smembers(:workers)).map { |id| find(id) }.compact
+    def self.all(workers = redis.smembers(:workers))
+      Array(workers).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -462,7 +462,6 @@ module Resque
 
     def start_heartbeat
       heartbeat!
-      puts "starting heart"
       @heart = Thread.new {
         loop do
           sleep(HEARTBEAT_INTERVAL)
@@ -526,9 +525,9 @@ module Resque
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
-      all_workers = Worker.all
-      known_workers = worker_pids unless all_workers.empty?
       heartbeats = redis.hgetall(WORKER_HEARTBEAT_KEY)
+      all_workers = Worker.all(heartbeats.keys)
+      known_workers = worker_pids unless all_workers.empty?
 
       all_workers.each do |worker|
         # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
