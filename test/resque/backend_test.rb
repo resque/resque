@@ -61,7 +61,6 @@ describe Resque::Backend do
 
       client = Resque::Backend.new(redis, logger)
 
-      # not actually stubbing right now?
       Kernel.stub(:sleep, nil) do
         rescued = false
 

@@ -94,7 +94,7 @@ module Resque
       tries ||= 0
       if (tries += 1) < MAX_RECONNECT_ATTEMPTS
         logger.info "Error reconnecting to Redis; retrying"
-        sleep(tries)
+        Kernel.sleep(tries)
         retry
       else
         logger.info "Error reconnecting to Redis; quitting"
