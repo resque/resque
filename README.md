@@ -173,6 +173,13 @@ Resque workers respond to a few different signals:
     USR2 - Don't start to process any new jobs
     CONT - Start to process new jobs again after a USR2
 
+### Queue Priority
+
+Queues are picked off in order of their priority. A job from a lower priority queue will only be
+picked off if there are no jobs for a higher priority queue available.
+
+See Resque::WorkerQueueList#search_order for more details.
+
 ## Configuration
 
 You can configure Resque via a YAML `.resque` file in the root of your project:
