@@ -453,11 +453,11 @@ module Resque
     end
 
     def heartbeat
-      Time.at(redis.hget(WORKER_HEARTBEAT_KEY, self.to_s).to_i)
+      Time.parse(redis.hget(WORKER_HEARTBEAT_KEY, self.to_s))
     end
 
-    def heartbeat!(time = Time.now.to_i)
-      redis.hset(WORKER_HEARTBEAT_KEY, self.to_s, time.to_s)
+    def heartbeat!(time = Time.now)
+      redis.hset(WORKER_HEARTBEAT_KEY, self.to_s, time.iso8601)
     end
 
     def start_heartbeat
@@ -471,7 +471,7 @@ module Resque
     end
 
     def seconds_since_heartbeat(heartbeats)
-      Time.now.to_i - heartbeats[self.to_s].to_i
+      (Time.now - Time.parse(heartbeats[self.to_s])).to_i
     end
 
     # Kills the forked child immediately with minimal remorse. The job it

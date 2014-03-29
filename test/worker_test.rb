@@ -448,8 +448,8 @@ context "Resque::Worker" do
     end
   end
 
-  test "prune dead workers with pulse older than prune interval" do
-    now = Time.now.to_i
+  test "prune dead workers with heartbeat older than prune interval" do
+    now = Time.now
 
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "bar:3:jobs")
@@ -468,6 +468,14 @@ context "Resque::Worker" do
     @worker.prune_dead_workers
 
     assert_equal 1, Resque.workers.size
+  end
+
+  test "heartbeat returns time" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.register_worker
+    workerA.heartbeat!
+
+    assert_instance_of Time, workerA.heartbeat
   end
 
   test "cleans up dead worker info on start (crash recovery)" do
