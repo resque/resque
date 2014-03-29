@@ -12,8 +12,6 @@ module Resque
   class Worker
     include Resque::Logging
 
-    HEARTBEAT_INTERVAL   = 60
-    PRUNE_INTERVAL       = HEARTBEAT_INTERVAL * 5
     WORKER_HEARTBEAT_KEY = "workers:heartbeat"
 
     def redis
@@ -65,8 +63,8 @@ module Resque
     attr_writer :to_s
 
     # Returns an array of all worker objects.
-    def self.all(workers = redis.smembers(:workers))
-      Array(workers).map { |id| find(id) }.compact
+    def self.all
+      Array(redis.smembers(:workers)).map { |id| find(id) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -464,7 +462,7 @@ module Resque
       heartbeat!
       @heart = Thread.new {
         loop do
-          sleep(HEARTBEAT_INTERVAL)
+          sleep(Resque.heartbeat_interval)
           heartbeat!
         end
       }
@@ -526,12 +524,18 @@ module Resque
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
       heartbeats = redis.hgetall(WORKER_HEARTBEAT_KEY)
-      all_workers = Worker.all(heartbeats.keys)
+      all_workers = Worker.all
       known_workers = worker_pids unless all_workers.empty?
 
       all_workers.each do |worker|
-        # If the worker hasn't sent a heartbeat in 5 minutes, remove it.
-        if heartbeats[worker.to_s].nil? || worker.seconds_since_heartbeat(heartbeats) > PRUNE_INTERVAL
+        # If the worker hasn't sent a heartbeat in PRUNE_INTERVAL, remove it
+        # from the registry.
+        #
+        # If the worker hasn't ever sent a heartbeat, we won't remove it since
+        # the first heartbeat is sent before the worker is registred it means
+        # that this is a worker that doesn't support heartbeats, e.g., another
+        # client library or an older version of Resque. We won't touch these.
+        if heartbeats[worker.to_s] && worker.seconds_since_heartbeat(heartbeats) > Resque.prune_interval
           worker.unregister_worker
           next
         end

@@ -454,7 +454,7 @@ context "Resque::Worker" do
     workerA = Resque::Worker.new(:jobs)
     workerA.instance_variable_set(:@to_s, "bar:3:jobs")
     workerA.register_worker
-    workerA.heartbeat!(now - Resque::Worker::PRUNE_INTERVAL - 1)
+    workerA.heartbeat!(now - Resque.prune_interval - 1)
 
     assert_equal 1, Resque.workers.size
 
@@ -464,6 +464,18 @@ context "Resque::Worker" do
     workerB.heartbeat!(now)
 
     assert_equal 2, Resque.workers.size
+
+    @worker.prune_dead_workers
+
+    assert_equal 1, Resque.workers.size
+  end
+
+  test "dont prune workers that haven't set a heartbeat" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.instance_variable_set(:@to_s, "bar:3:jobs")
+    workerA.register_worker
+
+    assert_equal 1, Resque.workers.size
 
     @worker.prune_dead_workers
 
