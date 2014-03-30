@@ -1,3 +1,5 @@
+require 'resque/legacy_job_adapter'
+
 module Resque
   # @see {Resque::JobPerformer#initialize}
   class JobPerformer
@@ -15,8 +17,17 @@ module Resque
     # @return (see #performed?)
     def perform(payload_class, args, hooks)
       @job      = payload_class
+      @job.extend LegacyJobAdapter if needs_legacy_adapter?
       @job_args = args || []
       @hooks    = hooks
+
+      if needs_legacy_adapter?
+        @hooks.values.flatten.each do |hook_name|
+          @job.class.send :define_method, hook_name do |*args, &block|
+            self.class.send(hook_name.to_sym, *args, &block)
+          end
+        end
+      end
 
       # before_hooks can raise a Resque::DontPerform exception
       # in which case we exit this method, returning false (because
@@ -29,6 +40,14 @@ module Resque
     end
 
     private
+
+    def needs_legacy_adapter?
+      if job.class.respond_to?(:perform) && !job.class.instance_methods.include?(:perform)
+        true
+      else
+        false
+      end
+    end
 
     # Calls the before hooks
     # @return [Boolean] a false return prevents the job from being performed.
