@@ -215,7 +215,7 @@ end
 
 ## Hooks and Plugins
 
-Coming soon.
+Please see [HOOKS.md](https://github.com/resque/resque/blob/master/docs/HOOKS.md).
 
 ## Contributing
 
