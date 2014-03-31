@@ -221,6 +221,7 @@ module Resque
     def fail(exception)
       Resque.logger.info "#{inspect} failed: #{exception.inspect}"
       run_failure_hooks(exception) if has_payload_class?
+      return if exception.is_a?(DontFail)
       Failure.create \
         :payload   => payload,
         :exception => exception,

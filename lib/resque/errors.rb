@@ -13,4 +13,7 @@ module Resque
 
   # Raised from a before_perform hook to abort the job.
   class DontPerform < StandardError; end
+
+  # Raised from a on_failure hook to prevent a Resque::Failure from being created
+  class DontFail < StandardError; end
 end
