@@ -23,6 +23,7 @@ describe Resque::JobPerformer do
     end
 
     it 'runs the before hooks' do
+      @mock.expect :class, true
       @mock.expect :before_one, true, @job_args
       @mock.expect :before_two, true, @job_args
       @mock.expect :perform, true, @job_args
@@ -41,8 +42,34 @@ describe Resque::JobPerformer do
       def @mock.before_one(*args)
         raise Resque::DontPerform
       end
+      @mock.expect :class, true
       @mock.expect :perform, nil, @job_args
       @job_performer.perform(@mock, @job_args, @options).must_equal false
+    end
+
+    it 'supports the old and new job APIs' do
+      class OldJob
+        @queue = :old
+        def self.perform args
+          true
+        end
+      end
+
+      class NewJob
+        @queue = :new
+        def perform args
+          true
+        end
+      end
+
+      @options = {
+        :before => [],
+        :after  => [],
+        :around => []
+      }
+
+      @job_performer.perform(OldJob.new, [:foo], @options).must_equal true
+      @job_performer.perform(NewJob.new, [:foo], @options).must_equal true
     end
 
     describe 'when around_perform is present' do
@@ -58,6 +85,7 @@ describe Resque::JobPerformer do
       end
 
       it 'runs the around hooks' do
+        @mock.expect :class, true
         @mock.expect :perform, true, @job_args
         @mock.expect :around_two, true, @job_args
         @mock.expect :around_one, true, @job_args
