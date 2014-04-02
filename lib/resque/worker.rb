@@ -468,8 +468,8 @@ module Resque
       }
     end
 
-    def seconds_since_heartbeat(heartbeats)
-      (Time.now - Time.parse(heartbeats[self.to_s])).to_i
+    def seconds_since_heartbeat(beat = self.heartbeat)
+      (Time.now - Time.parse(beat)).to_i
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -528,6 +528,8 @@ module Resque
       known_workers = worker_pids unless all_workers.empty?
 
       all_workers.each do |worker|
+        id = worker.to_s
+
         # If the worker hasn't sent a heartbeat in PRUNE_INTERVAL, remove it
         # from the registry.
         #
@@ -535,7 +537,7 @@ module Resque
         # the first heartbeat is sent before the worker is registred it means
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
-        if heartbeats[worker.to_s] && worker.seconds_since_heartbeat(heartbeats) > Resque.prune_interval
+        if heartbeats[id] && worker.seconds_since_heartbeat(heartbeats[id]) > Resque.prune_interval
           worker.unregister_worker
           next
         end
