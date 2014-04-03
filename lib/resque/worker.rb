@@ -451,7 +451,8 @@ module Resque
     end
 
     def heartbeat
-      Time.parse(redis.hget(WORKER_HEARTBEAT_KEY, self.to_s))
+      heartbeat = redis.hget(WORKER_HEARTBEAT_KEY, self.to_s)
+      heartbeat && Time.parse(heartbeat)
     end
 
     def heartbeat!(time = Time.now)
