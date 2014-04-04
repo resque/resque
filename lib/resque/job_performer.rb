@@ -3,7 +3,7 @@ module Resque
   class JobPerformer
     attr_reader :job, :job_args, :hooks
 
-    def initialize payload_class, args, hooks
+    def initialize(payload_class, args, hooks)
       @job      = payload_class
       @job_args = args || []
       @hooks    = hooks
