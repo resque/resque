@@ -446,6 +446,25 @@ context "Resque::Worker" do
     end
   end
 
+  test 'can find others' do
+    # inject fake worker
+    other_worker = Resque::Worker.new(:other_jobs)
+    other_worker.pid = 123456
+    other_worker.register_worker
+
+    begin
+      @worker.extend(AssertInWorkBlock).work(0) do
+        found = Resque::Worker.find(other_worker.to_s)
+        assert_equal other_worker.to_s, found.to_s
+        assert_equal other_worker.pid, found.pid
+        assert !found.working?
+        assert found.job.empty?
+      end
+    ensure
+      other_worker.unregister_worker
+    end
+  end
+
   test "doesn't find fakes" do
     @worker.extend(AssertInWorkBlock).work(0) do
       found = Resque::Worker.find('blah-blah')
