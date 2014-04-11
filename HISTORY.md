@@ -1,6 +1,7 @@
 ## 1.25.3 (TBD)
 
  * rake: when BACKGROUND, ensure worker.reconnect after daemonizing (@yaauie)
+ * worker: when searching workers, Worker#pid properly reflects pid of the found worker instead of the current pid. (@yaauie)
 
 ## 1.25.2 (2014-3-3)
 
