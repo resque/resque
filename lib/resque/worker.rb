@@ -59,6 +59,7 @@ module Resque
     attr_accessor :run_at_exit_hooks
 
     attr_writer :to_s
+    attr_writer :pid
 
     # Returns an array of all worker objects.
     def self.all
@@ -94,9 +95,11 @@ module Resque
     # Returns a single worker object. Accepts a string id.
     def self.find(worker_id)
       if exists? worker_id
-        queues = worker_id.split(':')[-1].split(',')
+        host, pid, queues_raw = worker_id.split(':')
+        queues = queues_raw.split(',')
         worker = new(*queues)
         worker.to_s = worker_id
+        worker.pid = pid.to_i
         worker
       else
         nil
