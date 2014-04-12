@@ -1,5 +1,6 @@
 require 'resque/worker_hooks'
 require 'resque/signal_trapper'
+require 'time' # Time#iso8601
 
 module Resque
   # A child process processes a single job. It is created by a Resque Worker.
@@ -110,7 +111,7 @@ module Resque
     # @return [nil] on SystemCallError failure
     def wait
       srand # Reseeding
-      procline "Forked #{pid} at #{Time.now.to_i}"
+      procline "Forked #{pid} at #{Time.now.iso8601}"
       begin
         Process.waitpid(pid)
       rescue SystemCallError
