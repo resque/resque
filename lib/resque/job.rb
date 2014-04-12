@@ -163,7 +163,7 @@ module Resque
         :around => around_hooks,
         :after => after_hooks
       }
-      JobPerformer.new.perform(payload_class, args, hooks)
+      JobPerformer.new(payload_class, args, hooks).perform
     # If an exception occurs during the job execution, look for an
     # on_failure hook then re-raise.
     rescue Object => e

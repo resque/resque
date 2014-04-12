@@ -3,7 +3,7 @@ require 'test_helper'
 describe Resque::JobPerformer do
   before do
     @mock          = MiniTest::Mock.new
-    @job_performer = Resque::JobPerformer.new
+    @job_performer = Resque::JobPerformer
     @job_args = [:foo]
   end
 
@@ -28,7 +28,7 @@ describe Resque::JobPerformer do
       @mock.expect :perform, true, @job_args
       @mock.expect :after_one, true, @job_args
       @mock.expect :after_two, true, @job_args
-      @job_performer.perform(@mock, @job_args, @options).must_equal true
+      @job_performer.new(@mock, @job_args, @options).perform.must_equal true
       @mock.verify
     end
 
@@ -42,7 +42,7 @@ describe Resque::JobPerformer do
         raise Resque::DontPerform
       end
       @mock.expect :perform, nil, @job_args
-      @job_performer.perform(@mock, @job_args, @options).must_equal false
+      @job_performer.new(@mock, @job_args, @options).perform.must_equal false
     end
 
     describe 'when around_perform is present' do
@@ -69,7 +69,7 @@ describe Resque::JobPerformer do
           method_missing(:around_one, *args)
           yield
         end
-        @job_performer.perform(@mock, @job_args, @options)
+        @job_performer.new(@mock, @job_args, @options).perform
         @mock.verify
       end
     end

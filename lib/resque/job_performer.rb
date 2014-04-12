@@ -3,8 +3,6 @@ module Resque
   class JobPerformer
     attr_reader :job, :job_args, :hooks
 
-    # This is the actual performer for a single unit of work.  It's called
-    # by Resque::Job#perform
     # @param payload_class [Class] - The class to call ::perform on
     # @param args [Array<Object>]  - An array of args to pass to the
     #                                payload_class::perform
@@ -12,12 +10,17 @@ module Resque
     #                              - A hash with keys :before, :after and
     #                                :around, all arrays of methods to call
     #                                on the payload class with args
-    # @return (see #performed?)
-    def perform(payload_class, args, hooks)
+    def initialize(payload_class, args, hooks)
       @job      = payload_class
       @job_args = args || []
       @hooks    = hooks
+    end
 
+    # This is the actual performer for a single unit of work.  It's called
+    # by Resque::Job#perform
+    #
+    # @return (see #performed?)
+    def perform
       # before_hooks can raise a Resque::DontPerform exception
       # in which case we exit this method, returning false (because
       # the job was never performed)
