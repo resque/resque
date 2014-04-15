@@ -1081,6 +1081,80 @@ context "Resque::Worker" do
       end
     end
 
+    if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
+      {
+        'job finishes in allotted time' => 0.5,
+        'job takes too long' => 1.1
+      }.each do |scenario, run_time|
+        test "gives time to finish before sending term if pre_term_timeout is set: when #{scenario}" do
+          begin
+            class LongRunningJob
+              @queue = :long_running_job
+
+              def self.perform(run_time)
+                Resque.redis.client.reconnect # get its own connection
+                Resque.redis.rpush('pre-term-timeout-test:start', Process.pid)
+                sleep run_time
+                Resque.redis.rpush('pre-term-timeout-test:result', 'Finished Normally')
+              rescue Resque::TermException => e
+                Resque.redis.rpush('pre-term-timeout-test:result', %Q(Caught TermException: #{e.inspect}))
+              ensure
+                Resque.redis.rpush('pre-term-timeout-test:final', 'exiting.')
+              end
+            end
+
+            pre_term_timeout = 1
+            Resque.enqueue(LongRunningJob, run_time)
+
+            worker_pid = Kernel.fork do
+              # reconnect to redis
+              Resque.redis.client.reconnect
+
+              # ensure we fork (in worker)
+              $TESTING = false
+
+              worker = Resque::Worker.new(:long_running_job)
+              worker.pre_term_timeout = pre_term_timeout
+              worker.term_timeout = 2
+              worker.term_child = 1
+
+              worker.work(0)
+              exit!
+            end
+
+            # ensure the worker is started
+            start_status = Resque.redis.blpop('pre-term-timeout-test:start', 5)
+            assert_not_nil start_status
+            child_pid = start_status[1].to_i
+            assert_operator child_pid, :>, 0
+
+            # send signal to abort the worker
+            Process.kill('TERM', worker_pid)
+            Process.waitpid(worker_pid)
+
+            # wait to see how it all came down
+            result = Resque.redis.blpop('pre-term-timeout-test:result', 5)
+            assert_not_nil result
+
+            if run_time >= pre_term_timeout
+              assert !result[1].start_with?('Finished Normally'), 'Job finished normally when running over pre term timeout'
+              assert result[1].start_with?('Caught TermException'), 'TermException not raised in child.'
+            else
+              assert result[1].start_with?('Finished Normally'), 'Job did not finish normally. Pre term timeout too short?'
+              assert !result[1].start_with?('Caught TermException'), 'TermException raised in child.'
+            end
+
+            # ensure that the child pid is no longer running
+            child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
+            assert !child_still_running
+          ensure
+            remaining_keys = Resque.redis.keys('pre-term-timeout-test:*') || []
+            Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
+          end
+        end
+      end
+    end
+
     test "displays warning when not using term_child" do
       begin
         $TESTING = false

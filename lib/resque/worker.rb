@@ -47,6 +47,8 @@ module Resque
 
     attr_accessor :term_timeout
 
+    attr_accessor :pre_term_timeout
+
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
@@ -386,11 +388,11 @@ module Resque
 
     def unregister_signal_handlers
       trap('TERM') do
-        trap ('TERM') do 
-          # ignore subsequent terms               
-        end  
-        raise TermException.new("SIGTERM") 
-      end 
+        trap ('TERM') do
+          # ignore subsequent terms
+        end
+        raise TermException.new("SIGTERM")
+      end
       trap('INT', 'DEFAULT')
 
       begin
@@ -451,13 +453,14 @@ module Resque
     # wait 5 seconds, and then a KILL signal if it has not quit
     def new_kill_child
       if @child
-        unless Process.waitpid(@child, Process::WNOHANG)
+        unless child_already_exited?
+          if pre_term_timeout.to_f > 0.0
+            log! "Waiting #{pre_term_timeout.to_f}s for child process to exit"
+            return if wait_for_child_exit(pre_term_timeout)
+          end
           log! "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
-          (term_timeout.to_f * 10).round.times do |i|
-            sleep(0.1)
-            return if Process.waitpid(@child, Process::WNOHANG)
-          end
+          return if wait_for_child_exit(term_timeout)
           log! "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
         else
@@ -466,6 +469,18 @@ module Resque
       end
     rescue SystemCallError
       log! "Child #{@child} already quit and reaped."
+    end
+
+    def child_already_exited?
+      Process.waitpid(@child, Process::WNOHANG)
+    end
+
+    def wait_for_child_exit(timeout)
+      (timeout.to_f * 10).round.times do |i|
+        sleep(0.1)
+        return true if child_already_exited?
+      end
+      false
     end
 
     # are we paused?
@@ -504,9 +519,9 @@ module Resque
         worker_queues = worker_queues_raw.split(",")
         unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
           # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it. 
+          # we are listening to, we should not touch it.
           # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even 
+          # an unknown class exception, since that worker could easily be even
           # written in different language.
           next
         end

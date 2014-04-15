@@ -19,6 +19,7 @@ namespace :resque do
         worker.very_verbose = ENV['VVERBOSE']
       end
       worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
+      worker.pre_term_timeout = ENV['RESQUE_PRE_TERM_TIMEOUT'] || 0.0
       worker.term_child = ENV['TERM_CHILD']
       worker.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
     rescue Resque::NoQueueError
