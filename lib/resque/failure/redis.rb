@@ -39,16 +39,26 @@ module Resque
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
-        all_items = Array(all(offset, limit, queue))
-        reversed = false
-        if order.eql? 'desc'
-          all_items.reverse!
-          reversed = true
+
+        reversed = order.eql? 'desc'
+
+        # calculate offset and limit to get the reverses elements
+        if reversed
+          queue_size = self.count
+          reverse_offset = [queue_size - offset - limit, 0].max
+
+          limit = [queue_size - offset, limit].min
+          offset = reverse_offset
         end
+
+        all_items = Array(all(offset, limit, queue))
+
+        all_items.reverse!  if reversed
+
         all_items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
             if reversed
-              id = (all_items.length - 1) - (offset + i)
+              id = offset + limit - i - 1
             else
               id = offset + i
             end
