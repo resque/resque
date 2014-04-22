@@ -49,6 +49,8 @@ module Resque
 
     attr_accessor :pre_term_timeout
 
+    attr_accessor :term_child_signal
+
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
@@ -130,6 +132,7 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @term_child_signal = 'TERM'
       validate_queues
     end
 
@@ -387,16 +390,18 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') do
-        trap ('TERM') do
-          # ignore subsequent terms
-        end
-        raise TermException.new("SIGTERM")
+      trap(term_child_signal) do
+        log! "Trapped #{term_child_signal} in child #{Process.pid}; raising"
+        raise TermException.new("SIG#{term_child_signal}")
       end
-      trap('INT', 'DEFAULT')
 
       begin
-        trap('QUIT', 'DEFAULT')
+        %w{TERM INT QUIT}.each do |signal|
+          next if term_child_signal == signal
+          trap(signal) do
+            log! "Trapped #{signal} in child #{Process.pid}; ignoring"
+          end
+        end
         trap('USR1', 'DEFAULT')
         trap('USR2', 'DEFAULT')
       rescue ArgumentError
@@ -458,8 +463,8 @@ module Resque
             log! "Waiting #{pre_term_timeout.to_f}s for child process to exit"
             return if wait_for_child_exit(pre_term_timeout)
           end
-          log! "Sending TERM signal to child #{@child}"
-          Process.kill("TERM", @child)
+          log! "Sending #{term_child_signal} signal to child #{@child}"
+          Process.kill(term_child_signal, @child)
           return if wait_for_child_exit(term_timeout)
           log! "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
