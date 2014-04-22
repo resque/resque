@@ -1086,7 +1086,7 @@ context "Resque::Worker" do
         'job finishes in allotted time' => 0.5,
         'job takes too long' => 1.1
       }.each do |scenario, run_time|
-        test "gives time to finish before sending term if pre_term_timeout is set: when #{scenario}" do
+        test "gives time to finish before sending term if pre_shutdown_timeout is set: when #{scenario}" do
           begin
             class LongRunningJob
               @queue = :long_running_job
@@ -1103,7 +1103,7 @@ context "Resque::Worker" do
               end
             end
 
-            pre_term_timeout = 1
+            pre_shutdown_timeout = 1
             Resque.enqueue(LongRunningJob, run_time)
 
             worker_pid = Kernel.fork do
@@ -1114,7 +1114,7 @@ context "Resque::Worker" do
               $TESTING = false
 
               worker = Resque::Worker.new(:long_running_job)
-              worker.pre_term_timeout = pre_term_timeout
+              worker.pre_shutdown_timeout = pre_shutdown_timeout
               worker.term_timeout = 2
               worker.term_child = 1
 
@@ -1136,7 +1136,7 @@ context "Resque::Worker" do
             result = Resque.redis.blpop('pre-term-timeout-test:result', 5)
             assert_not_nil result
 
-            if run_time >= pre_term_timeout
+            if run_time >= pre_shutdown_timeout
               assert !result[1].start_with?('Finished Normally'), 'Job finished normally when running over pre term timeout'
               assert result[1].start_with?('Caught TermException'), 'TermException not raised in child.'
             else
