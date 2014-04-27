@@ -17,9 +17,14 @@ module Resque
     def redis
       Resque.redis
     end
+    alias :data_store :redis
 
     def self.redis
       Resque.redis
+    end
+
+    def self.data_store
+      self.redis
     end
 
     # Given a Ruby object, returns a string suitable for storage in a
@@ -117,17 +122,16 @@ module Resque
     # a Ruby array before processing.
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
-      queue = "queue:#{queue}"
       destroyed = 0
 
       if args.empty?
-        redis.lrange(queue, 0, -1).each do |string|
+        data_store.everything_in_queue(queue).each do |string|
           if decode(string)['class'] == klass
-            destroyed += redis.lrem(queue, 0, string).to_i
+            destroyed += data_store.remove_from_queue(queue,string).to_i
           end
         end
       else
-        destroyed += redis.lrem(queue, 0, encode(:class => klass, :args => args))
+        destroyed += data_store.remove_from_queue(queue, encode(:class => klass, :args => args))
       end
 
       destroyed

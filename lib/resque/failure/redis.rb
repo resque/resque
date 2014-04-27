@@ -3,6 +3,15 @@ module Resque
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class Redis < Base
+
+      def data_store
+        Resque.data_store
+      end
+
+      def self.data_store
+        Resque.data_store
+      end
+
       def save
         data = {
           :failed_at => UTF8Util.clean(Time.now.strftime("%Y/%m/%d %H:%M:%S %Z")),
@@ -14,7 +23,7 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(:failed, data)
+        data_store.push_to_failed_queue(data)
       end
 
       def self.count(queue = nil, class_name = nil)
@@ -25,12 +34,12 @@ module Resque
           each(0, count(queue), queue, class_name) { n += 1 } 
           n
         else
-          Resque.redis.llen(:failed).to_i
+          data_store.num_failed
         end
       end
 
       def self.queues
-        [:failed]
+        data_store.failed_queue_names
       end
 
       def self.all(offset = 0, limit = 1, queue = nil)
@@ -59,22 +68,20 @@ module Resque
 
       def self.clear(queue = nil)
         check_queue(queue)
-        Resque.redis.del(:failed)
+        data_store.clear_failed_queue
       end
 
       def self.requeue(id, queue = nil)
         check_queue(queue)
         item = all(id)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(:failed, id, Resque.encode(item))
+        data_store.update_item_in_failed_queue(id,Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
       def self.remove(id, queue = nil)
         check_queue(queue)
-        sentinel = ""
-        Resque.redis.lset(:failed, id, sentinel)
-        Resque.redis.lrem(:failed, 1,  sentinel)
+        data_store.remove_from_failed_queue(id, queue)
       end
 
       def self.requeue_queue(queue)
