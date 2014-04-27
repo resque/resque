@@ -3,6 +3,15 @@ module Resque
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class RedisMultiQueue < Base
+
+      def data_store
+        Resque.data_store
+      end
+
+      def self.data_store
+        Resque.data_store
+      end
+
       def save
         data = {
           :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
@@ -14,7 +23,7 @@ module Resque
           :queue     => queue
         }
         data = Resque.encode(data)
-        Resque.redis.rpush(Resque::Failure.failure_queue_name(queue), data)
+        data_store.push_to_failed_queue(data,Resque::Failure.failure_queue_name(queue))
       end
 
       def self.count(queue = nil, class_name = nil)
@@ -24,7 +33,7 @@ module Resque
             each(0, count(queue), queue, class_name) { n += 1 } 
             n
           else
-            Resque.redis.llen(queue).to_i
+            data_store.num_failed(queue).to_i
           end
         else
           total = 0
@@ -38,7 +47,7 @@ module Resque
       end
 
       def self.queues
-        Array(Resque.redis.smembers(:failed_queues))
+        data_store.failed_queue_names(:failed_queues)
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
@@ -57,22 +66,20 @@ module Resque
         end
       end
 
-      def self.clear(queue = nil)
+      def self.clear(queue = :failed)
         queues = queue ? Array(queue) : self.queues
-        queues.each { |queue| Resque.redis.del(queue) }
+        queues.each { |queue| data_store.clear_failed_queue(queue) }
       end
 
       def self.requeue(id, queue = :failed)
         item = all(id, 1, queue)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        Resque.redis.lset(queue, id, Resque.encode(item))
+        data_store.update_item_in_failed_queue(id,Resque.encode(item),queue)
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
       def self.remove(id, queue = :failed)
-        sentinel = ""
-        Resque.redis.lset(queue, id, sentinel)
-        Resque.redis.lrem(queue, 1,  sentinel)
+        data_store.remove_from_queue(id,queue)
       end
 
       def self.requeue_queue(queue)
@@ -85,7 +92,7 @@ module Resque
       end
 
       def self.remove_queue(queue)
-        Resque.redis.del(Resque::Failure.failure_queue_name(queue))
+        data_store.remove_failed_queue(Resque::Failure.failure_queue_name(queue))
       end
 
       def filter_backtrace(backtrace)

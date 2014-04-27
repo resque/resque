@@ -8,3 +8,6 @@ test/stdout
 *.swp
 pkg
 Gemfiles/Gemfile.1.8.7.lock
+.ruby-version
+.ruby-gemset
+*.sw?
