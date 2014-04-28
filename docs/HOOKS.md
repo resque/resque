@@ -14,15 +14,19 @@ Worker Hooks
 If you wish to have a Proc called before the worker forks for the
 first time, you can add it in the initializer like so:
 
-    Resque.before_first_fork do
-      puts "Call me once before the worker forks the first time"
-    end
+~~~Ruby
+Resque.before_first_fork do
+  puts "Call me once before the worker forks the first time"
+end
+~~~
 
 You can also run a hook before _every_ fork:
 
-    Resque.before_fork do |job|
-      puts "Call me before the worker forks"
-    end
+~~~Ruby
+Resque.before_fork do |job|
+  puts "Call me before the worker forks"
+end
+~~~
 
 The `before_fork` hook will be run in the **parent** process. So, be
 careful - any changes you make will be permanent for the lifespan of
@@ -30,9 +34,11 @@ the worker.
 
 And after forking:
 
-    Resque.after_fork do |job|
-      puts "Call me after the worker forks"
-    end
+~~~Ruby
+Resque.after_fork do |job|
+  puts "Call me after the worker forks"
+end
+~~~
 
 The `after_fork` hook will be run in the child process and is passed
 the current job. Any changes you make, therefor, will only live as
@@ -42,18 +48,21 @@ You can also run a hook both before a worker pauses (`before_pause`),
 and after it is paused (`after_pause`). In each case the block will be
 passed the worker that is pausing or unpausing, respectively:
 
-    Resque.before_pause do |worker|
-      puts "It looks like #{worker} is now paused!"
-    end
+~~~Ruby
+Resque.before_pause do |worker|
+  puts "It looks like #{worker} is now paused!"
+end
 
-    Resque.after_pause do |worker|
-      puts "Whew, back to work for #{worker}!"
-    end
+Resque.after_pause do |worker|
+  puts "Whew, back to work for #{worker}!"
+end
+~~~
 
 All worker hooks can also be set using a setter, e.g.
 
-    Resque.after_fork = proc { puts "called" }
-
+~~~Ruby
+Resque.after_fork = proc { puts "called" }
+~~~
 
 Job Hooks
 ---------
@@ -66,9 +75,11 @@ hook is a method name in the following format:
 For example, a `before_perform` hook which adds locking may be defined
 like this:
 
-    def before_perform_with_lock(*args)
-      set_lock!
-    end
+~~~Ruby
+def before_perform_with_lock(*args)
+  set_lock!
+end
+~~~
 
 Once this hook is made available to your job (either by way of
 inheritance or `extend`), it will be run before the job's `perform`
@@ -108,46 +119,49 @@ The available hooks are:
 
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.
+~~~Ruby
+class LoggedJob
+  def self.before_perform_log_job(*args)
+    Logger.info "About to perform #{self} with #{args.inspect}"
+  end
+end
 
-    class LoggedJob
-      def self.before_perform_log_job(*args)
-        Logger.info "About to perform #{self} with #{args.inspect}"
-      end
-    end
-
-    class MyJob < LoggedJob
-      def self.perform(*args)
-        ...
-      end
-    end
+class MyJob < LoggedJob
+  def self.perform(*args)
+    ...
+  end
+end
+~~~
 
 Modules are even better because jobs can use many of them.
 
-    module ScaledJob
-      def after_enqueue_scale_workers(*args)
-        Logger.info "Scaling worker count up"
-        Scaler.up! if Redis.info[:pending].to_i > 25
-      end
-    end
+~~~Ruby
+module ScaledJob
+  def after_enqueue_scale_workers(*args)
+    Logger.info "Scaling worker count up"
+    Scaler.up! if Redis.info[:pending].to_i > 25
+  end
+end
 
-    module LoggedJob
-      def before_perform_log_job(*args)
-        Logger.info "About to perform #{self} with #{args.inspect}"
-      end
-    end
+module LoggedJob
+  def before_perform_log_job(*args)
+    Logger.info "About to perform #{self} with #{args.inspect}"
+  end
+end
 
-    module RetriedJob
-      def on_failure_retry(e, *args)
-        Logger.info "Performing #{self} caused an exception (#{e}). Retrying..."
-        Resque.enqueue self, *args
-      end
-    end
+module RetriedJob
+  def on_failure_retry(e, *args)
+    Logger.info "Performing #{self} caused an exception (#{e}). Retrying..."
+    Resque.enqueue self, *args
+  end
+end
 
-    class MyJob
-      extend LoggedJob
-      extend RetriedJob
-      extend ScaledJob
-      def self.perform(*args)
-        ...
-      end
-    end
+class MyJob
+  extend LoggedJob
+  extend RetriedJob
+  extend ScaledJob
+  def self.perform(*args)
+    ...
+  end
+end
+~~~
