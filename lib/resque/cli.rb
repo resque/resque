@@ -1,6 +1,6 @@
 require 'yaml'
 require 'thor'
-require "resque"
+require 'resque'
 
 module Resque
   # The command-line interface for Resque
@@ -102,7 +102,7 @@ module Resque
         file ||= "."
 
         if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/environment.rb"))
-          require "rails"
+          require 'rails'
           require File.expand_path("#{file}/config/environment.rb")
           if defined?(::Rails) && ::Rails.respond_to?(:application)
             # Rails 3

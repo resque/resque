@@ -1,4 +1,4 @@
-require "rails"
+require 'rails'
 
 # Rails Generator
 module Resque::Generators

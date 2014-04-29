@@ -1,4 +1,4 @@
-require "resque/core_ext/hash"
+require 'resque/core_ext/hash'
 
 module Resque
   # A container for configuration parameters
