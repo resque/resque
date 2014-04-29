@@ -1,4 +1,4 @@
-require "test_helper"
+require 'test_helper'
 
 describe "Resque::MultiQueue" do
   let(:redis) { Resque.backend.store }
