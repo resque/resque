@@ -17,7 +17,7 @@ module Resque
     # Note: this has nothing to do with the contents of the queues themselves
     # @return [Boolean]
     def empty?
-      queues.nil? || queues.empty?
+      queues.empty?
     end
 
     # Returns the number of queues in this queue list, including splat '*' queue.
