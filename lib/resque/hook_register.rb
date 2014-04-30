@@ -194,7 +194,7 @@ module Resque
       if name
         (@hooks && @hooks[name]) || []
       else
-        @hooks || {}
+        @hooks
       end
     end
   end
