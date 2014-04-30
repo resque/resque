@@ -23,7 +23,7 @@ class Hash
   end
 
   unless method_defined?(:slice)
-    # Return a subset of self
+    # Returns a subset of self
     # Defined IFF not already defined elsewhere (e.g., ActiveSupport)
     # @param keys [Array<Object>]
     # @return [Hash<Object,Object>]
