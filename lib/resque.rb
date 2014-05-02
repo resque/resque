@@ -334,8 +334,6 @@ module Resque
   # If either of those conditions are met, it will use the value obtained
   # from performing one of the above operations to determine the queue.
   #
-  # If no queue can be inferred this method will raise a `Resque::NoQueueError`
-  #
   # If no args are given, this method will dequeue *all* jobs matching
   # the provided class. See `Resque::Job.destroy` for more
   # information.

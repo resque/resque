@@ -58,6 +58,8 @@ describe "Resque" do
 
   it "can remove jobs from a queue by way of an ivar" do
     assert_equal 0, Resque.size(:ivar)
+    assert_equal 0, Resque.dequeue(SomeIvarJob)
+
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
     assert Resque.enqueue(SomeIvarJob, 30, '/tmp')
     assert Resque.enqueue(SomeIvarJob, 20, '/tmp')
