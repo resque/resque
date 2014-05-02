@@ -103,7 +103,7 @@ module Resque
         redis.del(temp_queue).to_i
       end
 
-      destroyed_count.empty? ? 0 : destroyed_count.inject(:+)
+      destroyed_count.inject(:+).to_i
     end
 
     # Find jobs from a queue. Expects a string queue name, a
