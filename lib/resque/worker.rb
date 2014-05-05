@@ -58,8 +58,8 @@ module Resque
     # @option options [#warn,#unknown,#error,#info,#debug] :logger duck-typed ::Logger
     # @option options [#await] :awaiter (IOAwaiter.new)
     # @option options [Resque::Backend] :client
-    def initialize(queues = [], options = {})
-      @options = Options.new(options)
+    def initialize(queues = [], options = {}, resque)
+      @options = Options.new(options, resque)
       @worker_queues = WorkerQueueList.new(queues)
       @shutdown = nil
       @paused = nil
