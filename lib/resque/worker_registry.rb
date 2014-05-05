@@ -7,15 +7,19 @@ module Resque
     # Underlying Redis prefix for a worker's registry
     REDIS_SINGLE_WORKER_KEY = :worker
 
+    def initialize(resque)
+      @resque = resque
+    end
+
     # Direct access to the Redis instance.
     # @return [Redis::Namespace, Redis::Distributed]
     def redis
-      Resque.backend.store
+      @resque.backend.store
     end
 
     # @return [Redis::Namespace, Redis::Distributed]
     def self.redis
-      Resque.backend.store
+      @resque.backend.store
     end
 
     # @overload (see Resque::Coder#encode)
@@ -23,7 +27,7 @@ module Resque
     # @return (see Resque::Coder#encode)
     # @raise (see Resque::Coder#encode)
     def encode(object)
-      Resque.coder.encode(object)
+      @resque.coder.encode(object)
     end
 
     # @overload (see Resque::Coder#decode)
@@ -31,7 +35,7 @@ module Resque
     # @return (see Resque::Coder#decode)
     # @raise (see Resque::Coder#decode)
     def decode(object)
-      Resque.coder.decode(object)
+      @resque.coder.decode(object)
     end
 
     # Returns an array of all worker objects.

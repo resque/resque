@@ -3,8 +3,9 @@ module Resque
   # @todo reconcile with Resque::Config (issue #1080)
   class Options
     # @param options [Hash<#to_sym,Object>]
-    def initialize(options)
+    def initialize(options, resque)
       @options = default_options.merge(options.symbolize_keys)
+      @resque = resque
     end
 
     # @param val [Symbol]
@@ -56,7 +57,7 @@ module Resque
         # registered in the application. Otherwise, forked workers exit with `exit!`
         :run_at_exit_hooks => false,
         # the logger we're going to use.
-        :logger => Resque.logger,
+        :logger => @resque.logger,
       }
     end
 

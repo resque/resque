@@ -1,17 +1,15 @@
 require 'test_helper'
 require 'minitest/mock'
 
-actual_logger = Resque.logger
-
 describe "Resque::Logging" do
   after do
-    Resque.logger = actual_logger
+    resque = Resque.new
   end
 
   it "sets and receives the active logger" do
     my_logger = Object.new
-    Resque.logger = my_logger
-    assert_equal my_logger, Resque.logger
+    resque.logger = my_logger
+    assert_equal my_logger, resque.logger
   end
 
   %w(debug info error fatal).each do |severity|
@@ -19,7 +17,7 @@ describe "Resque::Logging" do
       message       = "test message"
       mock_logger   = MiniTest::Mock.new
       mock_logger.expect severity.to_sym, nil, [message]
-      Resque.logger = mock_logger
+      resque.logger = mock_logger
 
       Resque::Logging.send severity, message
       mock_logger.verify
