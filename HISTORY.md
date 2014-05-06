@@ -42,7 +42,8 @@
   (@adelcambre)
 * Allow using globs for queue names to listen on, allowing things like
   listening on `staging_*`. #1085 (@adelcambre)
-
+* Add support for PROCLINE_PREFIX environment variable to prefix procline
+  strings with a static identifier. #1117 (@rbroemeling)
 
 ## 1.24.1 (2013-3-23)
 
