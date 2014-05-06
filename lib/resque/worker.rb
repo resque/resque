@@ -12,6 +12,8 @@ module Resque
   class Worker
     include Resque::Logging
 
+    WORKER_HEARTBEAT_KEY = "workers:heartbeat"
+
     def redis
       Resque.redis
     end
@@ -343,6 +345,7 @@ module Resque
       Kernel.warn "WARNING: This way of doing signal handling is now deprecated. Please see http://hone.heroku.com/resque/2012/08/21/resque-signals.html for more info." unless term_child or $TESTING
       enable_gc_optimizations
       register_signal_handlers
+      start_heartbeat
       prune_dead_workers
       run_hook :before_first_fork
       register_worker
@@ -450,6 +453,29 @@ module Resque
       end
     end
 
+    def heartbeat
+      heartbeat = redis.hget(WORKER_HEARTBEAT_KEY, self.to_s)
+      heartbeat && Time.parse(heartbeat)
+    end
+
+    def heartbeat!(time = Time.now)
+      redis.hset(WORKER_HEARTBEAT_KEY, self.to_s, time.iso8601)
+    end
+
+    def start_heartbeat
+      heartbeat!
+      @heart = Thread.new {
+        loop do
+          sleep(Resque.heartbeat_interval)
+          heartbeat!
+        end
+      }
+    end
+
+    def seconds_since_heartbeat(beat = self.heartbeat)
+      (Time.now - Time.parse(beat)).to_i
+    end
+
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
     # wait 5 seconds, and then a KILL signal if it has not quit
@@ -501,23 +527,24 @@ module Resque
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
+      heartbeats = redis.hgetall(WORKER_HEARTBEAT_KEY)
       all_workers = Worker.all
-      known_workers = worker_pids unless all_workers.empty?
+
       all_workers.each do |worker|
-        host, pid, worker_queues_raw = worker.id.split(':')
-        worker_queues = worker_queues_raw.split(",")
-        unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
-          # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it. 
-          # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even 
-          # written in different language.
+        id = worker.to_s
+
+        # If the worker hasn't sent a heartbeat in PRUNE_INTERVAL, remove it
+        # from the registry.
+        #
+        # If the worker hasn't ever sent a heartbeat, we won't remove it since
+        # the first heartbeat is sent before the worker is registred it means
+        # that this is a worker that doesn't support heartbeats, e.g., another
+        # client library or an older version of Resque. We won't touch these.
+        if heartbeats[id] && worker.seconds_since_heartbeat(heartbeats[id]) > Resque.prune_interval
+          log! "Pruning dead worker: #{worker}"
+          worker.unregister_worker
           next
         end
-        next unless host == hostname
-        next if known_workers.include?(pid)
-        log! "Pruning dead worker: #{worker}"
-        worker.unregister_worker
       end
     end
 
@@ -554,10 +581,13 @@ module Resque
         job.fail(exception || DirtyExit.new)
       end
 
+      @heart.kill if @heart
+
       redis.pipelined do
         redis.srem(:workers, self)
         redis.del("worker:#{self}")
         redis.del("worker:#{self}:started")
+        redis.hdel(WORKER_HEARTBEAT_KEY, self.to_s)
 
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")
@@ -669,47 +699,6 @@ module Resque
     # Returns Integer PID of running worker
     def pid
       @pid ||= Process.pid
-    end
-
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def worker_pids
-      if RUBY_PLATFORM =~ /solaris/
-        solaris_worker_pids
-      elsif RUBY_PLATFORM =~ /mingw32/
-        windows_worker_pids
-      else
-        linux_worker_pids
-      end
-    end
-
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def windows_worker_pids
-      tasklist_output = `tasklist /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap)
-      tasklist_output.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
-    end
-
-    # Find Resque worker pids on Linux and OS X.
-    #
-    def linux_worker_pids
-      `ps -A -o pid,command | grep "[r]esque" | grep -v "resque-web"`.split("\n").map do |line|
-        line.split(' ')[0]
-      end
-    end
-
-    # Find Resque worker pids on Solaris.
-    #
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def solaris_worker_pids
-      `ps -A -o pid,comm | grep "[r]uby" | grep -v "resque-web"`.split("\n").map do |line|
-        real_pid = line.split(' ')[0]
-        pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
-        if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
-          real_pid
-        end
-      end.compact
     end
 
     # Given a string, sets the procline ($0) and logs.
