@@ -156,7 +156,7 @@ context "Resque" do
     err = assert_raises Resque::NoQueueError do
       Resque.validate(SomeJob)
     end
-    err.message.must_match /SomeJob/
+    assert_match(/SomeJob/, err.message)
   end
 
   test "can put items on a queue" do
