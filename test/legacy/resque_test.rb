@@ -155,9 +155,10 @@ describe "Resque" do
   end
 
   it "validates job for queue presence" do
-    assert_raises Resque::NoQueueError do
+    err = assert_raises Resque::NoQueueError do
       Resque.validate(JobNotAmI)
     end
+    err.message.must_match /JobNotAmI/
   end
 
   it "can put jobs on a queue inferred from class name ending in 'Worker'" do

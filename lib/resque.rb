@@ -424,7 +424,7 @@ module Resque
     queue ||= queue_from_class(klass)
 
     unless queue
-      raise NoQueueError.new("Jobs must be placed onto a queue.")
+      raise NoQueueError.new("Jobs must be placed onto a queue. No queue could be inferred for class #{klass}")
     end
 
     if klass.to_s.empty?
