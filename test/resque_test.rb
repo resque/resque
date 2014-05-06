@@ -153,9 +153,10 @@ context "Resque" do
   end
 
   test "validates job for queue presence" do
-    assert_raises Resque::NoQueueError do
+    err = assert_raises Resque::NoQueueError do
       Resque.validate(SomeJob)
     end
+    assert_match(/SomeJob/, err.message)
   end
 
   test "can put items on a queue" do
