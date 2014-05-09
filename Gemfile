@@ -22,7 +22,7 @@ group :test do
   gem "json"
   gem "minitest", '4.7.0'
   gem "minitest-stub-const"
-  gem 'mock_redis', '~> 0.12.0'
+  gem 'mock_redis', '~> 0.13.2'
 end
 
 platforms :rbx do
