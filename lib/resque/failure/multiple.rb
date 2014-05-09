@@ -1,5 +1,5 @@
 module Resque
-  module Failure
+  class Failure
     # A Failure backend that uses multiple backends
     # delegates all queries to the first backend
     class Multiple < Base
@@ -21,14 +21,13 @@ module Resque
       # @return (see Resque::Failure::Base#initialize)
       def initialize(*args)
         super
-        @backends = self.class.classes.map {|klass| klass.new(*args)}
       end
 
       # @override (see Resque::Failure::Base#save)
       # @param (see Resque::Failure::Base#save)
       # @return (see Resque::Failure::Base#save)
-      def save
-        @backends.each(&:save)
+      def self.save(failure)
+        classes.each { |klass| klass.save(failure) }
       end
 
       # The number of failures.
@@ -39,7 +38,7 @@ module Resque
         classes.first.count(*args)
       end
 
-      # Returns a paginated array of failure objects.
+      # Returns an array of all failure objects, filtered by options
       # @override (see Resque::Failure::Base::all)
       # @param (see Resque::Failure::Base::all)
       # @return (see Resque::Failure::Base::all)
@@ -47,12 +46,12 @@ module Resque
         classes.first.all(*args)
       end
 
-      # Iterate across failed objects
-      # @override (see Resque::Failure::Each#each)
-      # @param (see Resque::Failure::Each#each)
-      # @return (see Resque::Failure::Each#each)
-      def self.each(*args, &block)
-        classes.first.each(*args, &block)
+      # Returns a paginated array of failure objects.
+      # @override (see Resque::Failure::Base::all)
+      # @param (see Resque::Failure::Base::all)
+      # @return (see Resque::Failure::Base::all)
+      def self.slice(*args)
+        classes.first.slice(*args)
       end
 
       # A URL where someone can go to view failures.
@@ -67,8 +66,8 @@ module Resque
       # @override (see Resque::Failure::Base::clear)
       # @param (see Resque::Failure::Base::clear)
       # @return (see Resque::Failure::Base::clear)
-      def self.clear(*args)
-        classes.first.clear(*args)
+      def self.clear(queue = nil)
+        classes.first.clear(queue)
       end
 
       # @override (see Resque::Failure::Base::requeue)
@@ -81,8 +80,8 @@ module Resque
       # @override (see Resque::Failure::Base::remove)
       # @param (see Resque::Failure::Base::remove)
       # @return (see Resque::Failure::Base::remove)
-      def self.remove(index)
-        classes.each { |klass| klass.remove(index) }
+      def self.remove(*args)
+        classes.each { |klass| klass.remove(*args) }
       end
     end
   end

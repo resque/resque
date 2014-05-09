@@ -5,7 +5,7 @@ rescue LoadError
 end
 
 module Resque
-  module Failure
+  class Failure
     # Failure backend for Airbrake
     class Airbrake < Base
       # @override (see Resque::Failure::Base::count)
@@ -20,23 +20,24 @@ module Resque
       # @override (see Resque::Failure::Base#save)
       # @param (see Resque::Failure::Base#save)
       # @return (see Resque::Failure::Base#save)
-      def save
-        ::Airbrake.notify_or_ignore(exception,
+      def save(failure)
+        ::Airbrake.notify_or_ignore(failure.raw_exception,
           :parameters => {
-            :payload_class => payload['class'].to_s,
-            :payload_args => payload['args'].inspect
+            :payload_class => failure.class_name,
+            :payload_args => failure.args.inspect
           },
           :component => 'resque',
-          :action => action
+          :action => action(failure)
         )
       end
 
-      # Returns the payload class's name, underscored.
+      # Returns the payload class' name, underscored.
       # This is used internally by {#save}
+      # @param failure [Resque::Failure]
       # @return [String]
       # @api private
-      def action
-        action = payload['class'].to_s
+      def action(failure)
+        action = failure.class_name
         action = action.underscore if action.respond_to?(:underscore)
         action
       end
