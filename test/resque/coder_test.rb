@@ -6,7 +6,7 @@ describe Resque::Coder do
   end
 
   describe '#encode' do
-    it 'should raise an exception' do
+    it 'raises an exception' do
       assert_raises(Resque::EncodeException) {@coder.encode(nil)}
     end
 
@@ -16,11 +16,11 @@ describe Resque::Coder do
   end
 
   describe '#decode' do
-    it 'should raise an exception' do
+    it 'raises an exception' do
       assert_raises(Resque::DecodeException) {@coder.decode(nil)}
     end
 
-    it 'aliased #load should raise an exception' do
+    it 'aliased #load raises an exception' do
       assert_raises(Resque::DecodeException) {@coder.load(nil)}
     end
   end

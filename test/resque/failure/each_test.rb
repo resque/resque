@@ -7,7 +7,7 @@ describe Resque::Failure::Each do
   end
 
   describe 'each' do
-    it 'should properly iterate over the default range for a single failure' do
+    it 'properly iterates over the default range for a single failure' do
       save_failures('T1')
 
       n = 0
@@ -20,7 +20,7 @@ describe Resque::Failure::Each do
       assert_equal 1, n
     end
 
-    it 'should properly iterate over the default range for multiple failures' do
+    it 'properly iterates over the default range for multiple failures' do
       expected_failure_classes = ['T1', 'T2']
       save_failures('T1', 'T2')
 
@@ -34,7 +34,7 @@ describe Resque::Failure::Each do
       assert_equal 2, n
     end
 
-    it 'should properly iterate over the specified range for multiple failures' do
+    it 'properly iterates over the specified range for multiple failures' do
       save_failures('T1', 'T2', 'T3')
 
       n = 0
@@ -47,7 +47,7 @@ describe Resque::Failure::Each do
       assert_equal 1, n
     end
 
-    it 'should only find the desired classes of errors' do
+    it 'only finds the desired classes of errors' do
       save_failures('T1', 'T2')
 
       n = 0
@@ -60,7 +60,7 @@ describe Resque::Failure::Each do
       assert_equal 1, n
     end
 
-    it 'should only find the desired classes of errors within the specified range' do
+    it 'only finds the desired classes of errors within the specified range' do
       save_failures('T1', 'T2', 'T2', 'T3')
 
       n = 0
