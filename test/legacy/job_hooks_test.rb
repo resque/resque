@@ -308,7 +308,7 @@ describe Resque::Job do
       end
     end
 
-    it "the after dequeue hook should run" do
+    it "the after dequeue hook runs" do
       history = []
       @worker = Resque::Worker.new(:jobs, worker_options)
       Resque.dequeue(AfterDequeueJob, history)
@@ -341,7 +341,7 @@ describe Resque::Job do
       end
     end
 
-    it "the before dequeue hook should run" do
+    it "the before dequeue hook runs" do
       history = []
       @worker = Resque::Worker.new(:jobs, worker_options)
       Resque.dequeue(BeforeDequeueJob, history)
@@ -349,7 +349,7 @@ describe Resque::Job do
       assert_equal history, [:before_dequeue], "before_dequeue was not run"
     end
 
-    it "a before dequeue hook that returns false should prevent the job from getting dequeued" do
+    it "a before dequeue hook that returns false prevents the job from getting dequeued" do
       history = []
       assert_equal nil, Resque.dequeue(BeforeDequeueJobAbort, history)
     end

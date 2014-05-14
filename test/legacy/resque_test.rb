@@ -283,7 +283,6 @@ describe "Resque" do
       Resque::Job.new(:inferred, {'class' => InferredJob, 'args' => [30, '/tmp']})
     ]
 
-    #assert_equal expected_jobs, Resque.queued(InferredJob)
     assert_equal 2, Resque.queued(InferredJob).size
     assert_equal 1, Resque.queued(InferredJob, 20, '/tmp').size
     assert_equal 1, Resque.queued(InferredJob, 30, '/tmp').size
@@ -300,7 +299,6 @@ describe "Resque" do
       Resque::Job.new(:inferred, {'class' => Inferred::Job, 'args' => [30, '/tmp']})
     ]
 
-    #assert_equal expected_jobs, Resque.queued(Inferred::Job)
     assert_equal 2, Resque.queued(Inferred::Job).size
     assert_equal 1, Resque.queued(Inferred::Job, 20, '/tmp').size
     assert_equal 1, Resque.queued(Inferred::Job, 30, '/tmp').size
