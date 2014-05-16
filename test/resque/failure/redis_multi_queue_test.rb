@@ -12,7 +12,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#requeue' do
-    it 'should requeue a new job to the queue of the failed job' do
+    it 'requeues a new job to the queue of the failed job' do
       save_failure
 
       failure = Resque::Failure::RedisMultiQueue.all(0, 1, :failed_failed).first
@@ -30,7 +30,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#requeue_queue' do
-    it 'should requeue all failures for the desired queue' do
+    it 'requeues all failures for the desired queue' do
       save_failure('queue1')
       save_failure('queue2')
       save_failure('queue1')
@@ -49,7 +49,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#remove_queue' do
-    it 'should remove all failures for the desired queue' do
+    it 'removes all failures for the desired queue' do
       save_failure('queue1')
       save_failure('queue2')
       save_failure('queue1')
@@ -64,7 +64,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#clear' do
-    it 'should remove all failures in a given queue' do
+    it 'removes all failures in a given queue' do
       save_failure('queue1')
       save_failure('queue1')
 
@@ -75,7 +75,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#remove' do
-    it 'should remove an individual failure from the given queue' do
+    it 'removes an individual failure from the given queue' do
       save_failure('queue1')
 
       assert_equal 1, Resque::Failure.count('queue1_failed')
@@ -85,7 +85,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#queues' do
-    it 'should list all known failure queues' do
+    it 'lists all known failure queues' do
       assert_empty Resque::Failure::RedisMultiQueue.queues
 
       save_failure('queue1')
@@ -98,7 +98,7 @@ describe Resque::Failure::RedisMultiQueue do
   end
 
   describe '#count' do
-    it 'should count all failures across all failure queues' do
+    it 'counts all failures across all failure queues' do
       save_failure('queue1')
       save_failure('queue2')
       save_failure('queue3')
@@ -106,7 +106,7 @@ describe Resque::Failure::RedisMultiQueue do
       assert_equal 3, Resque::Failure::RedisMultiQueue.count
     end
 
-    it 'should count all failures for the given queue and class' do
+    it 'counts all failures for the given queue and class' do
       save_failure('queue1', 'some_class')
       save_failure('queue1', 'another_class')
       save_failure('queue1', 'another_class')

@@ -6,7 +6,7 @@ describe Resque::Config do
     describe 'with empty hash' do
       let(:args_hash) { {} }
 
-      it 'should initialize' do
+      it 'initializes' do
         Resque::Config::new(args_hash)
       end
     end

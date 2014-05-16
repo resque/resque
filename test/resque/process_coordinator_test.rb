@@ -16,7 +16,7 @@ CMD
   describe "#worker_pids" do
     let(:process_coordinator) { Resque::ProcessCoordinator.new }
 
-    it "should return worker pids for each OS" do
+    it "returns worker pids for each OS" do
       Resque::ProcessCoordinator.stub_const(:RUBY_PLATFORM, "solaris") do
         process_coordinator.stub :`, SOLARIS_RESPONSE do
           assert_equal process_coordinator.worker_pids, ["11111"]
@@ -36,7 +36,7 @@ CMD
       end
     end
 
-    it "should raise error if fail to execute cmd" do
+    it "raises error if fail to execute cmd" do
       def process_coordinator.`(cmd)
         raise RuntimeError
       end
