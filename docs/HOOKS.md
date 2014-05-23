@@ -97,6 +97,8 @@ The available hooks are:
 
 * `before_dequeue`: Called with the job args before a job is removed from the queue.
   If the hook returns `false`, the job will not be removed from the queue.
+  
+  This is **only** called by `Resque::dequeue` and not, e.g. `rake resque:work`, see [here](https://github.com/resque/resque/issues/512).
 
 * `after_dequeue`: Called with the job args after a job was removed from the queue.
   Any exception raised propagates up to the code which dequeued the job.
