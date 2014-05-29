@@ -26,11 +26,12 @@ You can't always do work right away. Sometimes, you need to do it later. Resque
 is a really simple way to manage a pile of work that your application needs
 to do: 1.5 million installs can't be wrong!
 
-To define some work, make a job. Jobs need a `work` method:
+To define some work, make a job. Jobs need a `perform` method and it helps if you specify a queue:
 
 ```ruby
 class ImageConversionJob
-  def work
+  @queue = :image_conversion
+  def perform
     # convert some kind of image here
   end
 end
@@ -39,8 +40,7 @@ end
 Next, we need to procrastinate! Let's put your job on the queue:
 
 ```ruby
-resque = Resque.new
-resque << ImageConversionJob.new
+Resque.enqueue ImageConversionJob
 ```
 
 Neat! This unit of work will be stored in Redis. We can spin up a worker to
@@ -60,8 +60,19 @@ To install Resque, add the gem to your Gemfile:
 ```ruby
 gem "resque", "~> 2.0.0.pre.1", github: "resque/resque"
 ```
-
 Then run `bundle`. If you're not using Bundler, just `gem install resque`.
+
+If you're using Rails, you'll need to install resque into your config/initializers so be sure to run the generator:
+
+```shell
+$ rails generate resque:install
+```
+
+Otherwise, you'll need to setup your redis connection manually somewhere else:
+
+```ruby
+Resque.redis = 'localhost:6379'
+```
 
 ### Requirements
 
