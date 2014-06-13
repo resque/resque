@@ -33,8 +33,8 @@ module Resque
         end
       end
 
-      def self.all(offset = 0, limit = 1, queue = :failed, order = 'desc')
-        Resque.list_range(queue, offset, limit, order)
+      def self.all(offset = 0, limit = 1, queue = :failed)
+        Resque.list_range(queue, offset, limit)
       end
 
       def self.queues
@@ -42,7 +42,7 @@ module Resque
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
-        items = all(offset, limit, queue, order)
+        items = all(offset, limit, queue)
         items = [items] unless items.is_a? Array
         if order.eql? 'desc'
           items.reverse!
