@@ -44,12 +44,15 @@ module Resque
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
         items = all(offset, limit, queue)
         items = [items] unless items.is_a? Array
+        reversed = false
         if order.eql? 'desc'
           items.reverse!
+          reversed = true
         end
         items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
-            yield offset + i, item
+            id = reversed ? (items.length - 1) - (offset + i) : offset + i
+            yield id, item
           end
         end
       end

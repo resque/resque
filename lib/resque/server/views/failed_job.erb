@@ -10,13 +10,13 @@
       <% if job['retried_at'] %>
         <div class='retried'>
           Retried <b><span class="time"><%= Time.parse(job['retried_at']).strftime(failed_date_format) %></span></b>
-          <a href="<%= u "failed/remove/#{id}" %>" class="remove" rel="remove">Remove</a>
+          <a href="<%= u "#{queue}/remove/#{id}" %>" class="remove" rel="remove">Remove</a>
         </div>
       <% else %>
         <div class='controls'>
-          <a href="<%= u "failed/requeue/#{id}" %>" rel="retry">Retry</a>
+          <a href="<%= u "#{queue}/requeue/#{id}" %>" rel="retry">Retry</a>
           or
-          <a href="<%= u "failed/remove/#{id}" %>" rel="remove">Remove</a>
+          <a href="<%= u "#{queue}/remove/#{id}" %>" rel="remove">Remove</a>
         </div>
       <% end %>
     </dd>

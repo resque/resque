@@ -62,14 +62,16 @@ module Resque
         Resque.redis.del(:failed)
       end
 
-      def self.requeue(id)
+      def self.requeue(id, queue = nil)
+        check_queue(queue)
         item = all(id)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
         Resque.redis.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
       end
 
-      def self.remove(id)
+      def self.remove(id, queue = nil)
+        check_queue(queue)
         sentinel = ""
         Resque.redis.lset(:failed, id, sentinel)
         Resque.redis.lrem(:failed, 1,  sentinel)

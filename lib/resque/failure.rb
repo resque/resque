@@ -90,14 +90,14 @@ module Resque
       backend.clear(queue)
     end
 
-    def self.requeue(id)
-      backend.requeue(id)
+    def self.requeue(id, queue = nil)
+      backend.requeue(id, queue)
     end
 
-    def self.remove(id)
-      backend.remove(id)
+    def self.remove(id, queue = nil)
+      backend.remove(id, queue)
     end
-    
+
     # Requeues all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.requeue_queue(queue)
