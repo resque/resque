@@ -205,9 +205,7 @@ module Resque
     end
 
     post "/failed/requeue/all" do
-      Resque::Failure.count.times do |num|
-        Resque::Failure.requeue(num)
-      end
+      Resque::Failure.requeue_all
       redirect u('failed')
     end
 

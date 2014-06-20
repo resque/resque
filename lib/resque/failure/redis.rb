@@ -85,6 +85,12 @@ module Resque
         end
       end
 
+      def self.requeue_all
+        count.times do |num|
+          requeue(num)
+        end
+      end
+
       def self.remove_queue(queue)
         i = 0
         while job = all(i)
@@ -105,6 +111,7 @@ module Resque
         index = backtrace.index { |item| item.include?('/lib/resque/job.rb') }
         backtrace.first(index.to_i)
       end
+
     end
   end
 end

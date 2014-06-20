@@ -104,10 +104,16 @@ module Resque
       backend.requeue_queue(queue)
     end
 
+    # Requeues all failed jobs
+    def self.requeue_all
+      backend.requeue_all
+    end
+
     # Removes all failed jobs in a specific queue.
     # Queue name should be a string.
     def self.remove_queue(queue)
       backend.remove_queue(queue)
     end
+
   end
 end

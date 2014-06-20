@@ -79,6 +79,10 @@ module Resque
         each(0, count(failure_queue), failure_queue) { |id, _| requeue(id, failure_queue) }
       end
 
+      def self.requeue_all
+        queues.each { |queue| requeue_queue(Resque::Failure.job_queue_name(queue)) }
+      end
+
       def self.remove_queue(queue)
         Resque.redis.del(Resque::Failure.failure_queue_name(queue))
       end
