@@ -57,8 +57,9 @@ module Resque
         end
       end
 
-      def self.clear(queue = :failed)
-        Resque.redis.del(queue)
+      def self.clear(queue = nil)
+        queues = queue ? Array(queue) : self.queues
+        queues.each { |queue| Resque.redis.del(queue) }
       end
 
       def self.requeue(id, queue = :failed)
