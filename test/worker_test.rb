@@ -984,4 +984,24 @@ describe "Resque::Worker" do
       assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
     end
   end
+
+  it "kills child process" do
+    testing = $TESTING
+    begin
+      worker = Resque::Worker.new(:sleepy)
+      Resque::Job.create(:sleepy, SleepyJob)
+      $TESTING = false
+      Thread.new do
+        sleep 1
+        worker.kill!
+        assert worker.terminal?
+      end
+      start = Time.now
+      worker.work(0)
+      assert_operator Time.now - start, :<=, 10
+      refute worker.terminal?
+    ensure
+      $TESTING = testing
+    end
+  end
 end

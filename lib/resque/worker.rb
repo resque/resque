@@ -180,6 +180,40 @@ module Resque
       end.sort
     end
 
+    def kill_key
+      "worker:#{self}:kill"
+    end
+
+    def terminal?
+      redis.get(kill_key) != nil
+    end
+
+    def kill!
+      redis.setex(kill_key, 300, 1)
+    end
+
+    def wait_for_child(rd, select_timeout = 5.0)
+      log "Worker #{self} for child process #{@child}..."
+      killed_child = false
+      loop do
+        res = IO.select([rd], nil, nil, select_timeout)
+        if res && res[0]
+          res[0][0].read_nonblock(1) rescue EOFError
+          log "Worker #{self} child exiting cleanly"
+          break
+        elsif terminal?
+          log! "Worker #{self} received kill notification while waiting for child!"
+          killed_child = true
+          new_kill_child
+          break
+        end
+      end
+      Process.waitpid(@child)
+    ensure
+      rd.close rescue IOError
+      redis.del(kill_key) if killed_child
+    end
+
     # This is the main workhorse method. Called on a Worker instance,
     # it begins the worker life cycle.
     #
@@ -208,18 +242,21 @@ module Resque
           log_with_severity :info, "got: #{job.inspect}"
           job.worker = self
           working_on job
+          rd, wr = IO.pipe
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
           if @child = fork(job)
+            wr.close
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
-              Process.waitpid(@child)
+              wait_for_child(rd)
             rescue SystemCallError
               nil
             end
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
+            rd.close
             unregister_signal_handlers if will_fork? && term_child
             begin
 
@@ -229,6 +266,9 @@ module Resque
             rescue Exception => exception
               report_failed_job(job,exception)
             end
+
+            wr.write("x") rescue Errno::EPIPE # notify the parent we're about to exit
+            wr.close
 
             if will_fork?
               run_at_exit_hooks ? exit : exit!
