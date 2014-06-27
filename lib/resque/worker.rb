@@ -208,26 +208,27 @@ module Resque
     # environment, we can determine if Redis is old and clean it up a bit.
     # @return [void]
     def prune_dead_workers
-      all_workers = WorkerRegistry.all
-      coordinator = ProcessCoordinator.new
-      known_workers = coordinator.worker_pids unless all_workers.empty?
-      all_workers.each do |worker|
-        host, pid, workers_queues_raw = worker.id.split(':')
-        workers_queues = workers_queues_raw.split(",")
-        unless worker_queues.all_queues? || (workers_queues.to_set == worker_queues.to_set)
-          # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it.
-          # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even
-          # written in different language.
-          next
-        end
-        next unless host == hostname
-        next if known_workers.include?(pid)
-        logger.debug "Pruning dead worker: #{worker}"
-        registry = WorkerRegistry.new(worker)
-        registry.unregister
+      WorkerRegistry.all.each do |worker|
+        prune_worker_if_dead(worker)
       end
+    end
+
+    # Returns some basic information about this worker in hash format
+    # {
+    #   :host   => String,
+    #   :pid    => String,
+    #   :queues => Array
+    # }
+    # @return [Hash<Symbol,Object>]
+    def info
+      host, pid, workers_queues_raw = id.split(':')
+      workers_queues                = workers_queues_raw.split(",")
+
+      {
+        :host   => host,
+        :pid    => pid,
+        :queues => workers_queues
+      }
     end
 
     # How many jobs has this worker processed? Returns an int.
@@ -474,6 +475,57 @@ module Resque
     # @return [Boolean]
     def graceful_term?
       options[:graceful_term]
+    end
+
+    private
+    # Given a worker, if it's defined as prunable it gets unregistered
+    # from the WorkerRegistry
+    # @return [void]
+    def prune_worker_if_dead(worker)
+      if dead_worker?(worker)
+        logger.debug "Pruning dead worker: #{worker}"
+        WorkerRegistry.new(worker).unregister
+      end
+    end
+
+    # Checks to see if another worker is able to be pruned
+    # @return [Boolean]
+    def dead_worker?(worker)
+      shares_queues?(worker) && shares_host?(worker) && unknown_worker?(worker)
+    end
+
+    # If the worker we are trying to prune does not belong to the queues
+    # we are listening to, we should not touch it.
+    #
+    # Attempt to prune a worker from different queues may easily result in
+    # an unknown class exception, since that worker could easily be even
+    # written in different language.
+    # @return [Boolean]
+    def shares_queues?(worker)
+      workers_queues = worker.info[:queues]
+      worker_queues.all_queues? ||
+        (workers_queues.to_set == worker_queues.to_set) ||
+        workers_queues.empty?
+    end
+
+    # Checks to see if a different worker shares a host with this worker
+    # @return [Boolean]
+    def shares_host?(worker)
+      host = worker.info[:host]
+      host == hostname
+    end
+
+    # Checks to see if the WorkerRegistry knows about this worker
+    # @return [Boolean]
+    def unknown_worker?(worker)
+      pid = worker.info[:pid]
+      !known_workers.include?(pid)
+    end
+
+    # Helper to get an array of worker pids from the ProcessCoordinator
+    # @return [Array<String>]
+    def known_workers
+      ProcessCoordinator.new.worker_pids unless WorkerRegistry.all.empty?
     end
   end
 end

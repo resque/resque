@@ -19,19 +19,19 @@ CMD
     it "returns worker pids for each OS" do
       Resque::ProcessCoordinator.stub_const(:RUBY_PLATFORM, "solaris") do
         process_coordinator.stub :`, SOLARIS_RESPONSE do
-          assert_equal process_coordinator.worker_pids, ["11111"]
+          assert_equal ["11111"], process_coordinator.worker_pids
         end
       end
 
       Resque::ProcessCoordinator.stub_const(:RUBY_PLATFORM, "mingw32") do
         process_coordinator.stub :`, WINDOWS_RESPONSE do
-          assert_equal process_coordinator.worker_pids, ["5244"]
+          assert_equal ["5244"], process_coordinator.worker_pids
         end
       end
 
       Resque::ProcessCoordinator.stub_const(:RUBY_PLATFORM, "linux") do
         process_coordinator.stub :`, LINUX_RESPONSE do
-          assert_equal process_coordinator.worker_pids, ["22222"]
+          assert_equal ["22222"], process_coordinator.worker_pids
         end
       end
     end
