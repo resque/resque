@@ -8,6 +8,7 @@ them later.
   - [![Code Climate](https://img.shields.io/codeclimate/github/resque/resque.svg)](https://codeclimate.com/github/resque/resque)
   - [![Build Status](https://img.shields.io/travis/resque/resque/master.svg)](https://travis-ci.org/resque/resque)
   - [![Coverage Status](https://img.shields.io/coveralls/resque/resque/master.svg)](https://coveralls.io/r/resque/resque)
+  - [![Inline docs](http://inch-ci.org/github/resque/resque.svg)](http://inch-ci.org/github/resque/resque)
 
 ### A note about branches
 
