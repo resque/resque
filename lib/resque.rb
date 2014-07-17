@@ -497,7 +497,7 @@ module Resque
 
   # Decodes raw result objects from Redis and optionally yields them to a block
   # @api private
-  def process_results(results, index, &block)
+  def process_results(results, index)
     Array(results).map.with_index(index) do |item, i|
       result = decode(item)
       if block_given?
