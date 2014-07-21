@@ -128,7 +128,7 @@ module Resque
     # @param string [String]
     # @return [void]
     def procline(string)
-      $0 = "resque-#{Resque::Version}: #{string}"
+      $0 = "#{ENV['RESQUE_PROCLINE_PREFIX']}resque-#{Resque::Version}: #{string}"
       logger.debug $0
     end
 
