@@ -151,4 +151,44 @@ describe Resque::Worker do
     end
 
   end
+
+  describe "#procline" do
+    it "supports arbitrary suffixes" do
+      prefix = ENV['RESQUE_PROCLINE_PREFIX']
+      suffix = 'worker-test-suffix'
+      ver = Resque::Version
+      worker = Resque::Worker.new [:foo, :bar], :client => client, :logger => MonoLogger.new("/dev/null")
+
+      old_procline = $0
+
+      worker.send(:procline, suffix)
+      assert_equal "#{prefix}resque-#{ver}: #{suffix}", $0
+
+      $0 = old_procline
+    end
+
+    it "supports arbitrary prefixes" do
+      prefix = 'WORKER-TEST-PREFIX/'
+      ver = Resque::Version
+      worker = Resque::Worker.new [:foo, :bar], :client => client, :logger => MonoLogger.new("/dev/null")
+
+      old_prefix = ENV['RESQUE_PROCLINE_PREFIX']
+      ENV.delete('RESQUE_PROCLINE_PREFIX')
+      old_procline = $0
+
+      worker.send(:procline, '')
+      assert_equal "resque-#{ver}: ", $0
+
+      ENV['RESQUE_PROCLINE_PREFIX'] = prefix
+      worker.send(:procline, '')
+      assert_equal "#{prefix}resque-#{ver}: ", $0
+
+      $0 = old_procline
+      if old_prefix.nil?
+        ENV.delete('RESQUE_PROCLINE_PREFIX')
+      else
+        ENV['RESQUE_PROCLINE_PREFIX'] = old_prefix
+      end
+    end
+  end
 end

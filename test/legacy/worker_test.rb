@@ -496,8 +496,9 @@ describe "Resque::Worker" do
   it "sets $0 while working" do
     stub_to_fork(worker, false) do
       worker.work do
+        prefix = ENV['RESQUE_PROCLINE_PREFIX']
         ver = Resque::Version
-        assert_equal "resque-#{ver}: Processing jobs since #{Time.now.iso8601} [SomeJob]", $0
+        assert_equal "#{prefix}resque-#{ver}: Processing jobs since #{Time.now.iso8601} [SomeJob]", $0
       end
     end
   end
