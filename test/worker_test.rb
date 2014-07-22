@@ -220,6 +220,30 @@ context "Resque::Worker" do
     assert_equal 2, Resque::Failure.count
   end
 
+  test "supports setting the procline to have arbitrary prefixes and suffixes" do
+    prefix = 'WORKER-TEST-PREFIX/'
+    suffix = 'worker-test-suffix'
+    ver = Resque::Version
+
+    old_prefix = ENV['RESQUE_PROCLINE_PREFIX']
+    ENV.delete('RESQUE_PROCLINE_PREFIX')
+    old_procline = $0
+
+    @worker.procline(suffix)
+    assert_equal $0, "resque-#{ver}: #{suffix}"
+
+    ENV['RESQUE_PROCLINE_PREFIX'] = prefix
+    @worker.procline(suffix)
+    assert_equal $0, "#{prefix}resque-#{ver}: #{suffix}"
+
+    $0 = old_procline
+    if old_prefix.nil?
+      ENV.delete('RESQUE_PROCLINE_PREFIX')
+    else
+      ENV['RESQUE_PROCLINE_PREFIX'] = old_prefix
+    end
+  end
+
   test "strips whitespace from queue names" do
     queues = "critical, high, low".split(',')
     worker = Resque::Worker.new(*queues)
@@ -427,8 +451,9 @@ context "Resque::Worker" do
 
   test "sets $0 while working" do
     @worker.extend(AssertInWorkBlock).work(0) do
+      prefix = ENV['RESQUE_PROCLINE_PREFIX']
       ver = Resque::Version
-      assert_equal "resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
+      assert_equal "#{prefix}resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
     end
   end
 
