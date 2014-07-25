@@ -211,9 +211,10 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
+    encoded = encode(item)
     redis.pipelined do
       watch_queue(queue)
-      redis.rpush "queue:#{queue}", encode(item)
+      redis.rpush "queue:#{queue}", encoded
     end
   end
 

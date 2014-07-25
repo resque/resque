@@ -128,6 +128,13 @@ class SomeJob
   end
 end
 
+class JsonObject
+  def to_json(opts = {})
+    val = Resque.redis.get("count")
+    { "val" => val }.to_json
+  end
+end
+
 class SomeIvarJob < SomeJob
   @queue = :ivar
 end
