@@ -39,6 +39,12 @@ module Resque
         classes.first.count(*args)
       end
 
+      # Returns an array of all available failure queues
+      # @return [Array<#to_s>]
+      def self.queues
+        classes.first.queues
+      end
+
       # Returns a paginated array of failure objects.
       # @override (see Resque::Failure::Base::all)
       # @param (see Resque::Failure::Base::all)
