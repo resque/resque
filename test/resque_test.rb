@@ -9,6 +9,13 @@ describe "Resque" do
     Resque.redis = @original_redis
   end
 
+  it "can push an item that depends on redis for encoding" do
+    Resque.redis.set("count", 1)
+    # No error should be raised
+    Resque.push(:test, JsonObject.new)
+    Resque.redis.del("count")
+  end
+
   it "can set a namespace through a url-like string" do
     assert Resque.redis
     assert_equal :resque, Resque.redis.namespace
