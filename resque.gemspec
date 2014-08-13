@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.version           = Resque::Version
   s.date              = Time.now.strftime('%Y-%m-%d')
   s.summary           = "Resque is a Redis-backed queueing system."
-  s.homepage          = "http://github.com/defunkt/resque"
+  s.homepage          = "http://resquework.org/"
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath", "Steve Klabnik", "Terence Lee" ]
 
