@@ -4,12 +4,14 @@ num_workers = rails_env == 'production' ? 5 : 2
 
 num_workers.times do |num|
   God.watch do |w|
+    pid_file   = "#{rails_root}/tmp/pids/resque-#{num}.pid"
     w.dir      = "#{rails_root}"
     w.name     = "resque-#{num}"
     w.group    = 'resque'
     w.interval = 30.seconds
-    w.env      = {"QUEUE"=>"critical,high,low", "RAILS_ENV"=>rails_env}
+    w.env      = {"QUEUE"=>"critical,high,low", "RAILS_ENV"=>rails_env, "PIDFILE"=>pid_file}
     w.start    = "/usr/bin/rake -f #{rails_root}/Rakefile environment resque:work"
+    w.pid_file = pid_file
 
     w.uid = 'deploy'
     w.gid = 'deploy'
