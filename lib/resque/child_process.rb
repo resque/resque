@@ -99,7 +99,7 @@ module Resque
     # @param child [Integer]
     # @return [Boolean]
     def quit_gracefully?(child)
-      (worker.options[:timeout].to_f * 10).round.times do |i|
+      (worker.options[:timeout].to_f * 10).round.times do
         sleep(0.1)
         return true if Process.waitpid(child, Process::WNOHANG)
       end
