@@ -10,7 +10,7 @@ namespace :resque do
     warn "DEPRECATION WARNING: Rake tasks are deprecated. Use `resque work` instead"
 
     opts = [
-      "-q", ENV['QUEUES'] || ENV['QUEUE'] || "*",
+      "-q", ENV['QUEUES'] || ENV['QUEUE'] || ENV['QUESOS'] || ENV['QUESO'] || "*",
       "-t", ENV['RESQUE_TERM_TIMEOUT'] || 4.0,
       "-d", !ENV['BACKGROUND'].nil?,
       "-p", ENV['PIDFILE'],
