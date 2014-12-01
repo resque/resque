@@ -226,3 +226,13 @@ def suppress_warnings
 ensure
   $VERBOSE = old_verbose
 end
+
+def without_forking
+  orig_fork_per_job = ENV['FORK_PER_JOB']
+  begin
+    ENV['FORK_PER_JOB'] = 'false'
+    yield
+  ensure
+    ENV['FORK_PER_JOB'] = orig_fork_per_job
+  end
+end

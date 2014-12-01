@@ -315,8 +315,10 @@ context "Resque::Worker" do
     worker = Resque::Worker.new("*")
     processed_queues = []
 
-    worker.work(0) do |job|
-      processed_queues << job.queue
+    without_forking do
+      worker.work(0) do |job|
+        processed_queues << job.queue
+      end
     end
 
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
@@ -355,33 +357,41 @@ context "Resque::Worker" do
   end
 
   test "inserts itself into the 'workers' list on startup" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert_equal @worker, Resque.workers[0]
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert_equal @worker, Resque.workers[0]
+      end
     end
   end
 
   test "removes itself from the 'workers' list on shutdown" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert_equal @worker, Resque.workers[0]
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert_equal @worker, Resque.workers[0]
+      end
     end
 
     assert_equal [], Resque.workers
   end
 
   test "removes worker with stringified id" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      worker_id = Resque.workers[0].to_s
-      Resque.remove_worker(worker_id)
-      assert_equal [], Resque.workers
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        worker_id = Resque.workers[0].to_s
+        Resque.remove_worker(worker_id)
+        assert_equal [], Resque.workers
+      end
     end
   end
 
   test "records what it is working on" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      task = @worker.job
-      assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
-      assert task['run_at']
-      assert_equal 'jobs', task['queue']
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        task = @worker.job
+        assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
+        assert task['run_at']
+        assert_equal 'jobs', task['queue']
+      end
     end
   end
 
@@ -391,8 +401,10 @@ context "Resque::Worker" do
   end
 
   test "knows when it is working" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert @worker.working?
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert @worker.working?
+      end
     end
   end
 
@@ -402,8 +414,10 @@ context "Resque::Worker" do
   end
 
   test "knows who is working" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert_equal [@worker], Resque.working
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert_equal [@worker], Resque.working
+      end
     end
   end
 
@@ -437,63 +451,75 @@ context "Resque::Worker" do
 
   test "knows when it started" do
     time = Time.now
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert Time.parse(@worker.started) - time < 0.1
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert Time.parse(@worker.started) - time < 0.1
+      end
     end
   end
 
   test "knows whether it exists or not" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      assert Resque::Worker.exists?(@worker)
-      assert !Resque::Worker.exists?('blah-blah')
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert Resque::Worker.exists?(@worker)
+        assert !Resque::Worker.exists?('blah-blah')
+      end
     end
   end
 
   test "sets $0 while working" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      prefix = ENV['RESQUE_PROCLINE_PREFIX']
-      ver = Resque::Version
-      assert_equal "#{prefix}resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        prefix = ENV['RESQUE_PROCLINE_PREFIX']
+        ver = Resque::Version
+        assert_equal "#{prefix}resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
+      end
     end
   end
 
   test "can be found" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      found = Resque::Worker.find(@worker.to_s)
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        found = Resque::Worker.find(@worker.to_s)
 
-      # we ensure that the found ivar @pid is set to the correct value since
-      # Resque::Worker#pid will use it instead of Process.pid if present
-      assert_equal @worker.pid, found.instance_variable_get(:@pid)
+        # we ensure that the found ivar @pid is set to the correct value since
+        # Resque::Worker#pid will use it instead of Process.pid if present
+        assert_equal @worker.pid, found.instance_variable_get(:@pid)
 
-      assert_equal @worker.to_s, found.to_s
-      assert found.working?
-      assert_equal @worker.job, found.job
+        assert_equal @worker.to_s, found.to_s
+        assert found.working?
+        assert_equal @worker.job, found.job
+      end
     end
   end
 
   test 'can find others' do
-    # inject fake worker
-    other_worker = Resque::Worker.new(:other_jobs)
-    other_worker.pid = 123456
-    other_worker.register_worker
+    without_forking do
+      # inject fake worker
+      other_worker = Resque::Worker.new(:other_jobs)
+      other_worker.pid = 123456
+      other_worker.register_worker
 
-    begin
-      @worker.extend(AssertInWorkBlock).work(0) do
-        found = Resque::Worker.find(other_worker.to_s)
-        assert_equal other_worker.to_s, found.to_s
-        assert_equal other_worker.pid, found.pid
-        assert !found.working?
-        assert found.job.empty?
+      begin
+        @worker.extend(AssertInWorkBlock).work(0) do
+          found = Resque::Worker.find(other_worker.to_s)
+          assert_equal other_worker.to_s, found.to_s
+          assert_equal other_worker.pid, found.pid
+          assert !found.working?
+          assert found.job.empty?
+        end
+      ensure
+        other_worker.unregister_worker
       end
-    ensure
-      other_worker.unregister_worker
     end
   end
 
   test "doesn't find fakes" do
-    @worker.extend(AssertInWorkBlock).work(0) do
-      found = Resque::Worker.find('blah-blah')
-      assert_equal nil, found
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        found = Resque::Worker.find('blah-blah')
+        assert_equal nil, found
+      end
     end
   end
 
@@ -589,6 +615,21 @@ context "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
+  test "Will not call a before_fork hook when the worker won't fork" do
+    Resque.redis.flushall
+    $BEFORE_FORK_CALLED = false
+    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    # This sets ENV['FORK_PER_JOB'] = 'false' and then restores it
+    without_forking do
+      workerA.work(0)
+    end
+    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
+  end
+
   test "setting verbose to true" do
     @worker.verbose = true
 
@@ -668,33 +709,35 @@ context "Resque::Worker" do
   end
 
   test "won't fork if ENV['FORK_PER_JOB'] is false" do
-    begin
-      $TESTING = false
-      workerA = Resque::Worker.new(:jobs)
+    workerA = Resque::Worker.new(:jobs)
 
-      if workerA.will_fork?
-        begin
-          ENV["FORK_PER_JOB"] = 'false'
-          assert !workerA.will_fork?
-        ensure
-          ENV["FORK_PER_JOB"] = 'true'
-        end
+    if workerA.will_fork?
+      begin
+        ENV["FORK_PER_JOB"] = 'false'
+        assert !workerA.will_fork?
+      ensure
+        ENV["FORK_PER_JOB"] = 'true'
       end
-    ensure
-      $TESTING = true
     end
   end
 
   test "Will call an after_fork hook if we're forking" do
     Resque.redis.flushall
-    $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
 
-    assert !$AFTER_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert $AFTER_FORK_CALLED == workerA.will_fork?
+    begin
+      pipe_rd, pipe_wr = IO.pipe
+
+      Resque.after_fork = Proc.new { pipe_wr.write('hey') }
+      workerA = Resque::Worker.new(:jobs)
+
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      workerA.work(0)
+
+      assert_equal('hey', pipe_rd.read_nonblock(3))
+    ensure
+      pipe_rd.close
+      pipe_wr.close
+    end
   end
 
   test "Will not call an after_fork hook when the worker can't fork" do
@@ -736,7 +779,9 @@ context "Resque::Worker" do
 
   test "reconnects to redis after fork" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
-    @worker.work(0)
+    without_forking do
+      @worker.work(0)
+    end
     assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
@@ -760,7 +805,9 @@ context "Resque::Worker" do
 
       stdout, stderr = capture_io do
         Resque.logger = Logger.new($stdout)
-        @worker.work(0)
+        without_forking do
+          @worker.work(0)
+        end
       end
 
       assert_equal 3, stdout.scan(/retrying/).count
@@ -815,7 +862,9 @@ context "Resque::Worker" do
 
       Resque.logger = DummyLogger.new
       begin
-        @worker.work(0)
+        without_forking do
+          @worker.work(0)
+        end
         messages = Resque.logger.messages
       ensure
         reset_logger
@@ -859,8 +908,6 @@ context "Resque::Worker" do
         Resque.enqueue( LongRunningJob, 5, rescue_time )
 
         worker_pid = Kernel.fork do
-          # ensure we actually fork
-          $TESTING = false
           # reconnect since we just forked
           Resque.redis.client.reconnect
 
@@ -924,8 +971,6 @@ context "Resque::Worker" do
             Resque.enqueue( LongRunningJob, 5, rescue_time )
 
             worker_pid = Kernel.fork do
-              # ensure we actually fork
-              $TESTING = false
               # reconnect since we just forked
               Resque.redis.client.reconnect
 
@@ -994,7 +1039,6 @@ context "Resque::Worker" do
           Resque.redis.client.reconnect
 
           # ensure we don't fork (in worker)
-          $TESTING = false
           ENV['FORK_PER_JOB'] = 'false'
 
           worker = Resque::Worker.new(:long_running_job)
@@ -1066,16 +1110,11 @@ context "Resque::Worker" do
     end
 
     test "will notify failure hooks when a job is killed by a signal" do
-      begin
-        $TESTING = false
-        Resque.enqueue(SuicidalJob)
-        suppress_warnings do
-          @worker.work(0)
-        end
-        assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
-      ensure
-        $TESTING = true
+      Resque.enqueue(SuicidalJob)
+      suppress_warnings do
+        @worker.work(0)
       end
+      assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
     end
   end
 

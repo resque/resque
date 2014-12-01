@@ -319,7 +319,7 @@ module Resque
     # Not every platform supports fork. Here we do our magic to
     # determine if yours does.
     def fork(job)
-      return if @cant_fork
+      return unless will_fork?
 
       # Only run before_fork hooks if we're actually going to fork
       # (after checking @cant_fork)
@@ -328,7 +328,7 @@ module Resque
       begin
         # IronRuby doesn't support `Kernel.fork` yet
         if Kernel.respond_to?(:fork)
-          Kernel.fork if will_fork?
+          Kernel.fork
         else
           raise NotImplementedError
         end
@@ -632,7 +632,7 @@ module Resque
     end
 
     def will_fork?
-      !@cant_fork && !$TESTING && fork_per_job?
+      !@cant_fork && fork_per_job?
     end
 
     def fork_per_job?
