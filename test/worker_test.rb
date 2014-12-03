@@ -595,6 +595,7 @@ context "Resque::Worker" do
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
+    workerA.stubs(:will_fork?).returns(true)
 
     assert !$BEFORE_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
@@ -602,12 +603,12 @@ context "Resque::Worker" do
     assert $BEFORE_FORK_CALLED
   end
 
-  test "Will not call a before_fork hook when the worker can't fork" do
+  test "Will not call a before_fork hook when the worker won't fork" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
-    workerA.cant_fork = true
+    workerA.stubs(:will_fork?).returns(false)
 
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
@@ -721,7 +722,7 @@ context "Resque::Worker" do
     end
   end
 
-  test "Will call an after_fork hook if we're forking" do
+  test "Will call an after_fork hook after forking" do
     Resque.redis.flushall
 
     begin
@@ -740,12 +741,12 @@ context "Resque::Worker" do
     end
   end
 
-  test "Will not call an after_fork hook when the worker can't fork" do
+  test "Will not call an after_fork hook when the worker won't fork" do
     Resque.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
-    workerA.cant_fork = true
+    workerA.stubs(:will_fork?).returns(false)
 
     assert !$AFTER_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
