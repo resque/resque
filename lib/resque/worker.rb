@@ -206,7 +206,7 @@ module Resque
             unregister_signal_handlers if will_fork? && term_child
             begin
 
-              reconnect
+              reconnect if will_fork?
               perform(job, &block)
 
             rescue Exception => exception

@@ -792,112 +792,128 @@ context "Resque::Worker" do
     assert_equal 1, Resque::Failure.count
   end
 
-  test "reconnects to redis after fork" do
+  test "no reconnects to redis when not forking" do
     original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
     without_forking do
       @worker.work(0)
     end
-    assert_not_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
-  end
-
-  test "tries to reconnect three times before giving up and the failure does not unregister the parent" do
-    begin
-      class Redis::Client
-        alias_method :original_reconnect, :reconnect
-
-        def reconnect
-          raise Redis::BaseConnectionError
-        end
-      end
-
-      class Resque::Worker
-        alias_method :original_sleep, :sleep
-
-        def sleep(duration = nil)
-          # noop
-        end
-      end
-
-      stdout, stderr = capture_io do
-        Resque.logger = Logger.new($stdout)
-        without_forking do
-          @worker.work(0)
-        end
-      end
-
-      assert_equal 3, stdout.scan(/retrying/).count
-      assert_equal 1, stdout.scan(/quitting/).count
-      assert_equal 0, stdout.scan(/Failed to start worker/).count
-      assert_equal 1, stdout.scan(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
-
-    ensure
-      class Redis::Client
-        alias_method :reconnect, :original_reconnect
-      end
-
-      class Resque::Worker
-        alias_method :sleep, :original_sleep
-      end
-    end
-  end
-
-  test "tries to reconnect three times before giving up" do
-    captured_worker = nil
-    begin
-      class Redis::Client
-        alias_method :original_reconnect, :reconnect
-
-        def reconnect
-          raise Redis::BaseConnectionError
-        end
-      end
-
-      class Resque::Worker
-        alias_method :original_sleep, :sleep
-
-        def sleep(duration = nil)
-          # noop
-        end
-      end
-
-      class DummyLogger
-        attr_reader :messages
-
-        def initialize
-          @messages = []
-        end
-
-        def info(message); @messages << message; end
-        alias_method :debug, :info
-        alias_method :warn,  :info
-        alias_method :error, :info
-        alias_method :fatal, :info
-      end
-
-      Resque.logger = DummyLogger.new
-      begin
-        without_forking do
-          @worker.work(0)
-        end
-        messages = Resque.logger.messages
-      ensure
-        reset_logger
-      end
-
-      assert_equal 3, messages.grep(/retrying/).count
-      assert_equal 1, messages.grep(/quitting/).count
-    ensure
-      class Redis::Client
-        alias_method :reconnect, :original_reconnect
-      end
-
-      class Resque::Worker
-        alias_method :sleep, :original_sleep
-      end
-    end
+    assert_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
+    class ForkResultJob
+      @queue = :jobs
+
+      def self.perform_with_result(worker, &block)
+        @rd, @wr = IO.pipe
+        @block = block
+        Resque.enqueue(self)
+        worker.work(0)
+        @wr.close
+        Marshal.load(@rd.read)
+      ensure
+        @rd, @wr, @block = nil
+      end
+
+      def self.perform
+        result = @block.call
+        @wr.write(Marshal.dump(result))
+        @wr.close
+      end
+    end
+
+    def run_in_job(&block)
+      ForkResultJob.perform_with_result(@worker, &block)
+    end
+
+    test "reconnects to redis after fork" do
+      original_connection = Resque.redis.client.connection.instance_variable_get("@sock").object_id
+      new_connection = run_in_job do
+        Resque.redis.client.connection.instance_variable_get("@sock").object_id
+      end
+      assert_not_equal original_connection, new_connection
+    end
+
+    test "tries to reconnect three times before giving up and the failure does not unregister the parent" do
+      begin
+        class Redis::Client
+          alias_method :original_reconnect, :reconnect
+
+          def reconnect
+            raise Redis::BaseConnectionError
+          end
+        end
+
+        def @worker.sleep(duration = nil)
+          # noop
+        end
+
+        stdout, stderr = capture_io_with_pipe do
+          Resque.logger = Logger.new($stdout)
+          @worker.work(0)
+        end
+
+        assert_equal 3, stdout.scan(/retrying/).count
+        assert_equal 1, stdout.scan(/quitting/).count
+        assert_equal 0, stdout.scan(/Failed to start worker/).count
+        assert_equal 1, stdout.scan(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
+
+      ensure
+        class Redis::Client
+          alias_method :reconnect, :original_reconnect
+        end
+      end
+    end
+
+    test "tries to reconnect three times before giving up" do
+      captured_worker = nil
+      begin
+        class Redis::Client
+          alias_method :original_reconnect, :reconnect
+
+          def reconnect
+            raise Redis::BaseConnectionError
+          end
+        end
+
+        def @worker.sleep(duration = nil)
+          # noop
+        end
+
+        class DummyLogger
+          def initialize
+            @rd, @wr = IO.pipe
+          end
+
+          def info(message); @wr << message << "\0"; end
+          alias_method :debug, :info
+          alias_method :warn,  :info
+          alias_method :error, :info
+          alias_method :fatal, :info
+
+          def messages
+            @wr.close
+            @rd.read.split("\0")
+          end
+        end
+
+        Resque.logger = DummyLogger.new
+        begin
+          @worker.work(0)
+          messages = Resque.logger.messages
+        ensure
+          reset_logger
+        end
+
+        assert_equal 3, messages.grep(/retrying/).count
+        assert_equal 1, messages.grep(/quitting/).count
+      ensure
+        class Redis::Client
+          alias_method :reconnect, :original_reconnect
+        end
+      end
+    end
+
     class SuicidalJob
       @queue = :jobs
 
