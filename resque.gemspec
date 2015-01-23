@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.homepage          = "https://github.com/resque/resque"
   s.email             = ["steve@steveklabnik.com", "hone02@gmail.com","chris@ozmm.org"]
   s.authors           = ["Steve Klabnik", "Terence Lee", "Chris Wanstrath"]
+  s.license           = "MIT"
 
   s.files         = `git ls-files`.split($/).reject{ |f| f =~ /^examples/ }
   s.executables   = s.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
