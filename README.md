@@ -216,7 +216,7 @@ end
 
 ## Hooks and Plugins
 
-Please see [HOOKS.md](https://github.com/resque/resque/blob/master/docs/HOOKS.md).
+Please see [HOOKS.md](https://github.com/resque/resque/blob/master/docs/HOOKS.md) and [PLUGINS.md](https://github.com/resque/resque/blob/master/docs/PLUGINS.md).
 
 ## Contributing
 
