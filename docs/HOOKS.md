@@ -68,12 +68,9 @@ Job Hooks
 ---------
 
 Plugins can utilize job hooks to provide additional behavior. A job
-hook is a method name in the following format:
-
-    HOOKNAME_IDENTIFIER
-
-For example, a `before_perform` hook which adds locking may be defined
-like this:
+hook is a method name which starts with the name of one of the hooks
+below. For example, a `before_perform` hook which adds locking may be
+defined like this:
 
 ~~~Ruby
 def before_perform_with_lock(*args)
