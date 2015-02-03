@@ -36,10 +36,6 @@ Resque::Server.helpers do
     end
   end
 
-  def failed_order
-    params[:order] || 'desc'
-  end
-
   def failed_class_counts(queue = params[:queue])
     classes = Hash.new(0)
     Resque::Failure.each(0, Resque::Failure.count(queue), queue) do |_, item|

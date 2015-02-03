@@ -20,7 +20,7 @@
 
 
 <ul class='failed'>
-  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue], params[:class], failed_order) do |id, job| %>
+  <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue] || 'failed', params[:class]) do |id, job| %>
     <%= partial :failed_job, :id => id, :job => job %>
   <% end %>
 </ul>

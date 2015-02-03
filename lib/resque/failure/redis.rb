@@ -38,21 +38,10 @@ module Resque
         Resque.list_range(:failed, offset, limit)
       end
 
-      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
-        all_items = Array(all(offset, limit, queue))
-        reversed = false
-        if order.eql? 'desc'
-          all_items.reverse!
-          reversed = true
-        end
-        all_items.each_with_index do |item, i|
+      def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil)
+        Array(all(offset, limit, queue)).each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
-            if reversed
-              id = (all_items.length - 1) - (offset + i)
-            else
-              id = offset + i
-            end
-            yield id, item
+            yield offset + i, item
           end
         end
       end
