@@ -32,7 +32,7 @@ Resque::Server.helpers do
     if failed_start_at + failed_per_page > failed_size
       failed_size
     else
-      failed_start_at  + failed_per_page
+      failed_start_at  + failed_per_page - 1
     end
   end
 
