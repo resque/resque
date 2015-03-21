@@ -16,13 +16,21 @@ describe Resque::JsonCoder do
   end
 
   describe "#decode" do
-    it "decodes valid JSON" do
-      result = {"test" => 1}
-      assert_equal result, coder.decode('{"test": 1}')
+    describe "when called with nil" do
+      it "returns without decoding" do
+        assert_nil coder.decode(nil)
+      end
     end
 
-    it "raises with malformed JSON" do
-      lambda { coder.decode('{test: 1}') }.must_raise(Resque::DecodeException)
+    describe "when called with object" do
+      it "decodes valid JSON" do
+        result = {"test" => 1}
+        assert_equal result, coder.decode('{"test": 1}')
+      end
+
+      it "raises with malformed JSON" do
+        lambda { coder.decode('{test: 1}') }.must_raise(Resque::DecodeException)
+      end
     end
   end
 end
