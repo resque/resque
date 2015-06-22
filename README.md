@@ -229,6 +229,7 @@ You can write your Resque workers in other languages, too:
 * [Go](http://www.goworker.org/)
 * [Java](https://github.com/gresrun/jesque)
 * [CoffeeScript](https://github.com/technoweenie/coffee-resque)
+* [PHP](https://github.com/chrisboulton/php-resque)
 
 ## Anything we missed?
 
