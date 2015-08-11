@@ -489,6 +489,7 @@ context "Resque::Worker" do
   end
 
   test "worker_pids returns pids" do
+    @worker.work(0)
     known_workers = @worker.worker_pids
     assert !known_workers.empty?
   end
