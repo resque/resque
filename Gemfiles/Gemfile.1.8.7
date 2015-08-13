@@ -1,0 +1,15 @@
+source "https://rubygems.org"
+
+group :test do
+  gem "rake"
+  gem "rack-test", "~> 0.5"
+  gem "mocha", :require => false
+  gem "airbrake"
+  gem "activesupport", "~> 3.0"
+  gem "i18n", "~> 0.6.0"
+  gem "minitest", "4.7.0"
+  gem "json"
+  gem 'redis', '~> 3.0.0', '< 3.0.7'
+end
+
+gemspec :path => "../"
