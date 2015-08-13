@@ -11,4 +11,5 @@ group :test do
   gem "i18n"
   gem "minitest", "4.7.0"
   gem "json"
+  gem "test-unit", "~> 3.0"
 end
