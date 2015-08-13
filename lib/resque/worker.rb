@@ -46,6 +46,7 @@ module Resque
     end
 
     attr_accessor :term_timeout
+    attr_accessor :pre_term_timeout
 
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
@@ -452,6 +453,14 @@ module Resque
     def new_kill_child
       if @child
         unless Process.waitpid(@child, Process::WNOHANG)
+          if pre_term_timeout.to_f > 0
+            log! "Wait #{pre_term_timeout.to_f}s before SIGTERM to child #{@child}"
+            (pre_term_timeout.to_f * 10).round.times do |i|
+              sleep(0.1)
+              return if Process.waitpid(@child, Process::WNOHANG)
+            end
+          end
+          # reach this if process is not dead within pre_term_timeout secs
           log! "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
           (term_timeout.to_f * 10).round.times do |i|
