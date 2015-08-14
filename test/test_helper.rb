@@ -165,6 +165,14 @@ class BadJobWithSyntaxError
   end
 end
 
+class EchoJob
+  @queue = :jobs
+
+  def self.perform(message)
+    message
+  end
+end
+
 class BadFailureBackend < Resque::Failure::Base
   def save
     raise Exception.new("Failure backend error")

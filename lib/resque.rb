@@ -217,6 +217,14 @@ module Resque
     end
   end
 
+  # Like `#push` but uses LPUSH to place the item on the front of the queue.
+  def lpush(queue, item)
+    redis.pipelined do
+      watch_queue(queue)
+      redis.lpush "queue:#{queue}", encode(item)
+    end
+  end
+
   # Pops a job off a queue. Queue name should be a string.
   #
   # Returns a Ruby object.
@@ -298,6 +306,11 @@ module Resque
     enqueue_to(queue_from_class(klass), klass, *args)
   end
 
+  # Just like `enqueue` but puts the job at the front of the queue.
+  def priority_enqueue(klass, *args)
+    priority_enqueue_to(queue_from_class(klass), klass, *args)
+  end
+
   # Just like `enqueue` but allows you to specify the queue you want to
   # use. Runs hooks.
   #
@@ -315,6 +328,23 @@ module Resque
     return nil if before_hooks.any? { |result| result == false }
 
     Job.create(queue, klass, *args)
+
+    Plugin.after_enqueue_hooks(klass).each do |hook|
+      klass.send(hook, *args)
+    end
+
+    return true
+  end
+
+  # Just like `enqueue_to` but puts the job at the front of the queue.
+  def priority_enqueue_to(queue, klass, *args)
+    # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
+    before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
+      klass.send(hook, *args)
+    end
+    return nil if before_hooks.any? { |result| result == false }
+
+    Job.priority_create(queue, klass, *args)
 
     Plugin.after_enqueue_hooks(klass).each do |hook|
       klass.send(hook, *args)
