@@ -364,7 +364,9 @@ module Resque
 
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
-      Kernel.warn "WARNING: This way of doing signal handling is now deprecated. Please see http://hone.heroku.com/resque/2012/08/21/resque-signals.html for more info." unless term_child or $TESTING
+      if !term_child
+        Kernel.warn "WARNING: This way of doing signal handling is now deprecated. Please see http://hone.heroku.com/resque/2012/08/21/resque-signals.html for more info." 
+      end
       enable_gc_optimizations
       register_signal_handlers
       prune_dead_workers
@@ -795,7 +797,6 @@ module Resque
     end
 
     def logger_severity_deprecation_warning
-      return if $TESTING
       return if $warned_logger_severity_deprecation
       Kernel.warn "*** DEPRECATION WARNING: Resque::Worker#verbose and #very_verbose are deprecated. Please set Resque.logger.level instead"
       Kernel.warn "Called from: #{caller[0..5].join("\n\t")}"
