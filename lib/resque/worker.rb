@@ -125,6 +125,34 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(*queues)
+      queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
+
+      begin
+        if ENV['LOGGING'] || ENV['VERBOSE']
+          self.verbose = ENV['LOGGING'] || ENV['VERBOSE']
+        end
+        if ENV['VVERBOSE']
+          self.very_verbose = ENV['VVERBOSE']
+        end
+        self.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
+        self.term_child = ENV['TERM_CHILD']
+        self.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
+      rescue Resque::NoQueueError
+        abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
+      end
+
+      if ENV['BACKGROUND']
+        unless Process.respond_to?('daemon')
+            abort "env var BACKGROUND is set, which requires ruby >= 1.9"
+        end
+        Process.daemon(true, true)
+        self.reconnect
+      end
+
+      if ENV['PIDFILE']
+        File.open(ENV['PIDFILE'], 'w') { |f| f << pid }
+      end
+
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
