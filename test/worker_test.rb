@@ -39,7 +39,6 @@ context "Resque::Worker" do
       assert_equal 0, Resque::Failure.count
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       worker = Resque::Worker.new(:jobs)
       suppress_warnings do
@@ -59,7 +58,6 @@ context "Resque::Worker" do
       assert_equal "at_exit", File.open(tmpfile).read.strip
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
@@ -75,7 +73,6 @@ context "Resque::Worker" do
   class ::RaiseExceptionOnFailure
 
     def self.on_failure_trhow_exception(exception,*args)
-      $TESTING = true
       raise "The worker threw an exception"
     end
 
@@ -90,7 +87,6 @@ context "Resque::Worker" do
       Process.waitpid(worker_pid)
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
       worker = Resque::Worker.new(:not_failing_job)
@@ -113,7 +109,6 @@ context "Resque::Worker" do
       assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
@@ -604,7 +599,7 @@ context "Resque::Worker" do
     assert $BEFORE_FORK_CALLED
   end
 
-  test "Will not call a before_fork hook when the worker won't fork" do
+  test "Will not call a before_fork hook when the worker cannot fork" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -617,7 +612,7 @@ context "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
-  test "Will not call a before_fork hook when the worker won't fork" do
+  test "Will not call a before_fork hook when forking set to false" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -914,6 +909,7 @@ context "Resque::Worker" do
           Resque.redis.client.reconnect
 
           worker = Resque::Worker.new(:long_running_job)
+          worker.term_child = false
 
           suppress_warnings do
             worker.work(0)
@@ -1083,12 +1079,12 @@ context "Resque::Worker" do
 
     test "displays warning when not using term_child" do
       begin
-        $TESTING = false
-        stdout, stderr = capture_io { @worker.work(0) }
-
+        @worker.term_child = nil
+        _, stderr = capture_io { @worker.work(0) }
+        puts _
         assert stderr.match(/^WARNING:/)
       ensure
-        $TESTING = true
+        @worker.term_child = ENV['TERM_CHILD']
       end
     end
 
@@ -1122,49 +1118,41 @@ context "Resque::Worker" do
 
   test "displays warning when using verbose" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.verbose }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using verbose=" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.verbose = true }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.very_verbose }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose=" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.very_verbose = true }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 end

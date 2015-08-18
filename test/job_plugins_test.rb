@@ -193,7 +193,7 @@ context "Resque::Plugin ordering around_perform" do
     extend AroundPerformGetsJobResult
   end
 
-  test "the job is aborted if an around_perform hook does not yield" do
+  test "the job is not aborted if an around_perform hook does yield" do
     result = perform_job(AroundPerformJobWithReturnValue, 'Bob')
     assert_equal true, result, "perform returned true"
     assert_equal 'Good job, Bob', AroundPerformJobWithReturnValue.last_job_result
