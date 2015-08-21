@@ -34,18 +34,10 @@ context "Resque::Worker" do
   end
 
   test "does not raise exception for completed jobs" do
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert_equal 0, Resque::Failure.count
-    else
-      # ensure we actually fork
-      Resque.redis.client.reconnect
-      worker = Resque::Worker.new(:jobs)
-      suppress_warnings do
-        worker.work(0)
-      end
-      exit
+    without_forking do
+      @worker.work(0)
     end
+    assert_equal 0, Resque::Failure.count
   end
 
   test "executes at_exit hooks when configured with run_at_exit_hooks" do
