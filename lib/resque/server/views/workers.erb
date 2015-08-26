@@ -31,11 +31,13 @@
         <% if data['queue'] %>
           <% kill_worker = worker.terminal? %>
           <% unless kill_worker %>
+            <form id="retry-worker-form" method="POST" style="display:none;"><input type="hidden" name="_method" value="POST"></form>
             <form id="kill-worker-form" method="POST" style="display:none;"><input type="hidden" name="_method" value="DELETE"></form>
           <% end %>
           <code><%= data['payload']['class'] %></code>
           <% unless kill_worker %>
-            <a class="kill-tag" href="#" onclick="if(window.confirm('Are you SURE you want to kill this job?')) $('#kill-worker-form').submit()">Kill</a>
+            <a class="kill-tag" href="#" onclick="if(window.confirm('Are you SURE you want to abort this job\'s attempt?')) $('#retry-worker-form').submit()">Abort Attempt</a>
+            <a class="kill-tag" href="#" onclick="if(window.confirm('Are you SURE you want to kill this job permanently?')) $('#kill-worker-form').submit()">Kill Job</a>
           <% else %>
             <b class="kill-tag">Killing</b>
           <% end %>

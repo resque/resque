@@ -181,6 +181,16 @@ module Resque
       end
     end
 
+    post '/workers/:id/?' do
+      worker = Resque::Worker.find(params[:id])
+      if worker
+        worker.retry!
+        redirect u("/workers/#{worker}")
+      else
+        erb :error, {:layout => false}, :error => "Can't find worker #{params[:id]}!"
+      end
+    end
+
     delete '/workers/:id/?' do
       worker = Resque::Worker.find(params[:id])
       if worker

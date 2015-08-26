@@ -188,8 +188,16 @@ module Resque
       redis.get(kill_key) != nil
     end
 
+    def retry?
+      redis.get(kill_key).to_i == 2
+    end
+
     def kill!
       redis.setex(kill_key, 300, 1)
+    end
+
+    def retry!
+      redis.setex(kill_key, 300, 2)
     end
 
     def wait_for_child(rd, select_timeout = 5.0)
@@ -264,7 +272,7 @@ module Resque
               perform(job, &block)
 
             rescue Exception => exception
-              report_failed_job(job,exception)
+              report_failed_job(job,exception) unless @dont_retry
             end
 
             wr.write("x") rescue Errno::EPIPE # notify the parent we're about to exit
@@ -327,7 +335,7 @@ module Resque
         run_hook :after_fork, job if will_fork?
         job.perform
       rescue Object => e
-        report_failed_job(job,e)
+        report_failed_job(job,e) unless @dont_retry
       else
         log_with_severity :info, "done: #{job.inspect}"
       ensure
@@ -398,6 +406,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       start_heartbeat
+      start_kill_checker
       prune_dead_workers
       run_hook :before_first_fork
       register_worker
@@ -479,6 +488,7 @@ module Resque
           trap('TERM') do
             # ignore subsequent terms
           end
+          raise Resque::DontRetryTermException.new("SIGTERM") if @dont_retry
           raise TermException.new("SIGTERM")
         end
       else
@@ -545,6 +555,40 @@ module Resque
           heartbeat!
         end
       end
+    end
+
+    def start_kill_checker
+      @killer = Thread.new {
+        loop do
+          sleep(5.0)
+          if terminal?
+            log! "Worker #{self} found kill key while running job"
+            kill_self
+            break
+          end
+        end
+      }
+    end
+
+    def kill_self
+      log! "Killing self."
+      if !retry?
+        log! "Killing self without retry."
+        redis.pipelined do
+          processed!
+          redis.del("worker:#{self}")
+        end
+
+        @dont_retry = true
+      end
+
+      log! "Sending INT signal to self."
+      Process.kill("INT", Process.pid)
+
+      sleep(term_timeout)
+      log! "INT timed out. Sending KILL signal to self."
+      redis.del(kill_key)
+      Process.kill("KILL", Process.pid)
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -682,7 +726,12 @@ module Resque
         end
       end
 
+<<<<<<< c1591354b11d9e6ba22e4da650d5f1d11910fa13
       kill_background_threads
+=======
+      @heart.kill if @heart
+      @killer.kill if @killer
+>>>>>>> Merge pull request #8 from Shopify/kill-button
 
       redis.pipelined do
         redis.srem(:workers, self)
