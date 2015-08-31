@@ -32,22 +32,26 @@ module Resque
 
     # A cache for object method names (see #job_methods)
     @job_methods = {}
-
     # Caches the object's method names
     # @param job [Object]
     # @return [Array<String>] - an array of method names
     def job_methods(job)
-      @job_methods[job] ||= job.methods.collect{|m| m.to_s}
+      @job_methods[job] ||= (job.methods - Object.methods).collect{|m| m.to_s}
     end
 
+    # A cache for hook names :job => before_after_hook
+    @hook_names = {}
     # Given an object, and a method prefix, returns a list of methods prefixed
     # with that name (hook names).
     # @param job [Object]
     # @param hook_method_prefix [String]
     # @return [Array<String>]
     def get_hook_names(job, hook_method_prefix)
-      methods = (job.respond_to?(:hooks) && job.hooks.keys) || job_methods(job)
-      methods.select{|m| m.start_with?(hook_method_prefix)}.sort
+      (@hook_names[job] ||= {})[hook_method_prefix] ||=
+        begin
+          methods = (job.respond_to?(:hooks) && job.hooks.keys) || job_methods(job)
+          methods.select{|m| m.start_with?(hook_method_prefix)}.sort
+        end
     end
 
     # Given an object, returns a list `before_perform` hook names.
