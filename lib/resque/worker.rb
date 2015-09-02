@@ -47,6 +47,12 @@ module Resque
 
     attr_accessor :term_timeout
 
+    attr_accessor :pre_shutdown_timeout
+
+    attr_accessor :shutdown_signal
+
+    attr_accessor :term_child_signal
+
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
@@ -128,6 +134,7 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @shutdown_signal = 'TERM'
       validate_queues
     end
 
@@ -385,16 +392,21 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') do
-        trap ('TERM') do 
-          # ignore subsequent terms               
-        end  
-        raise TermException.new("SIGTERM") 
-      end 
-      trap('INT', 'DEFAULT')
+      trap(shutdown_signal) do
+        trap(shutdown_signal) do
+          # Ignore subsequent shutdown signals
+        end
+
+        log! "Trapped #{shutdown_signal} in child #{Process.pid}; raising"
+        raise TermException.new("SIG#{shutdown_signal}")
+      end
 
       begin
-        trap('QUIT', 'DEFAULT')
+        %w{TERM INT QUIT}.each do |signal|
+          next if shutdown_signal == signal
+          trap(signal, 'DEFAULT')
+        end
+
         trap('USR1', 'DEFAULT')
         trap('USR2', 'DEFAULT')
       rescue ArgumentError
@@ -451,13 +463,14 @@ module Resque
     # wait 5 seconds, and then a KILL signal if it has not quit
     def new_kill_child
       if @child
-        unless Process.waitpid(@child, Process::WNOHANG)
-          log! "Sending TERM signal to child #{@child}"
-          Process.kill("TERM", @child)
-          (term_timeout.to_f * 10).round.times do |i|
-            sleep(0.1)
-            return if Process.waitpid(@child, Process::WNOHANG)
+        unless child_already_exited?
+          if pre_shutdown_timeout && pre_shutdown_timeout > 0.0
+            log! "Waiting #{pre_shutdown_timeout.to_f}s for child process to exit"
+            return if wait_for_child_exit(pre_shutdown_timeout)
           end
+          log! "Sending #{shutdown_signal} signal to child #{@child}"
+          Process.kill(shutdown_signal, @child)
+          return if wait_for_child_exit(term_timeout)
           log! "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
         else
@@ -466,6 +479,18 @@ module Resque
       end
     rescue SystemCallError
       log! "Child #{@child} already quit and reaped."
+    end
+
+    def child_already_exited?
+      Process.waitpid(@child, Process::WNOHANG)
+    end
+
+    def wait_for_child_exit(timeout)
+      (timeout * 10).round.times do |i|
+        sleep(0.1)
+        return true if child_already_exited?
+      end
+      false
     end
 
     # are we paused?
@@ -504,9 +529,9 @@ module Resque
         worker_queues = worker_queues_raw.split(",")
         unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
           # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it. 
+          # we are listening to, we should not touch it.
           # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even 
+          # an unknown class exception, since that worker could easily be even
           # written in different language.
           next
         end
