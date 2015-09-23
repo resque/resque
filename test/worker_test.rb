@@ -34,19 +34,10 @@ context "Resque::Worker" do
   end
 
   test "does not raise exception for completed jobs" do
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert_equal 0, Resque::Failure.count
-    else
-      # ensure we actually fork
-      $TESTING = false
-      Resque.redis.client.reconnect
-      worker = Resque::Worker.new(:jobs)
-      suppress_warnings do
-        worker.work(0)
-      end
-      exit
+    without_forking do
+      @worker.work(0)
     end
+    assert_equal 0, Resque::Failure.count
   end
 
   test "executes at_exit hooks when configured with run_at_exit_hooks" do
@@ -59,7 +50,6 @@ context "Resque::Worker" do
       assert_equal "at_exit", File.open(tmpfile).read.strip
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
@@ -75,7 +65,6 @@ context "Resque::Worker" do
   class ::RaiseExceptionOnFailure
 
     def self.on_failure_trhow_exception(exception,*args)
-      $TESTING = true
       raise "The worker threw an exception"
     end
 
@@ -90,7 +79,6 @@ context "Resque::Worker" do
       Process.waitpid(worker_pid)
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
       worker = Resque::Worker.new(:not_failing_job)
@@ -113,7 +101,6 @@ context "Resque::Worker" do
       assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
-      $TESTING = false
       Resque.redis.client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
@@ -604,7 +591,7 @@ context "Resque::Worker" do
     assert $BEFORE_FORK_CALLED
   end
 
-  test "Will not call a before_fork hook when the worker won't fork" do
+  test "Will not call a before_fork hook when the worker cannot fork" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -617,7 +604,7 @@ context "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
-  test "Will not call a before_fork hook when the worker won't fork" do
+  test "Will not call a before_fork hook when forking set to false" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
@@ -885,220 +872,7 @@ context "Resque::Worker" do
     end
   end
 
-  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
-    test "old signal handling is the default" do
-      rescue_time = nil
-
-      begin
-        class LongRunningJob
-          @queue = :long_running_job
-
-          def self.perform( run_time, rescue_time=nil )
-            Resque.redis.client.reconnect # get its own connection
-            Resque.redis.rpush( 'sigterm-test:start', Process.pid )
-            sleep run_time
-            Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
-          rescue Resque::TermException => e
-            Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
-            sleep rescue_time unless rescue_time.nil?
-          ensure
-            puts 'fuuuu'
-            Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
-          end
-        end
-
-        Resque.enqueue( LongRunningJob, 5, rescue_time )
-
-        worker_pid = Kernel.fork do
-          # reconnect since we just forked
-          Resque.redis.client.reconnect
-
-          worker = Resque::Worker.new(:long_running_job)
-
-          suppress_warnings do
-            worker.work(0)
-          end
-          exit!
-        end
-
-        # ensure the worker is started
-        start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
-        assert_not_nil start_status
-        child_pid = start_status[1].to_i
-        assert_operator child_pid, :>, 0
-
-        # send signal to abort the worker
-        Process.kill('TERM', worker_pid)
-        Process.waitpid(worker_pid)
-
-        # wait to see how it all came down
-        result = Resque.redis.blpop( 'sigterm-test:result', 5 )
-        assert_nil result
-
-        # ensure that the child pid is no longer running
-        child_not_running = `ps -p #{child_pid.to_s} -o pid=`.empty?
-        assert child_not_running
-      ensure
-        remaining_keys = Resque.redis.keys('sigterm-test:*') || []
-        Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
-      end
-    end
-  end
-
-  if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
-    [SignalException, Resque::TermException].each do |exception|
-      {
-        'cleanup occurs in allotted time' => nil,
-        'cleanup takes too long' => 2
-      }.each do |scenario,rescue_time|
-        test "SIGTERM when #{scenario} while catching #{exception}" do
-          begin
-            eval("class LongRunningJob; @@exception = #{exception}; end")
-            class LongRunningJob
-              @queue = :long_running_job
-
-              def self.perform( run_time, rescue_time=nil )
-                Resque.redis.client.reconnect # get its own connection
-                Resque.redis.rpush( 'sigterm-test:start', Process.pid )
-                sleep run_time
-                Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
-              rescue @@exception => e
-                Resque.redis.rpush( 'sigterm-test:result', %Q(Caught SignalException: #{e.inspect}))
-                sleep rescue_time unless rescue_time.nil?
-              ensure
-                Resque.redis.rpush( 'sigterm-test:final', 'exiting.' )
-              end
-            end
-
-            Resque.enqueue( LongRunningJob, 5, rescue_time )
-
-            worker_pid = Kernel.fork do
-              # reconnect since we just forked
-              Resque.redis.client.reconnect
-
-              worker = Resque::Worker.new(:long_running_job)
-              worker.term_timeout = 1
-              worker.term_child = 1
-
-              worker.work(0)
-              exit!
-            end
-
-            # ensure the worker is started
-            start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
-            assert_not_nil start_status
-            child_pid = start_status[1].to_i
-            assert_operator child_pid, :>, 0
-
-            # send signal to abort the worker
-            Process.kill('TERM', worker_pid)
-            Process.waitpid(worker_pid)
-
-            # wait to see how it all came down
-            result = Resque.redis.blpop( 'sigterm-test:result', 5 )
-            assert_not_nil result
-            assert !result[1].start_with?('Finished Normally'), 'Job Finished normally. Sleep not long enough?'
-            assert result[1].start_with? 'Caught SignalException', 'Signal exception not raised in child.'
-
-            # ensure that the child pid is no longer running
-            child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-            assert !child_still_running
-
-            # see if post-cleanup occurred. This should happen IFF the rescue_time is less than the term_timeout
-            post_cleanup_occurred = Resque.redis.lpop( 'sigterm-test:final' )
-            assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?' if rescue_time.nil?
-            assert !post_cleanup_occurred, 'post cleanup occurred. SIGKILL sent too late?' unless rescue_time.nil?
-
-          ensure
-            remaining_keys = Resque.redis.keys('sigterm-test:*') || []
-            Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
-          end
-        end
-      end
-    end
-
-    test "exits with Resque::TermException when using TERM_CHILD and not forking" do
-      begin
-        class LongRunningJob
-          @queue = :long_running_job
-
-          def self.perform(run_time)
-            Resque.redis.client.reconnect # get its own connection
-            Resque.redis.rpush('term-exception-test:start', Process.pid)
-            sleep run_time
-            Resque.redis.rpush('term-exception-test:result', 'Finished Normally')
-          rescue Resque::TermException => e
-            Resque.redis.rpush('term-exception-test:result', %Q(Caught TermException: #{e.inspect}))
-          ensure
-            Resque.redis.rpush('term-exception-test:final', 'exiting.')
-          end
-        end
-
-        Resque.enqueue(LongRunningJob, 5)
-
-        worker_pid = Kernel.fork do
-          # reconnect to redis
-          Resque.redis.client.reconnect
-
-          # ensure we don't fork (in worker)
-          ENV['FORK_PER_JOB'] = 'false'
-
-          worker = Resque::Worker.new(:long_running_job)
-          worker.term_timeout = 1
-          worker.term_child = 1
-
-          worker.work(0)
-          exit!
-        end
-
-        # ensure the worker is started
-        start_status = Resque.redis.blpop('term-exception-test:start', 5)
-        assert_not_nil start_status
-        child_pid = start_status[1].to_i
-        assert_operator child_pid, :>, 0
-
-        # send signal to abort the worker
-        Process.kill('TERM', worker_pid)
-        Process.waitpid(worker_pid)
-
-        # wait to see how it all came down
-        result = Resque.redis.blpop('term-exception-test:result', 5)
-        assert_not_nil result
-        assert !result[1].start_with?('Finished Normally'), 'Job finished normally. Sleep not long enough?'
-        assert result[1].start_with?('Caught TermException'), 'TermException not raised in child.'
-
-        # ensure that the child pid is no longer running
-        child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-        assert !child_still_running
-
-        # see if post-cleanup occurred.
-        post_cleanup_occurred = Resque.redis.lpop( 'term-exception-test:final' )
-        assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?'
-
-      ensure
-        remaining_keys = Resque.redis.keys('term-exception-test:*') || []
-        Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
-      end
-    end
-
-    test "displays warning when not using term_child" do
-      begin
-        $TESTING = false
-        stdout, stderr = capture_io { @worker.work(0) }
-
-        assert stderr.match(/^WARNING:/)
-      ensure
-        $TESTING = true
-      end
-    end
-
-    test "it does not display warning when using term_child" do
-      @worker.term_child = "1"
-      stdout, stderr = capture_io { @worker.work(0) }
-
-      assert !stderr.match(/^WARNING:/)
-    end
-
+  if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     class SuicidalJob
       @queue = :jobs
 
@@ -1122,49 +896,41 @@ context "Resque::Worker" do
 
   test "displays warning when using verbose" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.verbose }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using verbose=" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.verbose = true }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.very_verbose }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 
   test "displays warning when using very_verbose=" do
     begin
-      $TESTING = false
+      $warned_logger_severity_deprecation = false
       stdout, stderr = capture_io { @worker.very_verbose = true }
+      assert stderr.match(/WARNING:/)
     ensure
-      $TESTING = true
+      $warned_logger_severity_deprecation = true
     end
-    $warned_logger_severity_deprecation = false
-
-    assert stderr.match(/WARNING:/)
   end
 end
