@@ -507,6 +507,7 @@ module Resque
     # currently running one).
     def pause_processing
       log "USR2 received; pausing job processing"
+      run_hook :before_pause, self
       @paused = true
     end
 
@@ -514,6 +515,7 @@ module Resque
     def unpause_processing
       log "CONT received; resuming job processing"
       @paused = false
+      run_hook :after_pause, self
     end
 
     # Looks for any workers which should be running on this server
