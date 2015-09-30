@@ -815,8 +815,7 @@ context "Resque::Worker" do
     end
   end
 
-  test "will call before_pause before it is paused" do
-    before_pause_called = false
+  test "tries to reconnect three times before giving up" do
     captured_worker = nil
     begin
       class Redis::Client
