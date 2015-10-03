@@ -468,7 +468,7 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
-      :pending   => queues.inject(0) { |m,k| m + size(k) },
+      :pending   => queue_sizes.inject(0) { |sum,(_,size)| sum + size },
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
