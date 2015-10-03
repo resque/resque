@@ -487,6 +487,45 @@ module Resque
     end
   end
 
+  # Returns a hash with queue names and sizes in a single network roundtrip
+  def queue_sizes
+    queues = self.queues
+
+    sizes = redis.pipelined {
+      queues.each { |name| redis.llen("queue:#{name}") }
+    }
+
+    Hash[queues.zip(sizes)]
+  end
+
+  # Returns a hash of queues with sample of size `sample_size` from the front
+  # of the queue and the size of the queue.
+  def sample_queues(sample_size: 1000)
+    queues = self.queues
+
+    # Returns an array with all results from Redis calls
+    # inside the block with a single network call.
+    #
+    # E.g. [2, [<sampled_jobs>], 8, [<sampled_jobs>]]
+    samples = redis.pipelined {
+      queues.each do |name|
+        redis.llen("queue:#{name}")
+        redis.lrange("queue:#{name}", 0, sample_size - 1)
+      end
+    }
+
+    Hash[queues.zip(samples.each_cons(2)).map { |queue, (size, queue_samples)|
+      queue_samples = queue_samples.map { |sample|
+        Job.decode(sample)
+      }
+
+      [queue.to_sym, {
+        size: size,
+        samples: queue_samples,
+      }]
+    }]
+  end
+
   private
 
   # Register a new proc as a hook. If the block is nil this is the
