@@ -15,7 +15,7 @@ describe "Resque::Queue" do
   end
 
   before do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
   end
 
   it "generates a redis_name" do

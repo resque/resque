@@ -1,0 +1,1460 @@
+[71326] 05 Oct 18:12:22.896 * Increased maximum number of open files to 10032 (it was originally set to 256).
+                _._                                                  
+           _.-``__ ''-._                                             
+      _.-``    `.  `_.  ''-._           Redis 2.8.19 (00000000/0) 64 bit
+  .-`` .-```.  ```\/    _.,_ ''-._                                   
+ (    '      ,       .-`  | `,    )     Running in stand alone mode
+ |`-._`-...-` __...-.``-._|'` _.-'|     Port: 9736
+ |    `-._   `._    /     _.-'    |     PID: 71326
+  `-._    `-._  `-./  _.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |           http://redis.io        
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+ |`-._`-._    `-.__.-'    _.-'_.-'|                                  
+ |    `-._`-._        _.-'_.-'    |                                  
+  `-._    `-._`-.__.-'_.-'    _.-'                                   
+      `-._    `-.__.-'    _.-'                                       
+          `-._        _.-'                                           
+              `-.__.-'                                               
+
+[71326] 05 Oct 18:12:22.898 # Server started, Redis version 2.8.19
+[71326] 05 Oct 18:12:22.898 * The server is now ready to accept connections on port 9736
+[71326] 05 Oct 18:12:22.898 - 0 clients connected (0 slaves), 952928 bytes in use
+[71326] 05 Oct 18:12:27.939 - 0 clients connected (0 slaves), 952928 bytes in use
+[71326] 05 Oct 18:12:30.422 - Accepted ::1:49897
+[71326] 05 Oct 18:12:30.426 - Accepted ::1:49898
+[71326] 05 Oct 18:12:30.435 - Accepted ::1:49899
+[71326] 05 Oct 18:12:30.437 - Client closed connection
+[71326] 05 Oct 18:12:30.437 - Accepted ::1:49900
+[71326] 05 Oct 18:12:30.541 - Client closed connection
+[71326] 05 Oct 18:12:30.544 - Client closed connection
+[71326] 05 Oct 18:12:30.676 - Accepted ::1:49901
+[71326] 05 Oct 18:12:30.677 * DB saved on disk
+[71326] 05 Oct 18:12:30.683 - Accepted ::1:49902
+[71326] 05 Oct 18:12:30.689 - Client closed connection
+[71326] 05 Oct 18:12:30.695 - Accepted ::1:49903
+[71326] 05 Oct 18:12:30.699 - Accepted ::1:49904
+[71326] 05 Oct 18:12:30.706 - Accepted ::1:49905
+[71326] 05 Oct 18:12:30.708 - Client closed connection
+[71326] 05 Oct 18:12:30.709 - Accepted ::1:49906
+[71326] 05 Oct 18:12:30.712 - Client closed connection
+[71326] 05 Oct 18:12:30.814 - Client closed connection
+[71326] 05 Oct 18:12:30.842 - Accepted ::1:49907
+[71326] 05 Oct 18:12:30.843 * DB saved on disk
+[71326] 05 Oct 18:12:30.848 - Accepted ::1:49908
+[71326] 05 Oct 18:12:30.851 - Client closed connection
+[71326] 05 Oct 18:12:30.857 - Accepted ::1:49909
+[71326] 05 Oct 18:12:30.858 * DB saved on disk
+[71326] 05 Oct 18:12:30.863 - Accepted ::1:49910
+[71326] 05 Oct 18:12:30.867 - Client closed connection
+[71326] 05 Oct 18:12:30.962 - Client closed connection
+[71326] 05 Oct 18:12:30.963 - Client closed connection
+[71326] 05 Oct 18:12:30.964 - Client closed connection
+[71326] 05 Oct 18:12:30.964 - Client closed connection
+[71326] 05 Oct 18:12:30.964 - Client closed connection
+[71326] 05 Oct 18:12:30.965 - Accepted ::1:49911
+[71326] 05 Oct 18:12:30.965 * DB saved on disk
+[71326] 05 Oct 18:12:30.971 - Accepted ::1:49912
+[71326] 05 Oct 18:12:30.975 - Client closed connection
+[71326] 05 Oct 18:12:30.982 - Accepted ::1:49913
+[71326] 05 Oct 18:12:30.988 - Client closed connection
+[71326] 05 Oct 18:12:30.994 - Accepted ::1:49914
+[71326] 05 Oct 18:12:30.998 - Client closed connection
+[71326] 05 Oct 18:12:31.005 - Accepted ::1:49915
+[71326] 05 Oct 18:12:31.010 - Client closed connection
+[71326] 05 Oct 18:12:31.016 - Accepted ::1:49916
+[71326] 05 Oct 18:12:31.020 - Client closed connection
+[71326] 05 Oct 18:12:31.028 - Accepted ::1:49917
+[71326] 05 Oct 18:12:31.032 - Client closed connection
+[71326] 05 Oct 18:12:31.037 - Accepted ::1:49918
+[71326] 05 Oct 18:12:31.041 - Client closed connection
+[71326] 05 Oct 18:12:31.047 - Accepted ::1:49919
+[71326] 05 Oct 18:12:31.051 - Client closed connection
+[71326] 05 Oct 18:12:31.058 - Accepted ::1:49920
+[71326] 05 Oct 18:12:31.062 - Client closed connection
+[71326] 05 Oct 18:12:31.067 - Accepted ::1:49921
+[71326] 05 Oct 18:12:31.072 - Client closed connection
+[71326] 05 Oct 18:12:31.091 - Accepted ::1:49922
+[71326] 05 Oct 18:12:31.095 - Accepted ::1:49923
+[71326] 05 Oct 18:12:31.103 - Accepted ::1:49924
+[71326] 05 Oct 18:12:31.105 - Client closed connection
+[71326] 05 Oct 18:12:31.105 - Accepted ::1:49925
+[71326] 05 Oct 18:12:32.116 - Client closed connection
+[71326] 05 Oct 18:12:32.120 - Client closed connection
+[71326] 05 Oct 18:12:32.143 - Accepted ::1:49926
+[71326] 05 Oct 18:12:32.144 * DB saved on disk
+[71326] 05 Oct 18:12:32.446 - Accepted ::1:49927
+[71326] 05 Oct 18:12:32.450 - Accepted ::1:49928
+[71326] 05 Oct 18:12:32.459 - Accepted ::1:49929
+[71326] 05 Oct 18:12:32.461 - Client closed connection
+[71326] 05 Oct 18:12:32.462 - Accepted ::1:49930
+[71326] 05 Oct 18:12:32.466 - Client closed connection
+[71326] 05 Oct 18:12:32.568 - Client closed connection
+[71326] 05 Oct 18:12:32.579 - Accepted ::1:49931
+[71326] 05 Oct 18:12:32.580 * DB saved on disk
+[71326] 05 Oct 18:12:32.586 - Accepted ::1:49932
+[71326] 05 Oct 18:12:32.590 - Client closed connection
+[71326] 05 Oct 18:12:32.599 - Accepted ::1:49933
+[71326] 05 Oct 18:12:32.599 * DB saved on disk
+[71326] 05 Oct 18:12:32.983 - DB 0: 6 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:32.983 - 6 clients connected (0 slaves), 1058064 bytes in use
+[71326] 05 Oct 18:12:38.026 - DB 0: 6 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:38.026 - 6 clients connected (0 slaves), 1058064 bytes in use
+[71326] 05 Oct 18:12:38.030 - Accepted ::1:49934
+[71326] 05 Oct 18:12:38.031 * DB saved on disk
+[71326] 05 Oct 18:12:38.037 - Accepted ::1:49935
+[71326] 05 Oct 18:12:38.041 - Client closed connection
+[71326] 05 Oct 18:12:38.190 - Client closed connection
+[71326] 05 Oct 18:12:38.194 - Accepted ::1:49936
+[71326] 05 Oct 18:12:38.198 - Accepted ::1:49937
+[71326] 05 Oct 18:12:38.206 - Accepted ::1:49938
+[71326] 05 Oct 18:12:38.208 - Client closed connection
+[71326] 05 Oct 18:12:38.208 - Accepted ::1:49939
+[71326] 05 Oct 18:12:39.220 - Client closed connection
+[71326] 05 Oct 18:12:39.224 - Client closed connection
+[71326] 05 Oct 18:12:39.264 - Client closed connection
+[71326] 05 Oct 18:12:39.286 - Client closed connection
+[71326] 05 Oct 18:12:39.306 - Client closed connection
+[71326] 05 Oct 18:12:39.335 - Client closed connection
+[71326] 05 Oct 18:12:39.350 - Client closed connection
+[71326] 05 Oct 18:12:39.371 - Accepted ::1:49940
+[71326] 05 Oct 18:12:39.372 * DB saved on disk
+[71326] 05 Oct 18:12:40.374 - Client closed connection
+[71326] 05 Oct 18:12:40.393 - Accepted ::1:49941
+[71326] 05 Oct 18:12:40.397 - Accepted ::1:49942
+[71326] 05 Oct 18:12:40.405 - Accepted ::1:49943
+[71326] 05 Oct 18:12:40.408 - Client closed connection
+[71326] 05 Oct 18:12:40.409 - Accepted ::1:49944
+[71326] 05 Oct 18:12:40.512 - Client closed connection
+[71326] 05 Oct 18:12:40.515 - Client closed connection
+[71326] 05 Oct 18:12:40.562 - Client closed connection
+[71326] 05 Oct 18:12:40.577 - Client closed connection
+[71326] 05 Oct 18:12:40.578 - Client closed connection
+[71326] 05 Oct 18:12:43.069 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:43.069 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:12:48.112 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:48.112 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:12:53.158 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:53.158 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:12:58.205 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:12:58.205 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:03.250 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:03.250 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:08.291 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:08.291 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:13.333 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:13.333 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:18.374 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:18.375 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:23.417 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:23.417 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:28.461 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:28.461 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:33.501 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:33.501 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:38.546 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:38.546 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:43.589 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:43.589 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:48.633 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:48.633 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:53.678 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:53.678 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:13:58.720 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:13:58.720 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:03.767 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:03.767 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:08.813 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:08.813 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:13.853 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:13.853 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:18.894 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:18.894 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:23.936 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:23.936 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:28.971 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:28.971 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:34.013 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:34.013 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:39.055 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:39.056 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:44.094 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:44.094 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:49.137 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:49.138 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:54.179 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:54.180 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:14:59.219 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:14:59.219 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:04.261 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:04.261 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:09.304 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:09.304 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:14.349 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:14.349 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:19.391 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:19.391 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:24.429 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:24.429 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:29.470 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:29.470 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:34.511 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:34.511 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:39.553 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:39.553 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:44.593 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:44.593 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:49.638 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:49.638 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:54.684 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:54.684 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:15:59.726 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:15:59.727 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:04.771 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:04.771 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:09.815 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:09.815 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:14.862 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:14.862 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:19.901 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:19.902 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:24.943 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:24.943 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:29.988 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:29.988 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:35.033 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:35.033 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:40.077 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:40.077 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:45.124 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:45.124 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:50.166 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:50.167 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:16:55.209 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:16:55.209 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:00.249 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:00.249 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:05.295 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:05.295 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:10.340 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:10.340 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:15.378 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:15.378 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:20.419 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:20.419 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:25.465 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:25.465 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:30.506 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:30.506 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:35.545 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:35.545 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:40.083 * 10 changes in 300 seconds. Saving...
+[71326] 05 Oct 18:17:40.084 * Background saving started by pid 71504
+[71504] 05 Oct 18:17:40.086 * DB saved on disk
+[71326] 05 Oct 18:17:40.185 * Background saving terminated with success
+[71326] 05 Oct 18:17:40.589 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:40.589 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:45.627 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:45.627 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:50.669 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:50.669 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:17:55.712 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:17:55.712 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:00.750 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:00.750 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:05.792 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:05.792 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:10.836 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:10.836 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:15.882 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:15.883 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:20.923 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:20.924 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:25.964 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:25.965 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:31.007 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:31.007 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:36.048 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:36.048 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:41.096 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:41.096 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:46.142 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:46.142 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:51.189 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:51.190 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:18:56.233 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:18:56.233 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:01.274 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:01.274 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:06.316 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:06.317 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:11.360 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:11.360 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:16.396 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:16.396 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:21.439 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:21.440 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:26.483 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:26.483 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:31.526 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:31.527 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:36.572 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:36.572 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:41.618 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:41.618 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:46.666 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:46.666 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:51.709 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:51.710 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:19:56.750 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:19:56.750 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:01.796 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:01.796 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:06.845 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:06.846 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:11.889 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:11.889 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:16.933 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:16.933 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:21.980 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:21.980 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:27.026 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:27.026 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:32.067 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:32.068 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:37.108 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:37.108 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:42.153 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:42.153 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:47.197 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:47.197 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:52.244 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:52.244 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:20:57.288 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:20:57.289 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:02.334 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:02.334 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:07.379 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:07.379 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:12.426 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:12.426 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:17.468 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:17.468 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:22.515 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:22.516 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:27.561 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:27.561 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:32.604 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:32.604 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:37.646 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:37.647 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:42.692 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:42.692 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:47.738 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:47.738 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:52.781 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:52.781 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:21:57.827 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:21:57.827 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:02.874 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:02.874 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:07.921 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:07.921 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:12.962 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:12.962 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:18.011 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:18.011 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:23.057 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:23.057 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:28.102 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:28.102 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:33.145 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:33.146 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:38.190 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:38.190 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:43.233 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:43.233 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:48.274 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:48.274 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:53.318 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:53.318 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:22:58.363 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:22:58.363 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:03.406 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:03.406 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:08.455 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:08.455 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:13.504 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:13.504 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:18.545 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:18.545 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:23.588 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:23.588 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:28.631 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:28.631 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:33.676 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:33.676 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:38.719 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:38.719 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:43.761 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:43.761 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:48.806 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:48.806 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:53.851 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:53.851 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:23:58.893 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:23:58.893 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:03.937 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:03.938 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:08.982 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:08.982 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:14.027 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:14.027 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:19.071 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:19.071 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:24.120 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:24.120 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:29.166 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:29.166 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:34.210 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:34.210 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:39.256 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:39.256 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:44.298 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:44.298 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:49.343 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:49.343 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:54.389 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:54.389 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:24:59.433 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:24:59.434 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:04.477 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:04.477 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:09.521 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:09.521 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:14.568 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:14.568 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:19.612 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:19.612 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:24.656 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:24.656 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:29.701 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:29.701 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:34.748 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:34.748 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:39.797 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:39.797 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:44.840 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:44.840 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:49.887 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:49.887 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:54.934 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:54.934 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:25:59.980 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:25:59.980 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:05.022 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:05.023 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:10.064 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:10.064 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:15.109 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:15.109 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:20.155 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:20.155 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:25.196 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:25.196 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:30.244 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:30.244 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:35.291 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:35.291 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:40.333 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:40.333 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:45.375 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:45.375 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:50.421 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:50.421 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:26:55.465 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:26:55.465 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:00.509 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:00.509 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:05.551 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:05.551 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:10.593 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:10.593 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:15.638 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:15.639 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:20.686 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:20.686 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:25.729 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:25.729 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:30.775 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:30.775 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:35.823 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:35.823 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:40.864 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:40.864 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:45.912 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:45.912 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:50.955 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:50.955 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:27:56.002 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:27:56.003 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:01.046 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:01.046 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:06.088 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:06.088 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:11.129 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:11.129 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:16.168 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:16.168 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:21.210 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:21.210 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:26.254 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:26.254 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:31.301 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:31.301 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:36.344 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:36.344 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:41.390 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:41.390 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:46.435 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:46.435 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:51.479 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:51.479 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:28:56.525 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:28:56.525 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:01.571 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:01.571 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:06.617 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:06.617 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:11.662 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:11.662 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:16.706 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:16.707 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:21.754 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:21.754 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:26.796 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:26.796 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:31.835 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:31.835 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:36.880 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:36.881 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:41.927 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:41.927 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:46.974 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:46.974 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:52.022 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:52.022 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:29:57.065 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:29:57.065 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:02.106 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:02.106 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:07.148 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:07.148 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:12.193 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:12.193 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:17.237 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:17.238 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:22.279 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:22.279 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:27.321 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:27.321 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:32.369 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:32.369 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:37.412 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:37.412 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:42.452 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:42.452 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:47.499 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:47.499 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:52.546 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:52.547 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:30:57.593 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:30:57.593 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:02.641 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:02.642 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:07.688 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:07.688 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:12.731 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:12.731 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:17.776 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:17.777 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:22.821 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:22.822 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:27.867 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:27.867 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:32.912 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:32.912 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:37.949 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:37.949 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:42.996 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:42.997 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:48.043 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:48.043 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:53.089 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:53.090 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:31:58.135 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:31:58.135 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:03.181 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:03.181 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:08.227 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:08.228 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:13.270 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:13.270 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:18.312 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:18.312 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:23.360 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:23.361 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:28.409 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:28.409 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:33.454 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:33.454 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:38.498 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:38.499 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:43.546 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:43.546 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:48.589 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:48.589 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:53.634 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:53.634 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:32:58.674 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:32:58.674 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:03.721 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:03.721 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:08.767 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:08.767 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:13.811 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:13.811 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:18.859 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:18.859 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:23.902 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:23.902 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:28.948 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:28.948 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:33.995 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:33.995 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:39.033 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:39.033 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:44.077 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:44.078 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:49.118 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:49.118 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:54.159 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:54.160 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:33:59.204 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:33:59.204 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:04.248 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:04.249 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:09.291 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:09.291 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:14.335 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:14.335 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:19.381 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:19.381 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:24.426 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:24.426 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:29.470 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:29.470 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:34.514 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:34.514 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:39.562 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:39.562 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:44.607 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:44.607 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:49.649 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:49.649 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:54.694 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:54.695 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:34:59.739 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:34:59.739 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:04.783 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:04.783 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:09.827 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:09.827 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:14.876 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:14.876 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:19.916 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:19.916 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:24.955 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:24.956 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:29.998 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:29.998 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:35.042 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:35.042 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:40.087 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:40.087 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:45.128 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:45.128 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:50.170 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:50.170 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:35:55.214 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:35:55.214 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:00.260 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:00.260 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:05.305 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:05.305 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:10.350 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:10.350 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:15.386 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:15.386 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:20.427 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:20.427 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:25.469 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:25.469 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:30.514 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:30.514 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:35.555 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:35.555 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:40.598 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:40.598 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:45.644 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:45.644 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:50.686 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:50.686 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:36:55.734 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:36:55.735 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:00.776 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:00.776 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:05.820 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:05.820 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:10.865 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:10.865 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:15.909 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:15.909 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:20.953 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:20.954 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:25.998 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:25.999 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:31.043 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:31.044 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:36.085 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:36.085 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:41.132 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:41.133 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:46.175 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:46.175 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:51.212 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:51.212 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:37:56.252 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:37:56.252 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:01.295 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:01.295 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:06.338 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:06.338 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:11.380 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:11.381 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:16.425 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:16.425 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:21.465 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:21.465 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:26.514 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:26.514 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:31.555 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:31.555 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:36.596 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:36.596 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:41.642 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:41.642 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:46.685 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:46.685 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:51.732 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:51.732 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:38:56.778 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:38:56.778 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:01.822 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:01.822 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:06.864 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:06.864 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:11.909 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:11.909 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:16.951 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:16.951 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:21.994 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:21.994 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:27.034 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:27.034 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:32.303 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:32.304 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:37.344 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:37.344 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:42.389 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:42.389 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:47.434 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:47.434 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:52.478 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:52.478 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:39:57.524 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:39:57.525 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:02.567 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:02.567 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:07.614 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:07.615 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:12.662 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:12.662 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:17.704 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:17.704 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:22.751 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:22.751 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:27.800 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:27.800 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:32.844 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:32.845 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:37.890 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:37.891 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:42.939 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:42.939 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:47.983 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:47.983 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:53.027 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:53.027 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:40:58.114 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:40:58.116 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:03.161 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:03.161 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:08.205 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:08.206 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:13.246 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:13.246 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:18.289 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:18.289 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:23.333 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:23.333 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:28.375 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:28.375 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:33.415 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:33.415 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:38.454 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:38.454 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:43.497 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:43.497 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:48.542 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:48.542 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:53.582 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:53.583 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:41:58.626 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:41:58.626 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:03.671 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:03.671 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:08.716 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:08.717 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:13.762 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:13.762 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:18.807 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:18.807 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:23.850 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:23.850 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:28.895 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:28.895 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:33.938 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:33.938 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:38.985 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:38.985 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:44.026 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:44.027 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:49.069 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:49.070 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:54.120 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:54.120 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:42:59.167 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:42:59.167 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:04.208 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:04.209 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:09.252 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:09.252 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:14.293 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:14.293 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:19.337 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:19.338 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:24.378 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:24.379 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:29.424 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:29.424 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:34.469 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:34.469 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:39.512 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:39.512 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:44.557 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:44.558 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:49.605 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:49.605 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:54.648 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:54.648 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:43:59.689 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:43:59.690 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:04.732 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:04.732 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:09.776 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:09.776 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:14.824 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:14.824 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:19.871 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:19.871 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:24.917 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:24.918 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:29.964 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:29.964 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:35.004 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:35.004 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:40.047 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:40.048 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:45.093 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:45.093 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:50.137 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:50.137 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:44:55.181 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:44:55.181 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:00.225 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:00.225 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:05.271 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:05.271 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:10.311 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:10.311 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:15.351 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:15.351 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:20.395 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:20.395 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:25.435 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:25.436 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:30.475 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:30.476 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:35.518 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:35.519 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:40.561 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:40.561 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:45.604 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:45.605 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:50.650 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:50.650 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:45:55.696 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:45:55.697 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:00.743 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:00.743 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:05.789 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:05.789 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:10.834 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:10.834 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:15.877 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:15.877 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:20.925 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:20.925 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:25.971 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:25.972 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:31.015 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:31.015 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:36.059 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:36.059 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:41.100 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:41.100 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:46.144 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:46.144 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:51.187 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:51.187 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:46:56.235 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:46:56.235 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:01.278 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:01.278 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:06.325 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:06.325 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:11.372 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:11.373 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:16.413 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:16.414 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:21.457 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:21.457 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:26.504 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:26.505 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:31.550 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:31.550 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:36.594 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:36.594 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:41.639 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:41.640 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:46.682 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:46.682 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:51.725 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:51.726 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:47:56.771 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:47:56.771 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:01.819 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:01.819 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:06.864 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:06.864 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:11.909 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:11.910 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:16.955 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:16.955 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:21.999 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:21.999 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:27.045 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:27.046 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:32.092 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:32.092 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:37.136 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:37.137 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:42.177 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:42.178 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:47.223 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:47.223 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:52.268 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:52.268 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:48:57.315 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:48:57.316 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:02.361 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:02.361 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:07.408 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:07.408 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:12.449 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:12.450 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:17.494 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:17.494 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:22.539 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:22.539 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:27.582 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:27.583 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:32.627 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:32.628 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:37.670 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:37.670 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:42.718 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:42.718 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:47.766 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:47.766 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:52.811 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:52.811 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:49:57.856 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:49:57.857 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:02.902 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:02.902 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:07.948 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:07.948 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:12.998 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:12.998 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:18.044 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:18.045 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:23.091 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:23.091 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:28.136 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:28.137 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:33.182 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:33.182 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:38.225 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:38.226 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:43.268 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:43.269 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:48.312 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:48.312 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:53.357 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:53.357 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:50:58.402 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:50:58.402 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:03.445 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:03.445 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:08.494 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:08.494 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:13.540 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:13.540 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:18.585 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:18.586 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:23.632 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:23.632 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:28.678 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:28.679 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:33.726 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:33.726 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:38.774 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:38.774 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:43.818 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:43.818 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:48.863 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:48.863 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:53.909 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:53.909 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:51:58.954 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:51:58.955 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:03.997 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:03.997 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:09.043 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:09.043 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:14.095 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:14.096 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:19.139 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:19.139 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:24.185 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:24.185 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:29.229 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:29.230 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:34.275 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:34.275 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:39.318 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:39.319 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:44.362 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:44.362 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:49.410 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:49.410 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:54.458 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:54.458 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:52:59.505 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:52:59.505 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:04.548 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:04.548 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:09.591 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:09.591 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:14.636 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:14.636 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:19.682 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:19.682 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:24.729 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:24.729 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:29.771 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:29.771 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:34.817 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:34.817 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:39.863 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:39.863 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:44.911 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:44.911 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:49.957 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:49.957 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:53:55.002 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:53:55.002 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:00.048 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:00.048 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:05.096 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:05.096 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:10.144 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:10.144 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:15.194 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:15.194 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:20.239 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:20.239 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:25.286 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:25.286 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:30.331 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:30.331 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:35.378 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:35.378 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:40.421 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:40.421 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:45.466 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:45.466 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:50.510 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:50.510 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:54:55.552 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:54:55.552 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:00.594 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:00.594 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:05.636 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:05.636 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:10.681 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:10.681 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:15.724 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:15.725 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:20.771 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:20.772 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:25.814 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:25.814 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:30.861 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:30.861 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:35.903 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:35.903 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:40.944 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:40.944 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:45.992 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:45.992 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:51.034 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:51.034 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:55:56.079 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:55:56.079 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:01.121 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:01.122 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:06.166 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:06.167 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:11.208 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:11.209 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:16.253 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:16.253 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:21.298 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:21.298 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:26.344 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:26.344 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:31.392 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:31.392 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:36.443 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:36.443 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:41.490 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:41.490 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:46.535 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:46.535 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:51.581 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:51.581 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:56:56.629 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:56:56.630 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:01.673 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:01.673 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:06.721 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:06.721 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:11.768 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:11.768 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:16.815 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:16.816 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:21.863 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:21.863 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:26.911 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:26.912 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:31.951 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:31.952 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:36.996 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:36.997 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:42.040 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:42.040 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:47.081 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:47.081 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:52.124 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:52.124 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:57:57.169 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:57:57.169 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:02.217 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:02.217 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:07.259 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:07.259 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:12.305 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:12.305 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:17.351 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:17.351 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:22.394 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:22.394 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:27.438 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:27.439 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:32.480 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:32.480 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:37.524 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:37.524 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:42.569 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:42.569 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:47.613 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:47.613 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:52.660 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:52.660 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:58:57.705 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:58:57.706 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:02.748 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:02.748 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:07.795 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:07.796 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:12.842 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:12.842 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:17.885 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:17.885 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:22.929 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:22.930 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:27.972 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:27.973 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:33.015 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:33.015 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:38.057 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:38.057 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:43.102 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:43.105 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:48.147 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:48.148 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:53.191 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:53.193 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 18:59:58.235 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 18:59:58.236 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:03.281 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:03.283 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:08.327 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:08.327 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:13.376 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:13.376 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:18.421 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:18.421 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:23.470 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:23.470 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:28.513 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:28.514 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:33.558 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:33.558 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:38.601 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:38.601 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:43.642 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:43.642 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:48.686 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:48.687 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:53.733 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:53.733 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:00:58.776 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:00:58.776 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:03.823 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:03.823 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:08.870 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:08.870 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:13.918 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:13.919 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:18.966 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:18.966 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:24.015 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:24.015 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:29.062 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:29.062 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:34.105 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:34.105 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:39.149 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:39.149 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:44.195 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:44.195 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:49.239 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:49.239 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:54.280 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:54.280 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:01:59.329 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:01:59.329 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:04.374 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:04.375 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:09.418 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:09.418 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:14.467 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:14.467 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:19.507 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:19.507 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:24.551 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:24.551 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:29.594 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:29.594 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:34.638 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:34.638 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:39.682 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:39.682 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:44.731 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:44.731 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:49.777 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:49.777 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:54.821 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:54.821 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:02:59.868 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:02:59.870 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:04.913 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:04.913 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:09.960 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:09.960 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:15.010 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:15.010 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:20.053 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:20.053 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:25.101 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:25.101 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:30.147 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:30.147 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:35.192 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:35.192 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:40.234 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:40.234 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:45.280 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:45.280 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:50.325 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:50.325 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:03:55.369 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:03:55.369 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:00.413 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:00.413 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:05.458 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:05.458 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:10.503 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:10.504 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:15.550 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:15.550 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:20.594 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:20.595 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:25.641 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:25.641 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:30.688 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:30.689 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:35.735 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:35.735 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:40.773 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:40.773 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:45.819 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:45.819 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:50.864 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:50.864 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:04:55.913 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:04:55.913 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:00.959 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:00.960 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:06.008 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:06.008 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:11.058 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:11.058 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:16.104 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:16.104 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:21.150 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:21.150 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:26.196 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:26.196 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:31.242 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:31.243 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:36.291 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:36.291 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:41.338 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:41.338 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:46.381 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:46.382 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:51.423 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:51.423 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:05:56.469 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:05:56.469 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:01.510 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:01.510 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:06.553 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:06.553 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:11.596 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:11.596 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:16.642 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:16.643 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:21.689 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:21.689 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:26.734 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:26.734 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:31.780 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:31.780 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:36.824 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:36.824 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:41.871 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:41.872 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:46.910 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:46.910 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:51.954 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:51.954 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:06:56.999 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:06:56.999 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:02.041 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:02.042 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:07.084 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:07.084 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:12.128 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:12.128 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:17.169 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:17.169 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:22.213 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:22.213 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:27.254 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:27.254 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:32.299 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:32.299 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:37.343 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:37.343 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:42.389 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:42.389 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:47.433 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:47.433 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:52.478 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:52.478 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:07:57.526 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:07:57.526 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:08:02.568 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:08:02.568 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:08:07.609 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:08:07.609 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:08:12.658 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:08:12.659 - 0 clients connected (0 slaves), 952448 bytes in use
+[71326] 05 Oct 19:08:17.703 - DB 0: 2 keys (0 volatile) in 8 slots HT.
+[71326] 05 Oct 19:08:17.703 - 0 clients connected (0 slaves), 952448 bytes in use
