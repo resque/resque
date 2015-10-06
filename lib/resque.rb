@@ -487,7 +487,6 @@ module Resque
     end
   end
 
-  # Returns a hash with queue names and sizes in a single network roundtrip
   def queue_sizes
     queues = self.queues
 
@@ -498,13 +497,11 @@ module Resque
     Hash[queues.zip(sizes)]
   end
 
-  # Returns a hash of queues with sample of size `sample_size` from the front
-  # of the queue and the size of the queue.
   def sample_queues(sample_size: 1000)
     queues = self.queues
 
     # Returns an array with all results from Redis calls
-    # inside the block with a single network call.
+    # inside the block.
     #
     # E.g. [2, [<sampled_jobs>], 8, [<sampled_jobs>]]
     samples = redis.pipelined {
