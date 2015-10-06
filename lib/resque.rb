@@ -511,7 +511,7 @@ module Resque
       end
     }
 
-    Hash[queues.zip(samples.each_cons(2)).map { |queue, (size, queue_samples)|
+    Hash[queues.zip(samples.each_slice(2)).map { |queue, (size, queue_samples)|
       queue_samples = queue_samples.map { |sample|
         Job.decode(sample)
       }
