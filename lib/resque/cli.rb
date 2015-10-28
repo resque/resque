@@ -11,7 +11,7 @@ module Resque
     def initialize(args = [], opts = {}, config = {})
       super(args, opts, config)
 
-      if options[:config] && File.exists?(options[:config])
+      if options[:config] && File.exist?(options[:config])
         config_options = YAML.load_file(options[:config]).symbolize_keys
         @options = @options.symbolize_keys.merge(config_options)
       end
@@ -101,7 +101,7 @@ module Resque
       def load_enviroment(file = nil)
         file ||= "."
 
-        if File.directory?(file) && File.exists?(File.expand_path("#{file}/config/environment.rb"))
+        if File.directory?(file) && File.exist?(File.expand_path("#{file}/config/environment.rb"))
           require 'rails'
           require File.expand_path("#{file}/config/environment.rb")
           if defined?(::Rails) && ::Rails.respond_to?(:application)
