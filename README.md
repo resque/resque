@@ -9,6 +9,7 @@ them later.
   - [![Build Status](https://img.shields.io/travis/resque/resque/master.svg)](https://travis-ci.org/resque/resque)
   - [![Coverage Status](https://img.shields.io/coveralls/resque/resque/master.svg)](https://coveralls.io/r/resque/resque)
   - [![Inline docs](http://inch-ci.org/github/resque/resque.svg)](http://inch-ci.org/github/resque/resque)
+  - [![Security](https://hakiri.io/github/resque/resque/master.svg)](https://hakiri.io/github/resque/resque/master)
 
 ### A note about branches
 
