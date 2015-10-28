@@ -15,6 +15,10 @@ num_workers.times do |num|
 
     w.uid = 'deploy'
     w.gid = 'deploy'
+    
+    # By default, god stops a process by sending SIGTERM, and waits 10 seconds before sending a SIGKILL.
+    # Sending a SIGQUIT allows the process to finish its job before exiting.
+    # w.stop_signal = 'QUIT'
 
     # restart if memory gets too high
     w.transition(:up, :restart) do |on|
