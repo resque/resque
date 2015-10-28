@@ -3,7 +3,7 @@ require 'resque/failure/redis'
 
 describe Resque::Failure::Redis do
   after do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
   end
 
   describe '#count' do

@@ -5,7 +5,7 @@ describe "Resque::MultiQueue" do
   let(:coder) { Resque::JsonCoder.new }
 
   before do
-    redis.flushall
+    redis.redis.flushall
   end
 
   it "poll times out and returns nil" do

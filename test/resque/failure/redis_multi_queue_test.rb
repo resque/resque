@@ -8,7 +8,7 @@ describe Resque::Failure::RedisMultiQueue do
 
   after do
     Resque::Failure.backend = nil
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
   end
 
   describe '#requeue' do

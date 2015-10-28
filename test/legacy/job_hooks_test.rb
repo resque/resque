@@ -255,7 +255,7 @@ describe Resque::Job do
 
 
   describe "before_enqueue" do
-    before{ Resque.backend.store.flushall }
+    before{ Resque.backend.store.redis.flushall }
 
     include PerformJob
 

@@ -5,7 +5,7 @@ describe Resque::WorkerRegistry do
   let(:worker_options){ { :interval => 0, :timeout => 0, :logger => MonoLogger.new("/dev/null")} }
 
   before :each do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
   end
 
   class Resque::Worker

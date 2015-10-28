@@ -8,7 +8,7 @@ describe "Resque::Worker" do
 
   before :each do
     Resque.redis = Resque.backend.store
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
@@ -23,7 +23,7 @@ describe "Resque::Worker" do
   it "can fail jobs" do
     # This test forks, so we will use the real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -37,7 +37,7 @@ describe "Resque::Worker" do
   it "failed jobs report exception and message" do
     # we fork, so let's use real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       Resque::Job.create(:jobs, BadJobWithSyntaxError)
@@ -187,7 +187,7 @@ describe "Resque::Worker" do
   it "can peek at failed jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       10.times { Resque::Job.create(:jobs, BadJob) }
@@ -203,7 +203,7 @@ describe "Resque::Worker" do
   it "can clear failed jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -219,7 +219,7 @@ describe "Resque::Worker" do
   it "catches exceptional jobs" do
     # This test forks so we'll use the real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       Resque::Job.create(:jobs, BadJob)
@@ -356,7 +356,7 @@ describe "Resque::Worker" do
   it "fails if a job class has no `perform` method" do
     # This test forks so let's use real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       worker = Resque::Worker.new(:perform_less, test_options)
@@ -440,7 +440,7 @@ describe "Resque::Worker" do
     # due to difference in behavior regarding timeouts, let's
     # use real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       worker = Resque::Worker.new(:timeout, test_options)
@@ -591,7 +591,7 @@ describe "Resque::Worker" do
   end
 
   it "Will not call a before_fork hook when the worker can't fork" do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs, test_options.merge(:fork_per_job => false))
@@ -605,7 +605,7 @@ describe "Resque::Worker" do
   it "Will call an after_fork hook after forking" do
     # we fork, therefore, real redis
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       msg = "called!"
@@ -623,7 +623,7 @@ describe "Resque::Worker" do
   end
 
   it "Will not call an after_fork hook when the worker can't fork" do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { Resque.backend.store.set("after_fork", "yeah") }
     workerA = Resque::Worker.new(:jobs, test_options.merge(:fork_per_job => false))
@@ -674,7 +674,7 @@ describe "Resque::Worker" do
     # this test is kinda weird and complex, so let's punt
     # and use real redis to make sure we don't break stuff
     Resque.redis = $real_redis
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
 
     begin
       before_pause_called = false

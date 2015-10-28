@@ -4,7 +4,7 @@ require 'test_helper'
 
 describe "Resque" do
   before do
-    Resque.backend.store.flushall
+    Resque.backend.store.redis.flushall
     @original_redis = Resque.backend.store
   end
 
