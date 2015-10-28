@@ -62,7 +62,7 @@ module Resque
     @config ||= Config.new
   end
 
-  # Configure Resque with a blcok
+  # Configure Resque with a block
   # @yieldparam config [Resque::Config]
   # @yieldreturn [void]
   # @return [void]
