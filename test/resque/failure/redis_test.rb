@@ -6,6 +6,23 @@ describe Resque::Failure::Redis do
     Resque.backend.store.flushall
   end
 
+  describe '::all' do
+    it 'returns all failures from the :failed queue' do
+      save_failure :failed, 'class1'
+      save_failure :failed, 'class2'
+
+      result = Resque::Failure::Redis.all
+      assert_equal 2, result.count
+      assert_equal ['class1', 'class2'],
+        result.map { |failure| failure.class_name }
+    end
+
+    it 'returns an empty array if there are no items in the :failed queue' do
+      result = Resque::Failure::Redis.all
+      assert_equal [], result
+    end
+  end
+
   describe '#count' do
     it 'counts all failures' do
       save_failure
@@ -36,7 +53,7 @@ describe Resque::Failure::Redis do
       save_failure
 
       failure = Resque::Failure::Redis.all.first
-      assert_nil failure['retried_at']
+      assert_nil failure.retried_at
 
       Resque::Failure::Redis.requeue(0)
 
@@ -45,7 +62,7 @@ describe Resque::Failure::Redis do
       assert_equal ['some_args'], job.args
 
       failure = Resque::Failure::Redis.all.first
-      refute_nil failure['retried_at']
+      refute_nil failure.retried_at
     end
   end
 
@@ -54,7 +71,7 @@ describe Resque::Failure::Redis do
       save_failure
 
       failure = Resque::Failure::Redis.all.first
-      assert_nil failure['retried_at']
+      assert_nil failure.retried_at
 
       Resque::Failure::Redis.requeue_to(0, :new_queue)
 
@@ -63,7 +80,7 @@ describe Resque::Failure::Redis do
       assert_equal ['some_args'], job.args
 
       failure = Resque::Failure::Redis.all.first
-      refute_nil failure['retried_at']
+      refute_nil failure.retried_at
     end
   end
 
@@ -96,18 +113,18 @@ describe Resque::Failure::Redis do
       Resque::Failure::Redis.remove_queue('queue1')
 
       assert_equal 2, Resque::Failure.count
-      assert_equal 'queue2', Resque::Failure::Redis.all(0).first['queue']
-      assert_equal 'queue3', Resque::Failure::Redis.all(1).first['queue']
+      assert_equal 'queue2', Resque::Failure::Redis.slice(0).first.queue
+      assert_equal 'queue3', Resque::Failure::Redis.slice(1).first.queue
     end
   end
 
   private
 
   def save_failure(queue = :failed, klass = 'some_class', args = 'some_args')
-    failure = Resque::Failure::Redis.new(Exception.new,
-                                         nil, queue,
-                                         {'class' => klass,
-                                          'args' => args})
-    failure.save
+    failure = Resque::Failure.create(
+      :raw_exception => Exception.new,
+      :queue => queue,
+      :payload => { 'class' => klass, 'args' => args }
+    )
   end
 end
