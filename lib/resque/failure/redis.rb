@@ -74,6 +74,7 @@ module Resque
         item['retried_at'] = Time.now.rfc2822
         Resque.backend.store.lset(:failed, id, Resque.encode(item))
         Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        Resque::Failure.remove(id)
       end
 
       # @param id [Integer] index of item to requeue
