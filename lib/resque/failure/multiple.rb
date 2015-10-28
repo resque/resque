@@ -84,6 +84,13 @@ module Resque
       def self.remove(index)
         classes.each { |klass| klass.remove(index) }
       end
+
+      # @override (see Resque::Failure::Base::requeue_queue)
+      # @param (see Resque::Failure::Base::requeue_queue)
+      # @return (see Resque::Failure::Base::requeue_queue)
+      def self.requeue_queue(queue)
+        classes.each { |klass| klass.requeue_queue(queue) }
+      end
     end
   end
 end

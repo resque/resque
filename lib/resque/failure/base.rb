@@ -87,6 +87,11 @@ module Resque
       # @param index [Integer]
       def self.remove(index)
       end
+
+      # @overload self.requeue_queue(queue)
+      # @param queue [Integer, Symbol]
+      def self.requeue_queue(queue)
+      end
     end
   end
 end
