@@ -29,7 +29,7 @@ module Resque
 
       raise 'System call for ps command failed. Please make sure that you have a compatible ps command in the path!' unless $?.success?
 
-      output.split($/).each do |line|
+      output.encode('UTF-8', :invalid => :replace).split($/).each do |line|
         next unless line =~ /resque/i
         next if line =~ /resque-web/
 
