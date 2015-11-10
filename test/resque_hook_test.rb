@@ -2,13 +2,16 @@ require 'test_helper'
 require 'tempfile'
 
 describe "Resque Hooks" do
-  before do
+  def cleanup
     Resque.redis.flushall
 
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
+  end
 
+  before do
+    cleanup
     @worker = Resque::Worker.new(:jobs)
 
     $called = false
@@ -18,6 +21,10 @@ describe "Resque Hooks" do
         $called = true
       end
     end
+  end
+
+  after do
+    cleanup
   end
 
   it 'retrieving hooks if none have been set' do
