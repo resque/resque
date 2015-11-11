@@ -156,6 +156,24 @@ module Resque
       end
     end
 
+    # Creates a priority job by placing it at the front of the queue. Expects
+    # a string queue name, a string class name, and an optional array of
+    # arguments to pass to the class' `perform` method.
+    #
+    # Raises an exception if no queue or class is given.
+
+    def self.priority_create(queue, klass, *args)
+      Resque.validate(klass, queue)
+
+      if Resque.inline?
+        # Instantiating a Resque::Job and calling perform on it so callbacks run
+        # decode(encode(args)) to ensure that args are normalized in the same manner as a non-inline job
+        new(:inline, {'class' => klass, 'args' => decode(encode(args))}).perform
+      else
+        Resque.lpush(queue, :class => klass.to_s, :args => args)
+      end
+    end
+
     # Removes a job from a queue. Expects a string queue name, a
     # string class name, and, optionally, args.
     #

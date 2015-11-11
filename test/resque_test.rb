@@ -276,4 +276,38 @@ context "Resque" do
       Resque.inline = false
     end
   end
+
+  test "can put priority jobs on the queue" do
+    assert Resque::Job.priority_create(:jobs, 'SomeJob', 20, '/tmp')
+  end
+
+  test "can put priority jobs at the front of the queue" do
+    Resque::Job.create(:jobs, 'GoodJob', 'Normal Job 1')
+    Resque::Job.create(:jobs, 'GoodJob', 'Normal Job 2')
+    Resque::Job.priority_create(:jobs, 'GoodJob', 'Priority Job')
+
+    assert_equal ['Priority Job'], Resque.pop(:jobs)['args']
+    assert_equal ['Normal Job 1'], Resque.pop(:jobs)['args']
+    assert_equal ['Normal Job 2'], Resque.pop(:jobs)['args']
+  end
+
+  test "can put priority jobs using #priority_enqueue and #priority_enqueue_to" do
+    Resque.enqueue(EchoJob, 'Normal Job')
+    Resque.priority_enqueue(EchoJob, 'Priority Job 1')
+    Resque.priority_enqueue_to(:jobs, EchoJob, 'Priority Job 2')
+
+    assert_equal ['Priority Job 2'], Resque.pop(:jobs)['args']
+    assert_equal ['Priority Job 1'], Resque.pop(:jobs)['args']
+    assert_equal ['Normal Job'], Resque.pop(:jobs)['args']
+  end
+
+  test "can LPUSH onto a redis queue" do
+    Resque.push(:queue, { 'item' => 'one' })
+    Resque.push(:queue, { 'item' => 'two' })
+    Resque.lpush(:queue, { 'item' => 'three' })
+
+    assert_equal({ 'item' => 'three' }, Resque.pop(:queue))
+    assert_equal({ 'item' => 'one' }, Resque.pop(:queue))
+    assert_equal({ 'item' => 'two' }, Resque.pop(:queue))
+  end
 end
