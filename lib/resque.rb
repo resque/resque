@@ -22,6 +22,7 @@ require 'resque/plugin'
 require 'resque/vendor/utf8_util'
 
 module Resque
+  include Helpers
   extend self
 
   # Given a Ruby object, returns a string suitable for storage in a

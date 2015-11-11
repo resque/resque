@@ -10,6 +10,8 @@ module Resque
   # It also ensures workers are always listening to signals from you,
   # their master, and can react accordingly.
   class Worker
+    include Resque::Helpers
+    extend Resque::Helpers
     include Resque::Logging
 
     def redis
