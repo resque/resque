@@ -578,6 +578,32 @@ context "Resque::Worker" do
 #     assert_equal 1, $BEFORE_FORK_CALLED
   end
 
+  test "Will call a before_pause hook before pausing" do
+    Resque.redis.flushall
+    $BEFORE_PAUSE_CALLED = 0
+    $WORKER_NAME = nil
+    Resque.before_pause = Proc.new { |w| $BEFORE_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert_equal 0, $BEFORE_PAUSE_CALLED
+    workerA.pause_processing
+    assert_equal 1, $BEFORE_PAUSE_CALLED
+    assert_equal workerA.to_s, $WORKER_NAME
+  end
+
+  test "Will call a after_pause hook after pausing" do
+    Resque.redis.flushall
+    $AFTER_PAUSE_CALLED = 0
+    $WORKER_NAME = nil
+    Resque.after_pause = Proc.new { |w| $AFTER_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert_equal 0, $AFTER_PAUSE_CALLED
+    workerA.unpause_processing
+    assert_equal 1, $AFTER_PAUSE_CALLED
+    assert_equal workerA.to_s, $WORKER_NAME
+  end
+
   test "Will call a before_fork hook before forking" do
     Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
@@ -815,8 +841,7 @@ context "Resque::Worker" do
     end
   end
 
-  test "will call before_pause before it is paused" do
-    before_pause_called = false
+  test "tries to reconnect three times before giving up" do
     captured_worker = nil
     begin
       class Redis::Client
