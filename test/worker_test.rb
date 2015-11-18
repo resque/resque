@@ -573,9 +573,9 @@ context "Resque::Worker" do
     workerA.work(0)
     assert_equal 1, $BEFORE_FORK_CALLED
 
-    # TODO: Verify it's only run once. Not easy.
-#     workerA.work(0)
-#     assert_equal 1, $BEFORE_FORK_CALLED
+    #Verify it's only run once.
+    workerA.work(0)
+    assert_equal 1, $BEFORE_FORK_CALLED
   end
 
   test "Will call a before_pause hook before pausing" do
