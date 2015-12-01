@@ -149,6 +149,7 @@ module Resque
       @queues = queues.map { |queue| queue.to_s.strip }
       @shutdown = nil
       @paused = nil
+      @before_first_fork_hook_ran = false
       validate_queues
     end
 
@@ -554,12 +555,14 @@ module Resque
     # Runs a named hook, passing along any arguments.
     def run_hook(name, *args)
       return unless hooks = Resque.send(name)
+      return if name == :before_first_fork && @before_first_fork_hook_ran
       msg = "Running #{name} hooks"
       msg << " with #{args.inspect}" if args.any?
       log msg
 
       hooks.each do |hook|
         args.any? ? hook.call(*args) : hook.call
+        @before_first_fork_hook_ran = true if name == :before_first_fork
       end
     end
 
