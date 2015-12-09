@@ -829,7 +829,7 @@ sort it out.
 Contributing
 ------------
 
-Read the [Contributing][cb] wiki page first.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 Once you've made your great commits:
 
