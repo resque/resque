@@ -68,7 +68,6 @@ describe "Resque::Worker" do
   end
 
   it "should not treat SystemExit as an exception in the child with run_at_exit_hooks == true" do
-
     if worker_pid = Kernel.fork
       Process.waitpid(worker_pid)
     else
@@ -82,9 +81,7 @@ describe "Resque::Worker" do
       end
       exit
     end
-
   end
-
 
   it "does not execute at_exit hooks by default" do
     tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
@@ -103,7 +100,6 @@ describe "Resque::Worker" do
       end
       exit
     end
-
   end
 
   it "does report failure for jobs with invalid payload" do
@@ -171,6 +167,41 @@ describe "Resque::Worker" do
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
     assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
+  end
+
+  it "fails uncompleted jobs on exit and unregisters without erroring out and logs helpful message if error occurs during a failure hook" do
+    class DummyLogger
+      def initialize
+        @rd, @wr = IO.pipe
+      end
+
+      def info(message); @wr << message << "\0"; end
+      alias_method :debug, :info
+      alias_method :warn,  :info
+      alias_method :error, :info
+      alias_method :fatal, :info
+
+      def messages
+        @wr.close
+        @rd.read.split("\0")
+      end
+    end
+
+    Resque.logger = DummyLogger.new
+    begin
+      job = Resque::Job.new(:jobs, {'class' => 'BadJobWithOnFailureHookFail', 'args' => []})
+      @worker.working_on(job)
+      @worker.unregister_worker
+      messages = Resque.logger.messages
+    ensure
+      reset_logger
+    end
+    assert_equal 1, Resque::Failure.count
+    error_message = messages.first
+    assert_match('Additional error (RuntimeError: This job is just so bad!)', error_message)
+    assert_match('occurred in running failure hooks', error_message)
+    assert_match('for job (Job{jobs} | BadJobWithOnFailureHookFail | [])', error_message)
+    assert_match('Original error that caused job failure was RuntimeError: Resque::DirtyExit', error_message)
   end
 
   class ::SimpleFailingJob

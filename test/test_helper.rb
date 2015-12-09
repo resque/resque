@@ -161,6 +161,12 @@ class BadJobWithSyntaxError
   end
 end
 
+class BadJobWithOnFailureHookFail < BadJobWithSyntaxError
+  def self.on_failure_fail_hook(*args)
+    raise RuntimeError.new("This job is just so bad!")
+  end
+end
+
 class BadFailureBackend < Resque::Failure::Base
   def save
     raise Exception.new("Failure backend error")
