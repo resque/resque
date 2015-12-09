@@ -64,7 +64,7 @@ context "Resque::Worker" do
 
   class ::RaiseExceptionOnFailure
 
-    def self.on_failure_trhow_exception(exception,*args)
+    def self.on_failure_throw_exception(exception,*args)
       raise "The worker threw an exception"
     end
 
