@@ -69,7 +69,7 @@ module Resque
     # @return [Resque::Worker]
     def self.find(worker_id)
       if exists?(worker_id)
-        worker_id = worker_id.force_encoding('BINARY') # covnert to binary
+        worker_id = worker_id.dup.force_encoding('BINARY') # convert to binary
         worker_id = worker_id.encode('UTF-8', invalid: :replace, undef: :replace) # convert to valid UTF8
         queues = worker_id.split(':')[-1].split(',')
         worker = Worker.new(queues)
