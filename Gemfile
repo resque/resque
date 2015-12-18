@@ -6,7 +6,7 @@ group :test do
   gem "rake"
   gem "rack-test", "~> 0.5"
   gem "mocha", :require => false
-  gem "airbrake"
+  gem "airbrake", "4.3.4"
   gem "activesupport", "~> 3.0"
   gem "i18n"
   gem "minitest", "4.7.0"

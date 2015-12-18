@@ -7,6 +7,9 @@ rvm:
   - 2.0
   - 2.1
   - 2.2
+before_install:
+  - gem update --system
+  - gem update bundler
 matrix:
   allow_failures:
     - rvm: jruby-18mode
