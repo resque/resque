@@ -34,6 +34,15 @@ namespace :resque do
   # Preload app files if this is Rails
   task :preload => :setup do
     if defined?(Rails) && Rails.respond_to?(:application)
+      unless respond_to?(:require_dependency)
+        warn "
+        By default Resque won't know about your application's environment.
+        Load the environment using the environment task. (Eg: rake environment resque:work)
+        Or use the setup hook as described in https://github.com/resque/resque#workers.
+        "
+        exit
+      end
+
       # Rails 3
       Rails.application.eager_load!
     elsif defined?(Rails::Initializer)
