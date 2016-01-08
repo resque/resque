@@ -213,6 +213,21 @@ ensure
   $stderr = orig_stderr
 end
 
+def capture_io_with_pipe
+  orig_stdout, orig_stderr = $stdout, $stderr
+  stdout_rd, $stdout = IO.pipe
+  stderr_rd, $stderr = IO.pipe
+
+  yield
+
+  $stdout.close
+  $stderr.close
+  return stdout_rd.read, stderr_rd.read
+ensure
+  $stdout = orig_stdout
+  $stderr = orig_stderr
+end
+
 # Log to log/test.log
 def reset_logger
   $test_logger ||= MonoLogger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
