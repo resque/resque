@@ -251,8 +251,8 @@ module Resque
 
     # Reports the exception and marks the job as failed
     def report_failed_job(job,exception)
-      log "#{job.inspect} failed: #{exception.inspect}"
       begin
+        log "#{job.inspect} failed: #{exception.inspect}".force_encoding('UTF-8')
         job.fail(exception)
       rescue Object => exception
         log "Received exception when reporting failure: #{exception.inspect}"
