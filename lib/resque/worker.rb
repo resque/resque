@@ -138,7 +138,7 @@ module Resque
         unless Process.respond_to?('daemon')
             abort "env var BACKGROUND is set, which requires ruby >= 1.9"
         end
-        Process.daemon(true, true)
+        Process.daemon(true)
         self.reconnect
       end
 
