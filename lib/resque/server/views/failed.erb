@@ -21,7 +21,7 @@
 
 <ul class='failed'>
   <% Resque::Failure.each(failed_start_at, failed_per_page, params[:queue], params[:class], failed_order) do |id, job| %>
-    <%= partial :failed_job, :id => id, :job => job %>
+    <%= partial :failed_job, :id => id, :job => job, :queue => "failed#{'/' + params[:queue] if params[:queue]}" %>
   <% end %>
 </ul>
 

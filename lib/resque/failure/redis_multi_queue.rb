@@ -33,8 +33,8 @@ module Resque
         end
       end
 
-      def self.all(offset = 0, limit = 1, queue = :failed, order = 'desc')
-        Resque.list_range(queue, offset, limit, order)
+      def self.all(offset = 0, limit = 1, queue = :failed)
+        Resque.list_range(queue, offset, limit)
       end
 
       def self.queues
@@ -42,20 +42,24 @@ module Resque
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
-        items = all(offset, limit, queue, order)
+        items = all(offset, limit, queue)
         items = [items] unless items.is_a? Array
+        reversed = false
         if order.eql? 'desc'
           items.reverse!
+          reversed = true
         end
         items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
-            yield offset + i, item
+            id = reversed ? (items.length - 1) - (offset + i) : offset + i
+            yield id, item
           end
         end
       end
 
-      def self.clear(queue = :failed)
-        Resque.redis.del(queue)
+      def self.clear(queue = nil)
+        queues = queue ? Array(queue) : self.queues
+        queues.each { |queue| Resque.redis.del(queue) }
       end
 
       def self.requeue(id, queue = :failed)
@@ -74,6 +78,10 @@ module Resque
       def self.requeue_queue(queue)
         failure_queue = Resque::Failure.failure_queue_name(queue)
         each(0, count(failure_queue), failure_queue) { |id, _| requeue(id, failure_queue) }
+      end
+
+      def self.requeue_all
+        queues.each { |queue| requeue_queue(Resque::Failure.job_queue_name(queue)) }
       end
 
       def self.remove_queue(queue)
