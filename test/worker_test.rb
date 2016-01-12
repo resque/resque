@@ -934,44 +934,4 @@ context "Resque::Worker" do
       assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
     end
   end
-
-  test "displays warning when using verbose" do
-    begin
-      $warned_logger_severity_deprecation = false
-      stdout, stderr = capture_io { @worker.verbose }
-      assert stderr.match(/WARNING:/)
-    ensure
-      $warned_logger_severity_deprecation = true
-    end
-  end
-
-  test "displays warning when using verbose=" do
-    begin
-      $warned_logger_severity_deprecation = false
-      stdout, stderr = capture_io { @worker.verbose = true }
-      assert stderr.match(/WARNING:/)
-    ensure
-      $warned_logger_severity_deprecation = true
-    end
-  end
-
-  test "displays warning when using very_verbose" do
-    begin
-      $warned_logger_severity_deprecation = false
-      stdout, stderr = capture_io { @worker.very_verbose }
-      assert stderr.match(/WARNING:/)
-    ensure
-      $warned_logger_severity_deprecation = true
-    end
-  end
-
-  test "displays warning when using very_verbose=" do
-    begin
-      $warned_logger_severity_deprecation = false
-      stdout, stderr = capture_io { @worker.very_verbose = true }
-      assert stderr.match(/WARNING:/)
-    ensure
-      $warned_logger_severity_deprecation = true
-    end
-  end
 end
