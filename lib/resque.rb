@@ -152,17 +152,17 @@ module Resque
   # Set or retrieve the current logger object
   attr_accessor :logger
 
-  HEARTBEAT_INTERVAL = 60
-  PRUNE_INTERVAL     = HEARTBEAT_INTERVAL * 5
+  DEFAULT_HEARTBEAT_INTERVAL = 60
+  DEFAULT_PRUNE_INTERVAL = DEFAULT_HEARTBEAT_INTERVAL * 5
 
   attr_writer :heartbeat_interval
   def heartbeat_interval
-    @heartbeat_interval || HEARTBEAT_INTERVAL
+    @heartbeat_interval || DEFAULT_HEARTBEAT_INTERVAL
   end
 
   attr_writer :prune_interval
   def prune_interval
-    @prune_interval || PRUNE_INTERVAL
+    @prune_interval || DEFAULT_PRUNE_INTERVAL
   end
 
   # The `before_first_fork` hook will be run in the **parent** process

@@ -469,26 +469,45 @@ module Resque
     end
 
     def heartbeat
-      heartbeat = redis.hget(WORKER_HEARTBEAT_KEY, self.to_s)
+      heartbeat = redis.hget(WORKER_HEARTBEAT_KEY, to_s)
       heartbeat && Time.parse(heartbeat)
     end
 
+    def self.all_heartbeats
+      redis.hgetall(WORKER_HEARTBEAT_KEY)
+    end
+
+    # Returns a list of workers that have sent a heartbeat in the past, but which
+    # already expired (does NOT include workers that have never sent a heartbeat at all).
+    def self.all_workers_with_expired_heartbeats
+      workers = Worker.all
+      heartbeats = Worker.all_heartbeats
+
+      workers.select do |worker|
+        id = worker.to_s
+        heartbeat = heartbeats[id]
+
+        if heartbeat
+          seconds_since_heartbeat = (Time.now - Time.parse(heartbeat)).to_i
+          seconds_since_heartbeat > Resque.prune_interval
+        else
+          false
+        end
+      end
+    end
+
     def heartbeat!(time = Time.now)
-      redis.hset(WORKER_HEARTBEAT_KEY, self.to_s, time.iso8601)
+      redis.hset(WORKER_HEARTBEAT_KEY, to_s, time.iso8601)
     end
 
     def start_heartbeat
       heartbeat!
-      @heart = Thread.new {
+      @heart = Thread.new do
         loop do
           sleep(Resque.heartbeat_interval)
           heartbeat!
         end
-      }
-    end
-
-    def seconds_since_heartbeat(beat = self.heartbeat)
-      (Time.now - Time.parse(beat)).to_i
+      end
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -544,21 +563,22 @@ module Resque
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
-      heartbeats = redis.hgetall(WORKER_HEARTBEAT_KEY)
       all_workers = Worker.all
-      known_workers = worker_pids unless all_workers.empty?
+
+      unless all_workers.empty?
+        known_workers = worker_pids
+        all_workers_with_expired_heartbeats = Worker.all_workers_with_expired_heartbeats
+      end
 
       all_workers.each do |worker|
-        id = worker.to_s
-
-        # If the worker hasn't sent a heartbeat in PRUNE_INTERVAL, remove it
-        # from the registry.
+        # If the worker hasn't sent a heartbeat, remove it from the registry.
         #
         # If the worker hasn't ever sent a heartbeat, we won't remove it since
         # the first heartbeat is sent before the worker is registred it means
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
-        if heartbeats[id] && worker.seconds_since_heartbeat(heartbeats[id]) > Resque.prune_interval
+        if all_workers_with_expired_heartbeats.include?(worker)
+          log!("Pruning dead worker: #{worker}")
           worker.unregister_worker
           next
         end
@@ -573,9 +593,11 @@ module Resque
           # written in different language.
           next
         end
+
         next unless host == hostname
         next if known_workers.include?(pid)
-        log! "Pruning dead worker: #{worker}"
+
+        log!("Pruning dead worker: #{worker}")
         worker.unregister_worker
       end
     end
