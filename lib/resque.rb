@@ -468,7 +468,7 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
-      :pending   => queue_sizes.inject(0) { |sum,(_,size)| sum + size },
+      :pending   => queue_sizes.inject(0) { |sum, (queue_name, queue_size)| sum + queue_size },
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
@@ -487,40 +487,45 @@ module Resque
     end
   end
 
+  # Returns a hash, mapping queue names to queue sizes
   def queue_sizes
-    queues = self.queues
+    queue_names = queues
 
-    sizes = redis.pipelined {
-      queues.each { |name| redis.llen("queue:#{name}") }
-    }
+    sizes = redis.pipelined do
+      queue_names.each do |name|
+        redis.llen("queue:#{name}")
+      end
+    end
 
-    Hash[queues.zip(sizes)]
+    Hash[queue_names.zip(sizes)]
   end
 
-  def sample_queues(sample_size: 1000)
-    queues = self.queues
+  # Returns a hash, mapping queue names to (up to `sample_size`) samples of jobs in that queue
+  def sample_queues(sample_size = 1000)
+    queue_names = queues
 
-    # Returns an array with all results from Redis calls
-    # inside the block.
-    #
-    # E.g. [2, [<sampled_jobs>], 8, [<sampled_jobs>]]
-    samples = redis.pipelined {
-      queues.each do |name|
-        redis.llen("queue:#{name}")
-        redis.lrange("queue:#{name}", 0, sample_size - 1)
+    samples = redis.pipelined do
+      queue_names.each do |name|
+        key = "queue:#{name}"
+        redis.llen(key)
+        redis.lrange(key, 0, sample_size - 1)
       end
-    }
+    end
 
-    Hash[queues.zip(samples.each_slice(2)).map { |queue, (size, queue_samples)|
-      queue_samples = queue_samples.map { |sample|
-        Job.decode(sample)
+    hash = {}
+
+    queue_names.zip(samples.each_slice(2)) do |queue_name, (queue_size, serialized_samples)|
+      samples = serialized_samples.map do |serialized_sample|
+        Job.decode(serialized_sample)
+      end
+
+      hash[queue_name] = {
+        :size => queue_size,
+        :samples => samples
       }
+    end
 
-      [queue.to_sym, {
-        size: size,
-        samples: queue_samples,
-      }]
-    }]
+    hash
   end
 
   private

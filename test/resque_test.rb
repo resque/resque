@@ -287,7 +287,7 @@ context "Resque" do
 
       queue_sizes = Resque.queue_sizes
 
-      assert_equal({"queue1"=>1}, queue_sizes)
+      assert_equal({ "queue1" => 1 }, queue_sizes)
     end
 
     test "queue_sizes with two queue" do
@@ -296,10 +296,7 @@ context "Resque" do
 
       queue_sizes = Resque.queue_sizes
 
-      assert_equal({
-        "queue1"=>1,
-        "queue2"=>1,
-      }, queue_sizes)
+      assert_equal({ "queue1" => 1, "queue2" => 1, }, queue_sizes)
     end
 
     test "queue_sizes with two queue with multiple jobs" do
@@ -308,59 +305,56 @@ context "Resque" do
 
       queue_sizes = Resque.queue_sizes
 
-      assert_equal({
-        "queue1"=>5,
-        "queue2"=>9,
-      }, queue_sizes)
+      assert_equal({ "queue1" => 5, "queue2" => 9 }, queue_sizes)
     end
 
-    test "sample queues with simple job with no args" do
+    test "sample_queues with simple job with no args" do
       Resque.enqueue_to(:queue1, SomeJob)
       queues = Resque.sample_queues
 
       assert_equal 1, queues.length
-      assert_instance_of Hash, queues[:queue1]
+      assert_instance_of Hash, queues['queue1']
 
-      assert_equal 1, queues[:queue1][:size]
+      assert_equal 1, queues['queue1'][:size]
 
-      samples = queues[:queue1][:samples]
+      samples = queues['queue1'][:samples]
       assert_equal "SomeJob", samples[0]['class']
       assert_equal([], samples[0]['args'])
     end
 
-    test "sample queues with simple job with args" do
-      Resque.enqueue_to(:queue1, SomeJob, arg1: '1')
+    test "sample_queues with simple job with args" do
+      Resque.enqueue_to(:queue1, SomeJob, :arg1 => '1')
 
       queues = Resque.sample_queues
 
-      assert_equal 1, queues[:queue1][:size]
+      assert_equal 1, queues['queue1'][:size]
 
-      samples = queues[:queue1][:samples]
+      samples = queues['queue1'][:samples]
       assert_equal "SomeJob", samples[0]['class']
       assert_equal([{'arg1' => '1'}], samples[0]['args'])
     end
 
-    test "sample queues with simple jobs" do
-      Resque.enqueue_to(:queue1, SomeJob, arg1: '1')
-      Resque.enqueue_to(:queue1, SomeJob, arg1: '2')
+    test "sample_queues with simple jobs" do
+      Resque.enqueue_to(:queue1, SomeJob, :arg1 => '1')
+      Resque.enqueue_to(:queue1, SomeJob, :arg1 => '2')
 
       queues = Resque.sample_queues
 
-      assert_equal 2, queues[:queue1][:size]
+      assert_equal 2, queues['queue1'][:size]
 
-      samples = queues[:queue1][:samples]
+      samples = queues['queue1'][:samples]
       assert_equal([{'arg1' => '1'}], samples[0]['args'])
       assert_equal([{'arg1' => '2'}], samples[1]['args'])
     end
 
-    test "sample queues with more jobs only returns sample size number of jobs" do
+    test "sample_queues with more jobs only returns sample size number of jobs" do
       11.times { Resque.enqueue_to(:queue1, SomeJob) }
 
-      queues = Resque.sample_queues(sample_size: 10)
+      queues = Resque.sample_queues(10)
 
-      assert_equal 11, queues[:queue1][:size]
+      assert_equal 11, queues['queue1'][:size]
 
-      samples = queues[:queue1][:samples]
+      samples = queues['queue1'][:samples]
       assert_equal 10, samples.count
     end
   end
