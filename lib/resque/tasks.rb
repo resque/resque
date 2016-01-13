@@ -9,7 +9,12 @@ namespace :resque do
   task :work => [ :preload, :setup ] do
     require 'resque'
 
-    worker = Resque::Worker.new
+    begin
+      worker = Resque::Worker.new
+    rescue Resque::NoQueueError
+      abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
+    end
+
     worker.log "Starting worker #{self}"
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end

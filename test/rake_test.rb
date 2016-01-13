@@ -12,9 +12,13 @@ context "rake" do
     Rake.application.invoke_task "resque:work"
   end
 
-  test "requires queue" do
-    assert_raises Resque::NoQueueError do
+  test "requires QUEUE environment variable" do
+    begin
       run_rake_task
+      fail 'Expected task to abort'
+    rescue Exception => e
+      assert_equal e.message, "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
+      assert_equal e.class, SystemExit
     end
   end
 
