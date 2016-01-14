@@ -23,6 +23,10 @@ namespace :resque do
   task :workers do
     threads = []
 
+    if ENV['COUNT'].to_i < 1
+      abort "set COUNT env var, e.g. $ COUNT=2 rake resque:workers"
+    end
+
     ENV['COUNT'].to_i.times do
       threads << Thread.new do
         system "rake resque:work"
