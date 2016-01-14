@@ -4,13 +4,12 @@ require 'tmpdir'
 describe "Resque::Worker" do
   before do
     Resque.redis.flushall
-
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
-
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    reset_logger
   end
 
   it "can fail jobs" do
