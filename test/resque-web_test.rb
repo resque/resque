@@ -27,6 +27,16 @@ describe "Resque web server" do
     end
   end
 
+  describe "With append-prefix option on GET to /overview" do
+    reverse_proxy_prefix = 'proxy_site/resque'
+    Resque::Server.url_prefix = reverse_proxy_prefix
+    before { get "/overview" }
+
+    it "should contain reverse proxy prefix for asset urls and links" do
+      assert last_response.body.include?(reverse_proxy_prefix)
+    end
+  end
+
   # Working jobs
   describe "on GET to /working" do
     before { get "/working" }

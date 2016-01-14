@@ -24,4 +24,8 @@ Vegas::Runner.new(Resque::Server, 'resque-web', {
     runner.logger.info "Using Redis connection '#{redis_conf}'"
     Resque.redis = redis_conf
   }
+  opts.on('-a url-prefix', "--append url-prefix", "set reverse_proxy friendly prefix to links") {|url_prefix|
+    runner.logger.info "Using URL Prefix '#{url_prefix}'"
+    Resque::Server.url_prefix = url_prefix
+  }
 end

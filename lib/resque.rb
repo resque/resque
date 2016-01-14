@@ -508,6 +508,11 @@ module Resque
     @hooks && @hooks[name] = []
   end
 
+  # Retrieve all hooks
+  def hooks
+    @hooks || {}
+  end
+
   # Retrieve all hooks of a given name.
   def hooks(name)
     (@hooks && @hooks[name]) || []
