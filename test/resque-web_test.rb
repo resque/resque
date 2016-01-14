@@ -19,6 +19,16 @@ context "on GET to /overview" do
   end
 end
 
+context "With append-prefix option on GET to /overview" do
+  reverse_proxy_prefix = 'proxy_site/resque'
+  Resque::Server.url_prefix = reverse_proxy_prefix
+  setup { get "/overview" }
+
+  test "should contain reverse proxy prefix for asset urls and links" do
+    assert last_response.body.include?(reverse_proxy_prefix)
+  end
+end
+
 # Working jobs
 context "on GET to /working" do
   setup { get "/working" }
