@@ -1,69 +1,91 @@
 require 'test_helper'
-require 'resque/server/test_helper'
- 
-# Root path test
-context "on GET to /" do
-  setup { get "/" }
+require 'rack/test'
+require 'resque/server'
 
-  test "redirect to overview" do
-    follow_redirect!
+describe "Resque web" do
+  include Rack::Test::Methods
+
+  def app
+    Resque::Server.new
   end
-end
 
-# Global overview
-context "on GET to /overview" do
-  setup { get "/overview" }
+  # Root path test
+  describe "on GET to /" do
+    before { get "/" }
 
-  test "should at least display 'queues'" do
-    assert last_response.body.include?('Queues')
+    it "redirect to overview" do
+      follow_redirect!
+    end
   end
-end
 
-context "With append-prefix option on GET to /overview" do
-  reverse_proxy_prefix = 'proxy_site/resque'
-  Resque::Server.url_prefix = reverse_proxy_prefix
-  setup { get "/overview" }
+  # Global overview
+  describe "on GET to /overview" do
+    before { get "/overview" }
 
-  test "should contain reverse proxy prefix for asset urls and links" do
-    assert last_response.body.include?(reverse_proxy_prefix)
+    it "should at least display 'queues'" do
+      assert last_response.body.include?('Queues')
+    end
   end
-end
 
-# Working jobs
-context "on GET to /working" do
-  setup { get "/working" }
+  describe "With append-prefix option on GET to /overview" do
+    reverse_proxy_prefix = 'proxy_site/resque'
+    Resque::Server.url_prefix = reverse_proxy_prefix
+    before { get "/overview" }
 
-  should_respond_with_success
-end
+    it "should contain reverse proxy prefix for asset urls and links" do
+      assert last_response.body.include?(reverse_proxy_prefix)
+    end
+  end
 
-# Failed
-context "on GET to /failed" do
-  setup { get "/failed" }
+  # Working jobs
+  describe "on GET to /working" do
+    before { get "/working" }
 
-  should_respond_with_success
-end
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
 
-# Stats 
-context "on GET to /stats/resque" do
-  setup { get "/stats/resque" }
+  # Failed
+  describe "on GET to /failed" do
+    before { get "/failed" }
 
-  should_respond_with_success
-end
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
 
-context "on GET to /stats/redis" do
-  setup { get "/stats/redis" }
+  # Stats
+  describe "on GET to /stats/resque" do
+    before { get "/stats/resque" }
 
-  should_respond_with_success
-end
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
 
-context "on GET to /stats/resque" do
-  setup { get "/stats/keys" }
+  describe "on GET to /stats/redis" do
+    before { get "/stats/redis" }
 
-  should_respond_with_success
-end
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
 
-context "also works with slash at the end" do
-  setup { get "/working/" }
+  describe "on GET to /stats/resque" do
+    before { get "/stats/keys" }
 
-  should_respond_with_success
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
+
+  describe "also works with slash at the end" do
+    before { get "/working/" }
+
+    it "should respond with success" do
+      assert last_response.ok?, last_response.errors
+    end
+  end
+
 end

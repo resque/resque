@@ -44,6 +44,14 @@ MiniTest::Unit.after_tests do
   end
 end
 
+module MiniTest::Unit::LifecycleHooks
+
+  def before_setup
+    reset_logger
+  end
+
+end
+
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'
   puts "Starting redis for testing at localhost:9736 and localhost:9737..."
@@ -55,29 +63,6 @@ else
   puts "Starting redis for testing at localhost:9736..."
   `redis-server #{$dir}/redis-test.conf`
   Resque.redis = 'localhost:9736'
-end
-
-
-##
-# test/spec/mini 3
-# http://gist.github.com/25455
-# chris@ozmm.org
-#
-def context(*args, &block)
-  return super unless (name = args.first) && block
-  require 'test/unit'
-  klass = Class.new(defined?(ActiveSupport::TestCase) ? ActiveSupport::TestCase : Test::Unit::TestCase) do
-    def self.test(name, &block)
-      define_method("test_#{name.gsub(/\W/,'_')}", &block) if block
-    end
-    def self.xtest(*args) end
-    def self.setup(&block) define_method(:setup, &block) end
-    def self.teardown(&block) define_method(:teardown, &block) end
-  end
-  (class << klass; self end).send(:define_method, :name) { name.gsub(/\W/,'_') }
-  klass.class_eval &block
-  # XXX: In 1.8.x, not all tests will run unless anonymous classes are kept in scope.
-  ($test_classes ||= []) << klass
 end
 
 ##
@@ -233,8 +218,6 @@ def reset_logger
   $test_logger ||= MonoLogger.new(File.open(File.expand_path("../../log/test.log", __FILE__), "w"))
   Resque.logger = $test_logger
 end
-
-reset_logger
 
 def suppress_warnings
   old_verbose, $VERBOSE = $VERBOSE, nil

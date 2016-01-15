@@ -9,8 +9,8 @@ end
 
 if defined? Airbrake
   require 'resque/failure/airbrake'
-  context "Airbrake" do
-    test "should be notified of an error" do
+  describe "Airbrake" do
+    it "should be notified of an error" do
       exception = StandardError.new("BOOM")
       worker = Resque::Worker.new(:test)
       queue = "test"
