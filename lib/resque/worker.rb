@@ -752,11 +752,6 @@ module Resque
       debug(message)
     end
 
-    # Deprecated legacy methods for controlling the logging threshhold
-    # Use Resque.logger.level now, e.g.:
-    #
-    #     Resque.logger.level = Logger::DEBUG
-    #
     def verbose
       @verbose
     end
@@ -768,6 +763,7 @@ module Resque
     def verbose=(value);
       if value && !very_verbose
         Resque.logger.formatter = VerboseFormatter.new
+        Resque.logger.level = Logger::INFO
       elsif !value
         Resque.logger.formatter = QuietFormatter.new
       end
@@ -778,8 +774,10 @@ module Resque
     def very_verbose=(value)
       if value
         Resque.logger.formatter = VeryVerboseFormatter.new
+        Resque.logger.level = Logger::DEBUG
       elsif !value && verbose
         Resque.logger.formatter = VerboseFormatter.new
+        Resque.logger.level = Logger::INFO
       else
         Resque.logger.formatter = QuietFormatter.new
       end
