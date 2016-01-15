@@ -2,7 +2,7 @@ require 'test_helper'
 require 'tmpdir'
 require 'fixtures/long_running_job'
 
-describe "Resque::Worker" do
+context "Resque::Worker" do
   def start_worker(rescue_time, term_child)
     Resque.enqueue( LongRunningJob, 3, rescue_time )
 
@@ -22,7 +22,7 @@ describe "Resque::Worker" do
 
     # ensure the worker is started
     start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
-    refute_nil start_status
+    assert_not_nil start_status
     child_pid = start_status[1].to_i
     assert child_pid > 0, "worker child process not created"
 
@@ -33,7 +33,7 @@ describe "Resque::Worker" do
   end
 
   def assert_exception_caught(result)
-    refute_nil result
+    assert_not_nil result
     assert !result[1].start_with?('Finished Normally'), 'Job Finished normally.  (sleep parameter to LongRunningJob not long enough?)'
     assert result[1].start_with?("Caught TermException"), 'TermException exception not raised in child.'
   end
@@ -44,19 +44,19 @@ describe "Resque::Worker" do
     assert !child_still_running
   end
 
-  after do
+  teardown do
     remaining_keys = Resque.redis.keys('sigterm-test:*') || []
     Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
   end
 
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
-    it "old signal handling just kills off the child" do
+    test "old signal handling just kills off the child" do
       worker_pid, child_pid, result = start_worker(0, false)
       assert_nil result
       assert_child_not_running child_pid
     end
 
-    it "SIGTERM and cleanup occurs in allotted time" do
+    test "SIGTERM and cleanup occurs in allotted time" do
       worker_pid, child_pid, result = start_worker(0, true)
       assert_exception_caught result
       assert_child_not_running child_pid
@@ -66,7 +66,7 @@ describe "Resque::Worker" do
       assert post_cleanup_occurred, 'post cleanup did not occur. SIGKILL sent too early?'
     end
 
-    it "SIGTERM and cleanup does not occur in allotted time" do
+    test "SIGTERM and cleanup does not occur in allotted time" do
       worker_pid, child_pid, result = start_worker(5, true)
       assert_exception_caught result
       assert_child_not_running child_pid
@@ -77,7 +77,7 @@ describe "Resque::Worker" do
     end
   end
 
-  it "exits with Resque::TermException when using TERM_CHILD and not forking" do
+  test "exits with Resque::TermException when using TERM_CHILD and not forking" do
     begin
       ENV['FORK_PER_JOB'] = 'false'
       worker_pid, child_pid, result = start_worker(5, true)
@@ -88,14 +88,14 @@ describe "Resque::Worker" do
     end
   end
 
-  it "displays warning when not using term_child" do
+  test "displays warning when not using term_child" do
     worker = Resque::Worker.new(:jobs)
     worker.term_child = nil
     _, stderr = capture_io { worker.work(0) }
     assert stderr.match(/^WARNING:/)
   end
 
-  it "does not display warning when using term_child" do
+  test "it does not display warning when using term_child" do
     worker = Resque::Worker.new(:jobs)
     worker.term_child = "1"
     _, stderr = capture_io { worker.work(0) }
