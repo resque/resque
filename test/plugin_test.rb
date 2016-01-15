@@ -1,6 +1,6 @@
 require 'test_helper'
 
-describe "Resque::Plugin finding hooks" do
+context "Resque::Plugin finding hooks" do
   module SimplePlugin
     extend self
     def before_perform1; end
@@ -18,24 +18,24 @@ describe "Resque::Plugin finding hooks" do
     def on_failure2; end
   end
 
-  it "before_perform hooks are found and sorted" do
+  test "before_perform hooks are found and sorted" do
     assert_equal ["before_perform", "before_perform1", "before_perform2"], Resque::Plugin.before_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
-  it "after_perform hooks are found and sorted" do
+  test "after_perform hooks are found and sorted" do
     assert_equal ["after_perform", "after_perform1", "after_perform2"], Resque::Plugin.after_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
-  it "around_perform hooks are found and sorted" do
+  test "around_perform hooks are found and sorted" do
     assert_equal ["around_perform", "around_perform1", "around_perform2"], Resque::Plugin.around_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
-  it "on_failure hooks are found and sorted" do
+  test "on_failure hooks are found and sorted" do
     assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
   end
 end
 
-describe "Resque::Plugin linting" do
+context "Resque::Plugin linting" do
   module ::BadBefore
     def self.before_perform; end
   end
@@ -49,7 +49,7 @@ describe "Resque::Plugin linting" do
     def self.on_failure; end
   end
 
-  it "before_perform must be namespaced" do
+  test "before_perform must be namespaced" do
     begin
       Resque::Plugin.lint(BadBefore)
       assert false, "should have failed"
@@ -58,7 +58,7 @@ describe "Resque::Plugin linting" do
     end
   end
 
-  it "after_perform must be namespaced" do
+  test "after_perform must be namespaced" do
     begin
       Resque::Plugin.lint(BadAfter)
       assert false, "should have failed"
@@ -67,7 +67,7 @@ describe "Resque::Plugin linting" do
     end
   end
 
-  it "around_perform must be namespaced" do
+  test "around_perform must be namespaced" do
     begin
       Resque::Plugin.lint(BadAround)
       assert false, "should have failed"
@@ -76,7 +76,7 @@ describe "Resque::Plugin linting" do
     end
   end
 
-  it "on_failure must be namespaced" do
+  test "on_failure must be namespaced" do
     begin
       Resque::Plugin.lint(BadFailure)
       assert false, "should have failed"
@@ -98,19 +98,19 @@ describe "Resque::Plugin linting" do
     def self.on_failure1; end
   end
 
-  it "before_perform1 is an ok name" do
+  test "before_perform1 is an ok name" do
     Resque::Plugin.lint(GoodBefore)
   end
 
-  it "after_perform1 is an ok name" do
+  test "after_perform1 is an ok name" do
     Resque::Plugin.lint(GoodAfter)
   end
 
-  it "around_perform1 is an ok name" do
+  test "around_perform1 is an ok name" do
     Resque::Plugin.lint(GoodAround)
   end
 
-  it "on_failure1 is an ok name" do
+  test "on_failure1 is an ok name" do
     Resque::Plugin.lint(GoodFailure)
   end
 end
