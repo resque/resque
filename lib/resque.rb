@@ -514,7 +514,7 @@ module Resque
 
     hash = {}
 
-    queue_names.zip(samples.each_slice(2)) do |queue_name, (queue_size, serialized_samples)|
+    queue_names.zip(samples.each_slice(2).to_a) do |queue_name, (queue_size, serialized_samples)|
       samples = serialized_samples.map do |serialized_sample|
         Job.decode(serialized_sample)
       end
