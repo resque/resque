@@ -7,6 +7,12 @@ describe "rake tasks" do
     Rake.application.rake_require "tasks/resque"
   end
 
+  after do
+    ENV['QUEUES'] = nil
+    ENV['VVERBOSE'] = nil
+    ENV['VERBOSE'] = nil
+  end
+
   describe 'resque:work' do
 
     it "requires QUEUE environment variable" do
@@ -16,13 +22,35 @@ describe "rake tasks" do
     end
 
     it "works when multiple queues specified" do
-      begin
-        old_queues = ENV["QUEUES"]
-        ENV["QUEUES"] = "high,low"
-        Resque::Worker.any_instance.expects(:work)
+      ENV["QUEUES"] = "high,low"
+      Resque::Worker.any_instance.expects(:work)
+      run_rake_task("resque:work")
+    end
+
+    describe 'log output' do
+      let(:messages) { StringIO.new }
+
+      before do
+        Resque.logger = Logger.new(messages)
+        Resque.logger.level = Logger::ERROR
+        Resque.enqueue_to(:jobs, SomeJob, 20, '/tmp')
+        Resque::Worker.any_instance.stubs(:shutdown?).returns(false, true) # Process one job and then quit
+      end
+
+      it "triggers DEBUG level logging when VVERBOSE is set to 1" do
+        ENV['VVERBOSE'] = '1'
+        ENV['QUEUES'] = 'jobs'
         run_rake_task("resque:work")
-      ensure
-        ENV["QUEUES"] = old_queues
+        assert_includes messages.string, 'Starting worker' # Include an info level statement
+        assert_includes messages.string, 'Registered signals' # Includes a debug level statement
+      end
+
+      it "triggers INFO level logging when VERBOSE is set to 1" do
+        ENV['VERBOSE'] = '1'
+        ENV['QUEUES'] = 'jobs'
+        run_rake_task("resque:work")
+        assert_includes messages.string, 'Starting worker' # Include an info level statement
+        refute_includes messages.string, 'Registered signals' # Does not a debug level statement
       end
     end
 
