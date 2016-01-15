@@ -468,7 +468,7 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
-      :pending   => queues.inject(0) { |m,k| m + size(k) },
+      :pending   => queue_sizes.inject(0) { |sum, (queue_name, queue_size)| sum + queue_size },
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
@@ -485,6 +485,47 @@ module Resque
     redis.keys("*").map do |key|
       key.sub("#{redis.namespace}:", '')
     end
+  end
+
+  # Returns a hash, mapping queue names to queue sizes
+  def queue_sizes
+    queue_names = queues
+
+    sizes = redis.pipelined do
+      queue_names.each do |name|
+        redis.llen("queue:#{name}")
+      end
+    end
+
+    Hash[queue_names.zip(sizes)]
+  end
+
+  # Returns a hash, mapping queue names to (up to `sample_size`) samples of jobs in that queue
+  def sample_queues(sample_size = 1000)
+    queue_names = queues
+
+    samples = redis.pipelined do
+      queue_names.each do |name|
+        key = "queue:#{name}"
+        redis.llen(key)
+        redis.lrange(key, 0, sample_size - 1)
+      end
+    end
+
+    hash = {}
+
+    queue_names.zip(samples.each_slice(2).to_a) do |queue_name, (queue_size, serialized_samples)|
+      samples = serialized_samples.map do |serialized_sample|
+        Job.decode(serialized_sample)
+      end
+
+      hash[queue_name] = {
+        :size => queue_size,
+        :samples => samples
+      }
+    end
+
+    hash
   end
 
   private

@@ -51,7 +51,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      Array(redis.smembers(:workers)).map { |id| find(id) }.compact
+      Array(redis.smembers(:workers)).map { |id| find(id, :skip_exists => true) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -76,13 +76,15 @@ module Resque
       end
 
       reportedly_working.keys.map do |key|
-        find key.sub("worker:", '')
+        find(key.sub("worker:", ''), :skip_exists => true)
       end.compact
     end
 
     # Returns a single worker object. Accepts a string id.
-    def self.find(worker_id)
-      if exists? worker_id
+    def self.find(worker_id, options = {})
+      skip_exists = options[:skip_exists]
+
+      if skip_exists || exists?(worker_id)
         host, pid, queues_raw = worker_id.split(':')
         queues = queues_raw.split(',')
         worker = new(*queues)
