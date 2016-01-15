@@ -752,11 +752,6 @@ module Resque
       debug(message)
     end
 
-    # Deprecated legacy methods for controlling the logging threshhold
-    # Use Resque.logger.level now, e.g.:
-    #
-    #     Resque.logger.level = Logger::DEBUG
-    #
     def verbose
       @verbose
     end
