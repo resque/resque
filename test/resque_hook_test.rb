@@ -191,4 +191,14 @@ describe "Resque Hooks" do
       file2.delete
     end
   end
+
+  [:before_first_fork, :before_fork, :after_fork, :before_pause, :after_pause].each do |hook_name|
+    it "returns the block from #{hook_name}" do
+      result = Resque.send(hook_name) do
+        3 * 7
+      end
+      assert_equal result.call, 21
+    end
+  end
+
 end
