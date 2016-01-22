@@ -584,8 +584,8 @@ module Resque
     rescue Exception => exception_while_unregistering
       message = exception_while_unregistering.message
       if exception
-        message << "\nOriginal Exception (#{exception.class}): #{exception.message}\n"
-        message << "  #{exception.backtrace.join("  \n")}"
+        message = message + "\nOriginal Exception (#{exception.class}): #{exception.message}\n" + 
+                            "  #{exception.backtrace.join("  \n")}"
       end
       fail(exception_while_unregistering.class,
            message,
