@@ -3,12 +3,6 @@ require 'tmpdir'
 
 describe "Resque::Worker" do
   before do
-    Resque.redis.flushall
-
-    Resque.before_first_fork = nil
-    Resque.before_fork = nil
-    Resque.after_fork = nil
-
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
@@ -562,7 +556,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a before_first_fork hook only once" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = 0
     Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
     workerA = Resque::Worker.new(:jobs)
@@ -579,7 +572,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a before_pause hook before pausing" do
-    Resque.redis.flushall
     $BEFORE_PAUSE_CALLED = 0
     $WORKER_NAME = nil
     Resque.before_pause = Proc.new { |w| $BEFORE_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
@@ -592,7 +584,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a after_pause hook after pausing" do
-    Resque.redis.flushall
     $AFTER_PAUSE_CALLED = 0
     $WORKER_NAME = nil
     Resque.after_pause = Proc.new { |w| $AFTER_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
@@ -605,7 +596,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call a before_fork hook before forking" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
@@ -618,7 +608,6 @@ describe "Resque::Worker" do
   end
 
   it "Will not call a before_fork hook when the worker cannot fork" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
@@ -631,7 +620,6 @@ describe "Resque::Worker" do
   end
 
   it "Will not call a before_fork hook when forking set to false" do
-    Resque.redis.flushall
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
@@ -728,8 +716,6 @@ describe "Resque::Worker" do
   end
 
   it "Will call an after_fork hook after forking" do
-    Resque.redis.flushall
-
     begin
       pipe_rd, pipe_wr = IO.pipe
 
@@ -747,7 +733,6 @@ describe "Resque::Worker" do
   end
 
   it "Will not call an after_fork hook when the worker won't fork" do
-    Resque.redis.flushall
     $AFTER_FORK_CALLED = false
     Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
