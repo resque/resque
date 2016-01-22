@@ -44,11 +44,6 @@ describe "Resque::Worker" do
     assert !child_still_running
   end
 
-  before do
-    remaining_keys = Resque.redis.keys('sigterm-test:*') || []
-    Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
-  end
-
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     it "old signal handling just kills off the child" do
       worker_pid, child_pid, result = start_worker(0, false)

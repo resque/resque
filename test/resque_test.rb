@@ -2,11 +2,6 @@ require 'test_helper'
 
 describe "Resque" do
   before do
-    Resque.redis.flushall
-
-    Resque.push(:people, { 'name' => 'chris' })
-    Resque.push(:people, { 'name' => 'bob' })
-    Resque.push(:people, { 'name' => 'mark' })
     @original_redis = Resque.redis
   end
 
@@ -163,101 +158,13 @@ describe "Resque" do
     assert Resque.push(:people, { 'name' => 'jon' })
   end
 
-  it "can pull items off a queue" do
-    assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
-    assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
-    assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
-    assert_equal nil, Resque.pop(:people)
-  end
-
-  it "knows how big a queue is" do
-    assert_equal 3, Resque.size(:people)
-
-    assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
-    assert_equal 2, Resque.size(:people)
-
-    assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
-    assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
-    assert_equal 0, Resque.size(:people)
-  end
-
-  it "can peek at a queue" do
-    assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
-    assert_equal 3, Resque.size(:people)
-  end
-
-  it "can peek multiple items on a queue" do
-    assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
-
-    assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
-    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
-    assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
-    assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
-    assert_equal nil, Resque.peek(:people, 3)
-    assert_equal [], Resque.peek(:people, 3, 2)
-  end
-
-  it "knows what queues it is managing" do
-    assert_equal %w( people ), Resque.queues
-    Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ).sort, Resque.queues.sort
-  end
-
   it "queues are always a list" do
-    Resque.redis.flushall
     assert_equal [], Resque.queues
-  end
-
-  it "can delete a queue" do
-    Resque.push(:cars, { 'make' => 'bmw' })
-    assert_equal %w( cars people ).sort, Resque.queues.sort
-    Resque.remove_queue(:people)
-    assert_equal %w( cars ), Resque.queues
-    assert_equal nil, Resque.pop(:people)
-  end
-
-  it "keeps track of resque keys" do
-    assert_equal ["queue:people", "queues"].sort, Resque.keys.sort
   end
 
   it "badly wants a class name, too" do
     assert_raises Resque::NoClassError do
       Resque::Job.create(:jobs, nil)
-    end
-  end
-
-  it "keeps stats" do
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    Resque::Job.create(:jobs, BadJob)
-    Resque::Job.create(:jobs, GoodJob)
-
-    Resque::Job.create(:others, GoodJob)
-    Resque::Job.create(:others, GoodJob)
-
-    stats = Resque.info
-    assert_equal 8, stats[:pending]
-
-    @worker = Resque::Worker.new(:jobs)
-    @worker.register_worker
-    2.times { @worker.process }
-
-    job = @worker.reserve
-    @worker.working_on job
-
-    stats = Resque.info
-    assert_equal 1, stats[:working]
-    assert_equal 1, stats[:workers]
-
-    @worker.done_working
-
-    stats = Resque.info
-    assert_equal 3, stats[:queues]
-    assert_equal 3, stats[:processed]
-    assert_equal 1, stats[:failed]
-    if ENV.key? 'RESQUE_DISTRIBUTED'
-      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
-    else
-      assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
     end
   end
 
@@ -277,11 +184,103 @@ describe "Resque" do
     end
   end
 
-  describe "stats" do
+  describe "with people in the queue" do
     before do
-      Resque.redis.flushall
+      Resque.push(:people, { 'name' => 'chris' })
+      Resque.push(:people, { 'name' => 'bob' })
+      Resque.push(:people, { 'name' => 'mark' })
     end
 
+    it "can pull items off a queue" do
+      assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
+      assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
+      assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
+      assert_equal nil, Resque.pop(:people)
+    end
+
+    it "knows how big a queue is" do
+      assert_equal 3, Resque.size(:people)
+
+      assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
+      assert_equal 2, Resque.size(:people)
+
+      assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
+      assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
+      assert_equal 0, Resque.size(:people)
+    end
+
+    it "can peek at a queue" do
+      assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
+      assert_equal 3, Resque.size(:people)
+    end
+
+    it "can peek multiple items on a queue" do
+      assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
+
+      assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
+      assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
+      assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
+      assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
+      assert_equal nil, Resque.peek(:people, 3)
+      assert_equal [], Resque.peek(:people, 3, 2)
+    end
+
+    it "can delete a queue" do
+      Resque.push(:cars, { 'make' => 'bmw' })
+      assert_equal %w( cars people ).sort, Resque.queues.sort
+      Resque.remove_queue(:people)
+      assert_equal %w( cars ), Resque.queues
+      assert_equal nil, Resque.pop(:people)
+    end
+
+    it "knows what queues it is managing" do
+      assert_equal %w( people ), Resque.queues
+      Resque.push(:cars, { 'make' => 'bmw' })
+      assert_equal %w( cars people ).sort, Resque.queues.sort
+    end
+
+    it "keeps track of resque keys" do
+      assert_equal ["queue:people", "queues"].sort, Resque.keys.sort
+    end
+
+    it "keeps stats" do
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      Resque::Job.create(:jobs, BadJob)
+      Resque::Job.create(:jobs, GoodJob)
+
+      Resque::Job.create(:others, GoodJob)
+      Resque::Job.create(:others, GoodJob)
+
+      stats = Resque.info
+      assert_equal 8, stats[:pending]
+
+      @worker = Resque::Worker.new(:jobs)
+      @worker.register_worker
+      2.times { @worker.process }
+
+      job = @worker.reserve
+      @worker.working_on job
+
+      stats = Resque.info
+      assert_equal 1, stats[:working]
+      assert_equal 1, stats[:workers]
+
+      @worker.done_working
+
+      stats = Resque.info
+      assert_equal 3, stats[:queues]
+      assert_equal 3, stats[:processed]
+      assert_equal 1, stats[:failed]
+      if ENV.key? 'RESQUE_DISTRIBUTED'
+        assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
+      else
+        assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
+      end
+    end
+
+  end
+
+  describe "stats" do
     it "queue_sizes with one queue" do
       Resque.enqueue_to(:queue1, SomeJob)
 
