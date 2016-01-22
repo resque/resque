@@ -87,18 +87,4 @@ describe "Resque::Worker" do
       ENV['FORK_PER_JOB'] = 'true'
     end
   end
-
-  it "displays warning when not using term_child" do
-    worker = Resque::Worker.new(:jobs)
-    worker.term_child = nil
-    _, stderr = capture_io { worker.work(0) }
-    assert stderr.match(/^WARNING:/)
-  end
-
-  it "it does not display warning when using term_child" do
-    worker = Resque::Worker.new(:jobs)
-    worker.term_child = "1"
-    _, stderr = capture_io { worker.work(0) }
-    assert !stderr.match(/^WARNING:/)
-  end
 end
