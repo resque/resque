@@ -135,7 +135,7 @@ describe "Resque::Worker" do
     assert_equal('StandardError', Resque::Failure.all['exception'])
   end
 
-  test "does not mask exception when timeout getting job metadata" do
+  it "does not mask exception when timeout getting job metadata" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
     Resque.redis.stubs(:get).raises(Redis::CannotConnectError)
