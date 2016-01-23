@@ -1,9 +1,25 @@
 require 'test_helper'
 require 'tmpdir'
-require 'fixtures/long_running_job'
 
 describe "Resque::Worker" do
-  def start_worker(rescue_time, term_child)
+
+  class LongRunningJob
+    @queue = :long_running_job
+
+    def self.perform( sleep_time, rescue_time=nil )
+      Resque.redis.client.reconnect # get its own connection
+      Resque.redis.rpush( 'sigterm-test:start', Process.pid )
+      sleep sleep_time
+      Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
+    rescue Resque::TermException => e
+      Resque.redis.rpush( 'sigterm-test:result', %Q(Caught TermException: #{e.inspect}))
+      sleep rescue_time
+    ensure
+      Resque.redis.rpush( 'sigterm-test:ensure_block_executed', 'exiting.' )
+    end
+  end
+
+  def start_worker(rescue_time, term_child, term_timeout = 1)
     Resque.enqueue( LongRunningJob, 3, rescue_time )
 
     worker_pid = Kernel.fork do
@@ -11,7 +27,7 @@ describe "Resque::Worker" do
       Resque.redis.client.reconnect
 
       worker = Resque::Worker.new(:long_running_job)
-      worker.term_timeout = 1
+      worker.term_timeout = term_timeout
       worker.term_child = term_child
 
       suppress_warnings do
@@ -28,14 +44,14 @@ describe "Resque::Worker" do
 
     Process.kill('TERM', worker_pid)
     Process.waitpid(worker_pid)
-    result = Resque.redis.blpop( 'sigterm-test:result', 5 )
+    result = Resque.redis.lpop('sigterm-test:result')
     [worker_pid, child_pid, result]
   end
 
   def assert_exception_caught(result)
     refute_nil result
-    assert !result[1].start_with?('Finished Normally'), 'Job Finished normally.  (sleep parameter to LongRunningJob not long enough?)'
-    assert result[1].start_with?("Caught TermException"), 'TermException exception not raised in child.'
+    assert !result.start_with?('Finished Normally'), 'Job Finished normally.  (sleep parameter to LongRunningJob not long enough?)'
+    assert result.start_with?("Caught TermException"), 'TermException exception not raised in child.'
   end
 
   def assert_child_not_running(child_pid)
@@ -62,7 +78,7 @@ describe "Resque::Worker" do
     end
 
     it "SIGTERM and cleanup does not occur in allotted time" do
-      worker_pid, child_pid, result = start_worker(5, true)
+      worker_pid, child_pid, result = start_worker(5, true, 0.1)
       assert_exception_caught result
       assert_child_not_running child_pid
 
@@ -75,7 +91,7 @@ describe "Resque::Worker" do
   it "exits with Resque::TermException when using TERM_CHILD and not forking" do
     begin
       ENV['FORK_PER_JOB'] = 'false'
-      worker_pid, child_pid, result = start_worker(5, true)
+      worker_pid, child_pid, result = start_worker(0, true)
       assert_equal worker_pid, child_pid, "child_pid should equal worker_pid, since we are not forking"
       assert Resque.redis.lpop( 'sigterm-test:ensure_block_executed' ), 'post cleanup did not occur. SIGKILL sent too early?'
     ensure
