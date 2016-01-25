@@ -226,12 +226,17 @@ module Resque
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
-      run_failure_hooks(exception)
-      Failure.create \
-        :payload   => payload,
-        :exception => exception,
-        :worker    => worker,
-        :queue     => queue
+      begin
+        run_failure_hooks(exception)
+      rescue Exception => e
+        raise e
+      ensure
+        Failure.create \
+          :payload   => payload,
+          :exception => exception,
+          :worker    => worker,
+          :queue     => queue
+      end
     end
 
     # Creates an identical job, essentially placing this job back on
@@ -275,6 +280,10 @@ module Resque
         if has_payload_class?
           failure_hooks.each { |hook| payload_class.send(hook, exception, *job_args) } unless @failure_hooks_ran
         end
+      rescue Exception => e
+        error_message = "Additional error (#{e.class}: #{e}) occurred in running failure hooks for job #{inspect}\n" \
+                        "Original error that caused job failure was #{e.class}: #{exception}"
+        raise RuntimeError.new(error_message)
       ensure
         @failure_hooks_ran = true
       end

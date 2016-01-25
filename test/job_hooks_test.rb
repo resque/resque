@@ -226,6 +226,16 @@ describe "Resque::Job on_failure" do
     end
     assert_equal history, [:perform, "oh no"]
   end
+
+  it "throws errors with helpful messages if failure occurs during on_failure hooks" do
+    err = assert_raises RuntimeError do
+      perform_job(BadJobWithOnFailureHookFail)
+    end
+    assert_match('Additional error (RuntimeError: This job is just so bad!)', err.message)
+    assert_match('occurred in running failure hooks', err.message)
+    assert_match('for job (Job{testqueue} | BadJobWithOnFailureHookFail | [])', err.message)
+    assert_match('Original error that caused job failure was RuntimeError: Extra Bad job!', err.message)
+  end
 end
 
 describe "Resque::Job after_enqueue" do

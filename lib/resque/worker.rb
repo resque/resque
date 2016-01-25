@@ -570,7 +570,11 @@ module Resque
         # Ensure the proper worker is attached to this job, even if
         # it's not the precise instance that died.
         job.worker = self
-        job.fail(exception || DirtyExit.new)
+        begin
+          job.fail(exception || DirtyExit.new)
+        rescue RuntimeError => e
+          log(e.message)
+        end
       end
 
       redis.pipelined do
