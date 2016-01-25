@@ -8,7 +8,7 @@ This is a dirt simple Resque setup for you to play with.
 
 Here's how to run the Sinatra app:
 
-    $ git clone git://github.com/defunkt/resque.git
+    $ git clone git://github.com/resque/resque.git
     $ cd resque/examples/demo
     $ rackup config.ru
     $ open http://localhost:9292/
