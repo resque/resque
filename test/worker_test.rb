@@ -2,6 +2,23 @@ require 'test_helper'
 require 'tmpdir'
 
 describe "Resque::Worker" do
+  class DummyLogger
+    def initialize
+      @rd, @wr = IO.pipe
+    end
+
+    def info(message); @wr << message << "\0"; end
+    alias_method :debug, :info
+    alias_method :warn,  :info
+    alias_method :error, :info
+    alias_method :fatal, :info
+
+    def messages
+      @wr.close
+      @rd.read.split("\0")
+    end
+  end
+
   before do
     @worker = Resque::Worker.new(:jobs)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
@@ -170,24 +187,8 @@ describe "Resque::Worker" do
   end
 
   it "fails uncompleted jobs on exit and unregisters without erroring out and logs helpful message if error occurs during a failure hook" do
-    class DummyLogger
-      def initialize
-        @rd, @wr = IO.pipe
-      end
-
-      def info(message); @wr << message << "\0"; end
-      alias_method :debug, :info
-      alias_method :warn,  :info
-      alias_method :error, :info
-      alias_method :fatal, :info
-
-      def messages
-        @wr.close
-        @rd.read.split("\0")
-      end
-    end
-
     Resque.logger = DummyLogger.new
+
     begin
       job = Resque::Job.new(:jobs, {'class' => 'BadJobWithOnFailureHookFail', 'args' => []})
       @worker.working_on(job)
@@ -905,23 +906,6 @@ describe "Resque::Worker" do
 
         def @worker.sleep(duration = nil)
           # noop
-        end
-
-        class DummyLogger
-          def initialize
-            @rd, @wr = IO.pipe
-          end
-
-          def info(message); @wr << message << "\0"; end
-          alias_method :debug, :info
-          alias_method :warn,  :info
-          alias_method :error, :info
-          alias_method :fatal, :info
-
-          def messages
-            @wr.close
-            @rd.read.split("\0")
-          end
         end
 
         Resque.logger = DummyLogger.new
