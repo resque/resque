@@ -297,6 +297,14 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
   end
 
+  it "queues method avoids unnecessary calls to smembers" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    worker = Resque::Worker.new(:critical, :high)
+    Resque.redis.expects(:smembers).at_most_once
+    assert_equal ["critical", "high"], worker.queues
+  end
+
   it "can work on all queues" do
     Resque::Job.create(:high, GoodJob)
     Resque::Job.create(:critical, GoodJob)

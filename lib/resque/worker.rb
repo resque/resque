@@ -327,6 +327,7 @@ module Resque
     end
 
     def glob_match(pattern)
+      return [] unless ['*', '?', '{', '}', '[', ']'].any? {|char| pattern.include?(char) } #optimization to avoid Resque.queues call if no glob characters
       Resque.queues.select do |queue|
         File.fnmatch?(pattern, queue)
       end.sort
