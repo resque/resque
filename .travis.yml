@@ -1,20 +1,11 @@
 language: ruby
 rvm:
   - 1.9.3
-  - jruby-18mode
-  - jruby-19mode
-  - rbx-18mode
-  - rbx-19mode
   - 2.0
   - 2.1
   - 2.2
 sudo: false
 matrix:
-  allow_failures:
-    - rvm: jruby-18mode
-    - rvm: jruby-19mode
-    - rvm: rbx-18mode
-    - rvm: rbx-19mode
   include:
     - rvm: 1.8.7
       gemfile: Gemfiles/Gemfile.1.8.7
