@@ -272,6 +272,13 @@ variable.
 
     $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
 
+If you want Resque to log to a file, in Rails do:
+
+```ruby
+# config/initializers/resque.rb
+Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
+```
+
 ### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque
