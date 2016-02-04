@@ -245,6 +245,7 @@ module Resque
           log! "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
           sleep interval
+          run_hook :after_timeout, self
         end
       end
 

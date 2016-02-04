@@ -211,6 +211,29 @@ module Resque
     register_hook(:after_fork, block)
   end
 
+  # The `after_timeout` hook will be run in the **parent** process
+  # only once, if its times out while waiting for a job. Be careful- any
+  # changes you make will be permanent for the lifespan of the
+  # worker.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  # @overload method()
+  #   Return the existing method hooks
+  #   @return (see #hooks)
+  # @overload method(&block)
+  #   @return (see #register_hook)
+  def after_timeout(&block)
+    block ? register_hook(:after_timeout, block) : hooks(:after_timeout)
+  end
+
+  # Register a after_timeout proc.
+  # @param block (see #register_hook)
+  # @return (see #register_hook)
+  def after_timeout=(block)
+    register_hook(:after_timeout, block)
+  end
+
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
   def before_pause(&block)
