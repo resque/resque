@@ -119,14 +119,12 @@ module Resque
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
     def initialize(*queues)
-      queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
+      @shutdown = nil
+      @paused = nil
+      @before_first_fork_hook_ran = false
 
-      if ENV['LOGGING'] || ENV['VERBOSE']
-        self.verbose = ENV['LOGGING'] || ENV['VERBOSE']
-      end
-      if ENV['VVERBOSE']
-        self.very_verbose = ENV['VVERBOSE']
-      end
+      self.verbose = ENV['LOGGING'] || ENV['VERBOSE']
+      self.very_verbose = ENV['VVERBOSE']
       self.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
       self.term_child = ENV['TERM_CHILD']
       self.graceful_term = ENV['GRACEFUL_TERM']
@@ -144,10 +142,12 @@ module Resque
         File.open(ENV['PIDFILE'], 'w') { |f| f << pid }
       end
 
+      self.queues = queues
+    end
+
+    def queues=(queues)
+      queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
       @queues = queues.map { |queue| queue.to_s.strip }
-      @shutdown = nil
-      @paused = nil
-      @before_first_fork_hook_ran = false
       validate_queues
     end
 
@@ -159,6 +159,26 @@ module Resque
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
+    end
+
+    # Returns a list of queues to use when searching for a job.
+    # A splat ("*") means you want every queue (in alpha order) - this
+    # can be useful for dynamically adding new queues.
+    def queues
+      @queues.map do |queue|
+        queue.strip!
+        if (matched_queues = glob_match(queue)).empty?
+          queue
+        else
+          matched_queues
+        end
+      end.flatten.uniq
+    end
+
+    def glob_match(pattern)
+      Resque.queues.select do |queue|
+        File.fnmatch?(pattern, queue)
+      end.sort
     end
 
     # This is the main workhorse method. Called on a Worker instance,
@@ -310,26 +330,6 @@ module Resque
           raise
         end
       end
-    end
-
-    # Returns a list of queues to use when searching for a job.
-    # A splat ("*") means you want every queue (in alpha order) - this
-    # can be useful for dynamically adding new queues.
-    def queues
-      @queues.map do |queue|
-        queue.strip!
-        if (matched_queues = glob_match(queue)).empty?
-          queue
-        else
-          matched_queues
-        end
-      end.flatten.uniq
-    end
-
-    def glob_match(pattern)
-      Resque.queues.select do |queue|
-        File.fnmatch?(pattern, queue)
-      end.sort
     end
 
     # Not every platform supports fork. Here we do our magic to
@@ -588,7 +588,7 @@ module Resque
     rescue Exception => exception_while_unregistering
       message = exception_while_unregistering.message
       if exception
-        message = message + "\nOriginal Exception (#{exception.class}): #{exception.message}\n" + 
+        message = message + "\nOriginal Exception (#{exception.class}): #{exception.message}\n" +
                             "  #{exception.backtrace.join("  \n")}"
       end
       fail(exception_while_unregistering.class,
