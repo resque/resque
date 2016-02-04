@@ -450,9 +450,41 @@ then `CONT` to start it again.
 
 ### Mysql::Error: MySQL server has gone away
 
-If your workers remain idle for too long they may lose their MySQL
-connection. If that happens we recommend using [this
-Gist](http://gist.github.com/238999).
+If your workers remain idle for too long they may lose their MySQL connection. Depending on your version of Rails, we recommend the following:
+
+#### Rails 3.x
+In your `perform` method, add the following line:
+
+``` ruby
+class MyTask
+  def self.perform
+    ActiveRecord::Base.verify_active_connections!
+    # rest of your code
+  end
+end
+```
+
+The Rails doc says the following about `verify_active_connections!`:
+
+    Verify active connections and remove and disconnect connections associated with stale threads.
+
+#### Rails 4.x
+
+In your `perform` method, instead of `verify_active_connections!`, use:
+
+``` ruby
+class MyTask
+  def self.perform
+    ActiveRecord::Base.clear_active_connections!
+    # rest of your code
+  end
+end
+```
+
+From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/ConnectionHandler.html#method-i-clear_active_connections-21):
+
+    Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
+
 
 
 The Front End
