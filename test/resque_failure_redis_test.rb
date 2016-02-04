@@ -2,13 +2,14 @@ require 'test_helper'
 require 'resque/failure/redis'
 
 describe "Resque::Failure::Redis" do
+  let(:bad_string) { [39, 52, 127, 86, 93, 95, 39].map { |c| c.chr }.join }
+  let(:exception)  { StandardError.exception(bad_string) }
+  let(:worker)     { Resque::Worker.new(:test) }
+  let(:queue)      { "queue" }
+  let(:payload)    { { "class" => Object, "args" => 3 } }
+
   before do
     Resque::Failure::Redis.clear
-    @bad_string    = [39, 52, 127, 86, 93, 95, 39].map { |c| c.chr }.join
-    exception      = StandardError.exception(@bad_string)
-    worker         = Resque::Worker.new(:test)
-    queue          = "queue"
-    payload        = { "class" => Object, "args" => 3 }
     @redis_backend = Resque::Failure::Redis.new(exception, worker, queue, payload)
   end
 
@@ -46,6 +47,48 @@ describe "Resque::Failure::Redis" do
       assert_equal Hash, item.class
     end
     assert_equal 2, num_iterations
+  end
+
+  it '.each should limit based on the class_name when class_name is specified' do
+    num_iterations = 0
+    class_one = 'Foo'
+    class_two = 'Bar'
+    [ class_one,
+      class_two,
+      class_one,
+      class_two,
+      class_one,
+      class_two
+    ].each do |class_name|
+      Resque::Failure::Redis.new(exception, worker, queue, payload.merge({ "class" => class_name })).save
+    end
+    assert_equal 6, Resque::Failure::Redis.count
+    Resque::Failure::Redis.each 0, 2, nil, class_one do |id, item|
+      num_iterations += 1
+      assert_equal class_one, item['payload']['class']
+    end
+    assert_equal 2, num_iterations
+  end
+
+  it '.each should limit normally when class_name is not specified' do
+    num_iterations = 0
+    class_one = 'Foo'
+    class_two = 'Bar'
+    [ class_one,
+      class_two,
+      class_one,
+      class_two,
+      class_one,
+      class_two
+    ].each do |class_name|
+      Resque::Failure::Redis.new(exception, worker, queue, payload.merge({ "class" => class_name })).save
+    end
+    assert_equal 6, Resque::Failure::Redis.count
+    Resque::Failure::Redis.each 0, 5 do |id, item|
+      num_iterations += 1
+      assert_equal Hash, item.class
+    end
+    assert_equal 5, num_iterations
   end
 
 end
