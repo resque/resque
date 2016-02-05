@@ -150,6 +150,9 @@ module Resque
     def queues=(queues)
       queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
       @queues = queues.map { |queue| queue.to_s.strip }
+      unless ['*', '?', '{', '}', '[', ']'].any? {|char| @queues.join.include?(char) }
+        @static_queues = @queues.flatten.uniq
+      end
       validate_queues
     end
 
@@ -167,14 +170,8 @@ module Resque
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      @queues.map do |queue|
-        queue.strip!
-        if (matched_queues = glob_match(queue)).empty?
-          queue
-        else
-          matched_queues
-        end
-      end.flatten.uniq
+      return @static_queues if @static_queues
+      @queues.map { |queue| glob_match(queue) }.flatten.uniq
     end
 
     def glob_match(pattern)
@@ -243,7 +240,7 @@ module Resque
         else
           break if interval.zero?
           log! "Sleeping for #{interval} seconds"
-          procline paused? ? "Paused" : "Waiting for #{@queues.join(',')}"
+          procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
           sleep interval
         end
       end
