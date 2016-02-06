@@ -205,7 +205,7 @@ module Resque
         break if shutdown?
 
         if not paused? and job = reserve
-          log "got: #{job.inspect}"
+          log_with_severity :info, "got: #{job.inspect}"
           job.worker = self
           working_on job
 
@@ -239,7 +239,7 @@ module Resque
           @child = nil
         else
           break if interval.zero?
-          log! "Sleeping for #{interval} seconds"
+          log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
           sleep interval
         end
@@ -248,7 +248,7 @@ module Resque
       unregister_worker
     rescue Exception => exception
       unless exception.class == SystemExit && !@child && run_at_exit_hooks
-        log "Failed to start worker : #{exception.inspect}"
+        log_with_severity :error, "Failed to start worker : #{exception.inspect}"
 
         unregister_worker(exception)
       end
@@ -268,16 +268,16 @@ module Resque
 
     # Reports the exception and marks the job as failed
     def report_failed_job(job,exception)
-      log "#{job.inspect} failed: #{exception.inspect}"
+      log_with_severity :error, "#{job.inspect} failed: #{exception.inspect}"
       begin
         job.fail(exception)
       rescue Object => exception
-        log "Received exception when reporting failure: #{exception.inspect}"
+        log_with_severity :error, "Received exception when reporting failure: #{exception.inspect}"
       end
       begin
         failed!
       rescue Object => exception
-        log "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
+        log_with_severity :error, "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
       end
     end
 
@@ -289,7 +289,7 @@ module Resque
       rescue Object => e
         report_failed_job(job,e)
       else
-        log "done: #{job.inspect}"
+        log_with_severity :info, "done: #{job.inspect}"
       ensure
         yield job if block_given?
       end
@@ -299,17 +299,17 @@ module Resque
     # nil if no job can be found.
     def reserve
       queues.each do |queue|
-        log! "Checking #{queue}"
+        log_with_severity :debug, "Checking #{queue}"
         if job = Resque.reserve(queue)
-          log! "Found job on #{queue}"
+          log_with_severity :debug, "Found job on #{queue}"
           return job
         end
       end
 
       nil
     rescue Exception => e
-      log "Error reserving job: #{e.inspect}"
-      log e.backtrace.join("\n")
+      log_with_severity :error, "Error reserving job: #{e.inspect}"
+      log_with_severity :error, e.backtrace.join("\n")
       raise e
     end
 
@@ -321,11 +321,11 @@ module Resque
         redis.client.reconnect
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
-          log "Error reconnecting to Redis; retrying"
+          log_with_severity :error, "Error reconnecting to Redis; retrying"
           sleep(tries)
           retry
         else
-          log "Error reconnecting to Redis; quitting"
+          log_with_severity :error, "Error reconnecting to Redis; quitting"
           raise
         end
       end
@@ -397,10 +397,10 @@ module Resque
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
-        warn "Signals QUIT, USR1, USR2, and/or CONT not supported."
+        log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
 
-      log! "Registered signals"
+      log_with_severity :debug, "Registered signals"
     end
 
     def unregister_signal_handlers
@@ -423,7 +423,7 @@ module Resque
     # Schedule this worker for shutdown. Will finish processing the
     # current job.
     def shutdown
-      log 'Exiting...'
+      log_with_severity :info, 'Exiting...'
       @shutdown = true
     end
 
@@ -455,11 +455,11 @@ module Resque
     # is processing will not be completed.
     def kill_child
       if @child
-        log! "Killing child at #{@child}"
+        log_with_severity :debug, "Killing child at #{@child}"
         if `ps -o pid,state -p #{@child}`
           Process.kill("KILL", @child) rescue nil
         else
-          log! "Child #{@child} not found, restarting."
+          log_with_severity :debug, "Child #{@child} not found, restarting."
           shutdown
         end
       end
@@ -513,20 +513,20 @@ module Resque
     def new_kill_child
       if @child
         unless Process.waitpid(@child, Process::WNOHANG)
-          log! "Sending TERM signal to child #{@child}"
+          log_with_severity :debug, "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
           (term_timeout.to_f * 10).round.times do |i|
             sleep(0.1)
             return if Process.waitpid(@child, Process::WNOHANG)
           end
-          log! "Sending KILL signal to child #{@child}"
+          log_with_severity :debug, "Sending KILL signal to child #{@child}"
           Process.kill("KILL", @child)
         else
-          log! "Child #{@child} already quit."
+          log_with_severity :debug, "Child #{@child} already quit."
         end
       end
     rescue SystemCallError
-      log! "Child #{@child} already quit and reaped."
+      log_with_severity :error, "Child #{@child} already quit and reaped."
     end
 
     # are we paused?
@@ -537,14 +537,14 @@ module Resque
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
     def pause_processing
-      log "USR2 received; pausing job processing"
+      log_with_severity :info, "USR2 received; pausing job processing"
       run_hook :before_pause, self
       @paused = true
     end
 
     # Start processing jobs again after a pause
     def unpause_processing
-      log "CONT received; resuming job processing"
+      log_with_severity :info, "CONT received; resuming job processing"
       @paused = false
       run_hook :after_pause, self
     end
@@ -575,7 +575,7 @@ module Resque
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
         if all_workers_with_expired_heartbeats.include?(worker)
-          log!("Pruning dead worker: #{worker}")
+          log_with_severity :debug, "Pruning dead worker: #{worker}"
           worker.unregister_worker
           next
         end
@@ -594,7 +594,7 @@ module Resque
         next unless host == hostname
         next if known_workers.include?(pid)
 
-        log!("Pruning dead worker: #{worker}")
+        log_with_severity :debug, "Pruning dead worker: #{worker}"
         worker.unregister_worker
       end
     end
@@ -614,7 +614,7 @@ module Resque
       return if name == :before_first_fork && @before_first_fork_hook_ran
       msg = "Running #{name} hooks"
       msg << " with #{args.inspect}" if args.any?
-      log msg
+      log_with_severity :info, msg
 
       hooks.each do |hook|
         args.any? ? hook.call(*args) : hook.call
@@ -634,7 +634,7 @@ module Resque
         begin
           job.fail(exception || DirtyExit.new)
         rescue RuntimeError => e
-          log(e.message)
+          log_with_severity :error, e.message
         end
       end
 
@@ -813,11 +813,9 @@ module Resque
     #   RESQUE_PROCLINE_PREFIXresque-VERSION: STRING
     def procline(string)
       $0 = "#{ENV['RESQUE_PROCLINE_PREFIX']}resque-#{Resque::Version}: #{string}"
-      log! $0
+      log_with_severity :debug, $0
     end
 
-    # Log a message to Resque.logger
-    # can't use alias_method since info/debug are private methods
     def log(message)
       info(message)
     end
@@ -825,6 +823,7 @@ module Resque
     def log!(message)
       debug(message)
     end
+
 
     def verbose
       @verbose
@@ -857,6 +856,12 @@ module Resque
       end
 
       @very_verbose = value
+    end
+
+    private
+
+    def log_with_severity(severity, message)
+      Logging.log(severity, message)
     end
   end
 end

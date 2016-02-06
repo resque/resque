@@ -880,6 +880,24 @@ describe "Resque::Worker" do
     assert_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
   end
 
+  it "logs errors with the correct logging level" do
+    messages = StringIO.new
+    Resque.logger = Logger.new(messages)
+    @worker.report_failed_job(BadJobWithSyntaxError, SyntaxError)
+
+    assert_equal 0, messages.string.scan(/INFO/).count
+    assert_equal 2, messages.string.scan(/ERROR/).count
+  end
+
+  it "logs info with the correct logging level" do
+    messages = StringIO.new
+    Resque.logger = Logger.new(messages)
+    @worker.shutdown
+
+    assert_equal 1, messages.string.scan(/INFO/).count
+    assert_equal 0, messages.string.scan(/ERROR/).count
+  end
+
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     class ForkResultJob
       @queue = :jobs
