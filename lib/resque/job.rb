@@ -15,42 +15,50 @@ module Resque
     include Helpers
     extend Helpers
     def redis
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
       Resque.redis
     end
 
     def self.redis
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
       Resque.redis
     end
 
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def encode(object)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
       Resque.encode(object)
     end
 
     # Given a string, returns a Ruby object.
     def decode(object)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
       Resque.decode(object)
     end
 
     # Given a Ruby object, returns a string suitable for storage in a
     # queue.
     def self.encode(object)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
       Resque.encode(object)
     end
 
     # Given a string, returns a Ruby object.
     def self.decode(object)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0.")
       Resque.decode(object)
     end
-    
+
     # Given a word with dashes, returns a camel cased version of it.
     def classify(dashed_word)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0.")
       Resque.classify(dashed_word)
     end
 
     # Tries to find a constant with the name specified in the argument string
     def constantize(camel_cased_word)
+      ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0.")
       Resque.constantize(camel_cased_word)
     end
 

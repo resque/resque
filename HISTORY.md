@@ -5,6 +5,9 @@
  * Add support for RESQUE_PROCLINE_PREFIX environment variable to prefix procline
    strings with a static identifier. (@rbroemeling)
 * Resque::Worker logs errors at the correct logging level (@chrisccerami)
+  * Deprecate repeated methods in Resque stdlib. These methods are all
+    provided by ActiveSupport, and will be removed in 2.0
+(@maclover7)
 
 ## 1.25.2 (2014-3-3)
 

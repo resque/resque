@@ -1,6 +1,7 @@
 require 'mono_logger'
 require 'redis/namespace'
 require 'forwardable'
+require 'active_support/deprecation'
 
 require 'resque/version'
 
@@ -54,6 +55,7 @@ module Resque
   #
   # classify('job-name') # => 'JobName'
   def classify(dashed_word)
+    ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
     dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
   end
 
@@ -75,6 +77,7 @@ module Resque
   #
   # NameError is raised when the constant is unknown.
   def constantize(camel_cased_word)
+    ActiveSupport::Deprecation.warn("This is deprecated and will be removed in Resque 2.0 with no replacement.")
     camel_cased_word = camel_cased_word.to_s
 
     if camel_cased_word.include?('-')
