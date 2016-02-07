@@ -11,6 +11,10 @@ def command?(command)
   system("type #{command} > /dev/null 2>&1")
 end
 
+require 'rubygems'
+require 'bundler/setup'
+require 'bundler/gem_tasks'
+
 
 #
 # Tests
@@ -50,21 +54,4 @@ task :install => [ 'redis:install', 'dtach:install' ]
 begin
   require 'sdoc_helpers'
 rescue LoadError
-end
-
-
-#
-# Publishing
-#
-
-desc "Push a new version to Gemcutter"
-task :publish do
-  require 'resque/version'
-
-  sh "gem build resque.gemspec"
-  sh "gem push resque-#{Resque::Version}.gem"
-  sh "git tag v#{Resque::Version}"
-  sh "git push origin v#{Resque::Version}"
-  sh "git push origin master"
-  sh "git clean -fd"
 end

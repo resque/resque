@@ -4,7 +4,6 @@ require 'resque/version'
 Gem::Specification.new do |s|
   s.name              = "resque"
   s.version           = Resque::Version
-  s.date              = Time.now.strftime('%Y-%m-%d')
   s.summary           = "Resque is a Redis-backed queueing system."
   s.homepage          = "http://resquework.org/"
   s.email             = "chris@ozmm.org"
@@ -14,7 +13,6 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
-  s.files            += Dir.glob("test/**/*")
   s.files            += Dir.glob("tasks/**/*")
   s.executables       = [ "resque", "resque-web" ]
 
