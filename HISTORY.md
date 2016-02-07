@@ -4,6 +4,7 @@
  * worker: when searching workers, Worker#pid properly reflects pid of the found worker instead of the current pid. (@yaauie)
  * Add support for RESQUE_PROCLINE_PREFIX environment variable to prefix procline
    strings with a static identifier. (@rbroemeling)
+* Resque::Worker logs errors at the correct logging level (@chrisccerami)
 
 ## 1.25.2 (2014-3-3)
 
