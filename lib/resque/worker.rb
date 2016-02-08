@@ -383,6 +383,7 @@ module Resque
     # USR1: Kill the forked child immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
+    # HUP: Start processing jobs again after a USR2
     def register_signal_handlers
       trap('TERM') { graceful_term ? shutdown : shutdown!  }
       trap('INT')  { shutdown!  }
@@ -396,8 +397,9 @@ module Resque
         end
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
+        trap('HUP') { unpause_processing }
       rescue ArgumentError
-        log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
+        log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT/HUP not supported."
       end
 
       log_with_severity :debug, "Registered signals"

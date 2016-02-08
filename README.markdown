@@ -435,6 +435,7 @@ Resque workers respond to a few different signals:
 * `USR1` - Immediately kill child but don't exit
 * `USR2` - Don't start to process any new jobs
 * `CONT` - Start to process new jobs again after a USR2
+* `HUP` - Start to process new jobs again after a USR2
 
 If you want to gracefully shutdown a Resque worker, use `QUIT`.
 
@@ -446,7 +447,7 @@ If you want to kill a stale or stuck child and shutdown, use `TERM`
 
 If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
-then `CONT` to start it again.
+then `CONT` or `HUP` to start it again.
 
 ### Mysql::Error: MySQL server has gone away
 

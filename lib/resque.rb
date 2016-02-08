@@ -223,7 +223,7 @@ module Resque
   end
 
   # The `after_pause` hook will be run in the parent process after the
-  # worker has paused (via SIGCONT).
+  # worker has paused (via SIGCONT or SIGHUP).
   def after_pause(&block)
     block ? register_hook(:after_pause, block) : hooks(:after_pause)
   end
