@@ -185,37 +185,41 @@ module Resque
     end
 
     def terminal?
-      redis.get(kill_key) != nil
+      redis.exists(kill_key)
     end
 
     def retry?
-      redis.get(kill_key).to_i == 2
+      redis.get(kill_key) == "retry"
     end
 
     def kill!
-      redis.setex(kill_key, 300, 1)
+      redis.setex(kill_key, 300, "kill")
     end
 
     def retry!
-      redis.setex(kill_key, 300, 2)
+      redis.setex(kill_key, 300, "retry")
     end
 
-    def wait_for_child(rd, select_timeout = 5.0)
-      log "Worker #{self} for child process #{@child}..."
+    def wait_for_child(rd, select_timeout = 2.0)
+      log_with_severity :info, "Worker #{self} for child process #{@child}..."
+
       killed_child = false
+
       loop do
         res = IO.select([rd], nil, nil, select_timeout)
+
         if res && res[0]
           res[0][0].read_nonblock(1) rescue EOFError
-          log "Worker #{self} child exiting cleanly"
+          log_with_severity :info, "Worker #{self} child exiting cleanly"
           break
         elsif terminal?
-          log! "Worker #{self} received kill notification while waiting for child!"
+          log_with_severity :debug, "Worker #{self} received kill notification while waiting for child!"
           killed_child = true
           new_kill_child
           break
         end
       end
+
       Process.waitpid(@child)
     ensure
       rd.close rescue IOError
@@ -266,11 +270,10 @@ module Resque
           else
             rd.close
             unregister_signal_handlers if will_fork? && term_child
-            begin
 
+            begin
               reconnect if will_fork?
               perform(job, &block)
-
             rescue Exception => exception
               report_failed_job(job,exception) unless @dont_retry
             end
@@ -315,13 +318,15 @@ module Resque
     end
 
     # Reports the exception and marks the job as failed
-    def report_failed_job(job,exception)
+    def report_failed_job(job, exception)
       log_with_severity :error, "#{job.inspect} failed: #{exception.inspect}"
+
       begin
         job.fail(exception)
       rescue Object => exception
         log_with_severity :error, "Received exception when reporting failure: #{exception.inspect}"
       end
+
       begin
         failed!
       rescue Object => exception
@@ -370,13 +375,17 @@ module Resque
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
           log_with_severity :error, "Error reconnecting to Redis; retrying"
-          sleep(tries)
+          sleep_after_reconnect(tries)
           retry
         else
           log_with_severity :error, "Error reconnecting to Redis; quitting"
           raise
         end
       end
+    end
+
+    def sleep_after_reconnect(tries)
+      sleep(tries)
     end
 
     # Not every platform supports fork. Here we do our magic to
@@ -558,22 +567,19 @@ module Resque
     end
 
     def start_kill_checker
-      @killer = Thread.new {
-        loop do
-          sleep(5.0)
-          if terminal?
-            log! "Worker #{self} found kill key while running job"
-            kill_self
-            break
-          end
-        end
-      }
+      @kill_checker = Thread.new do
+        sleep(2) until terminal?
+        log_with_severity :debug, "Worker #{self} found kill key while running job"
+        kill_self
+      end
     end
 
     def kill_self
-      log! "Killing self."
-      if !retry?
-        log! "Killing self without retry."
+      log_with_severity :info, "Killing self."
+
+      unless retry?
+        log_with_severity :debug, "Killing self without retry."
+
         redis.pipelined do
           processed!
           redis.del("worker:#{self}")
@@ -582,12 +588,14 @@ module Resque
         @dont_retry = true
       end
 
-      log! "Sending INT signal to self."
+
+      log_with_severity :debug, "Sending INT signal to self."
       Process.kill("INT", Process.pid)
 
-      sleep(term_timeout)
-      log! "INT timed out. Sending KILL signal to self."
       redis.del(kill_key)
+      sleep(term_timeout)
+
+      log_with_severity :debug, "INT timed out. Sending KILL signal to self."
       Process.kill("KILL", Process.pid)
     end
 
@@ -708,6 +716,7 @@ module Resque
 
     def kill_background_threads
       @heart.kill if @heart
+      @kill_checker.kill if @kill_checker
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
@@ -726,12 +735,7 @@ module Resque
         end
       end
 
-<<<<<<< c1591354b11d9e6ba22e4da650d5f1d11910fa13
       kill_background_threads
-=======
-      @heart.kill if @heart
-      @killer.kill if @killer
->>>>>>> Merge pull request #8 from Shopify/kill-button
 
       redis.pipelined do
         redis.srem(:workers, self)
@@ -916,7 +920,6 @@ module Resque
     def log!(message)
       debug(message)
     end
-
 
     def verbose
       @verbose
