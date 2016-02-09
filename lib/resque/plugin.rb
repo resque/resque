@@ -31,7 +31,7 @@ module Resque
     # Given an object, and a method prefix, returns a list of methods prefixed
     # with that name (hook names).
     def get_hook_names(job, hook_method_prefix)
-      methods = (job.respond_to?(:hooks) && job.hooks.keys) || job_methods(job)
+      methods = (job.respond_to?(:hooks) && job.hooks) || job_methods(job)
       methods.select{|m| m.start_with?(hook_method_prefix)}.sort
     end
 

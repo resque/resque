@@ -18,6 +18,16 @@ describe "Resque::Plugin finding hooks" do
     def on_failure2; end
   end
 
+  module HookBlacklistJob
+    extend self
+    def around_perform_blacklisted; end
+    def around_perform_ok; end
+
+    def hooks
+      @hooks ||= Resque::Plugin.job_methods(self) - ['around_perform_blacklisted']
+    end
+  end
+
   it "before_perform hooks are found and sorted" do
     assert_equal ["before_perform", "before_perform1", "before_perform2"], Resque::Plugin.before_hooks(SimplePlugin).map {|m| m.to_s}
   end
@@ -32,6 +42,10 @@ describe "Resque::Plugin finding hooks" do
 
   it "on_failure hooks are found and sorted" do
     assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
+  end
+
+  it 'uses job.hooks if available get hook methods' do
+    assert_equal ['around_perform_ok'], Resque::Plugin.around_hooks(HookBlacklistJob)
   end
 end
 
