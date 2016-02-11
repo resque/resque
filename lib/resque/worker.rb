@@ -622,6 +622,10 @@ module Resque
       end
     end
 
+    def kill_background_threads
+      @heart.kill if @heart
+    end
+
     # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker(exception = nil)
       # If we're still processing a job, make sure it gets logged as a
@@ -638,7 +642,7 @@ module Resque
         end
       end
 
-      @heart.kill if @heart
+      kill_background_threads
 
       redis.pipelined do
         redis.srem(:workers, self)

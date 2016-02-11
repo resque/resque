@@ -24,6 +24,10 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
+  after do
+    @worker.kill_background_threads
+  end
+
   it "can fail jobs" do
     Resque::Job.create(:jobs, BadJob)
     @worker.work(0)
@@ -308,9 +312,9 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
 
-    worker = Resque::Worker.new("*")
+    @worker = Resque::Worker.new("*")
+    @worker.work(0)
 
-    worker.work(0)
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
@@ -322,9 +326,9 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, :high, "*")
+    @worker = Resque::Worker.new(:critical, :high, "*")
+    @worker.work(0)
 
-    worker.work(0)
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
@@ -337,9 +341,9 @@ describe "Resque::Worker" do
     Resque::Job.create(:blahblah, GoodJob)
     Resque::Job.create(:beer, GoodJob)
 
-    worker = Resque::Worker.new(:critical, "*", :high)
+    @worker = Resque::Worker.new(:critical, "*", :high)
+    @worker.work(0)
 
-    worker.work(0)
     assert_equal 0, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
     assert_equal 0, Resque.size(:blahblah)
@@ -351,11 +355,10 @@ describe "Resque::Worker" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:blahblah, GoodJob)
 
-    worker = Resque::Worker.new("*")
     processed_queues = []
-
+    @worker = Resque::Worker.new("*")
     without_forking do
-      worker.work(0) do |job|
+      @worker.work(0) do |job|
         processed_queues << job.queue
       end
     end
@@ -368,9 +371,9 @@ describe "Resque::Worker" do
     Resque::Job.create(:test_one, GoodJob)
     Resque::Job.create(:test_two, GoodJob)
 
-    worker = Resque::Worker.new("test_*")
+    @worker = Resque::Worker.new("test_*")
+    @worker.work(0)
 
-    worker.work(0)
     assert_equal 1, Resque.size(:critical)
     assert_equal 0, Resque.size(:test_one)
     assert_equal 0, Resque.size(:test_two)
@@ -387,11 +390,12 @@ describe "Resque::Worker" do
   end
 
   it "fails if a job class has no `perform` method" do
-    worker = Resque::Worker.new(:perform_less)
     Resque::Job.create(:perform_less, Object)
-
     assert_equal 0, Resque::Failure.count
-    worker.work(0)
+
+    @worker = Resque::Worker.new(:perform_less)
+    @worker.work(0)
+
     assert_equal 1, Resque::Failure.count
   end
 
@@ -933,62 +937,31 @@ describe "Resque::Worker" do
     end
 
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
-      begin
-        class Redis::Client
-          alias_method :original_reconnect, :reconnect
+      @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+      @worker.stubs(:sleep)
 
-          def reconnect
-            raise Redis::BaseConnectionError
-          end
-        end
+      Resque.logger = DummyLogger.new
+      @worker.work(0)
+      messages = Resque.logger.messages
 
-        def @worker.sleep(duration = nil)
-          # noop
-        end
-
-        stdout, stderr = capture_io_with_pipe do
-          Resque.logger = Logger.new($stdout)
-          @worker.work(0)
-        end
-
-        assert_equal 3, stdout.scan(/retrying/).count
-        assert_equal 1, stdout.scan(/quitting/).count
-        assert_equal 0, stdout.scan(/Failed to start worker/).count
-        assert_equal 1, stdout.scan(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
-
-      ensure
-        class Redis::Client
-          alias_method :reconnect, :original_reconnect
-        end
-      end
+      assert_equal 3, messages.grep(/retrying/).count
+      assert_equal 1, messages.grep(/quitting/).count
+      assert_equal 0, messages.grep(/Failed to start worker/).count
+      assert_equal 1, messages.grep(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
     end
 
     it "tries to reconnect three times before giving up" do
       captured_worker = nil
-      begin
-        class Redis::Client
-          alias_method :original_reconnect, :reconnect
 
-          def reconnect
-            raise Redis::BaseConnectionError
-          end
-        end
+      @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+      @worker.stubs(:sleep)
 
-        def @worker.sleep(duration = nil)
-          # noop
-        end
+      Resque.logger = DummyLogger.new
+      @worker.work(0)
+      messages = Resque.logger.messages
 
-        Resque.logger = DummyLogger.new
-        @worker.work(0)
-        messages = Resque.logger.messages
-
-        assert_equal 3, messages.grep(/retrying/).count
-        assert_equal 1, messages.grep(/quitting/).count
-      ensure
-        class Redis::Client
-          alias_method :reconnect, :original_reconnect
-        end
-      end
+      assert_equal 3, messages.grep(/retrying/).count
+      assert_equal 1, messages.grep(/quitting/).count
     end
 
     class SuicidalJob
