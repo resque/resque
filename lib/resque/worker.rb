@@ -180,6 +180,52 @@ module Resque
       end.sort
     end
 
+    def kill_key
+      "worker:#{self}:kill"
+    end
+
+    def terminal?
+      redis.exists(kill_key)
+    end
+
+    def retry?
+      redis.get(kill_key) == "retry"
+    end
+
+    def kill!
+      redis.setex(kill_key, 300, "kill")
+    end
+
+    def retry!
+      redis.setex(kill_key, 300, "retry")
+    end
+
+    def wait_for_child(rd, select_timeout = 2.0)
+      log_with_severity :info, "Worker #{self} for child process #{@child}..."
+
+      killed_child = false
+
+      loop do
+        res = IO.select([rd], nil, nil, select_timeout)
+
+        if res && res[0]
+          res[0][0].read_nonblock(1) rescue EOFError
+          log_with_severity :info, "Worker #{self} child exiting cleanly"
+          break
+        elsif terminal?
+          log_with_severity :debug, "Worker #{self} received kill notification while waiting for child!"
+          killed_child = true
+          new_kill_child
+          break
+        end
+      end
+
+      Process.waitpid(@child)
+    ensure
+      rd.close rescue IOError
+      redis.del(kill_key) if killed_child
+    end
+
     # This is the main workhorse method. Called on a Worker instance,
     # it begins the worker life cycle.
     #
@@ -208,27 +254,32 @@ module Resque
           log_with_severity :info, "got: #{job.inspect}"
           job.worker = self
           working_on job
+          rd, wr = IO.pipe
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
           if @child = fork(job)
+            wr.close
             srand # Reseeding
             procline "Forked #{@child} at #{Time.now.to_i}"
             begin
-              Process.waitpid(@child)
+              wait_for_child(rd)
             rescue SystemCallError
               nil
             end
             job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
           else
+            rd.close
             unregister_signal_handlers if will_fork? && term_child
-            begin
 
+            begin
               reconnect if will_fork?
               perform(job, &block)
-
             rescue Exception => exception
-              report_failed_job(job,exception)
+              report_failed_job(job,exception) unless @dont_retry
             end
+
+            wr.write("x") rescue Errno::EPIPE # notify the parent we're about to exit
+            wr.close
 
             if will_fork?
               run_at_exit_hooks ? exit : exit!
@@ -267,13 +318,15 @@ module Resque
     end
 
     # Reports the exception and marks the job as failed
-    def report_failed_job(job,exception)
+    def report_failed_job(job, exception)
       log_with_severity :error, "#{job.inspect} failed: #{exception.inspect}"
+
       begin
         job.fail(exception)
       rescue Object => exception
         log_with_severity :error, "Received exception when reporting failure: #{exception.inspect}"
       end
+
       begin
         failed!
       rescue Object => exception
@@ -287,7 +340,7 @@ module Resque
         run_hook :after_fork, job if will_fork?
         job.perform
       rescue Object => e
-        report_failed_job(job,e)
+        report_failed_job(job,e) unless @dont_retry
       else
         log_with_severity :info, "done: #{job.inspect}"
       ensure
@@ -322,13 +375,17 @@ module Resque
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
           log_with_severity :error, "Error reconnecting to Redis; retrying"
-          sleep(tries)
+          sleep_after_reconnect(tries)
           retry
         else
           log_with_severity :error, "Error reconnecting to Redis; quitting"
           raise
         end
       end
+    end
+
+    def sleep_after_reconnect(tries)
+      sleep(tries)
     end
 
     # Not every platform supports fork. Here we do our magic to
@@ -358,6 +415,7 @@ module Resque
       enable_gc_optimizations
       register_signal_handlers
       start_heartbeat
+      start_kill_checker
       prune_dead_workers
       run_hook :before_first_fork
       register_worker
@@ -439,6 +497,7 @@ module Resque
           trap('TERM') do
             # ignore subsequent terms
           end
+          raise Resque::DontRetryTermException.new("SIGTERM") if @dont_retry
           raise TermException.new("SIGTERM")
         end
       else
@@ -505,6 +564,39 @@ module Resque
           heartbeat!
         end
       end
+    end
+
+    def start_kill_checker
+      @kill_checker = Thread.new do
+        sleep(2) until terminal?
+        log_with_severity :debug, "Worker #{self} found kill key while running job"
+        kill_self
+      end
+    end
+
+    def kill_self
+      log_with_severity :info, "Killing self."
+
+      unless retry?
+        log_with_severity :debug, "Killing self without retry."
+
+        redis.pipelined do
+          processed!
+          redis.del("worker:#{self}")
+        end
+
+        @dont_retry = true
+      end
+
+
+      log_with_severity :debug, "Sending INT signal to self."
+      Process.kill("INT", Process.pid)
+
+      redis.del(kill_key)
+      sleep(term_timeout)
+
+      log_with_severity :debug, "INT timed out. Sending KILL signal to self."
+      Process.kill("KILL", Process.pid)
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -624,6 +716,7 @@ module Resque
 
     def kill_background_threads
       @heart.kill if @heart
+      @kill_checker.kill if @kill_checker
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
@@ -827,7 +920,6 @@ module Resque
     def log!(message)
       debug(message)
     end
-
 
     def verbose
       @verbose

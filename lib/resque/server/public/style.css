@@ -46,6 +46,8 @@ body { padding:0; margin:0; }
 #main table.workers td.queues { width:35%;}
 #main .queue-tag { background:#b1d2e9; padding:2px; margin:0 3px; font-size:80%; text-decoration:none; text-transform:uppercase; font-weight:bold; color:#3274a2; -webkit-border-radius:4px; -moz-border-radius:4px;}
 #main .queue-tag a { color: #3274A2; text-decoration: none; }
+#main .kill-tag { background:#a23232; padding:2px; margin:0 3px; font-size:80%; text-decoration:none; text-transform:uppercase; font-weight:bold; color:#ffffff; -webkit-border-radius:4px; -moz-border-radius:4px;}
+#main .kill-tag a { text-decoration: none; }
 #main table.workers td.queues.queue { width:10%;}
 #main table.workers td.process { width:35%;}
 #main table.workers td.process span.waiting { color:#999; font-size:90%;}

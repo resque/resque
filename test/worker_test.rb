@@ -938,7 +938,7 @@ describe "Resque::Worker" do
 
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
       @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
-      @worker.stubs(:sleep)
+      @worker.stubs(:sleep_after_reconnect)
 
       Resque.logger = DummyLogger.new
       @worker.work(0)
@@ -951,10 +951,8 @@ describe "Resque::Worker" do
     end
 
     it "tries to reconnect three times before giving up" do
-      captured_worker = nil
-
       @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
-      @worker.stubs(:sleep)
+      @worker.stubs(:sleep_after_reconnect)
 
       Resque.logger = DummyLogger.new
       @worker.work(0)
@@ -982,6 +980,32 @@ describe "Resque::Worker" do
         @worker.work(0)
       end
       assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
+    end
+
+    it "kills job" do
+      Resque::Job.create(:jobs, SleepyJob)
+
+      t = Thread.new do
+        sleep 1
+        @worker.kill!
+        assert @worker.terminal?
+      end
+
+      start = Time.now
+
+      begin
+        @worker.work(0)
+      ensure
+        t.join if t.alive?
+      end
+
+      assert_operator Time.now - start, :<, 10
+
+      refute @worker.terminal?
+
+      assert_equal 1, Resque::Failure.count
+      assert_equal "Resque::TermException", Resque::Failure.all['exception']
+      assert_equal "SIGTERM", Resque::Failure.all['error']
     end
   end
 end

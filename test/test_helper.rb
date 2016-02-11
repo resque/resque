@@ -146,6 +146,12 @@ class GoodJob
   end
 end
 
+class SleepyJob
+  def self.perform
+    sleep 10
+  end
+end
+
 class AtExitJob
   def self.perform(filename)
     at_exit do

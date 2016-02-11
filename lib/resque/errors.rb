@@ -10,4 +10,8 @@ module Resque
 
   # Raised when child process is TERM'd so job can rescue this to do shutdown work.
   class TermException < SignalException; end
+
+  # Raised when a job is killed purposefully such that the job should not be retried.
+  class DontRetryTermException < TermException; end
+
 end
