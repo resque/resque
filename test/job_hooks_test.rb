@@ -234,7 +234,7 @@ describe "Resque::Job on_failure" do
     assert_match('Additional error (RuntimeError: This job is just so bad!)', err.message)
     assert_match('occurred in running failure hooks', err.message)
     assert_match('for job (Job{testqueue} | BadJobWithOnFailureHookFail | [])', err.message)
-    assert_match('Original error that caused job failure was RuntimeError: Extra Bad job!', err.message)
+    assert_match('Original error that caused job failure was RuntimeError: SyntaxError: Extra Bad job!', err.message)
   end
 end
 

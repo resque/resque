@@ -218,7 +218,7 @@ module Resque
             rescue SystemCallError
               nil
             end
-            job.fail(DirtyExit.new($?.to_s)) if $?.signaled?
+            job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
           else
             unregister_signal_handlers if will_fork? && term_child
             begin
@@ -575,8 +575,8 @@ module Resque
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
         if all_workers_with_expired_heartbeats.include?(worker)
-          log_with_severity :debug, "Pruning dead worker: #{worker}"
-          worker.unregister_worker
+          log_with_severity :info, "Pruning dead worker: #{worker}"
+          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
           next
         end
 
@@ -636,7 +636,7 @@ module Resque
         # it's not the precise instance that died.
         job.worker = self
         begin
-          job.fail(exception || DirtyExit.new)
+          job.fail(exception || DirtyExit.new("Job still being processed"))
         rescue RuntimeError => e
           log_with_severity :error, e.message
         end
