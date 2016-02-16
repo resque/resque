@@ -5,6 +5,9 @@ require 'redis/namespace'
 
 require 'mocha/setup'
 
+require 'coveralls'
+Coveralls.wear!
+
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 ENV['TERM_CHILD'] = "1"
