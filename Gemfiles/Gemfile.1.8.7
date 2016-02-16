@@ -10,6 +10,10 @@ group :test do
   gem "minitest", "4.7.0"
   gem "json"
   gem 'redis', '~> 3.0.0', '< 3.0.7'
+
+  gem 'coveralls', :require => false
+  gem 'mime-types', '~> 1.25.1', :require => false
+  gem 'rest-client', '~> 1.6.9', :require => false
 end
 
 gemspec :path => "../"
