@@ -464,6 +464,20 @@ describe "Resque::Worker" do
     end
   end
 
+  it "caches the current job iff reloading is disabled" do
+    without_forking do
+      @worker.extend(AssertInWorkBlock).work(0) do
+        first_instance = @worker.job
+        second_instance = @worker.job
+        refute_equal first_instance.object_id, second_instance.object_id
+
+        first_instance = @worker.job(false)
+        second_instance = @worker.job(false)
+        assert_equal first_instance.object_id, second_instance.object_id
+      end
+    end
+  end
+
   it "keeps track of how many jobs it has processed" do
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)

@@ -78,7 +78,9 @@ module Resque
       end
 
       reportedly_working.keys.map do |key|
-        find(key.sub("worker:", ''), :skip_exists => true)
+        worker = find(key.sub("worker:", ''), :skip_exists => true)
+        worker.job = worker.decode(reportedly_working[key])
+        worker
       end.compact
     end
 
@@ -716,9 +718,11 @@ module Resque
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
-    def job
-      decode(redis.get("worker:#{self}")) || {}
+    def job(reload = true)
+      @job = nil if reload
+      @job ||= decode(redis.get("worker:#{self}")) || {}
     end
+    attr_writer :job
     alias_method :processing, :job
 
     # Boolean - true if working, false if not
