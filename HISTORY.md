@@ -1,9 +1,17 @@
-## 1.25.3 (TBD)
+## 1.27.0 (TBD)
 
- * rake: when BACKGROUND, ensure worker.reconnect after daemonizing (@yaauie)
- * worker: when searching workers, Worker#pid properly reflects pid of the found worker instead of the current pid. (@yaauie)
- * Add support for RESQUE_PROCLINE_PREFIX environment variable to prefix procline
-   strings with a static identifier. (@rbroemeling)
+None yet!
+
+## 1.26.0 (2016-03-10)
+
+This changelog is a bit incomplete. We will be much stricter about the changelog for
+the next release.
+
+* rake: when BACKGROUND, ensure worker.reconnect after daemonizing (@yaauie)
+* worker: when searching workers, Worker#pid properly reflects pid of the found
+  worker instead of the current pid. (@yaauie)
+* Add support for RESQUE_PROCLINE_PREFIX environment variable to prefix
+  procline strings with a static identifier. (@rbroemeling)
 * Resque::Worker logs errors at the correct logging level (@chrisccerami)
 
 ## 1.25.2 (2014-3-3)
