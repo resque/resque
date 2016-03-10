@@ -7,3 +7,4 @@ test/dump-cluster.rdb
 test/stdout
 *.swp
 pkg
+Gemfiles/Gemfile.1.8.7.lock
