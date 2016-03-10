@@ -6,3 +6,4 @@ test/dump.rdb
 test/dump-cluster.rdb
 test/stdout
 *.swp
+pkg
