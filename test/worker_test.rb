@@ -648,7 +648,12 @@ describe "Resque::Worker" do
     workerB.register_worker
     workerB.heartbeat!
 
-    assert_equal 4, Resque.workers.size
+    # 5: no queues; gets pruned.
+    workerA = Resque::Worker.new(:jobs)
+    workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:5:")
+    workerA.register_worker
+
+    assert_equal 5, Resque.workers.size
 
     # then we prune them
     @worker.work(0)
@@ -659,6 +664,7 @@ describe "Resque::Worker" do
 
     # pruned
     assert !worker_strings.include?("#{`hostname`.chomp}:1:jobs")
+    assert !worker_strings.include?("#{`hostname`.chomp}:5:")
 
     # not pruned
     assert worker_strings.include?("#{`hostname`.chomp}-foo:2:jobs")
