@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.name              = "resque"
   s.version           = Resque::Version
   s.summary           = "Resque is a Redis-backed queueing system."
-  s.homepage          = "http://resquework.org/"
-  s.email             = "chris@ozmm.org"
+  s.homepage          = "http://resque.github.io/"
+  s.email             = "steve@steveklabnik.com"
   s.authors           = [ "Chris Wanstrath", "Steve Klabnik", "Terence Lee" ]
 
   s.files             = %w( README.markdown Rakefile LICENSE HISTORY.md )
