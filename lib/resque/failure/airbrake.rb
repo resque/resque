@@ -21,7 +21,7 @@ module Resque
       end
 
       def save
-        ::Airbrake.notify_or_ignore(exception,
+        ::Airbrake.notify(exception,
             :parameters => {
             :payload_class => payload['class'].to_s,
             :payload_args => payload['args'].inspect
