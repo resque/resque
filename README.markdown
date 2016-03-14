@@ -687,7 +687,7 @@ Don't forget you can define a `resque:setup` hook in
 `lib/tasks/whatever.rake` that loads the `environment` task every time.
 
 
-### In a Rails 3 app, as a gem
+### In a Rails 3.x or 4.x app, as a gem
 
 First include it in your Gemfile.
 
