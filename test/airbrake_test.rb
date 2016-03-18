@@ -16,7 +16,7 @@ if defined? Airbrake
       queue = "test"
       payload = {'class' => Object, 'args' => 66}
 
-      Airbrake.expects(:notify_or_ignore).with(
+      Airbrake.expects(:notify).with(
         exception,
         :parameters => {:payload_class => 'Object', :payload_args => '66'})
 
