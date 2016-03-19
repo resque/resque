@@ -48,6 +48,7 @@ module Resque
     # registered in the application. Otherwise, forked workers exit with `exit!`
     attr_accessor :run_at_exit_hooks
 
+    attr_writer :hostname
     attr_writer :to_s
     attr_writer :pid
 
@@ -92,6 +93,7 @@ module Resque
         host, pid, queues_raw = worker_id.split(':')
         queues = queues_raw.split(',')
         worker = new(*queues)
+        worker.hostname = host
         worker.to_s = worker_id
         worker.pid = pid.to_i
         worker
@@ -765,9 +767,9 @@ module Resque
     end
     alias_method :id, :to_s
 
-    # chomp'd hostname of this machine
+    # chomp'd hostname of this worker's machine
     def hostname
-      Socket.gethostname
+      @hostname ||= Socket.gethostname
     end
 
     # Returns Integer PID of running worker

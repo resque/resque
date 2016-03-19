@@ -524,6 +524,21 @@ describe "Resque::Worker" do
     end
   end
 
+  it "knows what host it's running on" do
+    without_forking do
+      blah_worker = nil
+      Socket.stub :gethostname, 'blah-blah' do
+        blah_worker = Resque::Worker.new(:jobs)
+        blah_worker.register_worker
+      end
+
+      @worker.extend(AssertInWorkBlock).work(0) do
+        assert Resque::Worker.exists?(blah_worker)
+        assert_equal Resque::Worker.find(blah_worker).hostname, 'blah-blah'
+      end
+    end
+  end
+
   it "sets $0 while working" do
     without_forking do
       @worker.extend(AssertInWorkBlock).work(0) do
