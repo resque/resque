@@ -797,7 +797,7 @@ module Resque
     # Find Resque worker pids on Linux and OS X.
     #
     def linux_worker_pids
-      `ps -A -o pid,command | grep -E "[r]esque:work|[r]esque-[0-9]" | grep -v "resque-web"`.split("\n").map do |line|
+      `ps -A -o pid,command | grep -E "[r]esque:work|[r]esque:\sStarting|[r]esque-[0-9]" | grep -v "resque-web"`.split("\n").map do |line|
         line.split(' ')[0]
       end
     end
