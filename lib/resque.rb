@@ -165,6 +165,12 @@ module Resque
     @prune_interval || DEFAULT_PRUNE_INTERVAL
   end
 
+  attr_writer :enqueue_front
+  def enqueue_front
+    return @enqueue_front unless @enqueue_front.nil?
+    @enqueue_front = false
+  end
+
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
   # changes you make will be permanent for the lifespan of the
@@ -267,7 +273,7 @@ module Resque
     encoded = encode(item)
     redis.pipelined do
       watch_queue(queue)
-      redis.rpush "queue:#{queue}", encoded
+      redis.send((enqueue_front ? 'lpush' : 'rpush'), "queue:#{queue}", encoded)
     end
   end
 

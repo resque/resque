@@ -824,6 +824,26 @@ describe "Resque::Worker" do
     end
   end
 
+  it "keeps a custom logger state after a new worker is instantiated if there is no verbose options" do
+    messages                = StringIO.new
+    custom_logger           = Logger.new(messages)
+    custom_logger.level     = Logger::FATAL
+    custom_formatter        = proc do |severity, datetime, progname, msg|
+      formatter.call(severity, datetime, progname, msg.dump)
+    end
+    custom_logger.formatter = custom_formatter
+
+    Resque.logger = custom_logger
+
+    ENV.delete 'VERBOSE'
+    ENV.delete 'VVERBOSE'
+    @worker = Resque::Worker.new(:jobs)
+
+    assert_equal custom_logger, Resque.logger
+    assert_equal Logger::FATAL, Resque.logger.level
+    assert_equal custom_formatter, Resque.logger.formatter
+  end
+
   it "won't fork if ENV['FORK_PER_JOB'] is false" do
     workerA = Resque::Worker.new(:jobs)
 
