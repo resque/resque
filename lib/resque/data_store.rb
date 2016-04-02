@@ -1,6 +1,6 @@
 module Resque
   # An interface between Resque's persistence and the actual
-  # implementation. 
+  # implementation.
   class DataStore
     extend Forwardable
 
@@ -71,7 +71,7 @@ module Resque
       end
     end
 
-    # Force a reconnect to Redis.  
+    # Force a reconnect to Redis.
     def reconnect
       @redis.client.reconnect
     end
@@ -80,7 +80,7 @@ module Resque
     # is O(N) for the keyspace, so be careful - this can be slow for big databases.
     def all_resque_keys
       @redis.keys("*").map do |key|
-        key.sub("#{redis.namespace}:", '')
+        key.sub("#{Resque.redis.namespace}:", '')
       end
     end
 
@@ -155,7 +155,7 @@ module Resque
 
     end
 
-    class FailedQueueAccess 
+    class FailedQueueAccess
       def initialize(redis)
         @redis = redis
       end
@@ -192,7 +192,8 @@ module Resque
         @redis.lset(failed_queue_name, index_in_failed_queue, new_item_data)
       end
 
-      def remove_from_failed_queue(index_in_failed_queue,failed_queue_name=:failed)
+      def remove_from_failed_queue(index_in_failed_queue,failed_queue_name=nil)
+        failed_queue_name ||= :failed
         hopefully_unique_value_we_can_use_to_delete_job = ""
         @redis.lset(failed_queue_name, index_in_failed_queue, hopefully_unique_value_we_can_use_to_delete_job)
         @redis.lrem(failed_queue_name, 1,                     hopefully_unique_value_we_can_use_to_delete_job)
@@ -208,7 +209,7 @@ module Resque
         Array(@redis.smembers(:workers))
       end
 
-      # Given a list of worker ids, returns a map of those ids to the worker's value 
+      # Given a list of worker ids, returns a map of those ids to the worker's value
       # in redis, even if that value maps to nil
       def workers_map(worker_ids)
         redis_keys = worker_ids.map { |id| "worker:#{id}" }
@@ -262,7 +263,7 @@ module Resque
       end
 
     private
-      
+
       def redis_key_for_worker(worker)
         "worker:#{worker}"
       end

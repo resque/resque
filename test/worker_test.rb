@@ -155,7 +155,7 @@ describe "Resque::Worker" do
   it "does not mask exception when timeout getting job metadata" do
     job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
     @worker.working_on(job)
-    Resque.redis.stubs(:get).raises(Redis::CannotConnectError)
+    Resque.data_store.redis.stubs(:get).raises(Redis::CannotConnectError)
 
     error_message = "Something bad happened"
     exception_caught = assert_raises Redis::CannotConnectError do
