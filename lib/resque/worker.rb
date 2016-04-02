@@ -127,8 +127,9 @@ module Resque
       @paused = nil
       @before_first_fork_hook_ran = false
 
-      self.verbose = ENV['LOGGING'] || ENV['VERBOSE']
-      self.very_verbose = ENV['VVERBOSE']
+      verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
+      self.verbose = verbose_value if verbose_value
+      self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
       self.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
       self.term_child = ENV['TERM_CHILD']
       self.graceful_term = ENV['GRACEFUL_TERM']
