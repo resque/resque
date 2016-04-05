@@ -18,7 +18,7 @@ Resque::Server.helpers do
 
   def failed_per_page
     @failed_per_page = if params[:class]
-      failed_size  
+      failed_size
     else
       20
     end
@@ -48,5 +48,17 @@ Resque::Server.helpers do
       classes[class_name] += 1
     end
     classes
+  end
+
+  def page_entries_info(start, stop, size, name = nil)
+    if size == 0
+      name ? "No #{name}s" : '<b>0</b>'
+    elsif size == 1
+      'Showing <b>1</b>' + (name ? " #{name}" : '')
+    elsif size > failed_per_page
+      "Showing #{start}-#{stop} of <b>#{size}</b>" + (name ? " #{name}s" : '')
+    else
+      "Showing #{start} to <b>#{size - 1}</b>" + (name ? " #{name}s" : '')
+    end
   end
 end

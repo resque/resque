@@ -1,8 +1,6 @@
 <% if key = params[:key] %>
 
-  <p class='sub'>
-    Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = redis_get_size(key) %></b>
-  </p>
+  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 20, size = redis_get_size(key) %></p>
 
   <h1>Key "<%= key %>" is a <%= resque.redis.type key %></h1>
   <table>
