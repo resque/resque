@@ -62,11 +62,16 @@ describe "Resque::Failure::Redis" do
     ].each do |class_name|
       Resque::Failure::Redis.new(exception, worker, queue, payload.merge({ "class" => class_name })).save
     end
+    # ensure that there are 6 failed jobs in total as configured
     assert_equal 6, Resque::Failure::Redis.count
     Resque::Failure::Redis.each 0, 2, nil, class_one do |id, item|
       num_iterations += 1
+      # ensure it iterates only jobs with the specified class name (it was not
+      # which cause we only got 1 job with class=Foo since it iterates all the
+      # jobs and limit already reached)
       assert_equal class_one, item['payload']['class']
     end
+    # ensure only iterates max up to the limit specified
     assert_equal 2, num_iterations
   end
 
@@ -83,11 +88,13 @@ describe "Resque::Failure::Redis" do
     ].each do |class_name|
       Resque::Failure::Redis.new(exception, worker, queue, payload.merge({ "class" => class_name })).save
     end
+    # ensure that there are 6 failed jobs in total as configured
     assert_equal 6, Resque::Failure::Redis.count
     Resque::Failure::Redis.each 0, 5 do |id, item|
       num_iterations += 1
       assert_equal Hash, item.class
     end
+    # ensure only iterates max up to the limit specified
     assert_equal 5, num_iterations
   end
 
