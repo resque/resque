@@ -48,6 +48,10 @@ module Resque
       end
 
       def self.each(offset = 0, limit = self.count, queue = :failed, class_name = nil, order = 'desc')
+        if class_name
+          original_limit = limit
+          limit = count
+        end
         all_items = limit == 1 ? [all(offset,limit,queue)] : Array(all(offset, limit, queue))
         reversed = false
         if order.eql? 'desc'
@@ -55,7 +59,7 @@ module Resque
           reversed = true
         end
         all_items.each_with_index do |item, i|
-          if !class_name || (item['payload'] && item['payload']['class'] == class_name)
+          if !class_name || (item['payload'] && item['payload']['class'] == class_name && (original_limit -= 1) >= 0)
             if reversed
               id = (all_items.length - 1) + (offset - i)
             else

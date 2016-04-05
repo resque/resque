@@ -6,7 +6,7 @@
   <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
     <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
   </form>
-  <p class='sub'>Showing <%= start = params[:start].to_i %> to <%= start + 20 %> of <b><%=size = resque.size(queue)%></b> jobs</p>
+  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(queue), 'job' %></p>
   <table class='jobs'>
     <tr>
       <th>Class</th>
