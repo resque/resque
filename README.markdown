@@ -6,7 +6,7 @@ Resque
 [![Coverage Status](https://coveralls.io/repos/github/resque/resque/badge.svg?branch=1-x-stable)](https://coveralls.io/r/resque/resque?branch=1-x-stable)
 
 Resque (pronounced like "rescue") is a Redis-backed library for creating
-background jobs, placing those jobs on multiple queues, and processing
+background jobs, placing those jobs on multiple queues and processing
 them later.
 
 Background jobs can be any Ruby class or module that responds to
@@ -17,14 +17,14 @@ can do both.
 Resque is heavily inspired by DelayedJob (which rocks) and comprises
 three parts:
 
-1. A Ruby library for creating, querying, and processing jobs
+1. A Ruby library for creating, querying and processing jobs
 2. A Rake task for starting a worker which processes jobs
-3. A Sinatra app for monitoring queues, jobs, and workers.
+3. A Sinatra app for monitoring queues, jobs and workers.
 
 Resque workers can be distributed between multiple machines,
 support priorities, are resilient to memory bloat / "leaks," are
 optimized for REE (but work on MRI and JRuby), tell you what they're
-doing, and expect failure.
+doing and expect failure.
 
 Resque queues are persistent; support constant time, atomic push and
 pop (thanks to Redis); provide visibility into their contents; and
@@ -32,13 +32,13 @@ store jobs as simple JSON packages.
 
 The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
-general usage stats, and helps you track failures.
+general usage stats and helps you track failures.
 
 
 The Blog Post
 -------------
 
-For the backstory, philosophy, and history of Resque's beginnings,
+For the backstory, philosophy and history of Resque's beginnings,
 please see [the blog post][0].
 
 
@@ -381,7 +381,7 @@ have unwanted memory growth.
 If Resque workers processed jobs themselves, it'd be hard to whip them
 into shape. Let's say one is using too much memory: you send it a
 signal that says "shutdown after you finish processing the current
-job," and it does so. It then starts up again - loading your entire
+job" and it does so. It then starts up again - loading your entire
 application environment. This adds useless CPU cycles and causes a
 delay in queue processing.
 
@@ -484,7 +484,7 @@ end
 
 From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/ConnectionHandler.html#method-i-clear_active_connections-21):
 
-    Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
+    Returns any connections in use by the current thread back to the pool and also returns connections to the pool cached by threads that are no longer alive.
 
 
 
@@ -555,7 +555,7 @@ mount Resque::Server.new, :at => "/resque"
 Resque vs DelayedJob
 --------------------
 
-How does Resque compare to DelayedJob, and why would you choose one
+How does Resque compare to DelayedJob and why would you choose one
 over the other?
 
 * Resque supports multiple queues
