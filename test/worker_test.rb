@@ -55,6 +55,25 @@ describe "Resque::Worker" do
     assert_equal 0, Resque::Failure.count
   end
 
+  it "writes to ENV['PIDFILE'] when supplied and #prepare is called" do
+    with_pidfile do
+      tmpfile = Tempfile.new("test_pidfile")
+      File.expects(:open).with(ENV["PIDFILE"], anything).returns tmpfile
+      @worker.prepare
+    end
+  end
+
+  it "daemonizes when ENV['BACKGROUND'] is supplied and #prepare is called" do
+    if Process.respond_to?("daemon")
+      Process.expects(:daemon)
+      with_background do
+        @worker.prepare
+      end
+    else
+      skip("Process.daemon not supported; requires ruby >= 1.9")
+    end
+  end
+
   it "executes at_exit hooks when configured with run_at_exit_hooks" do
     tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
     FileUtils.rm_f tmpfile
@@ -591,6 +610,18 @@ describe "Resque::Worker" do
       @worker.extend(AssertInWorkBlock).work(0) do
         found = Resque::Worker.find('blah-blah')
         assert_equal nil, found
+      end
+    end
+  end
+
+  it "doesn't write PID file when finding" do
+    with_pidfile do
+      File.expects(:open).never
+
+      without_forking do
+        @worker.work(0) do
+          Resque::Worker.find(@worker.to_s)
+        end
       end
     end
   end

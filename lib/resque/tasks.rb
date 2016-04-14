@@ -15,6 +15,7 @@ namespace :resque do
       abort "set QUEUE env var, e.g. $ QUEUE=critical,high rake resque:work"
     end
 
+    worker.prepare
     worker.log "Starting worker #{self}"
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end

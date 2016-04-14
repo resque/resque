@@ -2,6 +2,9 @@
 
 None yet!
 
+* Fix issue where calling Worker.find, Worker.all, or Worker.working from withing
+  a running job would rewrite the PID file with the PID of the forked worker. (@jeremywadsack)
+
 ## 1.26.0 (2016-03-10)
 
 This changelog is a bit incomplete. We will be much stricter about the changelog for
