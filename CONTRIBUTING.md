@@ -17,12 +17,7 @@ Please include them in pull requests adding features or fixing bugs.
 
 Oh, and 80 character columns, please!
 
-Branches
---------
-
-The `1-x-stable` branch is currently serving as the canonical default branch.
-
-Please make your pull requests against this branch. For more information, see 
+For more information, see
 Steve Klabnik's post here about the direction and current state of Resque:
 [Rescuing Resque...again](http://words.steveklabnik.com/rescuing-resque-again)
 
