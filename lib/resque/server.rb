@@ -1,5 +1,5 @@
 require 'sinatra/base'
-require 'erb'
+require 'tilt/erb'
 require 'resque'
 require 'resque/version'
 require 'time'
