@@ -1,6 +1,6 @@
 ## 1.27.0 (TBD)
 
-None yet!
+* Update jQuery from 1.3.2 to 1.12.4
 
 ## 1.26.0 (2016-03-10)
 
