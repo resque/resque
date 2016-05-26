@@ -504,9 +504,15 @@ module Resque
 
     def start_heartbeat
       heartbeat!
+
+      @stop_heartbeat_thread = false
       @heart = Thread.new do
-        loop do
-          sleep(Resque.heartbeat_interval)
+        until @stop_heartbeat_thread do
+          Resque.heartbeat_interval.times do
+            sleep(1)
+            break if @stop_heartbeat_thread
+          end
+
           heartbeat!
         end
       end
@@ -628,7 +634,7 @@ module Resque
     end
 
     def kill_background_threads
-      @heart.kill if @heart
+      @stop_heartbeat_thread = true if @heart
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
