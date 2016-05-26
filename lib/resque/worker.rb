@@ -124,6 +124,9 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
+    #
+    # Workers should have `#prepare` called after they are initialized
+    # if you are running work on the worker.
     def initialize(*queues)
       @shutdown = nil
       @paused = nil
@@ -137,6 +140,13 @@ module Resque
       self.graceful_term = ENV['GRACEFUL_TERM']
       self.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
 
+      self.queues = queues
+    end
+
+    # Daemonizes the worker if ENV['BACKGROUND'] is set and writes
+    # the process id to ENV['PIDFILE'] if set. Should only be called
+    # once per worker.
+    def prepare
       if ENV['BACKGROUND']
         unless Process.respond_to?('daemon')
             abort "env var BACKGROUND is set, which requires ruby >= 1.9"
@@ -148,8 +158,6 @@ module Resque
       if ENV['PIDFILE']
         File.open(ENV['PIDFILE'], 'w') { |f| f << pid }
       end
-
-      self.queues = queues
     end
 
     def queues=(queues)

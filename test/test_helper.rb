@@ -253,3 +253,26 @@ def without_forking
     ENV['FORK_PER_JOB'] = orig_fork_per_job
   end
 end
+
+def with_pidfile
+  old_pidfile = ENV["PIDFILE"]
+  begin
+    file = Tempfile.new("pidfile")
+    file.close
+    ENV["PIDFILE"] = file.path
+    yield
+  ensure
+    file.unlink if file
+    ENV["PIDFILE"] = old_pidfile
+  end
+end
+
+def with_background
+  old_background = ENV["BACKGROUND"]
+  begin
+    ENV["BACKGROUND"] = "true"
+    yield
+  ensure
+    ENV["BACKGROUND"] = old_background
+  end
+end
