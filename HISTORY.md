@@ -3,7 +3,9 @@
 None yet!
 
 * Fix issue where calling Worker.find, Worker.all, or Worker.working from withing
-  a running job would rewrite the PID file with the PID of the forked worker. (@jeremywadsack)
+  a running job would rewrite the PID file with the PID of the forked worker.
+  This causes a change to the Worker#new API that may affect plugin
+  implementations. See Worker#new and Worker#prepare for details. (@jeremywadsack)
 
 ## 1.26.0 (2016-03-10)
 
