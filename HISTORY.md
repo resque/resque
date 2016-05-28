@@ -1,6 +1,6 @@
 ## 1.27.0 (TBD)
 
-None yet!
+* Update jQuery from 1.3.2 to 1.12.4
 
 * Fix issue where calling Worker.find, Worker.all, or Worker.working from withing
   a running job would rewrite the PID file with the PID of the forked worker.
