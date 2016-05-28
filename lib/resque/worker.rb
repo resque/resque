@@ -19,9 +19,14 @@ module Resque
     def redis
       Resque.redis
     end
+    alias :data_store :redis
 
     def self.redis
       Resque.redis
+    end
+
+    def self.data_store
+      self.redis
     end
 
     # Given a Ruby object, returns a string suitable for storage in a
@@ -54,7 +59,7 @@ module Resque
 
     # Returns an array of all worker objects.
     def self.all
-      Array(redis.smembers(:workers)).map { |id| find(id, :skip_exists => true) }.compact
+      data_store.worker_ids.map { |id| find(id, :skip_exists => true) }.compact
     end
 
     # Returns an array of all worker objects currently processing
@@ -63,17 +68,15 @@ module Resque
       names = all
       return [] unless names.any?
 
-      names.map! { |name| "worker:#{name}" }
-
       reportedly_working = {}
 
       begin
-        reportedly_working = redis.mapped_mget(*names).reject do |key, value|
+        reportedly_working = data_store.workers_map(names).reject do |key, value|
           value.nil? || value.empty?
         end
       rescue Redis::Distributed::CannotDistribute
         names.each do |name|
-          value = redis.get name
+          value = data_store.get_worker_payload(name)
           reportedly_working[name] = value unless value.nil? || value.empty?
         end
       end
@@ -110,7 +113,7 @@ module Resque
     # Given a string worker id, return a boolean indicating whether the
     # worker exists
     def self.exists?(worker_id)
-      redis.sismember(:workers, worker_id)
+      data_store.worker_exists?(worker_id)
     end
 
     # Workers should be initialized with an array of string queue
@@ -331,7 +334,7 @@ module Resque
     def reconnect
       tries = 0
       begin
-        redis.client.reconnect
+        data_store.reconnect
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
           log_with_severity :error, "Error reconnecting to Redis; retrying"
@@ -621,10 +624,7 @@ module Resque
     # Registers ourself as a worker. Useful when entering the worker
     # lifecycle on startup.
     def register_worker
-      redis.pipelined do
-        redis.sadd(:workers, self)
-        started!
-      end
+      data_store.register_worker(self)
     end
 
     # Runs a named hook, passing along any arguments.
@@ -663,12 +663,7 @@ module Resque
 
       kill_background_threads
 
-      redis.pipelined do
-        redis.srem(:workers, self)
-        redis.del("worker:#{self}")
-        redis.del("worker:#{self}:started")
-        redis.hdel(WORKER_HEARTBEAT_KEY, self.to_s)
-
+      data_store.unregister_worker(self) do
         Stat.clear("processed:#{self}")
         Stat.clear("failed:#{self}")
       end
@@ -690,15 +685,14 @@ module Resque
         :queue   => job.queue,
         :run_at  => Time.now.utc.iso8601,
         :payload => job.payload
-      redis.set("worker:#{self}", data)
+      data_store.set_worker_payload(self,data)
     end
 
     # Called when we are done working - clears our `working_on` state
     # and tells Redis we processed a job.
     def done_working
-      redis.pipelined do
+      data_store.worker_done_working(self) do
         processed!
-        redis.del("worker:#{self}")
       end
     end
 
@@ -726,18 +720,18 @@ module Resque
 
     # What time did this worker start? Returns an instance of `Time`
     def started
-      redis.get "worker:#{self}:started"
+      data_store.worker_start_time(self)
     end
 
     # Tell Redis we've started
     def started!
-      redis.set("worker:#{self}:started", Time.now.to_s)
+      data_store.worker_started(self)
     end
 
     # Returns a hash explaining the Job we're currently processing, if any.
     def job(reload = true)
       @job = nil if reload
-      @job ||= decode(redis.get("worker:#{self}")) || {}
+      @job ||= decode(data_store.get_worker_payload(self)) || {}
     end
     attr_writer :job
     alias_method :processing, :job
@@ -763,7 +757,7 @@ module Resque
     # Returns a symbol representing the current worker state,
     # which can be either :working or :idle
     def state
-      redis.exists("worker:#{self}") ? :working : :idle
+      data_store.get_worker_payload(self) ? :working : :idle
     end
 
     # Is this worker the same as another worker?
