@@ -53,6 +53,7 @@ module Resque
     # registered in the application. Otherwise, forked workers exit with `exit!`
     attr_accessor :run_at_exit_hooks
 
+    attr_writer :fork_per_job
     attr_writer :hostname
     attr_writer :to_s
     attr_writer :pid
@@ -226,33 +227,34 @@ module Resque
           working_on job
 
           procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-          if @child = fork(job)
-            srand # Reseeding
-            procline "Forked #{@child} at #{Time.now.to_i}"
+          if fork_per_job?
+            run_hook :before_fork, job
             begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
+              @child = fork do
+                unregister_signal_handlers if term_child
+                perform(job, &block)
+                exit! unless run_at_exit_hooks
+              end
+            rescue NotImplementedError
+              @fork_per_job = false
             end
-            job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
-          else
-            unregister_signal_handlers if will_fork? && term_child
-            begin
-
-              reconnect if will_fork?
-              perform(job, &block)
-
-            rescue Exception => exception
-              report_failed_job(job,exception)
+            if @child
+              srand # Reseeding
+              procline "Forked #{@child} at #{Time.now.to_i}"
+              begin
+                Process.waitpid(@child)
+              rescue SystemCallError
+                nil
+              end
+              job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
+              @child = nil
             end
-
-            if will_fork?
-              run_at_exit_hooks ? exit : exit!
-            end
+          end
+          unless fork_per_job?
+            perform(job, &block)
           end
 
           done_working
-          @child = nil
         else
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
@@ -300,7 +302,10 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
-        run_hook :after_fork, job if will_fork?
+        if fork_per_job?
+          reconnect
+          run_hook :after_fork, job
+        end
         job.perform
       rescue Object => e
         report_failed_job(job,e)
@@ -344,28 +349,6 @@ module Resque
           log_with_severity :error, "Error reconnecting to Redis; quitting"
           raise
         end
-      end
-    end
-
-    # Not every platform supports fork. Here we do our magic to
-    # determine if yours does.
-    def fork(job)
-      return unless will_fork?
-
-      # Only run before_fork hooks if we're actually going to fork
-      # (after checking will_fork?)
-      run_hook :before_fork, job
-
-      begin
-        # IronRuby doesn't support `Kernel.fork` yet
-        if Kernel.respond_to?(:fork)
-          Kernel.fork
-        else
-          raise NotImplementedError
-        end
-      rescue NotImplementedError
-        @cant_fork = true
-        nil
       end
     end
 
@@ -746,12 +729,9 @@ module Resque
       state == :idle
     end
 
-    def will_fork?
-      !@cant_fork && fork_per_job?
-    end
-
     def fork_per_job?
-      ENV["FORK_PER_JOB"] != 'false'
+      return @fork_per_job if defined?(@fork_per_job)
+      @fork_per_job = ENV["FORK_PER_JOB"] != 'false' && Kernel.respond_to?(:fork)
     end
 
     # Returns a symbol representing the current worker state,
