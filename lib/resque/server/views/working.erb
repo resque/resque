@@ -17,10 +17,11 @@
         <% queue = data['queue'] %>
         <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>
+	<% payload = data.key?('payload') ? data['payload'] : {} %>
         <td>
-          <code><%= data['payload'].to_h['class'] %></code>
+          <code><%= payload.key?('class') ? payload['class'] : "—" %></code>
         </td>
-        <td><%=h data['payload'].to_h['args'].inspect %></td>
+        <td><%=h payload.key?('args') ? payload['args'].inspect : "—" %></td>
       </tr>
   </table>
 
