@@ -980,6 +980,31 @@ describe "Resque::Worker" do
     assert_equal 0, messages.string.scan(/ERROR/).count
   end
 
+  class CounterJob
+    class << self
+      attr_accessor :perform_count
+    end
+    self.perform_count = 0
+
+    def self.perform
+      self.perform_count += 1
+    end
+  end
+
+  it "runs jobs without forking if fork isn't implemented" do
+    nil while @worker.reserve # empty queue
+    @worker.expects(:fork).raises(NotImplementedError)
+    Resque.enqueue_to(:jobs, CounterJob)
+
+    begin
+      @worker.work(0)
+      assert_equal 1, CounterJob.perform_count
+      assert_equal false, @worker.fork_per_job?
+    ensure
+      CounterJob.perform_count = 0
+    end
+  end
+
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     class ForkResultJob
       @queue = :jobs
