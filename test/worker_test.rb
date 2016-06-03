@@ -891,11 +891,12 @@ describe "Resque::Worker" do
   end
 
   it "won't fork if ENV['FORK_PER_JOB'] is false" do
+    old_fork_per_job = ENV["FORK_PER_JOB"]
     begin
       ENV["FORK_PER_JOB"] = 'false'
       assert_equal false, Resque::Worker.new(:jobs).fork_per_job?
     ensure
-      ENV["FORK_PER_JOB"] = 'true'
+      ENV["FORK_PER_JOB"] = old_fork_per_job
     end
   end
 
