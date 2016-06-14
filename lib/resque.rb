@@ -123,7 +123,7 @@ module Resque
 
       @data_store = Resque::DataStore.new(Redis::Namespace.new(namespace, :redis => redis))
     when Redis::Namespace
-      @data_store = server
+      @data_store = Resque::DataStore.new(server)
     when Resque::DataStore
       @data_store = server
     when Hash

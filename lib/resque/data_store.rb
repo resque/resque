@@ -80,7 +80,7 @@ module Resque
     # is O(N) for the keyspace, so be careful - this can be slow for big databases.
     def all_resque_keys
       @redis.keys("*").map do |key|
-        key.sub("#{Resque.redis.namespace}:", '')
+        key.sub("#{@redis.namespace}:", '')
       end
     end
 
