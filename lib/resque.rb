@@ -143,7 +143,7 @@ module Resque
   alias :data_store :redis
 
   def redis_id
-    @data_store.identifier
+    data_store.identifier
   end
 
   # Set or retrieve the current logger object
@@ -267,20 +267,20 @@ module Resque
   #
   # Returns nothing
   def push(queue, item)
-    @data_store.push_to_queue(queue,encode(item))
+    data_store.push_to_queue(queue,encode(item))
   end
 
   # Pops a job off a queue. Queue name should be a string.
   #
   # Returns a Ruby object.
   def pop(queue)
-    decode(@data_store.pop_from_queue(queue))
+    decode(data_store.pop_from_queue(queue))
   end
 
   # Returns an integer representing the size of a queue.
   # Queue name should be a string.
   def size(queue)
-    @data_store.queue_size(queue)
+    data_store.queue_size(queue)
   end
 
   # Returns an array of items currently queued. Queue name should be
@@ -292,7 +292,7 @@ module Resque
   # To get the 3rd page of a 30 item, paginatied list one would use:
   #   Resque.peek('my_list', 59, 30)
   def peek(queue, start = 0, count = 1)
-    results = @data_store.peek_in_queue(queue,start,count)
+    results = data_store.peek_in_queue(queue,start,count)
     if count == 1
       decode(results)
     else
@@ -303,7 +303,7 @@ module Resque
   # Does the dirty work of fetching a range of items from a Redis list
   # and converting them into Ruby objects.
   def list_range(key, start = 0, count = 1)
-    results = @data_store.list_range(key, start, count)
+    results = data_store.list_range(key, start, count)
     if count == 1
       decode(results)
     else
@@ -313,18 +313,18 @@ module Resque
 
   # Returns an array of all known Resque queues as strings.
   def queues
-    @data_store.queue_names
+    data_store.queue_names
   end
 
   # Given a queue name, completely deletes the queue.
   def remove_queue(queue)
-    @data_store.remove_queue(queue)
+    data_store.remove_queue(queue)
   end
 
   # Used internally to keep track of which queues we've created.
   # Don't call this directly.
   def watch_queue(queue)
-    @data_store.watch_queue(queue)
+    data_store.watch_queue(queue)
   end
 
 
@@ -487,7 +487,7 @@ module Resque
       :queues    => queues.size,
       :workers   => workers.size.to_i,
       :working   => working.size,
-      :failed    => @data_store.num_failed,
+      :failed    => data_store.num_failed,
       :servers   => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'
     }
@@ -496,7 +496,7 @@ module Resque
   # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
   # is O(N) for the keyspace, so be careful - this can be slow for big databases.
   def keys
-    @data_store.all_resque_keys
+    data_store.all_resque_keys
   end
 
   # Returns a hash, mapping queue names to queue sizes
