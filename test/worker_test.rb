@@ -767,7 +767,6 @@ describe "Resque::Worker" do
     $BEFORE_FORK_CALLED = false
     Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
     workerA = Resque::Worker.new(:jobs)
-    workerA.stubs(:will_fork?).returns(true)
 
     assert !$BEFORE_FORK_CALLED
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
@@ -776,15 +775,16 @@ describe "Resque::Worker" do
   end
 
   it "Will not call a before_fork hook when the worker cannot fork" do
-    $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-    workerA.stubs(:will_fork?).returns(false)
+    without_forking do
+      $BEFORE_FORK_CALLED = false
+      Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
 
-    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
+      assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      workerA.work(0)
+      assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
+    end
   end
 
   it "Will not call a before_fork hook when forking set to false" do
@@ -891,15 +891,12 @@ describe "Resque::Worker" do
   end
 
   it "won't fork if ENV['FORK_PER_JOB'] is false" do
-    workerA = Resque::Worker.new(:jobs)
-
-    if workerA.will_fork?
-      begin
-        ENV["FORK_PER_JOB"] = 'false'
-        assert !workerA.will_fork?
-      ensure
-        ENV["FORK_PER_JOB"] = 'true'
-      end
+    old_fork_per_job = ENV["FORK_PER_JOB"]
+    begin
+      ENV["FORK_PER_JOB"] = 'false'
+      assert_equal false, Resque::Worker.new(:jobs).fork_per_job?
+    ensure
+      ENV["FORK_PER_JOB"] = old_fork_per_job
     end
   end
 
@@ -921,15 +918,16 @@ describe "Resque::Worker" do
   end
 
   it "Will not call an after_fork hook when the worker won't fork" do
-    $AFTER_FORK_CALLED = false
-    Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-    workerA.stubs(:will_fork?).returns(false)
+    without_forking do
+      $AFTER_FORK_CALLED = false
+      Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
 
-    assert !$AFTER_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert !$AFTER_FORK_CALLED
+      assert !$AFTER_FORK_CALLED
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      workerA.work(0)
+      assert !$AFTER_FORK_CALLED
+    end
   end
 
   it "returns PID of running process" do
@@ -980,6 +978,31 @@ describe "Resque::Worker" do
 
     assert_equal 1, messages.string.scan(/INFO/).count
     assert_equal 0, messages.string.scan(/ERROR/).count
+  end
+
+  class CounterJob
+    class << self
+      attr_accessor :perform_count
+    end
+    self.perform_count = 0
+
+    def self.perform
+      self.perform_count += 1
+    end
+  end
+
+  it "runs jobs without forking if fork isn't implemented" do
+    nil while @worker.reserve # empty queue
+    @worker.expects(:fork).raises(NotImplementedError)
+    Resque.enqueue_to(:jobs, CounterJob)
+
+    begin
+      @worker.work(0)
+      assert_equal 1, CounterJob.perform_count
+      assert_equal false, @worker.fork_per_job?
+    ensure
+      CounterJob.perform_count = 0
+    end
   end
 
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
