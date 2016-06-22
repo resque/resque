@@ -33,9 +33,7 @@ describe "Resque Hooks" do
 
   it 'it calls before_fork before each job' do
     skip("TRAAAVIS!!!!") if RUBY_VERSION == "1.8.7"
-    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
-    # exit!(true) will be called in Worker#work; to share state, use a tempfile
-    file = Tempfile.new("resque_before_fork")
+    file = Tempfile.new("resque_before_fork") # to share state with forked process
 
     begin
       File.open(file.path, "w") {|f| f.write(0)}
@@ -47,7 +45,6 @@ describe "Resque Hooks" do
 
       val = File.read(file.path).strip.to_i
       assert_equal(0, val)
-      @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
       val = File.read(file.path).strip.to_i
       assert_equal(2, val)
@@ -58,9 +55,7 @@ describe "Resque Hooks" do
 
   it 'it calls after_fork after each job' do
     skip("TRAAAVIS!!!!") if RUBY_VERSION == "1.8.7"
-    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
-    # exit!(true) will be called in Worker#work; to share state, use a tempfile
-    file = Tempfile.new("resque_after_fork")
+    file = Tempfile.new("resque_after_fork") # to share state with forked process
 
     begin
       File.open(file.path, "w") {|f| f.write(0)}
@@ -72,7 +67,6 @@ describe "Resque Hooks" do
 
       val = File.read(file.path).strip.to_i
       assert_equal(0, val)
-      @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
       val = File.read(file.path).strip.to_i
       assert_equal(2, val)
@@ -116,10 +110,10 @@ describe "Resque Hooks" do
   end
 
   it 'it registers multiple before_forks' do
-    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
-    # exit!(true) will be called in Worker#work; to share state, use a tempfile
+    # use tempfiles to share state with forked process
     file = Tempfile.new("resque_before_fork_first")
     file2 = Tempfile.new("resque_before_fork_second")
+
     begin
       File.open(file.path, "w") {|f| f.write(1)}
       File.open(file2.path, "w") {|f| f.write(2)}
@@ -135,7 +129,6 @@ describe "Resque Hooks" do
       end
       Resque::Job.create(:jobs, CallNotifyJob)
 
-      @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
       val = File.read(file.path).strip.to_i
       val2 = File.read(file2.path).strip.to_i
@@ -148,10 +141,10 @@ describe "Resque Hooks" do
   end
 
   it 'it registers multiple after_forks' do
-    # We have to stub out will_fork? to return true, which is going to cause an actual fork(). As such, the
-    # exit!(true) will be called in Worker#work; to share state, use a tempfile
+    # use tempfiles to share state with forked process
     file = Tempfile.new("resque_after_fork_first")
     file2 = Tempfile.new("resque_after_fork_second")
+
     begin
       File.open(file.path, "w") {|f| f.write(1)}
       File.open(file2.path, "w") {|f| f.write(2)}
@@ -167,7 +160,6 @@ describe "Resque Hooks" do
       end
       Resque::Job.create(:jobs, CallNotifyJob)
 
-      @worker.stubs(:will_fork?).returns(true)
       @worker.work(0)
       val = File.read(file.path).strip.to_i
       val2 = File.read(file2.path).strip.to_i

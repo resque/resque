@@ -53,6 +53,7 @@ module Resque
     # registered in the application. Otherwise, forked workers exit with `exit!`
     attr_accessor :run_at_exit_hooks
 
+    attr_writer :fork_per_job
     attr_writer :hostname
     attr_writer :to_s
     attr_writer :pid
@@ -214,7 +215,6 @@ module Resque
     # has completed processing. Useful for testing.
     def work(interval = 5.0, &block)
       interval = Float(interval)
-      $0 = "resque: Starting"
       startup
 
       loop do
@@ -222,37 +222,16 @@ module Resque
 
         if not paused? and job = reserve
           log_with_severity :info, "got: #{job.inspect}"
-          job.worker = self
-          working_on job
 
-          procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-          if @child = fork(job)
-            srand # Reseeding
-            procline "Forked #{@child} at #{Time.now.to_i}"
-            begin
-              Process.waitpid(@child)
-            rescue SystemCallError
-              nil
-            end
-            job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
-          else
-            unregister_signal_handlers if will_fork? && term_child
-            begin
+          if fork_per_job?
+            perform_with_fork(job, &block)
+          end
 
-              reconnect if will_fork?
-              perform(job, &block)
-
-            rescue Exception => exception
-              report_failed_job(job,exception)
-            end
-
-            if will_fork?
-              run_at_exit_hooks ? exit : exit!
-            end
+          unless fork_per_job?
+            perform(job, &block)
           end
 
           done_working
-          @child = nil
         else
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
@@ -297,10 +276,45 @@ module Resque
       end
     end
 
+    def perform_with_fork(job, &block)
+      run_hook :before_fork, job
+
+      begin
+        @child = fork do
+          unregister_signal_handlers if term_child
+          perform(job, &block)
+          exit! unless run_at_exit_hooks
+        end
+      rescue NotImplementedError
+        @fork_per_job = false
+      end
+
+      return unless @child
+
+      srand # Reseeding
+      procline "Forked #{@child} at #{Time.now.to_i}"
+
+      begin
+        Process.waitpid(@child)
+      rescue SystemCallError
+        nil
+      end
+
+      job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
+      @child = nil
+    end
+
     # Processes a given job in the child.
     def perform(job)
+      job.worker = self
+      working_on job
+      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
+
       begin
-        run_hook :after_fork, job if will_fork?
+        if fork_per_job?
+          reconnect
+          run_hook :after_fork, job
+        end
         job.perform
       rescue Object => e
         report_failed_job(job,e)
@@ -347,30 +361,10 @@ module Resque
       end
     end
 
-    # Not every platform supports fork. Here we do our magic to
-    # determine if yours does.
-    def fork(job)
-      return unless will_fork?
-
-      # Only run before_fork hooks if we're actually going to fork
-      # (after checking will_fork?)
-      run_hook :before_fork, job
-
-      begin
-        # IronRuby doesn't support `Kernel.fork` yet
-        if Kernel.respond_to?(:fork)
-          Kernel.fork
-        else
-          raise NotImplementedError
-        end
-      rescue NotImplementedError
-        @cant_fork = true
-        nil
-      end
-    end
-
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
+      $0 = "resque: Starting"
+
       enable_gc_optimizations
       register_signal_handlers
       start_heartbeat
@@ -746,12 +740,9 @@ module Resque
       state == :idle
     end
 
-    def will_fork?
-      !@cant_fork && fork_per_job?
-    end
-
     def fork_per_job?
-      ENV["FORK_PER_JOB"] != 'false'
+      return @fork_per_job if defined?(@fork_per_job)
+      @fork_per_job = ENV["FORK_PER_JOB"] != 'false' && Kernel.respond_to?(:fork)
     end
 
     # Returns a symbol representing the current worker state,

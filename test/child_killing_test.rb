@@ -89,13 +89,14 @@ describe "Resque::Worker" do
   end
 
   it "exits with Resque::TermException when using TERM_CHILD and not forking" do
+    old_job_per_fork = ENV['FORK_PER_JOB']
     begin
       ENV['FORK_PER_JOB'] = 'false'
       worker_pid, child_pid, result = start_worker(0, true)
       assert_equal worker_pid, child_pid, "child_pid should equal worker_pid, since we are not forking"
       assert Resque.redis.lpop( 'sigterm-test:ensure_block_executed' ), 'post cleanup did not occur. SIGKILL sent too early?'
     ensure
-      ENV['FORK_PER_JOB'] = 'true'
+      ENV['FORK_PER_JOB'] = old_job_per_fork
     end
   end
 end
