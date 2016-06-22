@@ -247,7 +247,10 @@ describe "Resque" do
     end
 
     it "keeps track of resque keys" do
-      assert_equal ["queue:people", "queues"].sort, Resque.keys.sort
+      # ignore the heartbeat key that gets set in a background thread
+      keys = Resque.keys - ['workers:heartbeat']
+
+      assert_equal ["queue:people", "queues"].sort, keys.sort
     end
 
     it "keeps stats" do
