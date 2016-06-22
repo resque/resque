@@ -46,7 +46,6 @@ MiniTest::Unit.after_tests do
 end
 
 module MiniTest::Unit::LifecycleHooks
-
   def before_setup
     reset_logger
     Resque.redis.flushall
@@ -55,6 +54,9 @@ module MiniTest::Unit::LifecycleHooks
     Resque.after_fork = nil
   end
 
+  def after_teardown
+    Resque::Worker.kill_all_heartbeat_threads
+  end
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
