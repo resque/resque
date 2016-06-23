@@ -16,6 +16,12 @@ module Resque
 
     WORKER_HEARTBEAT_KEY = "workers:heartbeat"
 
+    @@all_heartbeat_threads = []
+    def self.kill_all_heartbeat_threads
+      @@all_heartbeat_threads.each(&:kill)
+      @@all_heartbeat_threads = []
+    end
+
     def redis
       Resque.redis
     end
@@ -510,6 +516,8 @@ module Resque
           heartbeat!
         end
       end
+
+      @@all_heartbeat_threads << @heart
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
