@@ -503,17 +503,15 @@ module Resque
     end
 
     def start_heartbeat
-      heartbeat!
-
       @stop_heartbeat_thread = false
       @heart = Thread.new do
         until @stop_heartbeat_thread do
+          heartbeat!
+
           Resque.heartbeat_interval.times do
             sleep(1)
             break if @stop_heartbeat_thread
           end
-
-          heartbeat!
         end
       end
 
