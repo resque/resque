@@ -484,13 +484,14 @@ module Resque
     def self.all_workers_with_expired_heartbeats
       workers = Worker.all
       heartbeats = Worker.all_heartbeats
+      now = server_time
 
       workers.select do |worker|
         id = worker.to_s
         heartbeat = heartbeats[id]
 
         if heartbeat
-          seconds_since_heartbeat = (Time.now - Time.parse(heartbeat)).to_i
+          seconds_since_heartbeat = (now - Time.parse(heartbeat)).to_i
           seconds_since_heartbeat > Resque.prune_interval
         else
           false
@@ -498,7 +499,12 @@ module Resque
       end
     end
 
-    def heartbeat!(time = Time.now)
+    def self.server_time
+      time, _ = data_store.time
+      Time.at(time)
+    end
+
+    def heartbeat!(time = self.class.server_time)
       redis.hset(WORKER_HEARTBEAT_KEY, to_s, time.iso8601)
     end
 

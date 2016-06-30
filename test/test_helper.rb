@@ -269,6 +269,14 @@ def with_pidfile
   end
 end
 
+def with_fake_time(time)
+  old_time = Time.fake_time
+  Time.fake_time = time
+  yield
+ensure
+  Time.fake_time = old_time
+end
+
 def with_background
   old_background = ENV["BACKGROUND"]
   begin

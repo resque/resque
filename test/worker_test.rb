@@ -660,12 +660,32 @@ describe "Resque::Worker" do
     assert_equal 1, Resque.workers.size
   end
 
-  it "does return returns a valid time when asking for heartbeat" do
+  it "does return a valid time when asking for heartbeat" do
     workerA = Resque::Worker.new(:jobs)
     workerA.register_worker
     workerA.heartbeat!
 
     assert_instance_of Time, workerA.heartbeat
+  end
+
+  it "does not generate heartbeats that depend on the worker clock, but only on the server clock" do
+    server_time_before = Resque::Worker.server_time
+    fake_time = Time.parse("2000-01-01")
+
+    with_fake_time(fake_time) do
+      worker_time = Time.now
+
+      workerA = Resque::Worker.new(:jobs)
+      workerA.register_worker
+      workerA.heartbeat!
+
+      heartbeat_time = workerA.heartbeat
+      refute_equal heartbeat_time, worker_time
+
+      server_time_after = Resque::Worker.server_time
+      assert server_time_before <= heartbeat_time
+      assert heartbeat_time <= server_time_after
+    end
   end
 
   it "cleans up dead worker info on start (crash recovery)" do
@@ -856,17 +876,13 @@ describe "Resque::Worker" do
     messages        = StringIO.new
     Resque.logger   = Logger.new(messages)
 
-    begin
-      require 'time'
+    with_fake_time(Time.parse("15:44:33 2011-03-02")) do
       last_puts = ""
-      Time.fake_time = Time.parse("15:44:33 2011-03-02")
 
       @worker.very_verbose = true
       @worker.log("some log text")
 
       assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, messages.string
-    ensure
-      Time.fake_time = nil
     end
   end
 
