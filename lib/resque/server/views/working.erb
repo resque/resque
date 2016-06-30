@@ -17,7 +17,7 @@
         <% queue = data['queue'] %>
         <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>
-	<% payload = data.key?('payload') ? data['payload'] : {} %>
+        <% payload = data.key?('payload') ? data['payload'] : {} %>
         <td>
           <code><%= payload.key?('class') ? payload['class'] : "—" %></code>
         </td>
