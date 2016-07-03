@@ -21,11 +21,9 @@ describe "Resque::Worker" do
 
   before do
     @worker = Resque::Worker.new(:jobs)
+    Resque::Worker.any_instance.stubs(:register_signal_handlers)
+    Resque::Worker.any_instance.stubs(:unregister_signal_handlers)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-  end
-
-  after do
-    @worker.kill_background_threads
   end
 
   it "can fail jobs" do
