@@ -4,6 +4,8 @@ module Resque
   class DataStore
     extend Forwardable
 
+    HEARTBEAT_KEY = "workers:heartbeat"
+
     def initialize(redis)
       @redis               = redis
       @queue_access        = QueueAccess.new(@redis)
@@ -38,6 +40,9 @@ module Resque
                               :register_worker,
                               :worker_started,
                               :unregister_worker,
+                              :heartbeat,
+                              :heartbeat!,
+                              :all_heartbeats,
                               :set_worker_payload,
                               :worker_start_time,
                               :worker_done_working
@@ -82,6 +87,11 @@ module Resque
       @redis.keys("*").map do |key|
         key.sub("#{@redis.namespace}:", '')
       end
+    end
+
+    def server_time
+      time, _ = @redis.time
+      Time.at(time)
     end
 
     class QueueAccess
@@ -236,18 +246,31 @@ module Resque
         @redis.set(redis_key_for_worker_start_time(worker), Time.now.to_s)
       end
 
-      def unregister_worker(worker,&block)
+      def unregister_worker(worker, &block)
         @redis.pipelined do
           @redis.srem(:workers, worker)
           @redis.del(redis_key_for_worker(worker))
           @redis.del(redis_key_for_worker_start_time(worker))
-          @redis.hdel(Resque::Worker::WORKER_HEARTBEAT_KEY, self.to_s)
+          @redis.hdel(HEARTBEAT_KEY, worker.to_s)
 
           block.call
         end
       end
 
-      def set_worker_payload(worker,data)
+      def heartbeat(worker)
+        heartbeat = @redis.hget(HEARTBEAT_KEY, worker.to_s)
+        heartbeat && Time.parse(heartbeat)
+      end
+
+      def heartbeat!(worker, time)
+        @redis.hset(HEARTBEAT_KEY, worker.to_s, time.iso8601)
+      end
+
+      def all_heartbeats
+        @redis.hgetall(HEARTBEAT_KEY)
+      end
+
+      def set_worker_payload(worker, data)
         @redis.set(redis_key_for_worker(worker), data)
       end
 
@@ -255,7 +278,7 @@ module Resque
         @redis.get(redis_key_for_worker_start_time(worker))
       end
 
-      def worker_done_working(worker,&block)
+      def worker_done_working(worker, &block)
         @redis.pipelined do
           @redis.del(redis_key_for_worker(worker))
           block.call

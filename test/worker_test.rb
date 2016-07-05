@@ -668,8 +668,26 @@ describe "Resque::Worker" do
     assert_instance_of Time, workerA.heartbeat
   end
 
+  it "cleans up heartbeat after unregistering" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.register_worker
+    workerA.start_heartbeat
+
+    Timeout.timeout(5) do
+      sleep 0.1 while Resque::Worker.all_heartbeats.empty?
+
+      assert Resque::Worker.all_heartbeats.key?(workerA.to_s)
+      assert_instance_of Time, workerA.heartbeat
+
+      workerA.unregister_worker
+      sleep 0.1 until Resque::Worker.all_heartbeats.empty?
+    end
+
+    assert_equal nil, workerA.heartbeat
+  end
+
   it "does not generate heartbeats that depend on the worker clock, but only on the server clock" do
-    server_time_before = Resque::Worker.server_time
+    server_time_before = Resque.data_store.server_time
     fake_time = Time.parse("2000-01-01")
 
     with_fake_time(fake_time) do
@@ -682,7 +700,7 @@ describe "Resque::Worker" do
       heartbeat_time = workerA.heartbeat
       refute_equal heartbeat_time, worker_time
 
-      server_time_after = Resque::Worker.server_time
+      server_time_after = Resque.data_store.server_time
       assert server_time_before <= heartbeat_time
       assert heartbeat_time <= server_time_after
     end

@@ -14,8 +14,6 @@ module Resque
     extend Resque::Helpers
     include Resque::Logging
 
-    WORKER_HEARTBEAT_KEY = "workers:heartbeat"
-
     @@all_heartbeat_threads = []
     def self.kill_all_heartbeat_threads
       @@all_heartbeat_threads.each(&:kill)
@@ -471,12 +469,15 @@ module Resque
     end
 
     def heartbeat
-      heartbeat = redis.hget(WORKER_HEARTBEAT_KEY, to_s)
-      heartbeat && Time.parse(heartbeat)
+      data_store.heartbeat(self)
+    end
+
+    def heartbeat!(time = data_store.server_time)
+      data_store.heartbeat!(self, time)
     end
 
     def self.all_heartbeats
-      redis.hgetall(WORKER_HEARTBEAT_KEY)
+      data_store.all_heartbeats
     end
 
     # Returns a list of workers that have sent a heartbeat in the past, but which
@@ -484,7 +485,7 @@ module Resque
     def self.all_workers_with_expired_heartbeats
       workers = Worker.all
       heartbeats = Worker.all_heartbeats
-      now = server_time
+      now = data_store.server_time
 
       workers.select do |worker|
         id = worker.to_s
@@ -497,15 +498,6 @@ module Resque
           false
         end
       end
-    end
-
-    def self.server_time
-      time, _ = data_store.time
-      Time.at(time)
-    end
-
-    def heartbeat!(time = self.class.server_time)
-      redis.hset(WORKER_HEARTBEAT_KEY, to_s, time.iso8601)
     end
 
     def start_heartbeat
