@@ -625,33 +625,41 @@ describe "Resque::Worker" do
   end
 
   it "prunes dead workers with heartbeat older than prune interval" do
+    assert_equal({}, Resque::Worker.all_heartbeats)
     now = Time.now
 
     workerA = Resque::Worker.new(:jobs)
-    workerA.instance_variable_set(:@to_s, "bar:3:jobs")
+    workerA.to_s = "bar:3:jobs"
     workerA.register_worker
     workerA.heartbeat!(now - Resque.prune_interval - 1)
 
     assert_equal 1, Resque.workers.size
+    assert Resque::Worker.all_heartbeats.key?(workerA.to_s)
 
     workerB = Resque::Worker.new(:jobs)
-    workerB.instance_variable_set(:@to_s, "foo:5:jobs")
+    workerB.to_s = "foo:5:jobs"
     workerB.register_worker
     workerB.heartbeat!(now)
 
     assert_equal 2, Resque.workers.size
+    assert Resque::Worker.all_heartbeats.key?(workerB.to_s)
+    assert_equal [workerA], Resque::Worker.all_workers_with_expired_heartbeats
 
     @worker.prune_dead_workers
 
     assert_equal 1, Resque.workers.size
+    refute Resque::Worker.all_heartbeats.key?(workerA.to_s)
+    assert Resque::Worker.all_heartbeats.key?(workerB.to_s)
+    assert_equal [], Resque::Worker.all_workers_with_expired_heartbeats
   end
 
   it "does not prune workers that haven't set a heartbeat" do
     workerA = Resque::Worker.new(:jobs)
-    workerA.instance_variable_set(:@to_s, "bar:3:jobs")
+    workerA.to_s = "bar:3:jobs"
     workerA.register_worker
 
     assert_equal 1, Resque.workers.size
+    assert_equal({}, Resque::Worker.all_heartbeats)
 
     @worker.prune_dead_workers
 
