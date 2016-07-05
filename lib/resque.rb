@@ -19,6 +19,7 @@ require 'resque/job'
 require 'resque/worker'
 require 'resque/plugin'
 require 'resque/data_store'
+require 'resque/thread_signal'
 
 require 'resque/vendor/utf8_util'
 

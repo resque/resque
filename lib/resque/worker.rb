@@ -16,7 +16,7 @@ module Resque
 
     @@all_heartbeat_threads = []
     def self.kill_all_heartbeat_threads
-      @@all_heartbeat_threads.each(&:kill)
+      @@all_heartbeat_threads.each(&:kill).each(&:join)
       @@all_heartbeat_threads = []
     end
 
@@ -501,19 +501,17 @@ module Resque
     end
 
     def start_heartbeat
-      @stop_heartbeat_thread = false
-      @heart = Thread.new do
-        until @stop_heartbeat_thread do
-          heartbeat!
+      @heartbeat_thread_signal = Resque::ThreadSignal.new
 
-          Resque.heartbeat_interval.times do
-            sleep(1)
-            break if @stop_heartbeat_thread
-          end
+      @heartbeat_thread = Thread.new do
+        loop do
+          heartbeat!
+          signaled = @heartbeat_thread_signal.wait_for_signal(Resque.heartbeat_interval)
+          break if signaled
         end
       end
 
-      @@all_heartbeat_threads << @heart
+      @@all_heartbeat_threads << @heartbeat_thread
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
@@ -629,7 +627,10 @@ module Resque
     end
 
     def kill_background_threads
-      @stop_heartbeat_thread = true if @heart
+      if @heartbeat_thread
+        @heartbeat_thread_signal.signal
+        @heartbeat_thread.join
+      end
     end
 
     # Unregisters ourself as a worker. Useful when shutting down.
