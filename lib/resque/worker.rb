@@ -472,6 +472,10 @@ module Resque
       data_store.heartbeat(self)
     end
 
+    def remove_heartbeat
+      data_store.remove_heartbeat(self)
+    end
+
     def heartbeat!(time = data_store.server_time)
       data_store.heartbeat!(self, time)
     end
@@ -501,6 +505,8 @@ module Resque
     end
 
     def start_heartbeat
+      remove_heartbeat
+
       @heartbeat_thread_signal = Resque::ThreadSignal.new
 
       @heartbeat_thread = Thread.new do

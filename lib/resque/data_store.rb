@@ -42,6 +42,7 @@ module Resque
                               :unregister_worker,
                               :heartbeat,
                               :heartbeat!,
+                              :remove_heartbeat,
                               :all_heartbeats,
                               :set_worker_payload,
                               :worker_start_time,
@@ -255,6 +256,10 @@ module Resque
 
           block.call
         end
+      end
+
+      def remove_heartbeat(worker)
+        @redis.hdel(HEARTBEAT_KEY, worker.to_s)
       end
 
       def heartbeat(worker)

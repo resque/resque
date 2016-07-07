@@ -672,6 +672,16 @@ describe "Resque::Worker" do
     workerA.heartbeat!
 
     assert_instance_of Time, workerA.heartbeat
+
+    workerA.remove_heartbeat
+    assert_equal nil, workerA.heartbeat
+  end
+
+  it "removes old heartbeats before starting heartbeat thread" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.register_worker
+    workerA.expects(:remove_heartbeat).once
+    workerA.start_heartbeat
   end
 
   it "cleans up heartbeat after unregistering" do
