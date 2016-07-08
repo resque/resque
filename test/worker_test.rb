@@ -318,6 +318,28 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:high)
   end
 
+  it "can work off one job" do
+    Resque::Job.create(:jobs, GoodJob)
+    assert_equal 2, Resque.size(:jobs)
+    assert_equal true, @worker.work_one_job
+    assert_equal 1, Resque.size(:jobs)
+
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob'})
+    assert_equal 1, Resque.size(:jobs)
+    assert_equal true, @worker.work_one_job(job)
+    assert_equal 1, Resque.size(:jobs)
+
+    @worker.pause_processing
+    @worker.work_one_job
+    assert_equal 1, Resque.size(:jobs)
+
+    @worker.unpause_processing
+    assert_equal true, @worker.work_one_job
+    assert_equal 0, Resque.size(:jobs)
+
+    assert_equal false, @worker.work_one_job
+  end
+
   it "the queues method avoids unnecessary calls to smembers" do
     worker = Resque::Worker.new(:critical, :high)
     Resque.redis.expects(:smembers).at_most_once

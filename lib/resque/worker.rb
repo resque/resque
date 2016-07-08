@@ -219,47 +219,12 @@ module Resque
     # has completed processing. Useful for testing.
     def work(interval = 5.0, &block)
       interval = Float(interval)
-      $0 = "resque: Starting"
       startup
 
       loop do
         break if shutdown?
 
-        if not paused? and job = reserve
-          log_with_severity :info, "got: #{job.inspect}"
-          job.worker = self
-          working_on job
-
-          procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-          if fork_per_job?
-            run_hook :before_fork, job
-            begin
-              @child = fork do
-                unregister_signal_handlers if term_child
-                perform(job, &block)
-                exit! unless run_at_exit_hooks
-              end
-            rescue NotImplementedError
-              @fork_per_job = false
-            end
-            if @child
-              srand # Reseeding
-              procline "Forked #{@child} at #{Time.now.to_i}"
-              begin
-                Process.waitpid(@child)
-              rescue SystemCallError
-                nil
-              end
-              job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
-              @child = nil
-            end
-          end
-          unless fork_per_job?
-            perform(job, &block)
-          end
-
-          done_working
-        else
+        unless work_one_job(&block)
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
@@ -269,11 +234,29 @@ module Resque
 
       unregister_worker
     rescue Exception => exception
-      unless exception.class == SystemExit && !@child && run_at_exit_hooks
-        log_with_severity :error, "Failed to start worker : #{exception.inspect}"
+      return if exception.class == SystemExit && !@child && run_at_exit_hooks
+      log_with_severity :error, "Failed to start worker : #{exception.inspect}"
+      unregister_worker(exception)
+    end
 
-        unregister_worker(exception)
+    def work_one_job(job = nil, &block)
+      return false if paused?
+      return false unless job ||= reserve
+
+      working_on job
+      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
+
+      log_with_severity :info, "got: #{job.inspect}"
+      job.worker = self
+
+      if fork_per_job?
+        perform_with_fork(job, &block)
+      else
+        perform(job, &block)
       end
+
+      done_working
+      true
     end
 
     # DEPRECATED. Processes a single job. If none is given, it will
@@ -302,6 +285,7 @@ module Resque
         log_with_severity :error, "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
       end
     end
+
 
     # Processes a given job in the child.
     def perform(job)
@@ -358,6 +342,8 @@ module Resque
 
     # Runs all the methods needed when a worker begins its lifecycle.
     def startup
+      $0 = "resque: Starting"
+
       enable_gc_optimizations
       register_signal_handlers
       start_heartbeat
@@ -869,6 +855,34 @@ module Resque
     end
 
     private
+
+    def perform_with_fork(job, &block)
+      run_hook :before_fork, job
+
+      begin
+        @child = fork do
+          unregister_signal_handlers if term_child
+          perform(job, &block)
+          exit! unless run_at_exit_hooks
+        end
+      rescue NotImplementedError
+        @fork_per_job = false
+        perform(job, &block)
+        return
+      end
+
+      srand # Reseeding
+      procline "Forked #{@child} at #{Time.now.to_i}"
+
+      begin
+        Process.waitpid(@child)
+      rescue SystemCallError
+        nil
+      end
+
+      job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}")) if $?.signaled?
+      @child = nil
+    end
 
     def log_with_severity(severity, message)
       Logging.log(severity, message)
