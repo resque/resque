@@ -61,7 +61,7 @@ module Resque
 
     # make use respond like redis
     def respond_to?(method,include_all=false)
-      @redis.respond_to?(method,include_all)
+      @redis.respond_to?(method,include_all) || super
     end
 
     # Get a string identifying the underlying server.
