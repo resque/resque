@@ -56,7 +56,7 @@ module Resque
   #
   # classify('job-name') # => 'JobName'
   def classify(dashed_word)
-    dashed_word.split('-').each { |part| part[0] = part[0].chr.upcase }.join
+    dashed_word.split('-').map(&:capitalize).join
   end
 
   # Tries to find a constant with the name specified in the argument string:
