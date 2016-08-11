@@ -42,10 +42,6 @@ module Resque
       end
       alias_method :u, :url_path
 
-      def redirect_url_path(*path_parts)
-        [ path_prefix, path_parts ].join("/").squeeze('/')
-      end
-
       def path_prefix
         request.env['SCRIPT_NAME']
       end
@@ -160,7 +156,7 @@ module Resque
 
     # to make things easier on ourselves
     get "/?" do
-      redirect redirect_url_path(:overview)
+      redirect url_path(:overview)
     end
 
     %w( overview workers ).each do |page|
@@ -221,7 +217,7 @@ module Resque
 
     post "/failed/:queue/requeue/all" do
       Resque::Failure.requeue_queue Resque::Failure.job_queue_name(params[:queue])
-      redirect redirect_url_path("/failed/#{params[:queue]}")
+      redirect url_path("/failed/#{params[:queue]}")
     end
 
     get "/failed/requeue/:index/?" do
@@ -253,7 +249,7 @@ module Resque
     end
 
     get "/stats/?" do
-      redirect redirect_url_path("/stats/resque")
+      redirect url_path("/stats/resque")
     end
 
     get "/stats/:id/?" do
