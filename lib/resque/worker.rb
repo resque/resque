@@ -373,18 +373,19 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { graceful_term ? shutdown : shutdown!  }
-      trap('INT')  { shutdown!  }
+      st = Resque::SignalTrap.new
+      st.trap('TERM') { graceful_term ? shutdown : shutdown!  }
+      st.trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
+        st.trap('QUIT') { shutdown   }
         if term_child
-          trap('USR1') { new_kill_child }
+          st.trap('USR1') { new_kill_child }
         else
-          trap('USR1') { kill_child }
+          st.trap('USR1') { kill_child }
         end
-        trap('USR2') { pause_processing }
-        trap('CONT') { unpause_processing }
+        st.trap('USR2') { pause_processing }
+        st.trap('CONT') { unpause_processing }
       rescue ArgumentError
         log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
