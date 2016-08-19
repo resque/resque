@@ -1,10 +1,17 @@
 require 'thread'
 
-class Resque::SignalTrap
+class Resque::SignalHandler
   attr_reader :thread
 
   def initialize
     @handlers = {}
+    reopen
+  end
+
+  def reopen
+    @self_read.close rescue nil if @self_read
+    @self_write.close rescue nil if @self_write
+    @thread.kill rescue nil if @thread and @thread.alive?
     @self_read, @self_write = IO.pipe
     @thread = Thread.new(&method(:handle_signal))
   end
