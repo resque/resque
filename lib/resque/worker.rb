@@ -373,7 +373,7 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      st = Resque::SignalTrap.new
+      st = @signal_handler = Resque::SignalHandler.new
       st.trap('TERM') { graceful_term ? shutdown : shutdown!  }
       st.trap('INT')  { shutdown!  }
 
@@ -862,7 +862,11 @@ module Resque
 
       begin
         @child = fork do
-          unregister_signal_handlers if term_child
+          if term_child
+            unregister_signal_handlers
+          else
+            @signal_handler.reopen
+          end
           perform(job, &block)
           exit! unless run_at_exit_hooks
         end
