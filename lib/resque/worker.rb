@@ -228,7 +228,7 @@ module Resque
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
-          sleep interval
+          @signal_handler.handle_signal(interval)
         end
       end
 
@@ -394,11 +394,15 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') do
-        trap ('TERM') do
-          # ignore subsequent terms
+      if term_child
+        trap('TERM') do
+          trap ('TERM') do
+            # ignore subsequent terms
+          end
+          raise TermException.new("SIGTERM")
         end
-        raise TermException.new("SIGTERM")
+      else
+        trap('TERM', 'DEFAULT')
       end
       trap('INT', 'DEFAULT')
 
@@ -862,11 +866,7 @@ module Resque
 
       begin
         @child = fork do
-          if term_child
-            unregister_signal_handlers
-          else
-            @signal_handler.reopen
-          end
+          unregister_signal_handlers
           perform(job, &block)
           exit! unless run_at_exit_hooks
         end
