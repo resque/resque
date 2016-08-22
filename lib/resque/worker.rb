@@ -224,7 +224,9 @@ module Resque
       loop do
         break if shutdown?
 
-        unless work_one_job(&block)
+        if work_one_job(&block)
+          @signal_handler.handle_signal(0)
+        else
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
@@ -880,7 +882,10 @@ module Resque
       procline "Forked #{@child} at #{Time.now.to_i}"
 
       begin
-        Process.waitpid(@child)
+        loop do
+          break if Process.waitpid(@child, Process::WNOHANG)
+          @signal_handler.handle_signal(0.1)
+        end
       rescue SystemCallError
         nil
       end
