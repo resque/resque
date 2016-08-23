@@ -1158,5 +1158,21 @@ describe "Resque::Worker" do
       end
       assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
     end
+
+    it "will attach the process status when a job is killed by a signal" do
+      Resque.enqueue(SuicidalJob)
+      suppress_warnings do
+        @worker.work(0)
+      end
+      assert_equal Process::Status, SuicidalJob.send(:class_variable_get, :@@failure_exception).process_status.class
+    end
+
+    it "when a job is killed by the KILL signal, the termsig on process_status is 9" do
+      Resque.enqueue(SuicidalJob)
+      suppress_warnings do
+        @worker.work(0)
+      end
+      assert_equal 9, SuicidalJob.send(:class_variable_get, :@@failure_exception).process_status.termsig
+    end
   end
 end
