@@ -24,7 +24,13 @@ class Resque::SignalHandler
     end
 
     @handlers[sig] = block
-    Kernel.trap(sig) { @self_write.puts(sig) }
+    Kernel.trap(sig) do
+      @self_write.puts(sig)
+      # Ensure main and `@handlers[sig].call` in handle_signal thread does not run concurrently
+      # so that we do not need to care `@handlers[sig].call` is thread-safe
+      # But, note that we can not receive same signal again until `@handlers[sig].call` finishes
+      Thread.stop
+    end
   end
 
   private
@@ -32,7 +38,12 @@ class Resque::SignalHandler
   def handle_signal
     while readable_io = IO.select([@self_read])
       sig = readable_io.first[0].gets.strip
-      @handlers[sig].call
+      until Thread.main.stop? do; end
+      begin
+        @handlers[sig].call
+      ensure
+        Thread.main.wakeup
+      end
     end
   end
 end
