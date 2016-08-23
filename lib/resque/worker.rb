@@ -865,6 +865,9 @@ module Resque
           if term_child
             unregister_signal_handlers
           else
+            # 1) fork does not copy thread (signal handler thread)
+            # 2) pipe is shared with its parent (fd are different, so closable, though)
+            # recreate a signal handler thread and a pipe for the child process
             @signal_handler.reopen
           end
           perform(job, &block)

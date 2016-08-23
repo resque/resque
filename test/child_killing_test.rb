@@ -117,7 +117,7 @@ describe "Resque::Worker" do
 
     Process.kill('TERM', worker_pid)
     Process.waitpid(worker_pid)
-    result = Resque.redis.lpop('sigterm-test:result')
+    Resque.redis.lpop('sigterm-test:result')
   end
 
 end
