@@ -79,7 +79,7 @@ namespace :redis do
   end
 
   desc <<-DOC
-  Install the latest verison of Redis from Github (requires git, duh).
+  Install the latest version of Redis from Github (requires git, duh).
     Use INSTALL_DIR env var like "rake redis:install INSTALL_DIR=~/tmp"
     in order to get an alternate location for your install files.
   DOC
