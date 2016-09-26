@@ -1,0 +1,25 @@
+<h1><%= worker %>'s job</h1>
+
+<table>
+  <tr>
+    <th>&nbsp;</th>
+    <th>Where</th>
+    <th>Queue</th>
+    <th>Started</th>
+    <th>Class</th>
+    <th>Args</th>
+  </tr>
+    <tr>
+      <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
+      <% host, pid, _ = worker.to_s.split(':') %>
+      <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
+      <% queue = job['queue'] %>
+      <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
+      <td><span class="time"><%= job['run_at'] %></span></td>
+      <% payload = job.key?('payload') ? job['payload'] : {} %>
+      <td>
+        <code><%= payload.key?('class') ? payload['class'] : "—" %></code>
+      </td>
+      <td><%=h payload.key?('args') ? payload['args'].inspect : "—" %></td>
+    </tr>
+</table>

@@ -139,6 +139,8 @@ module Resque
       @shutdown = nil
       @paused = nil
       @before_first_fork_hook_ran = false
+      @very_verbose = false
+      @static_queues = nil
 
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
@@ -619,6 +621,8 @@ module Resque
     end
 
     def kill_background_threads
+      @heartbeat_thread ||= nil
+
       if @heartbeat_thread
         @heartbeat_thread_signal.signal
         @heartbeat_thread.join
@@ -779,7 +783,7 @@ module Resque
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
       tasklist_output = `tasklist /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap)
-      tasklist_output.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
+      tasklist_output.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub(/PID:\s+/, '') }
     end
 
     # Find Resque worker pids on Linux and OS X.
@@ -822,7 +826,7 @@ module Resque
 
 
     def verbose
-      @verbose
+      @verbose ||= nil
     end
 
     def very_verbose

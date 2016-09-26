@@ -131,7 +131,7 @@ module Resque
       end
 
       def poll
-        if @polling
+        if polling?
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
         else
           text = "<a href='#{u(request.path_info)}.poll' rel='poll'>Live Poll</a>"
@@ -139,11 +139,15 @@ module Resque
         "<p class='poll'>#{text}</p>"
       end
 
+      def polling?
+        @polling ||= false
+      end
     end
 
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
+        @subtabs = nil
         erb page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
         erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis_id})"

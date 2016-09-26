@@ -178,9 +178,9 @@ describe "Resque::Worker" do
     exception_caught = assert_raises Redis::CannotConnectError do
       @worker.unregister_worker(raised_exception(StandardError,error_message))
     end
-    assert_match /StandardError/, exception_caught.message
-    assert_match /#{error_message}/, exception_caught.message
-    assert_match /Redis::CannotConnectError/, exception_caught.message
+    assert_match(/StandardError/, exception_caught.message)
+    assert_match(/#{error_message}/, exception_caught.message)
+    assert_match(/Redis::CannotConnectError/, exception_caught.message)
   end
 
   def raised_exception(klass,message)
@@ -933,12 +933,10 @@ describe "Resque::Worker" do
     Resque.logger   = Logger.new(messages)
 
     with_fake_time(Time.parse("15:44:33 2011-03-02")) do
-      last_puts = ""
-
       @worker.very_verbose = true
       @worker.log("some log text")
 
-      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, messages.string
+      assert_match(/\*\* \[15:44:33 2011-03-02\] \d+: some log text/, messages.string)
     end
   end
 
@@ -1126,8 +1124,6 @@ describe "Resque::Worker" do
     end
 
     it "tries to reconnect three times before giving up" do
-      captured_worker = nil
-
       @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
       @worker.stubs(:sleep)
 

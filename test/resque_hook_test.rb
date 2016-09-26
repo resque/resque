@@ -2,16 +2,16 @@ require 'test_helper'
 require 'tempfile'
 
 describe "Resque Hooks" do
+  class CallNotifyJob
+    def self.perform
+      $called = true
+    end
+  end
+
   before do
     @worker = Resque::Worker.new(:jobs)
 
     $called = false
-
-    class CallNotifyJob
-      def self.perform
-        $called = true
-      end
-    end
   end
 
   it 'retrieving hooks if none have been set' do
