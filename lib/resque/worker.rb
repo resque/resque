@@ -150,9 +150,9 @@ module Resque
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
-      self.pre_shutdown_timeout = ENV['RESQUE_PRE_SHUTDOWN_TIMEOUT'] || 0.0
+      self.pre_shutdown_timeout = (ENV['RESQUE_PRE_SHUTDOWN_TIMEOUT'] || 0.0).to_f
       self.shutdown_signal = (ENV['RESQUE_SHUTDOWN_SIGNAL'] || 'TERM').upcase
-      self.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
+      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 4.0).to_f
       self.term_child = ENV['TERM_CHILD']
       self.graceful_term = ENV['GRACEFUL_TERM']
       self.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
