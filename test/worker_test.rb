@@ -1166,9 +1166,6 @@ describe "Resque::Worker" do
               # reconnect to redis
               Resque.redis.client.reconnect
 
-              # ensure we fork (in worker)
-              $TESTING = false
-
               worker = Resque::Worker.new(:long_running_job)
               worker.pre_shutdown_timeout = pre_shutdown_timeout
               worker.term_timeout = 2
