@@ -744,7 +744,9 @@ describe "Resque::Worker" do
     end
   end
 
-  it "reports errors correctly when an error occurs while pruning workers" do
+  # This was added because PruneDeadWorkerDirtyExit does not have a backtrace,
+  # and the error handling code did not account for that.
+  it "correctly reports errors that occur while pruning workers" do
     workerA = Resque::Worker.new(:jobs)
     workerA.to_s = "bar:3:jobs"
     workerA.register_worker
