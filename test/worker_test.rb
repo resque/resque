@@ -744,6 +744,26 @@ describe "Resque::Worker" do
     end
   end
 
+  # This was added because PruneDeadWorkerDirtyExit does not have a backtrace,
+  # and the error handling code did not account for that.
+  it "correctly reports errors that occur while pruning workers" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.to_s = "bar:3:jobs"
+    workerA.register_worker
+    workerA.heartbeat!(Time.now - Resque.prune_interval - 1)
+
+    # the specific error isn't important, could be something else
+    Resque.data_store.redis.stubs(:get).raises(Redis::CannotConnectError)
+
+    exception_caught = assert_raises Redis::CannotConnectError do
+      @worker.prune_dead_workers
+    end
+
+    assert_match /PruneDeadWorkerDirtyExit/, exception_caught.message
+    assert_match /bar:3:jobs/, exception_caught.message
+    assert_match /Redis::CannotConnectError/, exception_caught.message
+  end
+
   it "cleans up dead worker info on start (crash recovery)" do
     # first we fake out several dead workers
     # 1: matches queue and hostname; gets pruned.
