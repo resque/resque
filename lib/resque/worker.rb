@@ -400,15 +400,15 @@ module Resque
     def unregister_signal_handlers
       trap('TERM') do
         trap('TERM') do
-          # Ignore subsequent shutdown signals
+          # Ignore subsequent term signals
         end
 
-        log_with_severity :debug, "Trapped TERM in child #{Process.pid}; raising"
         raise TermException.new("SIGTERM")
       end
 
+      trap('INT', 'DEFAULT')
+
       begin
-        trap('INT', 'DEFAULT')
         trap('QUIT', 'DEFAULT')
         trap('USR1', 'DEFAULT')
         trap('USR2', 'DEFAULT')
