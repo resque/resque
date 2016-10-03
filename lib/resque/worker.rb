@@ -48,8 +48,6 @@ module Resque
 
     attr_accessor :pre_shutdown_timeout
 
-    attr_accessor :shutdown_signal
-
     attr_accessor :term_child_signal
 
     # decide whether to use new_kill_child logic
@@ -145,13 +143,11 @@ module Resque
       @shutdown = nil
       @paused = nil
       @before_first_fork_hook_ran = false
-      @shutdown_signal = 'TERM'
 
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
       self.pre_shutdown_timeout = (ENV['RESQUE_PRE_SHUTDOWN_TIMEOUT'] || 0.0).to_f
-      self.shutdown_signal = (ENV['RESQUE_SHUTDOWN_SIGNAL'] || 'TERM').upcase
       self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 4.0).to_f
       self.term_child = ENV['TERM_CHILD']
       self.graceful_term = ENV['GRACEFUL_TERM']
@@ -402,21 +398,18 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap(shutdown_signal) do
-        trap(shutdown_signal) do
+      trap('TERM') do
+        trap('TERM') do
           # Ignore subsequent shutdown signals
         end
 
-        log_with_severity :debug, "Trapped #{shutdown_signal} in child #{Process.pid}; raising"
-        raise TermException.new("SIG#{shutdown_signal}")
+        log_with_severity :debug, "Trapped TERM in child #{Process.pid}; raising"
+        raise TermException.new("SIGTERM")
       end
 
       begin
-        %w{TERM INT QUIT}.each do |signal|
-          next if shutdown_signal == signal
-          trap(signal, 'DEFAULT')
-        end
-
+        trap('INT', 'DEFAULT')
+        trap('QUIT', 'DEFAULT')
         trap('USR1', 'DEFAULT')
         trap('USR2', 'DEFAULT')
       rescue ArgumentError
@@ -531,8 +524,8 @@ module Resque
             return if wait_for_child_exit(pre_shutdown_timeout)
           end
 
-          log_with_severity :debug, "Sending #{shutdown_signal} signal to child #{@child}"
-          Process.kill(shutdown_signal, @child)
+          log_with_severity :debug, "Sending TERM signal to child #{@child}"
+          Process.kill("TERM", @child)
 
           if wait_for_child_exit(term_timeout)
             return

@@ -462,8 +462,9 @@ To accomplish this set the following environment variables:
 * `RESQUE_PRE_SHUTDOWN_TIMEOUT` - The time between the parent receiving a shutdown signal (TERM by default) and it sending that signal on to the child process. Designed to give the child process
 time to complete before being forced to die.
 
-* `RESQUE_SHUTDOWN_SIGNAL` - The signal sent to the child process
-when the parent receives any exit signal.
+* `TERM_CHILD` - Must be set for `RESQUE_PRE_SHUTDOWN_TIMEOUT` to be used. After the timeout, if the child is still running it will raise a `Resque::TermException` and exit.
+
+* `RESQUE_TERM_TIMEOUT` - By default you have a few seconds to handle `Resque::TermException` in your job. `RESQUE_TERM_TIMEOUT` and `RESQUE_PRE_SHUTDOWN_TIMEOUT` must be lower than the [heroku dyno timeout](https://devcenter.heroku.com/articles/limits#exit-timeout).
 
 ### Mysql::Error: MySQL server has gone away
 
