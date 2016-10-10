@@ -112,6 +112,9 @@ module Resque
 
         if klass =~ /Mailer$/
           args.first
+        # handle latency logging (tmp fix)
+        elsif args.first(2) == ['instance_perform', 'enqueue_time']
+          args[4]
         elsif args.first == 'instance_perform' # [instance_perform, id, method, ....]
           args[2] #method name
         elsif args.first.kind_of?(String)
