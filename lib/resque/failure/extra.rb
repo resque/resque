@@ -106,20 +106,15 @@ module Resque
         mark_for_remove(index)
       end
 
+      def smart_classifier(&block)
+        @smart_classifier = block
+      end
+
       def smart_classify(job)
-        klass = job['payload']['class']
+        klass = job['payload']['class'].constantize
         args = job['payload']['args']
 
-        if klass =~ /Mailer$/
-          args.first
-        # handle latency logging (tmp fix)
-        elsif args.first(2) == ['instance_perform', 'enqueue_time']
-          args[4]
-        elsif args.first == 'instance_perform' # [instance_perform, id, method, ....]
-          args[2] #method name
-        elsif args.first.kind_of?(String)
-          args.first
-        end
+        @smart_classifier.call(klass, *args) if @smart_classifier
       end
 
       def stats
