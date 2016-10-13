@@ -93,8 +93,16 @@ module Resque
       # This is slow for large jobs, this function skips this step
       def fast_requeue(index, queue=nil)
         item = all(index)
+        mark_retries!(item)
         queue ||= item['queue']
         Job.create(queue, item['payload']['class'], *item['payload']['args'])
+      end
+
+      def mark_retries!(item)
+        job_meta = item['payload']['args'].first
+        if job_meta.is_a?(Hash) && job_meta["rqueue"]
+          job_meta["retries"] = job_meta["retries"].to_i + 1
+        end
       end
 
       def mark_for_remove(index, _=nil)
