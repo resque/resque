@@ -119,7 +119,8 @@ module Resque
       end
 
       def smart_classify(job)
-        klass = job['payload']['class'].constantize
+        klass = job['payload']['class'].constantize rescue nil
+        return if klass.nil?
         args = job['payload']['args']
 
         @smart_classifier.call(klass, *args) if @smart_classifier
