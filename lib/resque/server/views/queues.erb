@@ -14,7 +14,7 @@
     </tr>
     <% for job in (jobs = resque.peek(queue, start, 20)) %>
     <tr>
-      <td class='class'><%= job['class'] %></td>
+      <td class='class'><%= partial :job_class, :job => job %></td>
       <td class='args'><%=h job['args'].inspect %></td>
     </tr>
     <% end %>
