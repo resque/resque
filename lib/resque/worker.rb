@@ -160,12 +160,13 @@ module Resque
             abort "env var BACKGROUND is set, which requires ruby >= 1.9"
         end
         Process.daemon(true)
-        self.reconnect
       end
 
       if ENV['PIDFILE']
         File.open(ENV['PIDFILE'], 'w') { |f| f << pid }
       end
+
+      self.reconnect if ENV['BACKGROUND']
     end
 
     def queues=(queues)
