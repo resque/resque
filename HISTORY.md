@@ -1,14 +1,31 @@
-## 1.28.0 (TBD)
+## Unreleased
 
+Nothing yet!
 
 ## 1.27.0 (2017-02-08)
 
-* Update jQuery from 1.3.2 to 1.12.4
-
+### Fixed
 * Fix issue where calling Worker.find, Worker.all, or Worker.working from withing
   a running job would rewrite the PID file with the PID of the forked worker.
   This causes a change to the Worker#new API that may affect plugin
   implementations. See Worker#new and Worker#prepare for details. (@jeremywadsack)
+* Workers queried out now have the correct hostname (@crazymykl)
+* Fix race condition on worker startup (@stevedomin)
+* No longer triggers verbose logging if env variables are not set (@ldnunes)
+* resque/failed/requeue/all when using Redis::Failure::Multiple no longer raises an exception (@ale7714)
+* Improve forking to avoid having a child process escape its code (@dylanahsmith)
+* Workers now use server time rather than their own time to maintain heartbeats (@fw42)
+* Run eager load hooks for Rails applications versioned 4.x and up (@abhi-patel)
+* Fix bug when encountering an error while pruning workers (Joakim Kolsjö and Tomas Skogberg)
+* Children write to PIDFILE immediately after forking, fixing issues when reconnecting to Redis is slow (@fimmtiu)
+
+### Changed
+* Update jQuery from 1.3.2 to 1.12.4 (@chrisccerami)
+* No longer user Thread.kill to stop heartbeat (@Sinjo)
+
+### Added
+* Resque Web UI now prompts for confirmation on clearing failed jobs (Markus Olsen)
+* Adds process status to DirtyExit exception when job is killed via signal (@MishaConway)
 
 ## 1.26.0 (2016-03-10)
 
