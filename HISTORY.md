@@ -2,6 +2,11 @@
 
 Nothing yet!
 
+## 1.27.1 (2017-02-13)
+
+### Fixed
+* Show actual jobs names in web view using ActiveJob (@martnst)
+
 ## 1.27.0 (2017-02-08)
 
 ### Fixed
