@@ -8,7 +8,7 @@ body { padding:0; margin:0; }
 .header ul li a:hover { background:#333;}
 .header ul li.current a { background:#ce1212; font-weight:bold; color:#fff;}
 
-.header .namespace { position: absolute; right: 75px; top: 10px; color: #7A7A7A; }
+.header .namespace { position: absolute; right: 75px; top: 12px; color: #FFF; font-weight: bold; }
 
 .subnav { padding:2px 5% 7px 5%; background:#ce1212; font-size:90%;}
 .subnav li { display:inline;}
