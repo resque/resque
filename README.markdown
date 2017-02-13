@@ -34,6 +34,9 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
+Resque now supports Ruby 2.1.10 and above. Any future updates will not be
+guaranteed to work without defects on any Rubies older than 2.1.10.
+
 
 The Blog Post
 -------------
