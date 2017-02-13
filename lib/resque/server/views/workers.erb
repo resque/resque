@@ -29,8 +29,7 @@
       <td class='process'>
         <% data = worker.processing || {} %>
         <% if data['queue'] %>
-          <code><%= data['payload']['class'] %></code>
-          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
+          <%= partial :processing, :worker => worker, :job => data %>
         <% else %>
           <span class='waiting'>Waiting for a job...</span>
         <% end %>
@@ -70,8 +69,7 @@
       <td class='process'>
         <% data = worker.processing || {} %>
         <% if data['queue'] %>
-          <code><%= data['payload']['class'] %></code>
-          <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= data['run_at'] %></a></small>
+          <%= partial :processing, :worker => worker, :job => data %>
         <% else %>
           <span class='waiting'>Waiting for a job...</span>
         <% end %>

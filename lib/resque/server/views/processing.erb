@@ -1,0 +1,2 @@
+<%= partial :job_class, :job => job['payload'] %>
+<small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>

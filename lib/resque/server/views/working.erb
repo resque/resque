@@ -59,8 +59,7 @@
         </td>
         <td class='process'>
           <% if job['queue'] %>
-            <code><%= job['payload']['class'] %></code>
-            <small><a class="queue time" href="<%=u "/working/#{worker}" %>"><%= job['run_at'] %></a></small>
+            <%= partial :processing, :worker => worker, :job => job %>
           <% else %>
             <span class='waiting'>Waiting for a job...</span>
           <% end %>
