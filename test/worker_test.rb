@@ -60,13 +60,9 @@ describe "Resque::Worker" do
   end
 
   it "daemonizes when ENV['BACKGROUND'] is supplied and #prepare is called" do
-    if Process.respond_to?("daemon")
-      Process.expects(:daemon)
-      with_background do
-        @worker.prepare
-      end
-    else
-      skip("Process.daemon not supported; requires ruby >= 1.9")
+    Process.expects(:daemon)
+    with_background do
+      @worker.prepare
     end
   end
 

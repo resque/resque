@@ -162,9 +162,6 @@ module Resque
     # once per worker.
     def prepare
       if ENV['BACKGROUND']
-        unless Process.respond_to?('daemon')
-            abort "env var BACKGROUND is set, which requires ruby >= 1.9"
-        end
         Process.daemon(true)
       end
 
