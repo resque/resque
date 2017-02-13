@@ -155,12 +155,12 @@ module Resque
 
   attr_writer :heartbeat_interval
   def heartbeat_interval
-    @heartbeat_interval || DEFAULT_HEARTBEAT_INTERVAL
+    @heartbeat_interval ||= DEFAULT_HEARTBEAT_INTERVAL
   end
 
   attr_writer :prune_interval
   def prune_interval
-    @prune_interval || DEFAULT_PRUNE_INTERVAL
+    @prune_interval ||= DEFAULT_PRUNE_INTERVAL
   end
 
   attr_writer :enqueue_front
@@ -177,7 +177,7 @@ module Resque
   # Call with a block to register a hook.
   # Call with no arguments to return all registered hooks.
   def before_first_fork(&block)
-    block ? register_hook(:before_first_fork, block) : hooks(:before_first_fork)
+    block ? register_hook(:before_first_fork, block) : all_hooks_by_name(:before_first_fork)
   end
 
   # Register a before_first_fork proc.
@@ -192,7 +192,7 @@ module Resque
   # Call with a block to register a hook.
   # Call with no arguments to return all registered hooks.
   def before_fork(&block)
-    block ? register_hook(:before_fork, block) : hooks(:before_fork)
+    block ? register_hook(:before_fork, block) : all_hooks_by_name(:before_fork)
   end
 
   # Register a before_fork proc.
@@ -207,7 +207,7 @@ module Resque
   # Call with a block to register a hook.
   # Call with no arguments to return all registered hooks.
   def after_fork(&block)
-    block ? register_hook(:after_fork, block) : hooks(:after_fork)
+    block ? register_hook(:after_fork, block) : all_hooks_by_name(:after_fork)
   end
 
   # Register an after_fork proc.
@@ -218,7 +218,7 @@ module Resque
   # The `before_pause` hook will be run in the parent process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
   def before_pause(&block)
-    block ? register_hook(:before_pause, block) : hooks(:before_pause)
+    block ? register_hook(:before_pause, block) : all_hooks_by_name(:before_pause)
   end
 
   # Register a before_pause proc.
@@ -229,7 +229,7 @@ module Resque
   # The `after_pause` hook will be run in the parent process after the
   # worker has paused (via SIGCONT).
   def after_pause(&block)
-    block ? register_hook(:after_pause, block) : hooks(:after_pause)
+    block ? register_hook(:after_pause, block) : all_hooks_by_name(:after_pause)
   end
 
   # Register an after_pause proc.
@@ -424,7 +424,7 @@ module Resque
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
-    klass.instance_variable_get(:@queue) ||
+    (klass.instance_variable_defined?(:@queue) && klass.instance_variable_get(:@queue)) ||
       (klass.respond_to?(:queue) and klass.queue)
   end
 
@@ -483,7 +483,7 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
-      :pending   => queue_sizes.inject(0) { |sum, (queue_name, queue_size)| sum + queue_size },
+      :pending   => queue_sizes.inject(0) { |sum, (_queue_name, queue_size)| sum + queue_size },
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
@@ -550,26 +550,23 @@ module Resque
   def register_hook(name, block)
     return clear_hooks(name) if block.nil?
 
-    @hooks ||= {}
-    @hooks[name] ||= []
-
     block = Array(block)
-    @hooks[name].concat(block)
+    hooks[name].concat(block)
   end
 
   # Clear all hooks given a hook name.
   def clear_hooks(name)
-    @hooks && @hooks[name] = []
+    hooks[name] = []
+  end
+
+  # Retrieve all hooks of a given name.
+  def all_hooks_by_name(name)
+    hooks[name] || []
   end
 
   # Retrieve all hooks
   def hooks
-    @hooks || {}
-  end
-
-  # Retrieve all hooks of a given name.
-  def hooks(name)
-    (@hooks && @hooks[name]) || []
+    @hooks ||= Hash.new([])
   end
 end
 
