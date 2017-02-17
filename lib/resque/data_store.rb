@@ -7,11 +7,12 @@ module Resque
     HEARTBEAT_KEY = "workers:heartbeat"
 
     def initialize(redis)
-      @redis               = redis
-      @queue_access        = QueueAccess.new(@redis)
-      @failed_queue_access = FailedQueueAccess.new(@redis)
-      @workers             = Workers.new(@redis)
-      @stats_access        = StatsAccess.new(@redis)
+      @redis                = redis
+      @queue_access         = QueueAccess.new(@redis)
+      @failed_queue_access  = FailedQueueAccess.new(@redis)
+      @workers              = Workers.new(@redis)
+      @stats_access         = StatsAccess.new(@redis)
+      @redis_time_available = redis_time_available?
     end
 
     def_delegators :@queue_access, :push_to_queue,
@@ -91,9 +92,16 @@ module Resque
     end
 
     def server_time
-      time, _ = @redis.time
+      time, _ = @redis_time_available ? @redis.time : Time.now
       Time.at(time)
     end
+
+    def redis_time_available?
+      @redis.time
+    rescue Redis::CommandError
+      false
+    end
+    private :redis_time_available?
 
     class QueueAccess
       def initialize(redis)
@@ -299,7 +307,6 @@ module Resque
       def redis_key_for_worker_start_time(worker)
         "#{redis_key_for_worker(worker)}:started"
       end
-
     end
 
     class StatsAccess
