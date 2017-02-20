@@ -1,6 +1,7 @@
 ## Unreleased
 
-Nothing yet!
+### Fixed
+* Require "redis/distributed" in worker.rb to allow proper rescuing
 
 ## 1.27.1 (2017-02-13)
 
