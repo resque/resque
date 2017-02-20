@@ -1,5 +1,6 @@
 require 'time'
 require 'set'
+require 'redis/distributed'
 
 module Resque
   # A Resque Worker processes jobs. On platforms that support fork(2),
