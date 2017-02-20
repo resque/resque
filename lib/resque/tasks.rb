@@ -3,7 +3,7 @@
 
 
 namespace :resque do
-  task :setup
+  task :setup => :environment
 
   desc "Start a Resque worker"
   task :work => [ :preload, :setup ] do

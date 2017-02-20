@@ -1,6 +1,7 @@
 ## Unreleased
 
-Nothing yet!
+### Fixed
+* Run Resque rake tasks with :environment
 
 ## 1.27.1 (2017-02-13)
 
