@@ -226,11 +226,13 @@ module Resque
       loop do
         break if shutdown?
 
-        unless work_one_job(&block)
+        if work_one_job(&block)
+          @signal_handler.handle_signal(0)
+        else
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
-          sleep interval
+          @signal_handler.handle_signal(interval)
         end
       end
 
@@ -375,18 +377,19 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { graceful_term ? shutdown : shutdown!  }
-      trap('INT')  { shutdown!  }
+      st = @signal_handler = Resque::SignalHandler.new
+      st.trap('TERM') { graceful_term ? shutdown : shutdown!  }
+      st.trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
+        st.trap('QUIT') { shutdown   }
         if term_child
-          trap('USR1') { new_kill_child }
+          st.trap('USR1') { new_kill_child }
         else
-          trap('USR1') { kill_child }
+          st.trap('USR1') { kill_child }
         end
-        trap('USR2') { pause_processing }
-        trap('CONT') { unpause_processing }
+        st.trap('USR2') { pause_processing }
+        st.trap('CONT') { unpause_processing }
       rescue ArgumentError
         log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
@@ -395,11 +398,15 @@ module Resque
     end
 
     def unregister_signal_handlers
-      trap('TERM') do
-        trap ('TERM') do
-          # ignore subsequent terms
+      if term_child
+        trap('TERM') do
+          trap ('TERM') do
+            # ignore subsequent terms
+          end
+          raise TermException.new("SIGTERM")
         end
-        raise TermException.new("SIGTERM")
+      else
+        trap('TERM', 'DEFAULT')
       end
       trap('INT', 'DEFAULT')
 
@@ -863,7 +870,7 @@ module Resque
 
       begin
         @child = fork do
-          unregister_signal_handlers if term_child
+          unregister_signal_handlers
           perform(job, &block)
           exit! unless run_at_exit_hooks
         end
@@ -877,7 +884,10 @@ module Resque
       procline "Forked #{@child} at #{Time.now.to_i}"
 
       begin
-        Process.waitpid(@child)
+        loop do
+          break if Process.waitpid(@child, Process::WNOHANG)
+          @signal_handler.handle_signal(0.1)
+        end
       rescue SystemCallError
         nil
       end
