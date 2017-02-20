@@ -1,7 +1,12 @@
 ## Unreleased
 
+Nothing yet!
+
+## 1.27.2 (2017-02-20)
+
 ### Fixed
 * Require "redis/distributed" in worker.rb to allow proper rescuing
+* Fallback to server time if Redis time won't work (restores Redis 2.4 support)
 
 ## 1.27.1 (2017-02-13)
 
