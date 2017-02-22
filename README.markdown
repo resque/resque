@@ -450,6 +450,23 @@ If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
 then `CONT` to start it again.
 
+#### Signals on Heroku
+
+When shutting down processes, Heroku sends every process a TERM signal at the
+same time. By default this causes an immediate shutdown of any running job
+leading to frequent `Resque::TermException` errors.  For short running jobs, a simple
+solution is to give a small amount of time for the job to finish
+before killing it.
+
+To accomplish this set the following environment variables:
+
+* `RESQUE_PRE_SHUTDOWN_TIMEOUT` - The time between the parent receiving a shutdown signal (TERM by default) and it sending that signal on to the child process. Designed to give the child process
+time to complete before being forced to die.
+
+* `TERM_CHILD` - Must be set for `RESQUE_PRE_SHUTDOWN_TIMEOUT` to be used. After the timeout, if the child is still running it will raise a `Resque::TermException` and exit.
+
+* `RESQUE_TERM_TIMEOUT` - By default you have a few seconds to handle `Resque::TermException` in your job. `RESQUE_TERM_TIMEOUT` and `RESQUE_PRE_SHUTDOWN_TIMEOUT` must be lower than the [heroku dyno timeout](https://devcenter.heroku.com/articles/limits#exit-timeout).
+
 ### Mysql::Error: MySQL server has gone away
 
 If your workers remain idle for too long they may lose their MySQL connection. Depending on your version of Rails, we recommend the following:

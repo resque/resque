@@ -47,6 +47,10 @@ module Resque
 
     attr_accessor :term_timeout
 
+    attr_accessor :pre_shutdown_timeout
+
+    attr_accessor :term_child_signal
+
     # decide whether to use new_kill_child logic
     attr_accessor :term_child
 
@@ -144,7 +148,8 @@ module Resque
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
-      self.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0
+      self.pre_shutdown_timeout = (ENV['RESQUE_PRE_SHUTDOWN_TIMEOUT'] || 0.0).to_f
+      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 4.0).to_f
       self.term_child = ENV['TERM_CHILD']
       self.graceful_term = ENV['GRACEFUL_TERM']
       self.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
@@ -396,11 +401,13 @@ module Resque
 
     def unregister_signal_handlers
       trap('TERM') do
-        trap ('TERM') do
-          # ignore subsequent terms
+        trap('TERM') do
+          # Ignore subsequent term signals
         end
+
         raise TermException.new("SIGTERM")
       end
+
       trap('INT', 'DEFAULT')
 
       begin
@@ -513,21 +520,39 @@ module Resque
     # wait 5 seconds, and then a KILL signal if it has not quit
     def new_kill_child
       if @child
-        unless Process.waitpid(@child, Process::WNOHANG)
+        unless child_already_exited?
+          if pre_shutdown_timeout && pre_shutdown_timeout > 0.0
+            log_with_severity :debug, "Waiting #{pre_shutdown_timeout.to_f}s for child process to exit"
+            return if wait_for_child_exit(pre_shutdown_timeout)
+          end
+
           log_with_severity :debug, "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
-          (term_timeout.to_f * 10).round.times do |i|
-            sleep(0.1)
-            return if Process.waitpid(@child, Process::WNOHANG)
+
+          if wait_for_child_exit(term_timeout)
+            return
+          else
+            log_with_severity :debug, "Sending KILL signal to child #{@child}"
+            Process.kill("KILL", @child)
           end
-          log_with_severity :debug, "Sending KILL signal to child #{@child}"
-          Process.kill("KILL", @child)
         else
           log_with_severity :debug, "Child #{@child} already quit."
         end
       end
     rescue SystemCallError
       log_with_severity :error, "Child #{@child} already quit and reaped."
+    end
+
+    def child_already_exited?
+      Process.waitpid(@child, Process::WNOHANG)
+    end
+
+    def wait_for_child_exit(timeout)
+      (timeout * 10).round.times do |i|
+        sleep(0.1)
+        return true if child_already_exited?
+      end
+      false
     end
 
     # are we paused?
