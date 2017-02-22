@@ -91,25 +91,9 @@ module Resque
     end
 
     def server_time
-      time, _ = redis_time_available? ? @redis.time : Time.now
+      time, _ = @redis.time
       Time.at(time)
     end
-
-    # only needed until support for Redis 2.4 is removed
-    def redis_time_available?
-      if @redis_time_available.nil? && !Resque.inline
-        begin
-          @redis_time_available = @redis.time
-        rescue Redis::CommandError
-          @redis_time_available = false
-        end
-      elsif Resque.inline
-        false
-      else
-        @redis_time_available
-      end
-    end
-    private :redis_time_available?
 
     class QueueAccess
       def initialize(redis)

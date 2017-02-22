@@ -35,7 +35,7 @@ not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
 Resque now supports Ruby 2.1.10 and above. Any future updates will not be
-guaranteed to work without defects on any Rubies older than 2.1.10.
+guaranteed to work without defects on any Rubies older than 2.1.10. We will also only be supporting Redis 3.0 and above going forward.
 
 
 The Blog Post
