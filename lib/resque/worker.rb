@@ -517,7 +517,9 @@ module Resque
 
     # Kills the forked child immediately with minimal remorse. The job it
     # is processing will not be completed. Send the child a TERM signal,
-    # wait 5 seconds, and then a KILL signal if it has not quit
+    # wait <term_timeout> seconds, and then a KILL signal if it has not quit
+    # If pre_shutdown_timeout has been set to a positive number, it will allow
+    # the child that many seconds before sending the aforementioned TERM and KILL.
     def new_kill_child
       if @child
         unless child_already_exited?
