@@ -95,6 +95,7 @@ module Resque
       Time.at(time)
     end
 
+    # only needed until support for Redis 2.4 is removed
     def redis_time_available?
       if @redis_time_available.nil? && !Resque.inline
         begin
