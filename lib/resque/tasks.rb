@@ -9,9 +9,10 @@ namespace :resque do
     require 'resque'
 
     queues = (ENV['QUEUES'] || ENV['QUEUE']).to_s.split(',')
+    weights = ENV['SHUFFLE'].to_s.split(',')
 
     begin
-      worker = Resque::Worker.new(*queues)
+      worker = Resque::Worker.new(*queues, *weights)
       worker.verbose = ENV['LOGGING'] || ENV['VERBOSE']
       worker.very_verbose = ENV['VVERBOSE']
       worker.term_timeout = ENV['RESQUE_TERM_TIMEOUT'] || 4.0

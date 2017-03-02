@@ -92,11 +92,13 @@ module Resque
     # If passed a single "*", this Worker will operate on all queues
     # in alphabetical order. Queues can be dynamically added or
     # removed without needing to restart workers using this method.
-    def initialize(*queues)
-      @queues = queues.map { |queue| queue.to_s.strip }
+    def initialize(*queues, *weights)
+      @queues = queues.map {|queue| queue.to_s.strip }
+      @weights = weights.map {|weight| Integer(weight.to_s.strip) }
       @shutdown = nil
       @paused = nil
       validate_queues
+      normalize_weights
     end
 
     # A worker must be given a queue, otherwise it won't know what to
@@ -106,6 +108,16 @@ module Resque
     def validate_queues
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
+      end
+    end
+
+    # Normalizes queue weights bewteen 0 and 1
+    def normalize_weights
+      min = @weights.min
+      nf = (@weights.max - min).to_f
+
+      @weights = @weights.map do |weight|
+        (weight - min) / nf
       end
     end
 
@@ -204,7 +216,7 @@ module Resque
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
     def reserve
-      queues.each do |queue|
+      shuffled_queues.each do |queue|
         log! "Checking #{queue}"
         if job = Resque.reserve(queue)
           log! "Found job on #{queue}"
@@ -242,6 +254,18 @@ module Resque
     # can be useful for dynamically adding new queues.
     def queues
       @queues.map {|queue| queue == "*" ? Resque.queues.sort : queue }.flatten.uniq
+    end
+
+    # Returns a shuffled list of queues to use when searching for job,
+    # The order in which the queues appear is a combination of randomness and
+    # weigted factor assigned to each. A queue without an assigned weight
+    # factor is considered of normal weight e.g 0.5
+    def shuffled_queues
+      queues.each_with_index.map do |queue, i|
+        weight = @weights[i] || 0.5
+
+        [rand() * weight, queue]
+      end.to_h.sort.reverse.to_h.values
     end
 
     # Not every platform supports fork. Here we do our magic to
