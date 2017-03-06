@@ -363,6 +363,7 @@ module Resque
   #
   # This method is considered part of the `stable` API.
   def enqueue_to(queue, klass, *args)
+    validate(klass, queue)
     # Perform before_enqueue hooks. Don't perform enqueue if any hook returns false
     before_hooks = Plugin.before_enqueue_hooks(klass).collect do |hook|
       klass.send(hook, *args)

@@ -265,7 +265,6 @@ describe "Resque::Job before_enqueue" do
   include PerformJob
 
   class ::BeforeEnqueueJob
-    @queue = :jobs
     def self.before_enqueue_record_history(history)
       history << :before_enqueue
     end
@@ -287,7 +286,7 @@ describe "Resque::Job before_enqueue" do
   it "the before enqueue hook should run" do
     history = []
     @worker = Resque::Worker.new(:jobs)
-    assert Resque.enqueue(BeforeEnqueueJob, history)
+    assert Resque.enqueue_to(:jobs, BeforeEnqueueJob, history)
     @worker.work(0)
     assert_equal history, [:before_enqueue], "before_enqueue was not run"
   end
@@ -298,6 +297,18 @@ describe "Resque::Job before_enqueue" do
     @worker = Resque::Worker.new(:jobs)
     assert_nil Resque.enqueue(BeforeEnqueueJobAbort, history)
     assert_equal 0, Resque.size(:jobs)
+  end
+
+  test "before enqueue hook should not run if no queue given" do
+    begin
+      history = []
+      @worker = Resque::Worker.new(:jobs)
+      Resque.enqueue_to(nil, BeforeEnqueueJob, history)
+      assert false # should never be executed
+    rescue Resque::NoQueueError
+    ensure
+      assert_equal [], history, "before_enqueue was run"
+    end
   end
 end
 
