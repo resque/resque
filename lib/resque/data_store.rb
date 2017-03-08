@@ -57,7 +57,11 @@ module Resque
     # Compatibility with any non-Resque classes that were using Resque.redis as a way to access Redis
     def method_missing(sym,*args,&block)
       # TODO: deprecation warning?
-      @redis.send(sym,*args,&block)
+      if sym == :select
+        @redis.select(args.first)
+      else
+        @redis.send(sym,*args,&block)
+      end
     end
 
     # make use respond like redis
