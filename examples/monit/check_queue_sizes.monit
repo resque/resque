@@ -1,0 +1,4 @@
+check host check_queue_sizes with address resque-web-host
+  if failed url http://resque-web-host/check_queue_sizes?max_queue_size=100
+      and content == "Queue sizes are ok."
+  then alert
