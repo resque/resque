@@ -1,4 +1,4 @@
-Resque
+Kyle's Resque
 ======
 
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
