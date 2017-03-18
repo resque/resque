@@ -1,4 +1,4 @@
-Resque
+Resque Ranger
 ======
 
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
