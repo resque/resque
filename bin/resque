@@ -52,7 +52,8 @@ end
 
 def remove(worker)
   abort "** resque remove WORKER_ID" if worker.nil?
-
+--------------------*****************------------
+sorry but i am just  testing and it is unuse and fake
   Resque.remove_worker(worker)
   puts "** removed #{worker}"
 end
