@@ -1,5 +1,9 @@
 ## Unreleased
 
+Nothing yet!
+
+## 1.27.3 (2017-04-10)
+
 ### Fixed
 * Fix issue where initializing a data store would attempt to hit Redis, even when Resque.inline = true
 
