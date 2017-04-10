@@ -1,0 +1,22 @@
+<% # per_page was added in 1.23.1; gems which add to resque-server don't pass that variable along so it would crash %>
+<% # without a default value %>
+<% per_page ||= 20 %>
+<%if  start - per_page >= 0 || start + per_page <= size%>
+<p class='pagination'>
+  <% if start + per_page <= size %>
+    <a href="<%= current_page %>?start=<%= start + per_page %>" class='more'>&laquo; Next</a>
+  <% end %>
+
+  <% (size / per_page.to_f - 1).ceil.downto(0).each do |page_num| %>
+    <% if start == page_num * per_page %>
+       <%= page_num %>
+    <% else %>
+      <a href="<%= current_page %>?start=<%= page_num * per_page %>"> <%= page_num %></a>
+    <% end %>
+  <% end %>
+
+  <% if start - per_page >= 0 %>
+    <a href="<%= current_page %>?start=<%= start - per_page %>" class='less'>Previous &raquo;</a>
+  <% end %>
+</p>
+<%end%>

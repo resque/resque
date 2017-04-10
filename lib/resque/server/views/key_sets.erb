@@ -1,0 +1,17 @@
+<% if key = params[:key] %>
+
+  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 20, size = redis_get_size(key) %></p>
+
+  <h1>Key "<%= key %>" is a <%= resque.redis.type key %></h1>
+  <table>
+    <% for row in redis_get_value_as_array(key, start) %>
+    <tr>
+      <td>
+        <%= row %>
+      </td>
+    </tr>
+    <% end %>
+  </table>
+
+<%= partial :next_more, :start => start, :size => size, :per_page => 20 %>
+<% end %>

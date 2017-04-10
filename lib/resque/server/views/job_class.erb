@@ -1,0 +1,6 @@
+<% if job['class'] == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper' %>
+  <code><%= job['args'].first['job_class'] %></code>
+  <small><a href="http://edgeguides.rubyonrails.org/active_job_basics.html" target="_blank">(via ActiveJob)</a></small>
+<% else %>
+  <code><%= job['class'] %></code>
+<% end %>

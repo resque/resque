@@ -1,0 +1,58 @@
+<% @subtabs = resque.queues unless partial? || params[:id].nil? %>
+
+<% if queue = params[:id] %>
+
+  <h1>Pending jobs on <span class='hl'><%= queue %></span></h1>
+  <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
+    <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+  </form>
+  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(queue), 'job' %></p>
+  <table class='jobs'>
+    <tr>
+      <th>Class</th>
+      <th>Args</th>
+    </tr>
+    <% for job in (jobs = resque.peek(queue, start, 20)) %>
+    <tr>
+      <td class='class'><%= partial :job_class, :job => job %></td>
+      <td class='args'><%=h job['args'].inspect %></td>
+    </tr>
+    <% end %>
+    <% if jobs.empty? %>
+    <tr>
+      <td class='no-data' colspan='2'>There are no pending jobs in this queue</td>
+    </tr>
+    <% end %>
+  </table>
+  <%= partial :next_more, :start => start, :size => size, :per_page => 20 %>
+<% else %>
+
+  <h1 class='wi'>Queues</h1>
+  <p class='intro'>The list below contains all the registered queues with the number of jobs currently in the queue. Select a queue from above to view all jobs currently pending on the queue.</p>
+  <table class='queues'>
+    <tr>
+      <th>Name</th>
+      <th>Jobs</th>
+    </tr>
+    <% resque.queues.sort_by { |q| q.to_s }.each do |queue| %>
+    <tr>
+      <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
+      <td class='size'><%= resque.size queue %></td>
+    </tr>
+    <% end %>
+    <% if failed_multiple_queues? %>
+      <% Resque::Failure.queues.sort_by { |q| q.to_s }.each_with_index do |queue, i| %>
+      <tr class="<%= Resque::Failure.count(queue).zero? ? "failed" : "failure" %><%= " first_failure" if i.zero? %>">
+        <td class='queue failed'><a class="queue" href="<%= u "failed/#{queue}" %>"><%= queue %></a></td>
+        <td class='size'><%= Resque::Failure.count(queue) %></td>
+      </tr>
+      <% end %>
+    <% else %>
+      <tr class="<%= Resque::Failure.count.zero? ? "failed" : "failure" %>">
+        <td class='queue failed'><a class="queue" href="<%= u :failed %>">failed</a></td>
+        <td class='size'><%= Resque::Failure.count %></td>
+      </tr>
+    <% end %>
+  </table>
+
+<% end %>

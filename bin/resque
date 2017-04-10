@@ -1,0 +1,81 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
+begin
+  require 'redis-namespace'
+rescue LoadError
+  require 'rubygems'
+  require 'redis-namespace'
+end
+require 'resque'
+require 'optparse'
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: resque [options] COMMAND"
+
+  opts.separator ""
+  opts.separator "Options:"
+
+  opts.on("-r", "--redis [HOST:PORT]", "Redis connection string") do |host|
+    Resque.redis = host
+  end
+
+  opts.on("-N", "--namespace [NAMESPACE]", "Redis namespace") do |namespace|
+    Resque.redis.namespace = namespace
+  end
+
+  opts.on("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.separator ""
+  opts.separator "Commands:"
+  opts.separator "  remove WORKER   Removes a worker"
+  opts.separator "  kill WORKER     Kills a worker"
+  opts.separator "  list            Lists known workers"
+end
+
+def kill(worker)
+  abort "** resque kill WORKER_ID" if worker.nil?
+  pid = worker.split(':')[1].to_i
+
+  begin
+    Process.kill("KILL", pid)
+    puts "** killed #{worker}"
+  rescue Errno::ESRCH
+    puts "** worker #{worker} not running"
+  end
+
+  remove worker
+end
+
+def remove(worker)
+  abort "** resque remove WORKER_ID" if worker.nil?
+
+  Resque.remove_worker(worker)
+  puts "** removed #{worker}"
+end
+
+def list
+  if Resque.workers.any?
+    Resque.workers.each do |worker|
+      puts "#{worker} (#{worker.state})"
+    end
+  else
+    puts "None"
+  end
+end
+
+parser.parse!
+
+case ARGV[0]
+when 'kill'
+  kill ARGV[1]
+when 'remove'
+  remove ARGV[1]
+when 'list'
+  list
+else
+  puts parser.help
+end
