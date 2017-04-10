@@ -857,8 +857,7 @@ send patches for any tweaks or improvements you can make to it.
 Questions
 ---------
 
-Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or
-ask on the Mailing List. The Mailing List is explained further below
+Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or open an issue on this repo.
 
 
 Development
@@ -890,9 +889,6 @@ it:
 If you get an error requiring any of the dependencies, you may have
 failed to install them or be seeing load path issues.
 
-Feel free to ping the mailing list with your problem and we'll try to
-sort it out.
-
 
 Contributing
 ------------
@@ -911,11 +907,7 @@ Once you've made your great commits:
 Mailing List
 ------------
 
-To join the list simply send an email to <resque@librelist.com>. This
-will subscribe you and send you information about your subscription,
-including unsubscribe information.
-
-The archive can be found at <http://librelist.com/browser/resque/>.
+This mailing list is no longer maintained. The archive can be found at <http://librelist.com/browser/resque/>.
 
 
 Meta
