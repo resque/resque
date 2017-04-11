@@ -30,7 +30,7 @@ module Resque
         if queue
           if class_name
             n = 0
-            each(0, count(queue), queue, class_name) { n += 1 } 
+            each(0, count(queue), queue, class_name) { n += 1 }
             n
           else
             data_store.num_failed(queue).to_i
@@ -79,7 +79,7 @@ module Resque
       end
 
       def self.remove(id, queue = :failed)
-        data_store.remove_from_queue(id,queue)
+        data_store.remove_from_failed_queue(id,queue)
       end
 
       def self.requeue_queue(queue)
