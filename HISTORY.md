@@ -1,6 +1,7 @@
 ## Unreleased
 
-Nothing yet!
+### Fixed
+* Fix issue where removing a failure from Resque web didn't work when using `RedisMultiQueue` backend.
 
 ## 1.27.3 (2017-04-10)
 
