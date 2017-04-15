@@ -34,6 +34,9 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
+Resque now supports Ruby 2.1.10 and above. Any future updates will not be
+guaranteed to work without defects on any Rubies older than 2.1.10. We will also only be supporting Redis 3.0 and above going forward.
+
 
 The Blog Post
 -------------
@@ -290,7 +293,7 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
 ### Running in the background
 
-(Only supported with ruby >= 1.9). There are scenarios where it's helpful for
+There are scenarios where it's helpful for
 the resque worker to run itself in the background (usually in combination with
 PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
 worker is started.
