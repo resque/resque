@@ -63,6 +63,10 @@ module Resque
       def self.remove(index, queue)
         classes.each { |klass| klass.remove(index) }
       end
+
+      def self.remove_queue(queue)
+        classes.first.remove_queue(queue)
+      end
     end
   end
 end
