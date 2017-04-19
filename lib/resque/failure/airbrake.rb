@@ -9,7 +9,7 @@ module Resque
     class Airbrake < Base
       def self.configure(&block)
         Resque.logger.warn "This actually sets global Airbrake configuration, " \
-          "which is probably not what you want. This will be gone in 2.0."
+          "which is probably not what you want."
         Resque::Failure.backend = self
         ::Airbrake.configure(&block)
       end

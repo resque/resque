@@ -12,7 +12,6 @@ module Resque
       @failed_queue_access  = FailedQueueAccess.new(@redis)
       @workers              = Workers.new(@redis)
       @stats_access         = StatsAccess.new(@redis)
-      @redis_time_available = redis_time_available?
     end
 
     def_delegators :@queue_access, :push_to_queue,
@@ -92,16 +91,9 @@ module Resque
     end
 
     def server_time
-      time, _ = @redis_time_available ? @redis.time : Time.now
+      time, _ = @redis.time
       Time.at(time)
     end
-
-    def redis_time_available?
-      @redis.time
-    rescue Redis::CommandError
-      false
-    end
-    private :redis_time_available?
 
     class QueueAccess
       def initialize(redis)

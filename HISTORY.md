@@ -1,6 +1,17 @@
 ## Unreleased
 
-Nothing yet!
+### Changed
+* Remove support for Rubies < 2.0
+
+## 1.27.4 (2017-04-15)
+
+### Fixed
+* Fix issue where removing a failure from Resque web didn't work when using `RedisMultiQueue` backend.
+
+## 1.27.3 (2017-04-10)
+
+### Fixed
+* Fix issue where initializing a data store would attempt to hit Redis, even when Resque.inline = true
 
 ## 1.27.2 (2017-02-20)
 

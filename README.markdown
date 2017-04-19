@@ -34,6 +34,9 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
+Resque now supports Ruby 2.0.0 and above. Any future updates will not be
+guaranteed to work without defects on any Rubies older than 2.0.0. We will also only be supporting Redis 3.0 and above going forward.
+
 
 The Blog Post
 -------------
@@ -290,7 +293,7 @@ worker process.  Use the PIDFILE option for easy access to the PID:
 
 ### Running in the background
 
-(Only supported with ruby >= 1.9). There are scenarios where it's helpful for
+There are scenarios where it's helpful for
 the resque worker to run itself in the background (usually in combination with
 PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
 worker is started.
@@ -504,6 +507,18 @@ From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/
 
     Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
 
+
+#### ActiveJob
+
+If you're going to need to use the database in a number of different jobs, consider adding this to your ApplicationJob file:
+
+``` ruby
+class ApplicationJob < ActiveJob::Base
+  before_perform do |job|
+    ActiveRecord::Base.clear_active_connections!
+  end
+end
+```
 
 
 The Front End
@@ -857,8 +872,7 @@ send patches for any tweaks or improvements you can make to it.
 Questions
 ---------
 
-Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or
-ask on the Mailing List. The Mailing List is explained further below
+Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or open an issue on this repo.
 
 
 Development
@@ -890,9 +904,6 @@ it:
 If you get an error requiring any of the dependencies, you may have
 failed to install them or be seeing load path issues.
 
-Feel free to ping the mailing list with your problem and we'll try to
-sort it out.
-
 
 Contributing
 ------------
@@ -911,11 +922,7 @@ Once you've made your great commits:
 Mailing List
 ------------
 
-To join the list simply send an email to <resque@librelist.com>. This
-will subscribe you and send you information about your subscription,
-including unsubscribe information.
-
-The archive can be found at <http://librelist.com/browser/resque/>.
+This mailing list is no longer maintained. The archive can be found at <http://librelist.com/browser/resque/>.
 
 
 Meta
