@@ -102,6 +102,8 @@ module Resque
         Array(args).map do |a|
           a.to_yaml
         end.join("\n")
+      rescue
+        args.to_s
       end
 
       def worker_hosts
