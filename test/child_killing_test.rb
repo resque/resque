@@ -42,6 +42,12 @@ describe "Resque::Worker" do
     child_pid = start_status[1].to_i
     assert child_pid > 0, "worker child process not created"
 
+    [worker_pid, child_pid]
+  end
+
+  def start_worker_and_kill_term(rescue_time, term_child, term_timeout = 1)
+    worker_pid, child_pid = start_worker(rescue_time, term_child, term_timeout)
+
     Process.kill('TERM', worker_pid)
     Process.waitpid(worker_pid)
     result = Resque.redis.lpop('sigterm-test:result')
@@ -62,13 +68,13 @@ describe "Resque::Worker" do
 
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     it "old signal handling just kills off the child" do
-      worker_pid, child_pid, result = start_worker(0, false)
+      worker_pid, child_pid, result = start_worker_and_kill_term(0, false)
       assert_nil result
       assert_child_not_running child_pid
     end
 
     it "SIGTERM and cleanup occurs in allotted time" do
-      worker_pid, child_pid, result = start_worker(0, true)
+      worker_pid, child_pid, result = start_worker_and_kill_term(0, true)
       assert_exception_caught result
       assert_child_not_running child_pid
 
@@ -78,7 +84,7 @@ describe "Resque::Worker" do
     end
 
     it "SIGTERM and cleanup does not occur in allotted time" do
-      worker_pid, child_pid, result = start_worker(5, true, 0.1)
+      worker_pid, child_pid, result = start_worker_and_kill_term(5, true, 0.1)
       assert_exception_caught result
       assert_child_not_running child_pid
 
@@ -92,11 +98,26 @@ describe "Resque::Worker" do
     old_job_per_fork = ENV['FORK_PER_JOB']
     begin
       ENV['FORK_PER_JOB'] = 'false'
-      worker_pid, child_pid, result = start_worker(0, true)
+      worker_pid, child_pid, result = start_worker_and_kill_term(0, true)
       assert_equal worker_pid, child_pid, "child_pid should equal worker_pid, since we are not forking"
       assert Resque.redis.lpop( 'sigterm-test:ensure_block_executed' ), 'post cleanup did not occur. SIGKILL sent too early?'
     ensure
       ENV['FORK_PER_JOB'] = old_job_per_fork
     end
   end
+
+  it 'sending signal to a forked child should not make a effect to its parent' do
+    worker_pid, child_pid = start_worker(0, false)
+
+    Process.kill('TERM', child_pid)
+    10.times do
+      assert_nil Process.waitpid(worker_pid, Process::WNOHANG) # should not die
+      sleep 0.1
+    end
+
+    Process.kill('TERM', worker_pid)
+    Process.waitpid(worker_pid)
+    Resque.redis.lpop('sigterm-test:result')
+  end
+
 end

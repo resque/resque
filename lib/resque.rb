@@ -20,6 +20,7 @@ require 'resque/worker'
 require 'resque/plugin'
 require 'resque/data_store'
 require 'resque/thread_signal'
+require 'resque/signal_handler'
 
 require 'resque/vendor/utf8_util'
 

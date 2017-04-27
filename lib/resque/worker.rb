@@ -377,18 +377,19 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { graceful_term ? shutdown : shutdown!  }
-      trap('INT')  { shutdown!  }
+      sh = @signal_handler = Resque::SignalHandler.new
+      sh.trap('TERM') { graceful_term ? shutdown : shutdown!  }
+      sh.trap('INT')  { shutdown!  }
 
       begin
-        trap('QUIT') { shutdown   }
+        sh.trap('QUIT') { shutdown   }
         if term_child
-          trap('USR1') { new_kill_child }
+          sh.trap('USR1') { new_kill_child }
         else
-          trap('USR1') { kill_child }
+          sh.trap('USR1') { kill_child }
         end
-        trap('USR2') { pause_processing }
-        trap('CONT') { unpause_processing }
+        sh.trap('USR2') { pause_processing }
+        sh.trap('CONT') { unpause_processing }
       rescue ArgumentError
         log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
@@ -887,7 +888,14 @@ module Resque
 
       begin
         @child = fork do
-          unregister_signal_handlers if term_child
+          if term_child
+            unregister_signal_handlers
+          else
+            # 1) fork does not copy thread (signal handler thread)
+            # 2) pipe is shared with its parent (fd are different, so closable, though)
+            # recreate a signal handler thread and a pipe for the child process
+            @signal_handler.reopen
+          end
           perform(job, &block)
           exit! unless run_at_exit_hooks
         end
