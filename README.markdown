@@ -781,11 +781,16 @@ appropriately.
 
 Here's our `config/resque.yml`:
 
-    development: localhost:6379
-    test: localhost:6379
-    staging: redis1.se.github.com:6379
-    fi: localhost:6379
-    production: redis1.ae.github.com:6379
+``` yaml
+development: localhost:6379
+test: localhost:6379:1
+staging: redis1.se.github.com:6379
+fi: localhost:6379
+production: redis1.ae.github.com:6379
+```
+
+Note that separated Redis database should be used for test environment
+So that you can flush it and without impacting development environment
 
 And our initializer:
 
