@@ -9,6 +9,8 @@ if defined? Encoding
   Encoding.default_external = Encoding::UTF_8
 end
 
+Encoding.default_external = Encoding::UTF_8
+
 module Resque
   class Server < Sinatra::Base
     require 'resque/server/helpers'
