@@ -785,15 +785,16 @@ Here's our `config/resque.yml`:
     test: localhost:6379
     staging: redis1.se.github.com:6379
     fi: localhost:6379
-    production: redis1.ae.github.com:6379
+    production: <%= ENV['REDIS_URL'] %>
 
 And our initializer:
 
 ``` ruby
 rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
 rails_env = ENV['RAILS_ENV'] || 'development'
+config_file = rails_root + '/config/resque.yml'
 
-resque_config = YAML.load_file(rails_root + '/config/resque.yml')
+resque_config = YAML::load(ERB.new(IO.read(config_file)).result)
 Resque.redis = resque_config[rails_env]
 ```
 
