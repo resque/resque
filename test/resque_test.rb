@@ -191,6 +191,10 @@ describe "Resque" do
     end
   end
 
+  it 'selects redis database' do
+    Resque.redis.select(0)
+  end
+
   describe "with people in the queue" do
     before do
       Resque.push(:people, { 'name' => 'chris' })
