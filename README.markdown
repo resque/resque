@@ -461,6 +461,11 @@ leading to frequent `Resque::TermException` errors.  For short running jobs, a s
 solution is to give a small amount of time for the job to finish
 before killing it.
 
+Resque doesn't handle this out of the box (for both cedar-14 and heroku-16), you need to
+install the [`resque-heroku-signals`](https://github.com/iloveitaly/resque-heroku-signals) 
+addon which adds the required signal handling to make the behavior described above work.
+Related issue: https://github.com/resque/resque/issues/1559
+
 To accomplish this set the following environment variables:
 
 * `RESQUE_PRE_SHUTDOWN_TIMEOUT` - The time between the parent receiving a shutdown signal (TERM by default) and it sending that signal on to the child process. Designed to give the child process
