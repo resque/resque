@@ -671,7 +671,7 @@ require 'your/app'
 require 'resque/tasks'
 ```
 
-If you're using Rails 5.x, include the following in lib/tasks/resque.rb:
+If you're using Rails 5.x, include the following in lib/tasks/resque.rake:
 
 ```ruby
 require 'resque/tasks'
