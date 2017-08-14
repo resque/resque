@@ -270,12 +270,14 @@ but in the Resque workers it's fine.
 
 ### Logging
 
-Workers support basic logging to STDOUT. If you start them with the
-`VERBOSE` env variable set, they will print basic debugging
-information. You can also set the `VVERBOSE` (very verbose) env
-variable.
+Workers support basic logging to STDOUT.
 
-    $ VVERBOSE=1 QUEUE=file_serve rake environment resque:work
+You can control the logging threshold using `Resque.logger.level`:
+
+```ruby
+# config/initializers/resque.rb
+Resque.logger.level = Logger::DEBUG
+```
 
 If you want Resque to log to a file, in Rails do:
 
