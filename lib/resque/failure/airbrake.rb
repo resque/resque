@@ -21,7 +21,7 @@ module Resque
       end
 
       def save
-        ::Airbrake.notify(exception,
+        ::Airbrake.notify_sync(exception,
             :parameters => {
             :payload_class => payload['class'].to_s,
             :payload_args => payload['args'].inspect
