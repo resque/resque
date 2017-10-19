@@ -399,6 +399,33 @@ describe "Resque::Worker" do
     assert_equal %w( jobs high critical blahblah ).sort, processed_queues
   end
 
+  it "shuffles * queues if shuffling is set" do
+    # Since testing that something is shuffled and not sorted
+    # is impossible, we can only make false negatives less likely.
+    #
+    # 16 unique queue names when shuffled can only appear sorted
+    # 1 in 16! times (20,922,789,888,000 to be precise)
+    #
+    # Meaning we may certainly see this test fail if this test is run
+    # 10 times a day every day until the death of the sun.
+    new_queues = 16.times.map { |i| "queue_#{i}" }
+    new_queues.each { |q| Resque::Job.create(q.to_sym, GoodJob) }
+    all_queues = ['jobs'] + new_queues
+
+    processed_queues = []
+    @worker = Resque::Worker.new("*")
+    without_forking do
+      with_shuffling do
+        @worker.work(0) do |job|
+          processed_queues << job.queue
+        end
+      end
+    end
+
+    # Queues should not have been processed in sorted order
+    assert all_queues.sort != processed_queues
+  end
+
   it "works with globs" do
     Resque::Job.create(:critical, GoodJob)
     Resque::Job.create(:test_one, GoodJob)
