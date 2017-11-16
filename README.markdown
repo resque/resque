@@ -199,7 +199,7 @@ We plan to provide first class `async` support in a future release.
 If a job raises an exception, it is logged and handed off to the
 `Resque::Failure` module. Failures are logged either locally in Redis
 or using some different backend. To see exceptions while developing,
-use VERBOSE env variable, see details below under Logging.
+see details below under Logging.
 
 For example, Resque ships with Airbrake support. To configure it, put
 the following into an initialisation file or into your rake job:
