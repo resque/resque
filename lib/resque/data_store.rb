@@ -44,6 +44,7 @@ module Resque
                               :heartbeat!,
                               :remove_heartbeat,
                               :all_heartbeats,
+                              :acquire_pruning_dead_worker_lock,
                               :set_worker_payload,
                               :worker_start_time,
                               :worker_done_working
@@ -275,6 +276,10 @@ module Resque
         @redis.hgetall(HEARTBEAT_KEY)
       end
 
+      def acquire_pruning_dead_worker_lock(worker, expiry)
+        @redis.set(redis_key_for_worker_pruning, worker.to_s, :ex => expiry, :nx => true)
+      end
+
       def set_worker_payload(worker, data)
         @redis.set(redis_key_for_worker(worker), data)
       end
@@ -298,6 +303,10 @@ module Resque
 
       def redis_key_for_worker_start_time(worker)
         "#{redis_key_for_worker(worker)}:started"
+      end
+
+      def redis_key_for_worker_pruning
+        "pruning_dead_workers_in_progress"
       end
     end
 

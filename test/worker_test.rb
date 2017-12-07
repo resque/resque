@@ -669,6 +669,42 @@ describe "Resque::Worker" do
     assert_equal [], Resque::Worker.all_workers_with_expired_heartbeats
   end
 
+  it "does not prune if another worker has pruned (started pruning) recently" do
+    now = Time.now
+    workerA = Resque::Worker.new(:jobs)
+    workerA.to_s = 'workerA:1:jobs'
+    workerA.register_worker
+    workerA.heartbeat!(now - Resque.prune_interval - 1)
+    assert_equal 1, Resque.workers.size
+    assert_equal [workerA], Resque::Worker.all_workers_with_expired_heartbeats
+
+    workerB = Resque::Worker.new(:jobs)
+    workerB.to_s = 'workerB:1:jobs'
+    workerB.register_worker
+    workerB.heartbeat!(now)
+    assert_equal 2, Resque.workers.size
+
+    workerB.prune_dead_workers
+    assert_equal [], Resque::Worker.all_workers_with_expired_heartbeats
+
+    workerC = Resque::Worker.new(:jobs)
+    workerC.to_s = "workerC:1:jobs"
+    workerC.register_worker
+    workerC.heartbeat!(now - Resque.prune_interval - 1)
+    assert_equal 2, Resque.workers.size
+    assert_equal [workerC], Resque::Worker.all_workers_with_expired_heartbeats
+
+    workerD = Resque::Worker.new(:jobs)
+    workerD.to_s = 'workerD:1:jobs'
+    workerD.register_worker
+    workerD.heartbeat!(now)
+    assert_equal 3, Resque.workers.size
+
+    # workerC does not get pruned because workerB already pruned recently
+    workerD.prune_dead_workers
+    assert_equal [workerC], Resque::Worker.all_workers_with_expired_heartbeats
+  end
+
   it "does not prune workers that haven't set a heartbeat" do
     workerA = Resque::Worker.new(:jobs)
     workerA.to_s = "bar:3:jobs"
