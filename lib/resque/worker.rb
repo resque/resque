@@ -585,6 +585,8 @@ module Resque
     # By checking the current Redis state against the actual
     # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
+      return unless data_store.acquire_pruning_dead_worker_lock(self, Resque.heartbeat_interval)
+
       all_workers = Worker.all
 
       unless all_workers.empty?
