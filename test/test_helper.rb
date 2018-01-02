@@ -286,3 +286,13 @@ def with_background
     ENV["BACKGROUND"] = old_background
   end
 end
+
+def with_shuffling
+  old_shuffle = ENV["SHUFFLE"]
+  begin
+    ENV["SHUFFLE"] = "true"
+    yield
+  ensure
+    ENV["SHUFFLE"] = old_shuffle
+  end
+end

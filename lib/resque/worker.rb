@@ -200,9 +200,15 @@ module Resque
     end
 
     def glob_match(pattern)
-      Resque.queues.select do |queue|
+      matches = Resque.queues.select do |queue|
         File.fnmatch?(pattern, queue)
-      end.sort
+      end
+
+      if ENV['SHUFFLE'] && ENV['SHUFFLE'] != 'false'
+        matches.shuffle
+      else
+        matches.sort
+      end
     end
 
     # This is the main workhorse method. Called on a Worker instance,
