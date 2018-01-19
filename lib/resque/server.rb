@@ -76,6 +76,8 @@ module Resque
           Resque.redis.llen(key)
         when 'set'
           Resque.redis.scard(key)
+        when 'hash'
+          Resque.redis.hlen(key)
         when 'string'
           Resque.redis.get(key).length
         when 'zset'
@@ -95,6 +97,9 @@ module Resque
           [Resque.redis.get(key)]
         when 'zset'
           Resque.redis.zrange(key, start, start + 20)
+        when 'hash'
+          keys = Resque.redis.hkeys(key)
+          Resque.redis.hmget(key, *(keys[start..(start+20)]))
         end
       end
 
