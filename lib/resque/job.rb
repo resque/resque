@@ -157,7 +157,7 @@ module Resque
         # Resque::DontPerform is raised.
         begin
           before_hooks.each do |hook|
-            job.send(hook, *job_args)
+            job.send(hook)
           end
         rescue DontPerform
           return false
@@ -173,11 +173,11 @@ module Resque
           stack = around_hooks.reverse.inject(nil) do |last_hook, hook|
             if last_hook
               lambda do
-                job.send(hook, *job_args) { last_hook.call }
+                job.send(hook) { last_hook.call }
               end
             else
               lambda do
-                job.send(hook, *job_args) do
+                job.send(hook) do
                   result = job.perform(*job_args)
                   job_was_performed = true
                   result
@@ -190,7 +190,7 @@ module Resque
 
         # Execute after_perform hook
         after_hooks.each do |hook|
-          job.send(hook, *job_args)
+          job.send(hook)
         end
 
         # Return true if the job was performed
