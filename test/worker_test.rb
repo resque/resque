@@ -24,6 +24,10 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
+  after do
+    @worker.kill_background_threads
+  end
+
   it "can fail jobs" do
     Resque::Job.create(:jobs, BadJob)
     @worker.work(0)
@@ -76,7 +80,7 @@ describe "Resque::Worker" do
       assert_equal "at_exit", File.open(tmpfile).read.strip
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis._client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       worker.run_at_exit_hooks = true
@@ -104,7 +108,7 @@ describe "Resque::Worker" do
       Process.waitpid(worker_pid)
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis._client.reconnect
       Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
       worker = Resque::Worker.new(:not_failing_job)
       worker.run_at_exit_hooks = true
@@ -124,7 +128,7 @@ describe "Resque::Worker" do
       assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis._client.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       suppress_warnings do
@@ -172,9 +176,9 @@ describe "Resque::Worker" do
     exception_caught = assert_raises Redis::CannotConnectError do
       @worker.unregister_worker(raised_exception(StandardError,error_message))
     end
-    assert_match /StandardError/, exception_caught.message
-    assert_match /#{error_message}/, exception_caught.message
-    assert_match /Redis::CannotConnectError/, exception_caught.message
+    assert_match Regexp.compile('StandardError'), exception_caught.message
+    assert_match Regexp.compile(error_message), exception_caught.message
+    assert_match Regexp.compile('Redis::CannotConnectError'), exception_caught.message
   end
 
   def raised_exception(klass,message)
@@ -789,9 +793,9 @@ describe "Resque::Worker" do
       @worker.prune_dead_workers
     end
 
-    assert_match /PruneDeadWorkerDirtyExit/, exception_caught.message
-    assert_match /bar:3:jobs/, exception_caught.message
-    assert_match /Redis::CannotConnectError/, exception_caught.message
+    assert_match Regexp.compile('PruneDeadWorkerDirtyExit'), exception_caught.message
+    assert_match Regexp.compile('bar:3:jobs'), exception_caught.message
+    assert_match Regexp.compile('Redis::CannotConnectError'), exception_caught.message
   end
 
   it "cleans up dead worker info on start (crash recovery)" do
@@ -983,12 +987,11 @@ describe "Resque::Worker" do
     Resque.logger   = Logger.new(messages)
 
     with_fake_time(Time.parse("15:44:33 2011-03-02")) do
-      last_puts = ""
 
       @worker.very_verbose = true
       @worker.log("some log text")
 
-      assert_match /\*\* \[15:44:33 2011-03-02\] \d+: some log text/, messages.string
+      assert_match Regexp.compile('\*\* \[15:44:33 2011-03-02\] \d+: some log text'), messages.string
     end
   end
 
@@ -1077,11 +1080,11 @@ describe "Resque::Worker" do
   end
 
   it "no reconnects to redis when not forking" do
-    original_connection = Resque.redis.client.connection.instance_variable_get("@sock")
+    original_connection = Resque.redis._client.connection.instance_variable_get("@sock")
     without_forking do
       @worker.work(0)
     end
-    assert_equal original_connection, Resque.redis.client.connection.instance_variable_get("@sock")
+    assert_equal original_connection, Resque.redis._client.connection.instance_variable_get("@sock")
   end
 
   it "logs errors with the correct logging level" do
@@ -1154,15 +1157,15 @@ describe "Resque::Worker" do
     end
 
     it "reconnects to redis after fork" do
-      original_connection = Resque.redis.client.connection.instance_variable_get("@sock").object_id
+      original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
       new_connection = run_in_job do
-        Resque.redis.client.connection.instance_variable_get("@sock").object_id
+        Resque.redis._client.connection.instance_variable_get("@sock").object_id
       end
       refute_equal original_connection, new_connection
     end
 
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
-      @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+      @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
       @worker.stubs(:sleep)
 
       Resque.logger = DummyLogger.new
@@ -1176,9 +1179,8 @@ describe "Resque::Worker" do
     end
 
     it "tries to reconnect three times before giving up" do
-      captured_worker = nil
 
-      @worker.redis.client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+      @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
       @worker.stubs(:sleep)
 
       Resque.logger = DummyLogger.new
@@ -1194,7 +1196,7 @@ describe "Resque::Worker" do
         @queue = :long_running_job
 
         def self.perform(run_time)
-          Resque.redis.client.reconnect # get its own connection
+          Resque.redis._client.reconnect # get its own connection
           Resque.redis.rpush('pre-term-timeout-test:start', Process.pid)
           sleep run_time
           Resque.redis.rpush('pre-term-timeout-test:result', 'Finished Normally')
@@ -1216,7 +1218,7 @@ describe "Resque::Worker" do
 
             worker_pid = Kernel.fork do
               # reconnect to redis
-              Resque.redis.client.reconnect
+              Resque.redis._client.reconnect
 
               worker = Resque::Worker.new(:long_running_job)
               worker.pre_shutdown_timeout = pre_shutdown_timeout

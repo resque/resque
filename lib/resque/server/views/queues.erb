@@ -34,17 +34,17 @@
       <th>Name</th>
       <th>Jobs</th>
     </tr>
-    <% resque.queues.sort_by { |q| q.to_s }.each do |queue| %>
+    <% resque.queues.sort_by { |q| q.to_s }.each do |l_queue| %>
     <tr>
-      <td class='queue'><a class="queue" href="<%= u "queues/#{queue}" %>"><%= queue %></a></td>
-      <td class='size'><%= resque.size queue %></td>
+      <td class='queue'><a class="queue" href="<%= u "queues/#{l_queue}" %>"><%= l_queue %></a></td>
+      <td class='size'><%= resque.size l_queue %></td>
     </tr>
     <% end %>
     <% if failed_multiple_queues? %>
-      <% Resque::Failure.queues.sort_by { |q| q.to_s }.each_with_index do |queue, i| %>
-      <tr class="<%= Resque::Failure.count(queue).zero? ? "failed" : "failure" %><%= " first_failure" if i.zero? %>">
-        <td class='queue failed'><a class="queue" href="<%= u "failed/#{queue}" %>"><%= queue %></a></td>
-        <td class='size'><%= Resque::Failure.count(queue) %></td>
+      <% Resque::Failure.queues.sort_by { |q| q.to_s }.each_with_index do |l_queue, i| %>
+      <tr class="<%= Resque::Failure.count(l_queue).zero? ? "failed" : "failure" %><%= " first_failure" if i.zero? %>">
+        <td class='queue failed'><a class="queue" href="<%= u "failed/#{l_queue}" %>"><%= l_queue %></a></td>
+        <td class='size'><%= Resque::Failure.count(l_queue) %></td>
       </tr>
       <% end %>
     <% else %>

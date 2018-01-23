@@ -155,12 +155,12 @@ module Resque
 
   attr_writer :heartbeat_interval
   def heartbeat_interval
-    @heartbeat_interval || DEFAULT_HEARTBEAT_INTERVAL
+    @heartbeat_interval ||= DEFAULT_HEARTBEAT_INTERVAL
   end
 
   attr_writer :prune_interval
   def prune_interval
-    @prune_interval || DEFAULT_PRUNE_INTERVAL
+    @prune_interval ||= DEFAULT_PRUNE_INTERVAL
   end
 
   attr_writer :enqueue_front
@@ -424,7 +424,7 @@ module Resque
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
-    klass.instance_variable_get(:@queue) ||
+    (klass.instance_variable_defined?(:@queue) && klass.instance_variable_get(:@queue)) ||
       (klass.respond_to?(:queue) and klass.queue)
   end
 
@@ -483,7 +483,7 @@ module Resque
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
     return {
-      :pending   => queue_sizes.inject(0) { |sum, (queue_name, queue_size)| sum + queue_size },
+      :pending   => queue_sizes.inject(0) { |sum, (_queue_name, queue_size)| sum + queue_size },
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
@@ -514,22 +514,23 @@ module Resque
   def sample_queues(sample_size = 1000)
     queue_names = queues
 
-    samples = queue_names.each do |name|
+    samples = []
+    queue_names.each do |name|
       key = "queue:#{name}"
-      redis.llen(key)
-      redis.lrange(key, 0, sample_size - 1)
+      samples << redis.llen(key)
+      samples << redis.lrange(key, 0, sample_size - 1)
     end
 
     hash = {}
 
     queue_names.zip(samples.each_slice(2).to_a) do |queue_name, (queue_size, serialized_samples)|
-      samples = serialized_samples.map do |serialized_sample|
+      queue_samples = serialized_samples.map do |serialized_sample|
         Job.decode(serialized_sample)
       end
 
       hash[queue_name] = {
         :size => queue_size,
-        :samples => samples
+        :samples => queue_samples
       }
     end
 
@@ -538,6 +539,7 @@ module Resque
 
   private
 
+  @hooks = {}
   # Register a new proc as a hook. If the block is nil this is the
   # equivalent of removing all hooks of the given name.
   #
@@ -545,7 +547,6 @@ module Resque
   def register_hook(name, block)
     return clear_hooks(name) if block.nil?
 
-    @hooks ||= {}
     @hooks[name] ||= []
 
     block = Array(block)
@@ -554,17 +555,17 @@ module Resque
 
   # Clear all hooks given a hook name.
   def clear_hooks(name)
-    @hooks && @hooks[name] = []
+    @hooks[name] = []
   end
 
-  # Retrieve all hooks
-  def hooks
-    @hooks || {}
-  end
-
-  # Retrieve all hooks of a given name.
-  def hooks(name)
-    (@hooks && @hooks[name]) || []
+  #
+  # Retrieve all hooks of a given name or all hooks.
+  def hooks(name = nil)
+    if name
+      (@hooks && @hooks[name]) || []
+    else
+      @hooks
+    end
   end
 end
 

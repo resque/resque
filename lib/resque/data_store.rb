@@ -60,6 +60,10 @@ module Resque
       @redis.send(sym,*args,&block)
     end
 
+    def info
+      @redis.info
+    end
+
     # make use respond like redis
     def respond_to?(method,include_all=false)
       @redis.respond_to?(method,include_all) || super
@@ -74,13 +78,13 @@ module Resque
       elsif @redis.respond_to?(:nodes) # distributed
         @redis.nodes.map { |n| n.id }.join(', ')
       else
-        @redis.id
+        @redis._client.id
       end
     end
 
     # Force a reconnect to Redis.
     def reconnect
-      @redis.client.reconnect
+      @redis._client.reconnect
     end
 
     # Returns an array of all known Resque keys in Redis. Redis' KEYS operation

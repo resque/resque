@@ -137,8 +137,12 @@ module Resque
         @partial = false
       end
 
+      def pooling?
+        @polling ||= false
+      end
+
       def poll
-        if @polling
+        if pooling?
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
         else
           text = "<a href='#{u(request.path_info)}.poll' rel='poll'>Live Poll</a>"
@@ -151,6 +155,7 @@ module Resque
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
+        @subtabs = []
         erb page.to_sym, {:layout => layout}, :resque => Resque
       rescue Errno::ECONNREFUSED
         erb :error, {:layout => false}, :error => "Can't connect to Redis! (#{Resque.redis_id})"

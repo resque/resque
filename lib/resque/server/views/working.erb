@@ -49,17 +49,17 @@
     </tr>
     <% end %>
 
-    <% worker_jobs.sort_by {|w, j| j['run_at'] ? j['run_at'].to_s() : '' }.each do |worker, job| %>
+    <% worker_jobs.sort_by {|w, j| j['run_at'] ? j['run_at'].to_s() : '' }.each do |l_worker, job| %>
       <tr>
-        <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
-        <% host, pid, queues = worker.to_s.split(':') %>
-        <td class='where'><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
+        <td class='icon'><img src="<%=u state = l_worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
+        <% host, pid, _queues = l_worker.to_s.split(':') %>
+        <td class='where'><a href="<%=u "/workers/#{l_worker}" %>"><%= host %>:<%= pid %></a></td>
         <td class='queues queue'>
           <a class="queue-tag" href="<%=u "/queues/#{job['queue']}" %>"><%= job['queue'] %></a>
         </td>
         <td class='process'>
           <% if job['queue'] %>
-            <%= partial :processing, :worker => worker, :job => job %>
+            <%= partial :processing, :worker => l_worker, :job => job %>
           <% else %>
             <span class='waiting'>Waiting for a job...</span>
           <% end %>

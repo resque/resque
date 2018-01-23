@@ -1,15 +1,16 @@
-require 'coveralls'
-Coveralls.wear!
-
 require 'rubygems'
 require 'bundler/setup'
 require 'minitest/autorun'
 require 'redis/namespace'
 require 'mocha/setup'
+require 'coveralls'
+Coveralls.wear!
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
 ENV['TERM_CHILD'] = "1"
+$redis = ''
+$redis_pids = []
 require 'resque'
 $TEST_PID=Process.pid
 
@@ -37,41 +38,56 @@ end
 
 MiniTest::Unit.after_tests do
   if Process.pid == $TEST_PID
-    processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
-    pids = processes.map { |process| process.split(" ")[0] }
-    puts "Killing test redis server..."
-    pids.each { |pid| Process.kill("TERM", pid.to_i) }
-    system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
+    # processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
+    # pids = processes.map { |process| process.split(" ")[0] }
+    puts "Killing test redis servers #{$redis_pids.join(', ')}..."
+    $redis_pids.each { |pid| Process.kill("TERM", pid.to_i) }
+    system("rm -f #{$dir}/dump.rdb #{$dir}/dump-*.rdb")
   end
 end
 
-module MiniTest::Unit::LifecycleHooks
+module RedisMiniTestPlugin
   def before_setup
+    super
     reset_logger
-    Resque.redis.flushall
+    $redis.flushall
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
   end
 
   def after_teardown
+    super
     Resque::Worker.kill_all_heartbeat_threads
   end
+end
+
+class MiniTest::Unit::TestCase
+  include RedisMiniTestPlugin
 end
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'
   puts "Starting redis for testing at localhost:9736 and localhost:9737..."
-  `redis-server #{$dir}/redis-test.conf`
-  `redis-server #{$dir}/redis-test-cluster.conf`
-  r = Redis::Distributed.new(['redis://localhost:9736', 'redis://localhost:9737'])
-  Resque.redis = Redis::Namespace.new :resque, :redis => r
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-test.conf")
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-test-distributed.conf")
+  $redis = Redis::Distributed.new(%w(redis://localhost:9736 redis://localhost:9737))
+  Resque.redis = Redis::Namespace.new :resque, redis: $redis
+elsif ENV.key? 'RESQUE_CLUSTERED'
+  require 'redis/cluster'
+  puts "Starting redis cluster for testing at localhost:10737, localhost:10738, localhost:10739..."
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-cluster-node-1.conf")
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-cluster-node-2.conf")
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-cluster-node-3.conf")
+  `ruby redis-tribe.rb create --replicas 1 localhost:10737 localhost:10738 localhost:10739`
+  $redis = Redis::Cluster.new(%w(redis://localhost:10737 redis://localhost:10738 redis://localhost:10739))
 else
   puts "Starting redis for testing at localhost:9736..."
-  `redis-server #{$dir}/redis-test.conf`
-  Resque.redis = 'localhost:9736'
+  $redis_pids << Process.spawn("redis-server #{$dir}/redis-test.conf")
+  $redis = Redis.new(url: 'redis://localhost:9736')
 end
 
+Resque.redis = $redis
 ##
 # Helper to perform job classes
 #
