@@ -1,7 +1,11 @@
-begin
-  require 'airbrake'
-rescue LoadError
-  raise "Can't find 'airbrake' gem. Please add it to your Gemfile or install it."
+if !defined? ::Airbrake
+  begin
+    require 'airbrake'
+  rescue LoadError
+    raise LoadError, "Can't find 'airbrake' gem. Please add it to your " \
+      "Gemfile and install it or define an Airbrake top-level constant " \
+      "implementing the Airbrake interface."
+  end
 end
 
 module Resque
