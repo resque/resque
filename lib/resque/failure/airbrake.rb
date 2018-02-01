@@ -37,10 +37,10 @@ module Resque
 
       def notify(exception, options)
         if ::Airbrake.respond_to?(:notify_sync)
-          Airbrake.notify_sync(exception, options)
+          ::Airbrake.notify_sync(exception, options)
         else
           # Older versions of Airbrake (< 5)
-          Airbrake.notify(exception, options)
+          ::Airbrake.notify(exception, options)
         end
       end
     end
