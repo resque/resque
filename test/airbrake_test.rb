@@ -13,13 +13,13 @@ else
       payload = {'class' => Object, 'args' => 66}
 
       notify_method =
-        if Airbrake::AIRBRAKE_VERSION.to_i < 5
+        if ::Airbrake::AIRBRAKE_VERSION.to_i < 5
           :notify
         else
           :notify_sync
         end
 
-      Airbrake.expects(notify_method).with(
+      ::Airbrake.expects(notify_method).with(
         exception,
         :parameters => {:payload_class => 'Object', :payload_args => '66'})
 
