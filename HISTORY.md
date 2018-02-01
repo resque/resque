@@ -2,6 +2,9 @@
 
 ### Changed
 * Remove support for Rubies < 2.0
+* Do not require the Airbrake gem unconditionally anymore when using the
+  Resque::Failure::Airbrake module. A top-level Airbrake constant implementing
+  the same interface will be used if present.
 
 ## 1.27.4 (2017-04-15)
 
