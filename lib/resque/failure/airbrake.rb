@@ -1,7 +1,11 @@
-begin
-  require 'airbrake'
-rescue LoadError
-  raise "Can't find 'airbrake' gem. Please add it to your Gemfile or install it."
+if !defined? ::Airbrake
+  begin
+    require 'airbrake'
+  rescue LoadError
+    raise LoadError, "Can't find 'airbrake' gem. Please add it to your " \
+      "Gemfile and install it or define an Airbrake top-level constant " \
+      "implementing the Airbrake interface."
+  end
 end
 
 module Resque
@@ -33,10 +37,10 @@ module Resque
 
       def notify(exception, options)
         if ::Airbrake.respond_to?(:notify_sync)
-          Airbrake.notify_sync(exception, options)
+          ::Airbrake.notify_sync(exception, options)
         else
           # Older versions of Airbrake (< 5)
-          Airbrake.notify(exception, options)
+          ::Airbrake.notify(exception, options)
         end
       end
     end
