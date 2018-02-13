@@ -334,10 +334,11 @@ describe "Resque::Worker" do
     assert_equal false, @worker.work_one_job
   end
 
-  it "the queues method avoids unnecessary calls to smembers" do
-    worker = Resque::Worker.new(:critical, :high)
-    Resque.redis.expects(:smembers).at_most_once
-    assert_equal ["critical", "high"], worker.queues
+  it "the queues method avoids unnecessary calls to retrieve queue names" do
+    worker = Resque::Worker.new(:critical, :high, "num*")
+    actual_queues = ["critical", "high", "num1", "num2"]
+    Resque.data_store.expects(:queue_names).once.returns(actual_queues)
+    assert_equal actual_queues, worker.queues
   end
 
   it "can work on all queues" do

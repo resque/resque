@@ -172,12 +172,12 @@ module Resque
       self.reconnect if ENV['BACKGROUND']
     end
 
+    WILDCARDS = ['*', '?', '{', '}', '[', ']'].freeze
+
     def queues=(queues)
       queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
       @queues = queues.map { |queue| queue.to_s.strip }
-      unless ['*', '?', '{', '}', '[', ']'].any? {|char| @queues.join.include?(char) }
-        @static_queues = @queues.flatten.uniq
-      end
+      @has_dynamic_queues = WILDCARDS.any? {|char| @queues.join.include?(char) }
       validate_queues
     end
 
@@ -195,12 +195,16 @@ module Resque
     # A splat ("*") means you want every queue (in alpha order) - this
     # can be useful for dynamically adding new queues.
     def queues
-      return @static_queues if @static_queues
-      @queues.map { |queue| glob_match(queue) }.flatten.uniq
+      if @has_dynamic_queues
+        current_queues = Resque.queues
+        @queues.map { |queue| glob_match(current_queues, queue) }.flatten.uniq
+      else
+        @queues
+      end
     end
 
-    def glob_match(pattern)
-      Resque.queues.select do |queue|
+    def glob_match(list, pattern)
+      list.select do |queue|
         File.fnmatch?(pattern, queue)
       end.sort
     end
