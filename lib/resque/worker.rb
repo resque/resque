@@ -638,7 +638,8 @@ module Resque
 
     # Runs a named hook, passing along any arguments.
     def run_hook(name, *args)
-      return unless hooks = Resque.send(name)
+      hooks = Resque.send(name)
+      return if hooks.blank?
       return if name == :before_first_fork && @before_first_fork_hook_ran
       msg = "Running #{name} hooks"
       msg << " with #{args.inspect}" if args.any?
