@@ -2,6 +2,7 @@
 
 ### Changed
 * Remove support for Rubies < 2.0
+* Fix failed jobs page "argument out of range" error
 
 ## 1.27.4 (2017-04-15)
 
