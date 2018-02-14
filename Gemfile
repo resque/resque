@@ -2,9 +2,6 @@ source "https://rubygems.org"
 
 gemspec
 
-gem "activesupport", "~> 3.0"
-gem "i18n"
-
 gem "json"
 gem "coveralls", :require => false
 
