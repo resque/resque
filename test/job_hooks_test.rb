@@ -52,6 +52,21 @@ describe "Resque::Job before_perform" do
     assert_equal false, result, "perform returned false"
     assert_equal history, [:before_perform], "Only before_perform was run"
   end
+
+  class ::BeforePerformArgMapping
+    def self.before_perform_with_arg_mapping(numbers)
+      numbers.map{ |n| n*n }
+    end
+    def self.perform(numbers)
+      numbers
+    end
+  end
+
+  it "maps job args perform if before_perform hook contains with_arg_mapping" do
+    resque_job = instantiate_job BeforePerformArgMapping, [1,2,3,4]
+    resque_job.perform
+    assert_equal resque_job.final_args, [[1,4,9,16]], "before_perform_with_arg_mapping mapped the original payload"
+  end
 end
 
 describe "Resque::Job after_perform" do

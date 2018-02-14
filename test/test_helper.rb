@@ -77,8 +77,12 @@ end
 #
 module PerformJob
   def perform_job(klass, *args)
-    resque_job = Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
+    resque_job = instantiate_job( klass, *args)
     resque_job.perform
+  end
+
+  def instantiate_job(klass, *args)
+    Resque::Job.new(:testqueue, 'class' => klass, 'args' => args)
   end
 end
 

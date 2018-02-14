@@ -143,7 +143,7 @@ module Resque
       return unless payload = Resque.pop(queue)
       new(queue, payload)
     end
-
+    
     # Attempts to perform the work represented by this job instance.
     # Calls #perform on the class given in the payload with the
     # arguments given in the payload.
@@ -157,7 +157,8 @@ module Resque
         # Resque::DontPerform is raised.
         begin
           before_hooks.each do |hook|
-            job.send(hook, *job_args)
+            result = [job.send(hook, *job_args)]
+            job_args = result if hook.to_s['with_arg_mapping']
           end
         rescue DontPerform
           return false
@@ -193,6 +194,8 @@ module Resque
           job.send(hook, *job_args)
         end
 
+        @final_args = job_args
+
         # Return true if the job was performed
         return job_was_performed
 
@@ -227,6 +230,9 @@ module Resque
       @payload['args']
     end
 
+    # Returns an array of args which is the args after all hooks have run
+    attr_reader :final_args
+    
     # Given an exception object, hands off the needed parameters to
     # the Failure module.
     def fail(exception)
