@@ -1,8 +1,11 @@
 ## Unreleased
 
 ### Changed
-* Remove support for Rubies < 2.0
+* Remove support for Rubies < 2.1
+* Reduce the number of redis calls when trying to get the list of queues
 * Fix failed jobs page "argument out of range" error
+* Only run eager_load! if Rails.application.config.eager_load is true
+* Don't display log message if running without hooks
 
 ## 1.27.4 (2017-04-15)
 
