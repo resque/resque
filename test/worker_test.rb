@@ -153,6 +153,7 @@ describe "Resque::Worker" do
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
+    assert_equal('Job still being processed', Resque::Failure.all['error'])
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
@@ -198,7 +199,7 @@ describe "Resque::Worker" do
     @worker.working_on(job)
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
-    assert(SimpleJobWithFailureHandling.exception.kind_of?(Resque::DirtyExit))
+    assert_kind_of Resque::DirtyExit, SimpleJobWithFailureHandling.exception
   end
 
   it "fails uncompleted jobs on exit and unregisters without erroring out and logs helpful message if error occurs during a failure hook" do
@@ -1273,28 +1274,18 @@ describe "Resque::Worker" do
       end
     end
 
-    it "will notify failure hooks when a job is killed by a signal" do
+    it "will notify failure hooks and attach process status when a job is killed by a signal" do
       Resque.enqueue(SuicidalJob)
       suppress_warnings do
         @worker.work(0)
       end
-      assert_equal Resque::DirtyExit, SuicidalJob.send(:class_variable_get, :@@failure_exception).class
-    end
 
-    it "will attach the process status when a job is killed by a signal" do
-      Resque.enqueue(SuicidalJob)
-      suppress_warnings do
-        @worker.work(0)
-      end
-      assert_equal Process::Status, SuicidalJob.send(:class_variable_get, :@@failure_exception).process_status.class
-    end
+      exception = SuicidalJob.send(:class_variable_get, :@@failure_exception)
 
-    it "when a job is killed by the KILL signal, the termsig on process_status is 9" do
-      Resque.enqueue(SuicidalJob)
-      suppress_warnings do
-        @worker.work(0)
-      end
-      assert_equal 9, SuicidalJob.send(:class_variable_get, :@@failure_exception).process_status.termsig
+      assert_kind_of Resque::DirtyExit, exception
+      assert_match(/Child process received unhandled signal pid \d+ SIGKILL \(signal 9\)/, exception.message)
+
+      assert_kind_of Process::Status, exception.process_status
     end
   end
 end
