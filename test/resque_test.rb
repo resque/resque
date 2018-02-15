@@ -28,7 +28,7 @@ describe "Resque" do
     new_namespace = Redis::Namespace.new("namespace", :redis => new_redis)
     Resque.redis = new_namespace
 
-    assert_equal new_namespace.client, Resque.redis.client
+    assert_equal new_namespace._client, Resque.redis._client
     assert_equal 0, Resque.size(:default)
   end
 
