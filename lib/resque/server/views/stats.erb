@@ -24,7 +24,7 @@
 
   <h1><%= resque.redis_id %></h1>
   <table class='stats'>
-  <% for key, value in resque.redis.info.to_a.sort_by { |i| i[0].to_s } %>
+  <% for key, value in resque.redis.redis.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
       <th>
         <%= key %>

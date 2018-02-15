@@ -48,7 +48,7 @@ end
 module MiniTest::Unit::LifecycleHooks
   def before_setup
     reset_logger
-    Resque.redis.flushall
+    Resque.redis.redis.flushall
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
