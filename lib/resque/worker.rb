@@ -812,7 +812,7 @@ module Resque
     # machine. Useful when pruning dead workers on startup.
     def windows_worker_pids
       tasklist_output = `tasklist /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap)
-      tasklist_output.split($/).select { |line| line =~ /^PID:/}.collect{ |line| line.gsub /PID:\s+/, '' }
+      tasklist_output.split($/).select { |line| line =~ /^PID:/ }.collect { |line| line.gsub(/PID:\s+/, '') }
     end
 
     # Find Resque worker pids on Linux and OS X.
