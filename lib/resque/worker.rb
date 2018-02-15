@@ -913,7 +913,7 @@ module Resque
         nil
       end
 
-      job.fail(DirtyExit.new("Child process received unhandled signal #{$?.stopsig}", $?)) if $?.signaled?
+      job.fail(DirtyExit.new("Child process received unhandled signal #{$?}", $?)) if $?.signaled?
       @child = nil
     end
 
