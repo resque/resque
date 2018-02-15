@@ -543,6 +543,8 @@ module Resque
 
   private
 
+  @hooks = Hash.new { |h, k| h[k] = [] }
+
   # Register a new proc as a hook. If the block is nil this is the
   # equivalent of removing all hooks of the given name.
   #
@@ -550,26 +552,18 @@ module Resque
   def register_hook(name, block)
     return clear_hooks(name) if block.nil?
 
-    @hooks ||= {}
-    @hooks[name] ||= []
-
     block = Array(block)
     @hooks[name].concat(block)
   end
 
   # Clear all hooks given a hook name.
   def clear_hooks(name)
-    @hooks && @hooks[name] = []
-  end
-
-  # Retrieve all hooks
-  def hooks
-    @hooks || {}
+    @hooks[name] = []
   end
 
   # Retrieve all hooks of a given name.
   def hooks(name)
-    (@hooks && @hooks[name]) || []
+    @hooks[name]
   end
 end
 
