@@ -76,7 +76,7 @@ describe "Resque::Worker" do
       assert_equal "at_exit", File.open(tmpfile).read.strip
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       worker.run_at_exit_hooks = true
@@ -104,7 +104,7 @@ describe "Resque::Worker" do
       Process.waitpid(worker_pid)
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis.reconnect
       Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
       worker = Resque::Worker.new(:not_failing_job)
       worker.run_at_exit_hooks = true
@@ -124,7 +124,7 @@ describe "Resque::Worker" do
       assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
-      Resque.redis.client.reconnect
+      Resque.redis.reconnect
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       suppress_warnings do
@@ -1193,7 +1193,7 @@ describe "Resque::Worker" do
         @queue = :long_running_job
 
         def self.perform(run_time)
-          Resque.redis.client.reconnect # get its own connection
+          Resque.redis.reconnect # get its own connection
           Resque.redis.rpush('pre-term-timeout-test:start', Process.pid)
           sleep run_time
           Resque.redis.rpush('pre-term-timeout-test:result', 'Finished Normally')
@@ -1215,7 +1215,7 @@ describe "Resque::Worker" do
 
             worker_pid = Kernel.fork do
               # reconnect to redis
-              Resque.redis.client.reconnect
+              Resque.redis.reconnect
 
               worker = Resque::Worker.new(:long_running_job)
               worker.pre_shutdown_timeout = pre_shutdown_timeout
