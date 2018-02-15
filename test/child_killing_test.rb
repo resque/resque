@@ -62,13 +62,13 @@ describe "Resque::Worker" do
 
   if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
     it "old signal handling just kills off the child" do
-      worker_pid, child_pid, result = start_worker(0, false)
+      _worker_pid, child_pid, result = start_worker(0, false)
       assert_nil result
       assert_child_not_running child_pid
     end
 
     it "SIGTERM and cleanup occurs in allotted time" do
-      worker_pid, child_pid, result = start_worker(0, true)
+      _worker_pid, child_pid, result = start_worker(0, true)
       assert_exception_caught result
       assert_child_not_running child_pid
 
@@ -78,7 +78,7 @@ describe "Resque::Worker" do
     end
 
     it "SIGTERM and cleanup does not occur in allotted time" do
-      worker_pid, child_pid, result = start_worker(5, true, 0.1)
+      _worker_pid, child_pid, result = start_worker(5, true, 0.1)
       assert_exception_caught result
       assert_child_not_running child_pid
 
@@ -92,7 +92,7 @@ describe "Resque::Worker" do
     old_job_per_fork = ENV['FORK_PER_JOB']
     begin
       ENV['FORK_PER_JOB'] = 'false'
-      worker_pid, child_pid, result = start_worker(0, true)
+      worker_pid, child_pid, _result = start_worker(0, true)
       assert_equal worker_pid, child_pid, "child_pid should equal worker_pid, since we are not forking"
       assert Resque.redis.lpop( 'sigterm-test:ensure_block_executed' ), 'post cleanup did not occur. SIGKILL sent too early?'
     ensure

@@ -984,8 +984,6 @@ describe "Resque::Worker" do
     Resque.logger   = Logger.new(messages)
 
     with_fake_time(Time.parse("15:44:33 2011-03-02")) do
-      last_puts = ""
-
       @worker.very_verbose = true
       @worker.log("some log text")
 

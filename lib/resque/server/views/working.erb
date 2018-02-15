@@ -49,10 +49,10 @@
     </tr>
     <% end %>
 
-    <% worker_jobs.sort_by {|w, j| j['run_at'] ? j['run_at'].to_s() : '' }.each do |worker, job| %>
+    <% worker_jobs.sort_by { |_w, j| j['run_at'] ? j['run_at'].to_s() : '' }.each do |worker, job| %>
       <tr>
         <td class='icon'><img src="<%=u state = worker.state %>.png" alt="<%= state %>" title="<%= state %>"></td>
-        <% host, pid, queues = worker.to_s.split(':') %>
+        <% host, pid, _queues = worker.to_s.split(':') %>
         <td class='where'><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
         <td class='queues queue'>
           <a class="queue-tag" href="<%=u "/queues/#{job['queue']}" %>"><%= job['queue'] %></a>
