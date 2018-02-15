@@ -281,11 +281,7 @@ describe "Resque" do
       assert_equal 3, stats[:queues]
       assert_equal 3, stats[:processed]
       assert_equal 1, stats[:failed]
-      if ENV.key? 'RESQUE_DISTRIBUTED'
-        assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736, localhost:9737' : 'redis://localhost:9736/0, redis://localhost:9737/0'], stats[:servers]
-      else
-        assert_equal [Resque.redis.respond_to?(:server) ? 'localhost:9736' : 'redis://localhost:9736/0'], stats[:servers]
-      end
+      assert_equal [Resque.redis_id], stats[:servers]
     end
 
   end
