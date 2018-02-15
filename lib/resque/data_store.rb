@@ -68,14 +68,7 @@ module Resque
     # Get a string identifying the underlying server.
     # Probably should be private, but was public so must stay public
     def identifier
-      # support 1.x versions of redis-rb
-      if @redis.respond_to?(:server)
-        @redis.server
-      elsif @redis.respond_to?(:nodes) # distributed
-        @redis.nodes.map { |n| n.id }.join(', ')
-      else
-        @redis.client.id
-      end
+      @redis.inspect
     end
 
     # Force a reconnect to Redis.
