@@ -1,5 +1,5 @@
-<% if params[:id] && (worker = Resque::Worker.find(params[:id])) && (data = worker.job) %>
-  <h1><%= worker %>'s job</h1>
+<% if params[:id] && (current_worker = Resque::Worker.find(params[:id])) && (data = current_worker.job) %>
+  <h1><%= current_worker %>'s job</h1>
 
   <table>
     <tr>
@@ -12,8 +12,8 @@
     </tr>
       <tr>
         <td><img src="<%=u 'working.png' %>" alt="working" title="working"></td>
-        <% host, pid, _ = worker.to_s.split(':') %>
-        <td><a href="<%=u "/workers/#{worker}" %>"><%= host %>:<%= pid %></a></td>
+        <% host, pid, _ = current_worker.to_s.split(':') %>
+        <td><a href="<%=u "/workers/#{current_worker}" %>"><%= host %>:<%= pid %></a></td>
         <% queue = data['queue'] %>
         <td><a class="queue" href="<%=u "/queues/#{queue}" %>"><%= queue %></a></td>
         <td><span class="time"><%= data['run_at'] %></span></td>

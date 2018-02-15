@@ -1,18 +1,18 @@
 <% @subtabs = resque.queues unless partial? || params[:id].nil? %>
 
-<% if queue = params[:id] %>
+<% if current_queue = params[:id] %>
 
-  <h1>Pending jobs on <span class='hl'><%= queue %></span></h1>
-  <form method="POST" action="<%=u "/queues/#{queue}/remove" %>" class='remove-queue'>
+  <h1>Pending jobs on <span class='hl'><%= current_queue %></span></h1>
+  <form method="POST" action="<%=u "/queues/#{current_queue}/remove" %>" class='remove-queue'>
     <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
   </form>
-  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(queue), 'job' %></p>
+  <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(current_queue), 'job' %></p>
   <table class='jobs'>
     <tr>
       <th>Class</th>
       <th>Args</th>
     </tr>
-    <% for job in (jobs = resque.peek(queue, start, 20)) %>
+    <% for job in (jobs = resque.peek(current_queue, start, 20)) %>
     <tr>
       <td class='class'><%= partial :job_class, :job => job %></td>
       <td class='args'><%=h job['args'].inspect %></td>
