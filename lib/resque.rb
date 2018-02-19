@@ -155,18 +155,29 @@ module Resque
 
   attr_writer :heartbeat_interval
   def heartbeat_interval
-    @heartbeat_interval || DEFAULT_HEARTBEAT_INTERVAL
+    if defined? @heartbeat_interval
+      @heartbeat_interval
+    else
+      DEFAULT_HEARTBEAT_INTERVAL
+    end
   end
 
   attr_writer :prune_interval
   def prune_interval
-    @prune_interval || DEFAULT_PRUNE_INTERVAL
+    if defined? @prune_interval
+      @prune_interval
+    else
+      DEFAULT_PRUNE_INTERVAL
+    end
   end
 
   attr_writer :enqueue_front
   def enqueue_front
-    return @enqueue_front unless @enqueue_front.nil?
-    @enqueue_front = false
+    if defined? @enqueue_front
+      @enqueue_front
+    else
+      @enqueue_front = false
+    end
   end
 
   # The `before_first_fork` hook will be run in the **parent** process
@@ -424,7 +435,7 @@ module Resque
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
-    klass.instance_variable_get(:@queue) ||
+    (klass.instance_variable_defined?(:@queue) && klass.instance_variable_get(:@queue)) ||
       (klass.respond_to?(:queue) and klass.queue)
   end
 

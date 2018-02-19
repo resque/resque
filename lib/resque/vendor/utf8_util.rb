@@ -7,7 +7,8 @@ module UTF8Util
   #
   # Returns self as valid UTF-8.
   def self.clean!(str)
-    raise NotImplementedError
+    return str if str.encoding.to_s == "UTF-8"
+    str.force_encoding("binary").encode("UTF-8", :invalid => :replace, :undef => :replace, :replace => REPLACEMENT_CHAR)
   end
 
   # Replace invalid UTF-8 character sequences with a replacement character
@@ -15,10 +16,5 @@ module UTF8Util
   # Returns a copy of this String as valid UTF-8.
   def self.clean(str)
     clean!(str.dup)
-  end
-
-  def self.clean!(str)
-    return str if str.encoding.to_s == "UTF-8"
-    str.force_encoding("binary").encode("UTF-8", :invalid => :replace, :undef => :replace, :replace => REPLACEMENT_CHAR)
   end
 end

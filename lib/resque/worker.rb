@@ -145,6 +145,9 @@ module Resque
       @paused = nil
       @before_first_fork_hook_ran = false
 
+      @heartbeat_thread = nil
+      @heartbeat_thread_signal = nil
+
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
@@ -854,13 +857,7 @@ module Resque
     end
 
 
-    def verbose
-      @verbose
-    end
-
-    def very_verbose
-      @very_verbose
-    end
+    attr_reader :verbose, :very_verbose
 
     def verbose=(value);
       if value && !very_verbose
