@@ -5,7 +5,7 @@ require 'resque/version'
 require 'time'
 require 'yaml'
 
-if defined? Encoding
+if defined?(Encoding) && Encoding.default_external != Encoding::UTF_8
   Encoding.default_external = Encoding::UTF_8
 end
 
@@ -129,7 +129,7 @@ module Resque
       end
 
       def poll
-        if @polling
+        if defined?(@polling) && @polling
           text = "Last Updated: #{Time.now.strftime("%H:%M:%S")}"
         else
           text = "<a href='#{u(request.path_info)}.poll' rel='poll'>Live Poll</a>"

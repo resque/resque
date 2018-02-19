@@ -23,7 +23,7 @@
     <% end %>
   </div>
 
-  <% if @subtabs %>
+  <% if defined?(@subtabs) && @subtabs %>
     <ul class='subnav'>
       <% for subtab in @subtabs %>
         <li <%= class_if_current "#{current_section}/#{subtab}" %>><a href="<%= current_section %>/<%= subtab %>"><span><%= subtab %></span></a></li>

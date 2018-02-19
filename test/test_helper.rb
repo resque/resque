@@ -42,8 +42,9 @@ MiniTest::Unit.after_tests do
   end
 end
 
-module MiniTest::Unit::LifecycleHooks
-  def before_setup
+class GlobalSpecHooks < MiniTest::Spec
+  def setup
+    super
     reset_logger
     Resque.redis.redis.flushall
     Resque.before_first_fork = nil
@@ -51,10 +52,14 @@ module MiniTest::Unit::LifecycleHooks
     Resque.after_fork = nil
   end
 
-  def after_teardown
+  def teardown
+    super
     Resque::Worker.kill_all_heartbeat_threads
   end
+
+  register_spec_type(/.*/, self)
 end
+
 
 if ENV.key? 'RESQUE_DISTRIBUTED'
   require 'redis/distributed'

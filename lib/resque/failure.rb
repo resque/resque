@@ -27,6 +27,7 @@ module Resque
     def self.backend=(backend)
       @backend = backend
     end
+    self.backend = nil
 
     # Returns the current backend class. If none has been set, falls
     # back to `Resque::Failure::Redis`
