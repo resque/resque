@@ -60,7 +60,7 @@ module Resque
         end
         items.each_with_index do |item, i|
           if !class_name || (item['payload'] && item['payload']['class'] == class_name)
-            id = reversed ? (items.length - 1) - (offset + i) : offset + i
+            id = reversed ? (items.length - 1) + (offset - i) : offset + i
             yield id, item
           end
         end
