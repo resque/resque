@@ -91,6 +91,12 @@ module Resque
       backend.clear(queue)
     end
 
+    def self.clear_retried
+      each do |index, job|
+        remove(index) unless job['retried_at'].nil?
+      end
+    end
+
     def self.requeue(id, queue = nil)
       backend.requeue(id, queue)
     end
