@@ -225,7 +225,7 @@ Resque workers are rake tasks that run forever. They basically do this:
 ``` ruby
 start
 loop do
-  if job = reserve
+  if job == reserve
     job.process
   else
     sleep 5 # Polling frequency = 5
