@@ -7,7 +7,7 @@
 
 ### Added
 
-*
+* Add support for specifying queues that workers should ignore when using globs
 *
 
 ## 2.2.0
