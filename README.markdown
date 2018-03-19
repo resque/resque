@@ -253,6 +253,22 @@ Or, prioritize some queues above `*`:
 
     # QUEUE=critical,* rake resque:work
 
+#### Running All Queues Except for Some
+
+If you want your workers to work off of all queues except for some,
+you can use negation:
+
+    $ QUEUE=*,!low rake resque:work
+
+Negated globs also work. The following will instruct workers to work
+off of all queues except those beginning with `file_`:
+
+    $ QUEUE=*,!file_* rake resque:work
+
+Note that the order in which negated queues are specified does not
+matter, so `QUEUE=*,!file_*` and `QUEUE=!file_*,*` will have the same
+effect.
+
 #### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque

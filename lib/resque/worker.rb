@@ -180,9 +180,15 @@ module Resque
     WILDCARDS = ['*', '?', '{', '}', '[', ']'].freeze
 
     def queues=(queues)
-      queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
-      @queues = queues.map { |queue| queue.to_s.strip }
-      @has_dynamic_queues = WILDCARDS.any? {|char| @queues.join.include?(char) }
+      queues = (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') if queues.empty?
+      queues = queues.map { |queue| queue.to_s.strip }
+
+      @skip_queues, @queues = queues.partition { |queue| queue.start_with?('!') }
+      @skip_queues.map! { |queue| queue[1..-1] }
+
+      @has_dynamic_queues =
+        @skip_queues.any? || WILDCARDS.any? { |char| @queues.join.include?(char) }
+
       validate_queues
     end
 
@@ -210,7 +216,8 @@ module Resque
 
     def glob_match(list, pattern)
       list.select do |queue|
-        File.fnmatch?(pattern, queue)
+        File.fnmatch?(pattern, queue) &&
+          @skip_queues.none? { |skip_pattern| File.fnmatch?(skip_pattern, queue) }
       end.sort
     end
 

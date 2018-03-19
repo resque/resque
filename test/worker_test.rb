@@ -414,6 +414,49 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:test_two)
   end
 
+  it "excludes a negated queue" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:low, GoodJob)
+
+    @worker = Resque::Worker.new(:critical, "!low", "*")
+    @worker.work(0)
+
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 1, Resque.size(:low)
+  end
+
+  it "excludes multiple negated queues" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:foo, GoodJob)
+    Resque::Job.create(:bar, GoodJob)
+
+    @worker = Resque::Worker.new("*", "!foo", "!bar")
+    @worker.work(0)
+
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 1, Resque.size(:foo)
+    assert_equal 1, Resque.size(:bar)
+  end
+
+  it "works with negated globs" do
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:test_one, GoodJob)
+    Resque::Job.create(:test_two, GoodJob)
+
+    @worker = Resque::Worker.new("*", "!test_*")
+    @worker.work(0)
+
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 1, Resque.size(:test_one)
+    assert_equal 1, Resque.size(:test_two)
+  end
+
   it "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end
