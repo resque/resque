@@ -527,6 +527,28 @@ context "Resque::Worker" do
     assert !$AFTER_FORK_CALLED
   end
 
+  test "runs before_reserve hooks" do
+    $BEFORE_RESERVE_CALLED = false
+    Resque.before_reserve = Proc.new { $BEFORE_RESERVE_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert !$BEFORE_RESERVE_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert $BEFORE_RESERVE_CALLED == true
+  end
+
+  test "runs after_reserve hooks" do
+    $AFTER_RESERVE_CALLED = false
+    Resque.after_reserve = Proc.new { $AFTER_RESERVE_CALLED = true }
+    workerA = Resque::Worker.new(:jobs)
+
+    assert !$AFTER_RESERVE_CALLED
+    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+    workerA.work(0)
+    assert $AFTER_RESERVE_CALLED == true
+  end
+
   test "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end

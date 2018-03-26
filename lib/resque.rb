@@ -138,6 +138,34 @@ module Resque
   # Set the after_continue proc.
   attr_writer :after_pause
 
+  # The `before_reserve` hook will be run in the parent process before
+  # the job is reserved.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def before_reserve(&block)
+    block ? register_hook(:before_reserve, block) : hooks(:before_reserve)
+  end
+
+  # Set the before_reserve proc
+  def before_reserve=(block)
+    register_hook(:before_reserve, block)
+  end
+
+  # The `after_reserve` hook will be run in the parent process after
+  # the job is reserved.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def after_reserve(&block)
+    block ? register_hook(:after_reserve, block) : hooks(:after_reserve)
+  end
+
+  # Set the after_reserve proc
+  def after_reserve=(block)
+    register_hook(:after_reserve, block)
+  end
+
   def to_s
     "Resque Client connected to #{redis_id}"
   end

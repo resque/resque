@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'minitest/autorun'
 require 'redis/namespace'
-require 'mocha'
+require 'mocha/setup'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
