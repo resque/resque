@@ -85,6 +85,12 @@ module Resque
         end
       end
 
+      def self.generation(index)
+        item = all(index)
+        payload = item['payload']
+        payload['generation'].to_i || 1
+      end
+
       # clearing the failure queue only removes jobs which have been retried
       # this makes it impossible to lose failing jobs
       def self.clear(queue = nil)
@@ -124,8 +130,28 @@ module Resque
       end
 
       def self.requeue_all
-        count.times do |num|
-          requeue(num)
+        while (fdata = Resque.redis.lpop(:failed))
+          begin
+            data = JSON.load(fdata)
+            qdata = JSON.dump(data["payload"])
+            queue = data["queue"]
+            Resque.redis.rpush("queue:#{queue}", qdata)
+            data = fdata = qdata = queue = nil
+          rescue Oj::ParseError
+            puts "Could not parse job #{num}, removing it"
+          rescue => e
+            pp {data: data, fdata: fdata, qdata: qdata, queue: queue}
+            raise e
+          end
+        end
+      end
+
+      def self.retry_young
+        (count - 1).downto(0) do |num|
+          if generation(num) < expire_generation
+            requeue(num)
+            remove(num)
+          end
         end
       end
 
@@ -152,38 +178,6 @@ module Resque
 
       def self.configure
         yield self
-      end
-
-      def self.generation(index)
-        item = all(index)
-        payload = item['payload']
-        payload['generation'].to_i || 1
-      end
-
-      def self.retry_young
-        (count - 1).downto(0) do |num|
-          if generation(num) < expire_generation
-            requeue(num)
-            remove(num)
-          end
-        end
-      end
-
-      def self.retry_all
-        while (fdata = Resque.redis.lpop(:failed))
-          begin
-            data = JSON.load(fdata)
-            qdata = JSON.dump(data["payload"])
-            queue = data["queue"]
-            Resque.redis.rpush("queue:#{queue}", qdata)
-            data = fdata = qdata = queue = nil
-          rescue Oj::ParseError
-            puts "Could not parse job #{num}, removing it"
-          rescue => e
-            pp {data: data, fdata: fdata, qdata: qdata, queue: queue}
-            raise e
-          end
-        end
       end
 
       def self.on_expire(&block)

@@ -211,7 +211,7 @@ module Resque
     end
 
     post "/failed/requeue/all" do
-      Resque::Failure::Redis.retry_all
+      Resque::Failure.requeue_all
       redirect u('failed')
     end
 
