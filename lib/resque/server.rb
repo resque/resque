@@ -211,7 +211,7 @@ module Resque
     end
 
     post "/failed/requeue/all" do
-      Resque::Failure.requeue_all
+      Resque::Failure::Redis.retry_all
       redirect u('failed')
     end
 
@@ -222,8 +222,11 @@ module Resque
 
     get "/failed/requeue/:index/?" do
       Resque::Failure.requeue(params[:index])
+      retried_at = Resque::Failure.all(params[:index])['retried_at']
+      Resque::Failure.remove(params[:index])
+
       if request.xhr?
-        return Resque::Failure.all(params[:index])['retried_at']
+        halt retried_at
       else
         redirect u('failed')
       end

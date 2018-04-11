@@ -1,3 +1,5 @@
+require 'uuidtools'
+
 module Resque
   # A Resque::Job represents a unit of work. Each job lives on a
   # single queue and has an associated payload object. The payload
@@ -48,7 +50,7 @@ module Resque
     def self.decode(object)
       Resque.decode(object)
     end
-    
+
     # Given a word with dashes, returns a camel cased version of it.
     def classify(dashed_word)
       Resque.classify(dashed_word)
@@ -79,21 +81,45 @@ module Resque
       @failure_hooks_ran = false
     end
 
+    def id
+      @payload['id']
+    end
+
+    def generation
+      @payload['generation']
+    end
+
     # Creates a job by placing it on a queue. Expects a string queue
     # name, a string class name, and an optional array of arguments to
     # pass to the class' `perform` method.
     #
     # Raises an exception if no queue or class is given.
     def self.create(queue, klass, *args)
+      self.create_extended(queue, klass, new_uuid, 1, *args)
+    end
+
+    def self.create_extended(queue, klass, id, generation, *args)
       Resque.validate(klass, queue)
 
       if Resque.inline?
-        # Instantiating a Resque::Job and calling perform on it so callbacks run
-        # decode(encode(args)) to ensure that args are normalized in the same manner as a non-inline job
-        new(:inline, {'class' => klass, 'args' => decode(encode(args))}).perform
+        new(:inline, {
+          'class' => klass,
+          'args' => decode(encode(args)),
+          'id' => id,
+          'generation' => generation
+        }).perform
       else
-        Resque.push(queue, :class => klass.to_s, :args => args)
+        Resque.push(queue, {
+         :class => klass.to_s,
+         :args => args,
+         :id => id,
+         :generation => generation
+        })
       end
+    end
+
+    def self.new_uuid
+      UUIDTools::UUID.random_create.hexdigest.to_s
     end
 
     # Removes a job from a queue. Expects a string queue name, a
@@ -122,16 +148,15 @@ module Resque
     # a Ruby array before processing.
     def self.destroy(queue, klass, *args)
       klass = klass.to_s
+      queue = "queue:#{queue}"
       destroyed = 0
 
-      if args.empty?
-        data_store.everything_in_queue(queue).each do |string|
-          if decode(string)['class'] == klass
-            destroyed += data_store.remove_from_queue(queue,string).to_i
-          end
+      redis.lrange(queue, 0, -1).each do |string|
+        ob = decode(string)
+        if ob['class'] == klass &&
+            (args.empty? || args == ob['args'])
+          destroyed += redis.lrem(queue, 0, string).to_i
         end
-      else
-        destroyed += data_store.remove_from_queue(queue, encode(:class => klass, :args => args))
       end
 
       destroyed
@@ -246,7 +271,7 @@ module Resque
     # Creates an identical job, essentially placing this job back on
     # the queue.
     def recreate
-      self.class.create(queue, payload_class, *args)
+      self.class.create_extended(queue, payload_class, id, generation+1, *args)
     end
 
     # String representation
