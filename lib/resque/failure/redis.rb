@@ -97,8 +97,7 @@ module Resque
         ulim = Resque::Failure.count - 1
         ulim.downto(0) do |i|
           job = Resque::Failure.all(i)
-          has_id = !job['payload']['id'].nil?
-          remove(i) if !job['retried_at'].nil? && has_id
+          remove(i) if !job['retried_at'].nil? && !!job['payload']['id']
         end
       end
 
@@ -139,9 +138,6 @@ module Resque
             data = fdata = qdata = queue = nil
           rescue Oj::ParseError
             puts "Could not parse job #{num}, removing it"
-          rescue StandardError => e
-            pp { data: data, fdata: fdata, qdata: qdata, queue: queue }
-            raise e
           end
         end
       end
@@ -192,13 +188,15 @@ module Resque
         @expire_generation ||= 3
       end
 
-      def self.whitelist=(lst)
-        @whitelist = lst.map{|x| x.to_s}
+      def self.whitelist=(list)
+        @whitelist = list.map(&:to_s)
       end
 
       def self.whitelist
         @whitelist || []
       end
+
+      @whitelist = []
     end
   end
 end

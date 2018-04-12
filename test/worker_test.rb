@@ -252,10 +252,21 @@ describe "Resque::Worker" do
     assert_equal 10, Resque::Failure.all(0, 20).size
   end
 
-  it "can clear failed jobs" do
+  it "does not clear failed jobs that haven't yet been retried" do
     Resque::Job.create(:jobs, BadJob)
     @worker.work(0)
     assert_equal 1, Resque::Failure.count
+    Resque::Failure.clear
+    assert_equal 1, Resque::Failure.count
+  end
+
+  it "can clear failed jobs that have been retried" do
+    Resque::Job.create(:jobs, BadJob)
+    @worker.work(0)
+    assert_equal 1, Resque::Failure.count
+    job = Resque::Failure.all(0)
+    job['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
+    Resque.redis.lset(:failed, 0, Resque.encode(job))
     Resque::Failure.clear
     assert_equal 0, Resque::Failure.count
   end
@@ -466,7 +477,7 @@ describe "Resque::Worker" do
     without_forking do
       @worker.extend(AssertInWorkBlock).work(0) do
         task = @worker.job
-        assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob"}, task['payload'])
+        assert_equal({"args"=>[20, "/tmp"], "class"=>"SomeJob", "generation" => 1, "id" => task['payload']['id']}, task['payload'])
         assert task['run_at']
         assert_equal 'jobs', task['queue']
       end
