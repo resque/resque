@@ -139,8 +139,8 @@ module Resque
             data = fdata = qdata = queue = nil
           rescue Oj::ParseError
             puts "Could not parse job #{num}, removing it"
-          rescue => e
-            pp {data: data, fdata: fdata, qdata: qdata, queue: queue}
+          rescue StandardError => e
+            pp { data: data, fdata: fdata, qdata: qdata, queue: queue }
             raise e
           end
         end
