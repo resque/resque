@@ -153,6 +153,8 @@ module Resque
   DEFAULT_HEARTBEAT_INTERVAL = 60
   DEFAULT_PRUNE_INTERVAL = DEFAULT_HEARTBEAT_INTERVAL * 5
 
+  # Defines how often a Resque worker updates the heartbeat key. Must be less
+  # than the prune interval.
   attr_writer :heartbeat_interval
   def heartbeat_interval
     if defined? @heartbeat_interval
@@ -162,6 +164,7 @@ module Resque
     end
   end
 
+  # Defines how often Resque checks for dead workers.
   attr_writer :prune_interval
   def prune_interval
     if defined? @prune_interval
@@ -171,6 +174,10 @@ module Resque
     end
   end
 
+  # By default, jobs are pushed to the back of the queue and popped from
+  # the front, resulting in "first in, first out" (FIFO) execution order.
+  # Set to true to push jobs to the front of the queue instead, resulting
+  # in "last in, first out" (LIFO) execution order.
   attr_writer :enqueue_front
   def enqueue_front
     if defined? @enqueue_front
