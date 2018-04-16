@@ -3,6 +3,7 @@ require 'bundler/setup'
 require 'minitest/autorun'
 require 'redis/namespace'
 require 'mocha/setup'
+require 'tempfile'
 
 $dir = File.dirname(File.expand_path(__FILE__))
 $LOAD_PATH.unshift $dir + '/../lib'
