@@ -776,6 +776,23 @@ describe "Resque::Worker" do
     end
   end
 
+  it "correctly reports a job that the pruned worker was processing" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.to_s = "jobs01.company.com:3:jobs"
+    workerA.register_worker
+
+    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    workerA.working_on(job)
+    workerA.heartbeat!(Time.now - Resque.prune_interval - 1)
+
+    @worker.prune_dead_workers
+
+    assert_equal 1, Resque::Failure.count
+    failure = Resque::Failure.all(0)
+    assert_equal "Resque::PruneDeadWorkerDirtyExit", failure["exception"]
+    assert_equal "Worker jobs01.company.com:3:jobs did not gracefully exit while processing GoodJob", failure["error"]
+  end
+
   # This was added because PruneDeadWorkerDirtyExit does not have a backtrace,
   # and the error handling code did not account for that.
   it "correctly reports errors that occur while pruning workers" do

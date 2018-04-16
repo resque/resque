@@ -610,7 +610,9 @@ module Resque
         # client library or an older version of Resque. We won't touch these.
         if all_workers_with_expired_heartbeats.include?(worker)
           log_with_severity :info, "Pruning dead worker: #{worker}"
-          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
+
+          job_class = worker.job(false)['payload']['class'] rescue nil
+          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s, job_class))
           next
         end
 
