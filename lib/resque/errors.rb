@@ -14,7 +14,13 @@ module Resque
       super message
     end
   end
-  class PruneDeadWorkerDirtyExit < DirtyExit; end
+
+  class PruneDeadWorkerDirtyExit < DirtyExit
+    def initialize(hostname, job)
+      job ||= "<Unknown Job>"
+      super("Worker #{hostname} did not gracefully exit while processing #{job}")
+    end
+  end
 
   # Raised when child process is TERM'd so job can rescue this to do shutdown work.
   class TermException < SignalException; end
