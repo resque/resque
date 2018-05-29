@@ -33,9 +33,11 @@ module Resque
         errors = {}
 
         @backends.each do |backend|
-          backend.save
-        rescue
-          errors[backend.class] = $!
+          begin
+            backend.save
+          rescue
+            errors[backend.class] = $!
+          end
         end
 
         unless errors.empty?
