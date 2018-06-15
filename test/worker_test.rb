@@ -625,7 +625,7 @@ describe "Resque::Worker" do
     without_forking do
       @worker.extend(AssertInWorkBlock).work(0) do
         found = Resque::Worker.find('blah-blah')
-        assert_equal nil, found
+        assert_nil found
       end
     end
   end
@@ -728,7 +728,7 @@ describe "Resque::Worker" do
     assert_instance_of Time, workerA.heartbeat
 
     workerA.remove_heartbeat
-    assert_equal nil, workerA.heartbeat
+    assert_nil workerA.heartbeat
   end
 
   it "removes old heartbeats before starting heartbeat thread" do
@@ -753,7 +753,7 @@ describe "Resque::Worker" do
       sleep 0.1 until Resque::Worker.all_heartbeats.empty?
     end
 
-    assert_equal nil, workerA.heartbeat
+    assert_nil workerA.heartbeat
   end
 
   it "does not generate heartbeats that depend on the worker clock, but only on the server clock" do

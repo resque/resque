@@ -357,7 +357,7 @@ describe "Resque::Job before_dequeue" do
 
   it "a before dequeue hook that returns false should prevent the job from getting dequeued" do
     history = []
-    assert_equal nil, Resque.dequeue(BeforeDequeueJobAbort, history)
+    assert_nil Resque.dequeue(BeforeDequeueJobAbort, history)
   end
 end
 
