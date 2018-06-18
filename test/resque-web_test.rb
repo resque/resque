@@ -46,6 +46,63 @@ describe "Resque web" do
     end
   end
 
+  # Queues
+  describe "on GET to /queues" do
+    before { Resque::Failure.stubs(:count).returns(1) }
+
+    describe "with Resque::Failure::RedisMultiQueue backend enabled" do
+      it "should display failed queues" do
+        with_failure_backend Resque::Failure::RedisMultiQueue do
+          Resque::Failure.stubs(:queues).returns(
+            [:queue1_failed, :queue2_failed]
+          )
+
+          get "/queues"
+        end
+
+        assert last_response.body.include?('queue1_failed')
+        assert last_response.body.include?('queue2_failed')
+      end
+
+      it "should respond with success when no failed queues exists" do
+        with_failure_backend Resque::Failure::RedisMultiQueue do
+          Resque::Failure.stubs(:queues).returns([])
+
+          get "/queues"
+        end
+
+        assert last_response.ok?, last_response.errors
+      end
+    end
+
+    describe "Without Resque::Failure::RedisMultiQueue backend enabled" do
+      it "should display queues when there are more than 1 failed queue" do
+        Resque::Failure.stubs(:queues).returns(
+          [:queue1_failed, :queue2_failed]
+        )
+        get "/queues"
+
+        assert last_response.body.include?('queue1_failed')
+        assert last_response.body.include?('queue2_failed')
+      end
+
+      it "should display 'failed' queue when there is 1 failed queue" do
+        Resque::Failure.stubs(:queues).returns([:queue1])
+        get "/queues"
+
+        assert !last_response.body.include?('queue1')
+        assert last_response.body.include?('failed')
+      end
+
+      it "should respond with success when no failed queues exists" do
+        Resque::Failure.stubs(:queues).returns([])
+        get "/queues"
+
+        assert last_response.ok?, last_response.errors
+      end
+    end
+  end
+
   # Failed
   describe "on GET to /failed" do
     before { get "/failed" }
