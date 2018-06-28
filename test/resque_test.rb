@@ -70,7 +70,7 @@ describe "Resque" do
     assert_equal '/tmp', job.args[1]
 
     assert Resque.reserve(:ivar)
-    assert_equal nil, Resque.reserve(:ivar)
+    assert_nil Resque.reserve(:ivar)
   end
 
   it "can remove jobs from a queue by way of an ivar" do
@@ -135,7 +135,7 @@ describe "Resque" do
     assert_equal '/tmp', job.args[1]
 
     assert Resque.reserve(:method)
-    assert_equal nil, Resque.reserve(:method)
+    assert_nil Resque.reserve(:method)
   end
 
   it "can define a queue for jobs by way of a method" do
@@ -202,7 +202,7 @@ describe "Resque" do
       assert_equal({ 'name' => 'chris' }, Resque.pop(:people))
       assert_equal({ 'name' => 'bob' }, Resque.pop(:people))
       assert_equal({ 'name' => 'mark' }, Resque.pop(:people))
-      assert_equal nil, Resque.pop(:people)
+      assert_nil Resque.pop(:people)
     end
 
     it "knows how big a queue is" do
@@ -228,7 +228,7 @@ describe "Resque" do
       assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
       assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
       assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
-      assert_equal nil, Resque.peek(:people, 3)
+      assert_nil Resque.peek(:people, 3)
       assert_equal [], Resque.peek(:people, 3, 2)
     end
 
@@ -237,7 +237,7 @@ describe "Resque" do
       assert_equal %w( cars people ).sort, Resque.queues.sort
       Resque.remove_queue(:people)
       assert_equal %w( cars ), Resque.queues
-      assert_equal nil, Resque.pop(:people)
+      assert_nil Resque.pop(:people)
     end
 
     it "knows what queues it is managing" do
