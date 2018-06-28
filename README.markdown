@@ -801,7 +801,7 @@ rails_env = ENV['RAILS_ENV'] || 'development'
 config_file = rails_root + '/config/resque.yml'
 
 resque_config = YAML::load(ERB.new(IO.read(config_file)).result)
-Resque.redis = resque_config[rails_env]
+Resque.redis = Redis.new(url: resque_config[rails_env], thread_safe: true)
 ```
 
 Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
