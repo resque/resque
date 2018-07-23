@@ -3,6 +3,11 @@ module Resque
     # A Failure backend that stores exceptions in Redis. Very simple but
     # works out of the box, along with support in the Resque web app.
     class Redis < Base
+      class << self
+        attr_writer :expire_generation
+        attr_accessor :expire_block
+        attr_accessor :failure_block
+      end
 
       def data_store
         Resque.data_store
@@ -14,7 +19,7 @@ module Resque
 
       def save
         data = {
-          :failed_at => UTF8Util.clean(Time.now.strftime("%Y/%m/%d %H:%M:%S %Z")),
+          :failed_at => Time.now.strftime("%Y/%m/%d %H:%M:%S %Z"),
           :payload   => payload,
           :exception => exception.class.to_s,
           :error     => UTF8Util.clean(exception.to_s),
@@ -22,8 +27,18 @@ module Resque
           :worker    => worker.to_s,
           :queue     => queue
         }
-        data = Resque.encode(data)
-        data_store.push_to_failed_queue(data)
+
+        rdata = Resque.encode(data)
+        Resque.redis.rpush(:failed, rdata)
+
+        unless self.class.whitelist.include? data[:exception]
+          self.class.failure_block.call(data) if self.class.failure_block
+        end
+
+        gen = payload['generation'] || 1
+        if gen == self.class.expire_generation
+          self.class.expire_block.call(data) if self.class.expire_block
+        end
       end
 
       def self.count(queue = nil, class_name = nil)
@@ -70,17 +85,34 @@ module Resque
         end
       end
 
-      def self.clear(queue = nil)
-        check_queue(queue)
-        data_store.clear_failed_queue
+      def self.generation(index)
+        item = all(index)
+        payload = item['payload']
+        payload['generation'].to_i || 1
       end
 
-      def self.requeue(id, queue = nil)
+      # clearing the failure queue only removes jobs which have been retried
+      # this makes it impossible to lose failing jobs
+      def self.clear(queue = nil)
+        ulim = Resque::Failure.count - 1
+        ulim.downto(0) do |i|
+          job = Resque::Failure.all(i)
+          remove(i) if !job['retried_at'].nil? && !!job['payload']['id']
+        end
+      end
+
+      # pass the id along and increment the generation on requeue
+      def self.requeue(index, queue = nil)
         check_queue(queue)
-        item = all(id)
+        item = all(index)
         item['retried_at'] = Time.now.strftime("%Y/%m/%d %H:%M:%S")
-        data_store.update_item_in_failed_queue(id,Resque.encode(item))
-        Job.create(item['queue'], item['payload']['class'], *item['payload']['args'])
+        Resque.redis.lset(:failed, index, Resque.encode(item))
+
+        payload = item['payload']
+        id = payload['id'] || Job.new_uuid
+        generation = payload['generation'].to_i || 1
+
+        Job.create_extended(item['queue'], payload['class'], id, generation + 1, *payload['args'])
       end
 
       def self.remove(id, queue = nil)
@@ -97,8 +129,25 @@ module Resque
       end
 
       def self.requeue_all
-        count.times do |num|
-          requeue(num)
+        while (fdata = Resque.redis.lpop(:failed))
+          begin
+            data = JSON.load(fdata)
+            qdata = JSON.dump(data["payload"])
+            queue = data["queue"]
+            Resque.redis.rpush("queue:#{queue}", qdata)
+            data = fdata = qdata = queue = nil
+          rescue Oj::ParseError
+            puts "Could not parse job #{num}, removing it"
+          end
+        end
+      end
+
+      def self.retry_young
+        (count - 1).downto(0) do |num|
+          if generation(num) < expire_generation
+            requeue(num)
+            remove(num)
+          end
         end
       end
 
@@ -123,6 +172,31 @@ module Resque
         backtrace.first(index.to_i)
       end
 
+      def self.configure
+        yield self
+      end
+
+      def self.on_expire(&block)
+        @expire_block = block
+      end
+
+      def self.on_failure(&block)
+        @failure_block = block
+      end
+
+      def self.expire_generation
+        @expire_generation ||= 3
+      end
+
+      def self.whitelist=(list)
+        @whitelist = list.map(&:to_s)
+      end
+
+      def self.whitelist
+        @whitelist || []
+      end
+
+      @whitelist = []
     end
   end
 end
