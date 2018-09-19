@@ -54,9 +54,7 @@ describe "Resque::Worker" do
   end
 
   def assert_child_not_running(child_pid)
-    # ensure that the child pid is no longer running
-    child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-    assert !child_still_running
+    assert (`ps -p #{child_pid.to_s} -o pid=`).empty?
   end
 
   it "kills off the child when killed" do
