@@ -144,15 +144,12 @@ describe "Resque::WorkerManager" do
     workerA.register_worker
     workerA.heartbeat!(Time.now - Resque.prune_interval - 1)
 
-    # the specific error isn't important, could be something else
-    Resque.data_store.redis.stubs(:get).raises(Redis::CannotConnectError)
+    Resque::WorkerManager.stubs(:data_store).raises(Redis::CannotConnectError)
 
     exception_caught = assert_raises Redis::CannotConnectError do
       Resque::WorkerManager.prune_dead_workers
     end
 
-    assert_match(/PruneDeadWorkerDirtyExit/, exception_caught.message)
-    assert_match(/bar:3:jobs/, exception_caught.message)
     assert_match(/Redis::CannotConnectError/, exception_caught.message)
   end
 end

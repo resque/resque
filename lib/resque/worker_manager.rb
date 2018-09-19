@@ -10,6 +10,21 @@ module Resque
       def to_s
         @worker_id
       end
+
+      def ==(other)
+        to_s == other.to_s
+      end
+
+      def data_store
+        Resque.data_store
+      end
+
+      def unregister_worker(exception = nil)
+        data_store.unregister_worker(self) do
+          Stat.clear("processed:#{self}")
+          Stat.clear("failed:#{self}")
+        end
+      end
     end
 
     class WorkerThreadStatus
@@ -17,6 +32,10 @@ module Resque
         @host, @pid, queues_raw, @thread_id = worker_thread_id.split(':')
         @queues = queues_raw.split(',')
         @job = Resque.decode(job) if job
+      end
+
+      def ==(other)
+        to_s == other.to_s
       end
     end
 
@@ -64,17 +83,9 @@ module Resque
 
     def self.prune_dead_workers
       return unless data_store.acquire_pruning_dead_worker_lock(self, Resque.heartbeat_interval)
-
-      all_workers = all
-      if all_workers.any?
-        expired_heartbeats = all_workers_with_expired_heartbeats
-      end
-
-      all_workers.each do |worker|
-        if expired_heartbeats.include?(worker)
-          Logging.log :info, "Pruning dead worker: #{worker}"
-          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
-        end
+      all_workers_with_expired_heartbeats.each do |worker|
+        Logging.log :info, "Pruning dead worker: #{worker}"
+        worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
       end
     end
 
