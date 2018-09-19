@@ -86,3 +86,11 @@ processing of new jobs.  Wait for the unstuck jobs to finish, then use
 Signals sent to the Master Process will affect all Worker Processes and
 Worker Threads.  Signals sent to a specific Worker Process will affect
 that Worker Process only.
+
+
+## Internal Changes
+
+The Worker class was being overloaded to refer to both an active worker
+(parent and child) and the representation of a worker on another machine
+when viewing the Web UI.  This has been detangled.  We now have a
+Worker, WorkerThread, WorkerManager, and WorkerStatus.

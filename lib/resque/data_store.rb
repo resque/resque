@@ -212,14 +212,13 @@ module Resque
         Array(@redis.smembers(:workers))
       end
 
-      # Given a list of worker ids, returns a map of those ids to the worker's value
-      # in redis, even if that value maps to nil
       def worker_threads_map(worker_ids)
-        redis_keys = worker_ids.map { |id| "worker:#{id}" }
-        @redis.mapped_mget(*redis_keys)
+        redis_keys = worker_ids.map { |id| redis_key_for_worker(id) }
+        thread_ids = @redis.mapped_mget(*redis_keys)
+        thread_redis_keys = thread_ids.map { |id| redis_key_for_worker_thread(id) }
+        @redis.mapped_mget(*thread_redis_keys)
       end
 
-      # return the worker thread's payload i.e. job
       def get_worker_thread_payload(worker_thread_id)
         @redis.get("worker:#{worker_thread_id}")
       end
