@@ -371,7 +371,7 @@ module Resque
 
       begin
         trap('QUIT') { shutdown; send_child_signal('QUIT') }
-        trap('USR1') { send_child_signal('USR1'); kill_worker }
+        trap('USR1') { send_child_signal('USR1'); unpause_processing; kill_worker }
         trap('USR2') { pause_processing; send_child_signal('USR2') }
         trap('CONT') { unpause_processing; send_child_signal('CONT') }
       rescue ArgumentError

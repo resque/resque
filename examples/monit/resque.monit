@@ -1,6 +1,0 @@
-check process resque_worker_QUEUE
-  with pidfile /data/APP_NAME/current/tmp/pids/resque_worker_QUEUE.pid
-  start program = "/usr/bin/env HOME=/home/user RACK_ENV=production PATH=/usr/local/bin:/usr/local/ruby/bin:/usr/bin:/bin:$PATH /bin/sh -l -c 'cd /data/APP_NAME/current; nohup bundle exec rake environment resque:work RAILS_ENV=production QUEUE=queue_name VERBOSE=1 PIDFILE=tmp/pids/resque_worker_QUEUE.pid >> log/resque_worker_QUEUE.log 2>&1'" as uid deploy and gid deploy
-  stop program = "/bin/sh -c 'cd /data/APP_NAME/current && kill -9 $(cat tmp/pids/resque_worker_QUEUE.pid) && rm -f tmp/pids/resque_worker_QUEUE.pid; exit 0;'"
-  if totalmem is greater than 300 MB for 10 cycles then restart  # eating up memory?
-  group resque_workers
