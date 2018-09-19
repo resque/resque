@@ -277,7 +277,7 @@ describe "Resque" do
       assert_equal 1, stats[:working]
       assert_equal 1, stats[:workers]
 
-      @worker.done_working
+      wt.done_working
 
       stats = Resque.info
       assert_equal 3, stats[:queues]

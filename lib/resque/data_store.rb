@@ -213,10 +213,14 @@ module Resque
       end
 
       def worker_threads_map(worker_ids)
-        redis_keys = worker_ids.map { |id| redis_key_for_worker(id) }
-        thread_ids = @redis.mapped_mget(*redis_keys)
-        thread_redis_keys = thread_ids.map { |id| redis_key_for_worker_thread(id) }
-        @redis.mapped_mget(*thread_redis_keys)
+        thread_redis_keys = worker_ids.map { |id| redis_key_for_worker_threads(id) }.map { |key|
+          @redis.smembers(key)
+        }.flatten.compact.map { |id| redis_key_for_worker_thread(id) }
+        if thread_redis_keys.any?
+          @redis.mapped_mget(*thread_redis_keys)
+        else
+          []
+        end
       end
 
       def get_worker_thread_payload(worker_thread_id)
