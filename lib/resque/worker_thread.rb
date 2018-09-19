@@ -1,10 +1,9 @@
-require 'time'
-
 module Resque
   class WorkerThread
-    attr_reader :id, :worker
+    attr_reader :id, :worker, :interval
+    attr_accessor :job
 
-    def initialize(id, worker, interval, &block)
+    def initialize(worker, id = 0, interval = 0, &block)
       @id = id
       @worker = worker
       @interval = interval
@@ -38,18 +37,14 @@ module Resque
     def work
       loop do
         if work_one_job(&@block)
-          @mutex.synchronize do
-            @jobs_processed += 1
-          end
+          worker.job_processed
         else
           break if interval.zero?
-          set_procline_for_threads
+          worker.set_procline
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           sleep interval
         end
-        @mutex.synchronize do
-          break if @jobs_processed >= jobs_per_fork
-        end
+        break if worker.jobs_processed >= jobs_per_fork
       end
     end
 
@@ -57,14 +52,14 @@ module Resque
       return false if worker.paused?
       return false unless @job = worker.reserve
 
-      worker.set_procline_for_threads
-      set_worker_payload
+      worker.set_procline
+      set_payload
 
       log_with_severity :info, "got: #{@job.inspect}"
       @job.worker = worker
 
       begin
-        @job_thread = Thread.new { perform( &block) }
+        @job_thread = Thread.new { perform(&block) }
         @job_thread.join
         @job_thread = nil
       rescue Object => e
@@ -88,16 +83,16 @@ module Resque
       end
     end
 
-    def set_worker_payload
+    def set_payload
       data = worker.encode \
         :queue   => @job.queue,
         :run_at  => Time.now.utc.iso8601,
         :payload => @job.payload
-      data_store.set_worker_payload(self, data)
+      data_store.set_worker_thread_payload(self, data)
     end
 
     def done_working
-      data_store.worker_done_working(self) do
+      data_store.worker_thread_done_working(self) do
         worker.processed!
       end
     end

@@ -1,3 +1,4 @@
+require 'time'
 require 'mono_logger'
 require 'redis/namespace'
 require 'forwardable'
@@ -23,6 +24,7 @@ require 'resque/data_store'
 require 'resque/thread_signal'
 
 require 'resque/vendor/utf8_util'
+
 
 module Resque
   include Helpers

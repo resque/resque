@@ -1,21 +1,11 @@
-require 'time'
-require 'set'
-require 'redis/distributed'
-
 module Resque
-  # A Resque Worker processes jobs. On platforms that support fork(2),
-  # the worker will fork off a child to process each job. This ensures
-  # a clean slate when beginning the next job and cuts down on gradual
-  # memory growth as well as low level failures.
-  #
-  # It also ensures workers are always listening to signals from you,
-  # their master, and can react accordingly.
   class Worker
     include Resque::Helpers
     extend Resque::Helpers
     include Resque::Logging
 
     attr_accessor :term_timeout, :jobs_per_fork, :worker_count, :thread_count
+    attr_reader :jobs_processed
     attr_writer :hostname, :to_s, :pid
 
     @@all_heartbeat_threads = []
@@ -24,12 +14,7 @@ module Resque
       @@all_heartbeat_threads = []
     end
 
-    def redis
-      Resque.redis
-    end
-    alias :data_store :redis
-
-    def self.redis
+    def data_store
       Resque.redis
     end
 
@@ -37,53 +22,35 @@ module Resque
       Resque.redis
     end
 
-    # Given a Ruby object, returns a string suitable for storage in a
-    # queue.
     def encode(object)
       Resque.encode(object)
     end
 
-    # Given a string, returns a Ruby object.
     def decode(object)
       Resque.decode(object)
     end
 
-    # Returns an array of all worker objects.
     def self.all
-      data_store.worker_ids.map { |id| find(id, :skip_exists => true) }.compact
+      data_store.worker_ids.map { |id| find(id,true) }.compact
     end
 
-    # Returns an array of all worker objects currently processing
-    # jobs.
     def self.working
       names = all
       return [] unless names.any?
 
-      reportedly_working = {}
+      reportedly_working = data_store.workers_map(names).reject { |key, value|
+        value.nil? || value.empty?
+      }
 
-      begin
-        reportedly_working = data_store.workers_map(names).reject do |key, value|
-          value.nil? || value.empty?
-        end
-      rescue Redis::Distributed::CannotDistribute
-        names.each do |name|
-          value = data_store.get_worker_payload(name)
-          reportedly_working[name] = value unless value.nil? || value.empty?
-        end
-      end
-
-      reportedly_working.keys.map do |key|
-        worker = find(key.sub("worker:", ''), :skip_exists => true)
+      reportedly_working.keys.map { |key|
+        worker = find(key.sub("worker:", ''), true)
         worker.job = worker.decode(reportedly_working[key])
         worker
-      end.compact
+      }.compact
     end
 
-    # Returns a single worker object. Accepts a string id.
-    def self.find(worker_id, options = {})
-      skip_exists = options[:skip_exists]
-
-      if skip_exists || exists?(worker_id)
+    def self.find(worker_id, known_to_exist = false)
+      if known_to_exist || exists?(worker_id)
         host, pid, queues_raw = worker_id.split(':')
         queues = queues_raw.split(',')
         worker = new(*queues)
@@ -96,31 +63,14 @@ module Resque
       end
     end
 
-    # Alias of `find`
     def self.attach(worker_id)
       find(worker_id)
     end
 
-    # Given a string worker id, return a boolean indicating whether the
-    # worker exists
     def self.exists?(worker_id)
       data_store.worker_exists?(worker_id)
     end
 
-    # Workers should be initialized with an array of string queue
-    # names. The order is important: a Worker will check the first
-    # queue given for a job. If none is found, it will check the
-    # second queue name given. If a job is found, it will be
-    # processed. Upon completion, the Worker will again check the
-    # first queue given, and so forth. In this way the queue list
-    # passed to a Worker on startup defines the priorities of queues.
-    #
-    # If passed a single "*", this Worker will operate on all queues
-    # in alphabetical order. Queues can be dynamically added or
-    # removed without needing to restart workers using this method.
-    #
-    # Workers should have `#prepare` called after they are initialized
-    # if you are running work on the worker.
     def initialize(*queues)
       @shutdown = nil
       @paused = nil
@@ -142,9 +92,6 @@ module Resque
       self.queues = queues
     end
 
-    # Daemonizes the worker if ENV['BACKGROUND'] is set and writes
-    # the process id to ENV['PIDFILE'] if set. Should only be called
-    # once per worker.
     def prepare
       if ENV['BACKGROUND']
         Process.daemon(true)
@@ -166,19 +113,12 @@ module Resque
       validate_queues
     end
 
-    # A worker must be given a queue, otherwise it won't know what to
-    # do with itself.
-    #
-    # You probably never need to call this.
     def validate_queues
       if @queues.nil? || @queues.empty?
         raise NoQueueError.new("Please give each worker at least one queue.")
       end
     end
 
-    # Returns a list of queues to use when searching for a job.
-    # A splat ("*") means you want every queue (in alpha order) - this
-    # can be useful for dynamically adding new queues.
     def queues
       if @has_dynamic_queues
         current_queues = Resque.queues
@@ -244,7 +184,19 @@ module Resque
       @worker_threads.map(&:spawn).map(&:join)
     end
 
-    def set_procline_for_threads
+    def synchronize
+      @mutex.synchronize do
+        yield
+      end
+    end
+
+    def job_processed
+      synchronize do
+        @jobs_processed += 1
+      end
+    end
+
+    def set_procline
       jobs = @worker_threads.map { |thread| thread.payload_class_name }.compact
       if jobs.size > 0
         procline "Processing Job(s): #{jobs.join(", ")}"
@@ -253,8 +205,6 @@ module Resque
       end
     end
 
-    # Attempts to grab a job off one of the provided queues. Returns
-    # nil if no job can be found.
     def reserve
       queues.each do |queue|
         log_with_severity :debug, "Checking #{queue}"
@@ -271,8 +221,6 @@ module Resque
       raise e
     end
 
-    # Reconnect to Redis to avoid sharing a connection with the parent,
-    # retry up to 3 times with increasing delay before giving up.
     def reconnect
       tries = 0
       begin
@@ -290,7 +238,6 @@ module Resque
       end
     end
 
-    # Runs all the methods needed when a worker begins its lifecycle.
     def startup
       $0 = "resque: Starting"
 
@@ -299,19 +246,9 @@ module Resque
       prune_dead_workers
       register_worker
 
-      # Fix buffering so we can `rake resque:work > resque.log` and
-      # get output from the child in there.
       $stdout.sync = true
     end
 
-    # Registers the various signal handlers a worker responds to.
-    #
-    # TERM: Shutdown immediately, kill the current job immediately.
-    #  INT: Shutdown immediately, kill the current job immediately.
-    # QUIT: Shutdown after the current job has finished processing.
-    # USR1: Kill the current job immediately, continue processing jobs.
-    # USR2: Don't process any new jobs
-    # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
       trap('TERM') { shutdown; send_child_signal('TERM'); kill_worker }
       trap('INT')  { shutdown; send_child_signal('INT'); kill_worker }
@@ -340,20 +277,11 @@ module Resque
       @worker_thread.kill if @worker_thread
     end
 
-    # Schedule this worker for shutdown. Will finish processing the
-    # current job.
     def shutdown
       log_with_severity :info, 'Exiting...'
       @shutdown = true
     end
 
-    # Kill the child and shutdown immediately.
-    # If not forking, abort this process.
-    def shutdown!
-      shutdown
-    end
-
-    # Should this worker shutdown as soon as current job is finished?
     def shutdown?
       @shutdown
     end
@@ -374,8 +302,6 @@ module Resque
       data_store.all_heartbeats
     end
 
-    # Returns a list of workers that have sent a heartbeat in the past, but which
-    # already expired (does NOT include workers that have never sent a heartbeat at all).
     def self.all_workers_with_expired_heartbeats
       workers = Worker.all
       heartbeats = Worker.all_heartbeats
@@ -410,34 +336,20 @@ module Resque
       @@all_heartbeat_threads << @heartbeat_thread
     end
 
-    # are we paused?
     def paused?
       @paused
     end
 
-    # Stop processing jobs after the current one has completed (if we're
-    # currently running one).
     def pause_processing
       log_with_severity :info, "USR2 received; pausing job processing"
       @paused = true
     end
 
-    # Start processing jobs again after a pause
     def unpause_processing
       log_with_severity :info, "CONT received; resuming job processing"
       @paused = false
     end
 
-    # Looks for any workers which should be running on this server
-    # and, if they're not, removes them from Redis.
-    #
-    # This is a form of garbage collection. If a server is killed by a
-    # hard shutdown, power failure, or something else beyond our
-    # control, the Resque workers will not die gracefully and therefore
-    # will leave stale state information in Redis.
-    #
-    # By checking the current Redis state against the actual
-    # environment, we can determine if Redis is old and clean it up a bit.
     def prune_dead_workers
       return unless data_store.acquire_pruning_dead_worker_lock(self, Resque.heartbeat_interval)
 
@@ -449,12 +361,6 @@ module Resque
       end
 
       all_workers.each do |worker|
-        # If the worker hasn't sent a heartbeat, remove it from the registry.
-        #
-        # If the worker hasn't ever sent a heartbeat, we won't remove it since
-        # the first heartbeat is sent before the worker is registred it means
-        # that this is a worker that doesn't support heartbeats, e.g., another
-        # client library or an older version of Resque. We won't touch these.
         if all_workers_with_expired_heartbeats.include?(worker)
           log_with_severity :info, "Pruning dead worker: #{worker}"
           worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
@@ -464,11 +370,6 @@ module Resque
         host, pid, worker_queues_raw = worker.id.split(':')
         worker_queues = worker_queues_raw.split(",")
         unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
-          # If the worker we are trying to prune does not belong to the queues
-          # we are listening to, we should not touch it.
-          # Attempt to prune a worker from different queues may easily result in
-          # an unknown class exception, since that worker could easily be even
-          # written in different language.
           next
         end
 
@@ -480,8 +381,6 @@ module Resque
       end
     end
 
-    # Registers ourself as a worker. Useful when entering the worker
-    # lifecycle on startup.
     def register_worker
       data_store.register_worker(self)
     end
@@ -493,14 +392,9 @@ module Resque
       end
     end
 
-    # Unregisters ourself as a worker. Useful when shutting down.
     def unregister_worker(exception = nil)
-      # If we're still processing a job, make sure it gets logged as a
-      # failure.
       if (hash = processing) && !hash.empty?
         job = Job.new(hash['queue'], hash['payload'])
-        # Ensure the proper worker is attached to this job, even if
-        # it's not the precise instance that died.
         job.worker = self
         begin
           job.fail(exception || DirtyExit.new("Job still being processed"))
@@ -526,29 +420,24 @@ module Resque
            exception_while_unregistering.backtrace)
     end
 
-    # How many jobs has this worker processed? Returns an int.
     def processed
       Stat["processed:#{self}"]
     end
 
-    # Tell Redis we've processed a job.
     def processed!
       Stat << "processed"
       Stat << "processed:#{self}"
     end
 
-    # How many failed jobs has this worker seen? Returns an int.
     def failed
       Stat["failed:#{self}"]
     end
 
-    # Tells Redis we've failed a job.
     def failed!
       Stat << "failed"
       Stat << "failed:#{self}"
     end
 
-    # What time did this worker start? Returns an instance of `Time`
     def started
       data_store.worker_start_time(self)
     end
@@ -558,31 +447,6 @@ module Resque
       data_store.worker_started(self)
     end
 
-    # Returns a hash explaining the Job we're currently processing, if any.
-    def job(reload = true)
-      @job = nil if reload
-      @job ||= decode(data_store.get_worker_payload(self)) || {}
-    end
-    attr_writer :job
-    alias_method :processing, :job
-
-    # Boolean - true if working, false if not
-    def working?
-      state == :working
-    end
-
-    # Boolean - true if idle, false if not
-    def idle?
-      state == :idle
-    end
-
-    # Returns a symbol representing the current worker state,
-    # which can be either :working or :idle
-    def state
-      data_store.get_worker_payload(self) ? :working : :idle
-    end
-
-    # Is this worker the same as another worker?
     def ==(other)
       to_s == other.to_s
     end

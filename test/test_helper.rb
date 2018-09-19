@@ -108,6 +108,15 @@ module AssertInWorkBlock
   end
 end
 
+module WorkOneJob
+  def work_one_job(&block)
+    @worker_threads = []
+    wt = Resque::WorkerThread.new(self, 0, 0, &block)
+    wt.work_one_job(&block)
+  end
+end
+Resque::Worker.include(WorkOneJob)
+
 #
 # fixture classes
 #

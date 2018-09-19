@@ -1,6 +1,4 @@
 module Resque
-  # An interface between Resque's persistence and the actual
-  # implementation.
   class DataStore
     extend Forwardable
 
@@ -34,8 +32,8 @@ module Resque
                                           :update_item_in_failed_queue,
                                           :remove_from_failed_queue
     def_delegators :@workers, :worker_ids,
-                              :workers_map,
-                              :get_worker_payload,
+                              :worker_threads_map,
+                              :get_worker_thread_payload,
                               :worker_exists?,
                               :register_worker,
                               :worker_started,
@@ -45,9 +43,9 @@ module Resque
                               :remove_heartbeat,
                               :all_heartbeats,
                               :acquire_pruning_dead_worker_lock,
-                              :set_worker_payload,
+                              :set_worker_thread_payload,
                               :worker_start_time,
-                              :worker_done_working
+                              :worker_thread_done_working
 
       def_delegators :@stats_access, :clear_stat,
                                      :decremet_stat,
@@ -216,14 +214,14 @@ module Resque
 
       # Given a list of worker ids, returns a map of those ids to the worker's value
       # in redis, even if that value maps to nil
-      def workers_map(worker_ids)
+      def worker_threads_map(worker_ids)
         redis_keys = worker_ids.map { |id| "worker:#{id}" }
         @redis.mapped_mget(*redis_keys)
       end
 
-      # return the worker's payload i.e. job
-      def get_worker_payload(worker_id)
-        @redis.get("worker:#{worker_id}")
+      # return the worker thread's payload i.e. job
+      def get_worker_thread_payload(worker_thread_id)
+        @redis.get("worker:#{worker_thread_id}")
       end
 
       def worker_exists?(worker_id)
@@ -275,7 +273,7 @@ module Resque
         @redis.set(redis_key_for_worker_pruning, worker.to_s, :ex => expiry, :nx => true)
       end
 
-      def set_worker_payload(worker_thread, data)
+      def set_worker_thread_payload(worker_thread, data)
         @redis.pipelined do
           @redis.sadd(redis_key_for_worker_threads(worker_thread.worker), worker_thread)
           @redis.set(redis_key_for_worker_thread(worker_thread), data)
@@ -286,7 +284,7 @@ module Resque
         @redis.get(redis_key_for_worker_start_time(worker))
       end
 
-      def worker_done_working(worker_thread, &block)
+      def worker_thread_done_working(worker_thread, &block)
         @redis.pipelined do
           @redis.del(redis_key_for_worker_thread(worker_thread))
           block.call
