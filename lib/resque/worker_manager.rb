@@ -36,13 +36,14 @@ module Resque
     end
 
     class WorkerThreadStatus
-      attr_reader :worker, :job
+      attr_reader :worker, :job, :thread_id
 
       def initialize(worker_thread_id, job = nil)
         @host, @pid, queues_raw, @thread_id = worker_thread_id.split(':')
         @queues = queues_raw.split(',')
         @job = Resque.decode(job) if job
-        @worker = WorkerStatus.new(worker_thread_id.split(':')[0..-2].join(":"))
+        worker_id = Resque::WorkerManager.worker_id_from_thread_id(worker_thread_id)
+        @worker = WorkerStatus.new(worker_id)
       end
 
       def ==(other)
@@ -96,6 +97,14 @@ module Resque
       end
     end
 
+    def self.find_thread(thread_id)
+      if exists?(worker_id_from_thread_id(thread_id))
+        WorkerThreadStatus.new(thread_id)
+      else
+        nil
+      end
+    end
+
     def self.jobs_running
       threads_working.map { |thread| [ thread, thread.job ] }
     end
@@ -106,6 +115,10 @@ module Resque
         Logging.log :info, "Pruning dead worker: #{worker}"
         worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
       end
+    end
+
+    def self.worker_id_from_thread_id(worker_thread_id)
+      worker_thread_id.split(':')[0..-2].join(":")
     end
 
     def self.threads_working
