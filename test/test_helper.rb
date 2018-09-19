@@ -17,7 +17,6 @@ begin
 rescue LoadError
 end
 
-
 #
 # make sure we can run redis
 #

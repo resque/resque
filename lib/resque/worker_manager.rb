@@ -50,6 +50,10 @@ module Resque
         to_s == other.to_s
       end
 
+      def data_store
+        Resque.data_store
+      end
+
       def kill
         data_store.kill_worker_thread(worker, @thread_id)
       end

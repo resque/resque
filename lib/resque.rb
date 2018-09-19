@@ -154,8 +154,8 @@ module Resque
   # Set or retrieve the current logger object
   attr_accessor :logger
 
-  DEFAULT_HEARTBEAT_INTERVAL = 60
-  DEFAULT_PRUNE_INTERVAL = DEFAULT_HEARTBEAT_INTERVAL * 5
+  DEFAULT_HEARTBEAT_INTERVAL = 2
+  DEFAULT_PRUNE_INTERVAL = DEFAULT_HEARTBEAT_INTERVAL * 30
 
   attr_writer :heartbeat_interval
   def heartbeat_interval
