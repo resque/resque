@@ -1,8 +1,20 @@
-Resque
-======
+Action Verb's Fork of Resque
+============================
 
-[![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
-[![Build Status](https://travis-ci.org/resque/resque.svg)](https://travis-ci.org/resque/resque)
+Resque is awesome, and it's original readme is available below.
+
+Our fork enhances the robustness of Resque in many ways.  First, we
+change the process model as follows:
+
+A single master process forks off M worker processes.  Each worker will
+launch N threads, which will each process jobs until a the process has
+processed P jobs, at which point it will die.
+
+The master will replace workers as they die with new workers.
+
+
+Original README Follows
+-----------------------
 
 Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing

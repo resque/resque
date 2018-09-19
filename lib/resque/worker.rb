@@ -15,8 +15,8 @@ module Resque
     extend Resque::Helpers
     include Resque::Logging
 
-    attr_accessor :term_timeout
-    attr_writer :fork_per_job, :hostname, :to_s, :pid
+    attr_accessor :term_timeout, :jobs_per_fork, :worker_count, :thread_count
+    attr_writer :hostname, :to_s, :pid
 
     @@all_heartbeat_threads = []
     def self.kill_all_heartbeat_threads
@@ -129,11 +129,16 @@ module Resque
       @heartbeat_thread = nil
       @heartbeat_thread_signal = nil
 
+      @worker_thread = nil
+
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
-      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 10.0).to_f
-      self.jobs_per_fork = (ENV['JOBS_PER_FORK'] || 1).to_i
+      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 30.0).to_f
+      self.jobs_per_fork = [ (ENV['JOBS_PER_FORK'] || 1).to_i, 1 ].max
+      self.worker_count = [ (ENV['WORKER_COUNT'] || 1).to_i, 1 ].max
+      self.thread_count = [ (ENV['THREAD_COUNT'] || 1).to_i, 1 ].max
+      raise "Thread counts greater than 1 not yet supported (but coming soon)" if thread_count > 1
 
       self.queues = queues
     end
@@ -193,36 +198,37 @@ module Resque
     def work(interval = 0.1, &block)
       interval = Float(interval)
       startup
+      @children = []
+      (1..worker_count).map { fork_worker_child(interval, &block) }
 
       loop do
         break if shutdown?
-        fork_worker_child(interval, &block)
+
+        @children.each do |child|
+          if Process.waitpid(child, Process::WNOHANG)
+            @children.delete(child)
+            fork_worker_child(interval, &block)
+          end
+        end
+
+        break if interval.zero?
+        sleep interval
       end
 
       unregister_worker
     rescue Exception => exception
-      return if exception.class == SystemExit && !@child
+      return if exception.class == SystemExit && !@children
       log_with_severity :error, "Worker Error: #{exception.inspect}"
       unregister_worker(exception)
     end
 
     def fork_worker_child(interval, &block)
-      @child = fork do
-        unregister_signal_handlers if term_child
+      @children << fork {
         worker_child(interval, &block)
         exit!
-      end
-
-      srand # Reseeding
-      procline "Forked worker child #{@child} at #{Time.now.to_i}"
-
-      begin
-        Process.waitpid(@child)
-      rescue SystemCallError
-        nil
-      end
-
-      @child = nil
+      }
+      srand # Reseed after child fork
+      procline "Forked worker children #{@children.join(",")} at #{Time.now.to_i}"
     end
 
     def worker_child(interval, &block)
@@ -252,7 +258,12 @@ module Resque
       log_with_severity :info, "got: #{job.inspect}"
       job.worker = self
 
-      perform(job, &block)
+      begin
+        Thread.new { perform(job, &block) }.join
+      rescue Object => e
+        report_failed_job(job, e)
+      end
+
       done_working
 
       true
@@ -273,8 +284,7 @@ module Resque
       end
     end
 
-
-    # Processes a given job in the child.
+    # Processes a given job.
     def perform(job)
       begin
         job.perform
@@ -349,21 +359,21 @@ module Resque
 
     # Registers the various signal handlers a worker responds to.
     #
-    # TERM: Shutdown immediately, stop processing jobs.
-    #  INT: Shutdown immediately, stop processing jobs.
+    # TERM: Shutdown immediately, kill the current job immediately.
+    #  INT: Shutdown immediately, kill the current job immediately.
     # QUIT: Shutdown after the current job has finished processing.
-    # USR1: Kill the forked child immediately, continue processing jobs.
+    # USR1: Kill the current job immediately, continue processing jobs.
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { shutdown! }
-      trap('INT')  { shutdown! }
+      trap('TERM') { shutdown; send_child_signal('TERM'); kill_worker }
+      trap('INT')  { shutdown; send_child_signal('INT'); kill_worker }
 
       begin
-        trap('QUIT') { shutdown }
-        trap('USR1') { kill_child }
-        trap('USR2') { pause_processing }
-        trap('CONT') { unpause_processing }
+        trap('QUIT') { shutdown; send_child_signal('QUIT') }
+        trap('USR1') { send_child_signal('USR1'); kill_worker }
+        trap('USR2') { pause_processing; send_child_signal('USR2') }
+        trap('CONT') { unpause_processing; send_child_signal('CONT') }
       rescue ArgumentError
         log_with_severity :warn, "Signals QUIT, USR1, USR2, and/or CONT not supported."
       end
@@ -371,23 +381,16 @@ module Resque
       log_with_severity :debug, "Registered signals"
     end
 
-    def unregister_signal_handlers
-      trap('TERM') do
-        trap('TERM') do
-          # Ignore subsequent term signals
+    def send_child_signal(signal)
+      if @children
+        @children.each do |child|
+          Process.kill(signal, child) rescue nil
         end
-
-        raise TermException.new("SIGTERM")
       end
+    end
 
-      trap('INT', 'DEFAULT')
-
-      begin
-        trap('QUIT', 'DEFAULT')
-        trap('USR1', 'DEFAULT')
-        trap('USR2', 'DEFAULT')
-      rescue ArgumentError
-      end
+    def kill_worker
+      @worker_thread.kill if @worker_thread
     end
 
     # Schedule this worker for shutdown. Will finish processing the
@@ -401,19 +404,6 @@ module Resque
     # If not forking, abort this process.
     def shutdown!
       shutdown
-      if term_child
-        if fork_per_job?
-          kill_child
-        else
-          # Raise TermException in the same process
-          trap('TERM') do
-            # ignore subsequent terms
-          end
-          raise TermException.new("SIGTERM")
-        end
-      else
-        kill_child
-      end
     end
 
     # Should this worker shutdown as soon as current job is finished?
@@ -473,43 +463,6 @@ module Resque
       @@all_heartbeat_threads << @heartbeat_thread
     end
 
-    # Kills the forked child immediately with minimal remorse. The job it
-    # is processing will not be completed. Send the child a TERM signal,
-    # wait <term_timeout> seconds, and then a KILL signal if it has not quit
-    # If pre_shutdown_timeout has been set to a positive number, it will allow
-    # the child that many seconds before sending the aforementioned TERM and KILL.
-    def kill_child
-      if @child
-        unless child_already_exited?
-          log_with_severity :debug, "Sending TERM signal to child #{@child}"
-          Process.kill("TERM", @child)
-
-          if wait_for_child_exit(term_timeout)
-            return
-          else
-            log_with_severity :debug, "Sending KILL signal to child #{@child}"
-            Process.kill("KILL", @child)
-          end
-        else
-          log_with_severity :debug, "Child #{@child} already quit."
-        end
-      end
-    rescue SystemCallError
-      log_with_severity :error, "Child #{@child} already quit and reaped."
-    end
-
-    def child_already_exited?
-      Process.waitpid(@child, Process::WNOHANG)
-    end
-
-    def wait_for_child_exit(timeout)
-      (timeout * 10).round.times do |i|
-        sleep(0.1)
-        return true if child_already_exited?
-      end
-      false
-    end
-
     # are we paused?
     def paused?
       @paused
@@ -519,7 +472,6 @@ module Resque
     # currently running one).
     def pause_processing
       log_with_severity :info, "USR2 received; pausing job processing"
-      run_hook :before_pause, self
       @paused = true
     end
 
@@ -527,7 +479,6 @@ module Resque
     def unpause_processing
       log_with_severity :info, "CONT received; resuming job processing"
       @paused = false
-      run_hook :after_pause, self
     end
 
     # Looks for any workers which should be running on this server
@@ -709,10 +660,6 @@ module Resque
     # Boolean - true if idle, false if not
     def idle?
       state == :idle
-    end
-
-    def fork_per_job?
-      @fork_per_job ||= Kernel.respond_to?(:fork)
     end
 
     # Returns a symbol representing the current worker state,
