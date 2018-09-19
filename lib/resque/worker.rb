@@ -38,7 +38,7 @@ module Resque
       @heartbeat_thread = nil
       @heartbeat_thread_signal = nil
 
-      @worker_thread = nil
+      @worker_threads = []
 
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
@@ -139,7 +139,7 @@ module Resque
     def worker_process(interval, &block)
       @mutex = Mutex.new
       @jobs_processed = 0
-      @worker_threads = (1..thread_count).map { |i| WorkerThread.new(i, self, interval, &block) }
+      @worker_threads = (1..thread_count).map { |i| WorkerThread.new(self, i, interval, &block) }
       @worker_threads.map(&:spawn).map(&:join)
     end
 
@@ -209,12 +209,12 @@ module Resque
     end
 
     def register_signal_handlers
-      trap('TERM') { shutdown; send_child_signal('TERM'); kill_worker }
-      trap('INT')  { shutdown; send_child_signal('INT'); kill_worker }
+      trap('TERM') { shutdown; send_child_signal('TERM'); kill_worker_threads }
+      trap('INT')  { shutdown; send_child_signal('INT'); kill_worker_threads }
 
       begin
         trap('QUIT') { shutdown; send_child_signal('QUIT') }
-        trap('USR1') { send_child_signal('USR1'); unpause_processing; kill_worker }
+        trap('USR1') { send_child_signal('USR1'); unpause_processing; kill_worker_threads }
         trap('USR2') { pause_processing; send_child_signal('USR2') }
         trap('CONT') { unpause_processing; send_child_signal('CONT') }
       rescue ArgumentError
@@ -232,8 +232,8 @@ module Resque
       end
     end
 
-    def kill_worker
-      @worker_thread.kill if @worker_thread
+    def kill_worker_threads
+      @worker_threads.each(&:kill)
     end
 
     def shutdown
@@ -299,13 +299,13 @@ module Resque
     end
 
     def unregister_worker(exception = nil)
-      if (hash = processing) && !hash.empty?
-        job = Job.new(hash['queue'], hash['payload'])
-        job.worker = self
-        begin
-          job.fail(exception || DirtyExit.new("Job still being processed"))
-        rescue RuntimeError => e
-          log_with_severity :error, e.message
+      @worker_threads.each do |thread|
+        if job = thread.job
+          begin
+            job.fail(exception || DirtyExit.new("Job still being processed"))
+          rescue RuntimeError => e
+            log_with_severity :error, e.message
+          end
         end
       end
 

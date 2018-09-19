@@ -24,9 +24,13 @@ module Resque
       data_store.worker_ids.map { |id| WorkerStatus.new(id) }.compact
     end
 
+    def self.all_heartbeats
+      data_store.all_heartbeats
+    end
+
     def self.all_workers_with_expired_heartbeats
       workers = all
-      heartbeats = data_store.all_heartbeats
+      heartbeats = all_heartbeats
       now = data_store.server_time
 
       workers.select { |worker|

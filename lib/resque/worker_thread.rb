@@ -26,6 +26,10 @@ module Resque
       worker.log_with_severity(severity, "[Thread #{@id}] #{message}")
     end
 
+    def kill
+      @job_thread.kill if @job_thread
+    end
+
     def payload_class_name
       @job&.payload_class_name
     end

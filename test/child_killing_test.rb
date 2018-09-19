@@ -20,11 +20,8 @@ describe "Resque::Worker" do
     Resque.enqueue LongRunningJob
 
     worker_pid = Kernel.fork do
-      # reconnect since we just forked
       Resque.redis.reconnect
-
       worker = Resque::Worker.new(:long_running_job)
-
       suppress_warnings do
         worker.work(0)
       end
@@ -32,7 +29,7 @@ describe "Resque::Worker" do
     end
 
     # ensure the worker is started
-    start_status = Resque.redis.blpop( 'sigterm-test:start', 5 )
+    start_status = Resque.redis.blpop('sigterm-test:start', 5)
     refute_nil start_status
     child_pid = start_status[1].to_i
     assert child_pid > 0, "worker child process not created"
