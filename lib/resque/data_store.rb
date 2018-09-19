@@ -38,6 +38,7 @@ module Resque
                               :register_worker,
                               :worker_started,
                               :unregister_worker,
+                              :kill_worker_thread,
                               :heartbeat,
                               :heartbeat!,
                               :remove_heartbeat,
@@ -266,6 +267,9 @@ module Resque
 
       def heartbeat!(worker, time)
         @redis.hset(HEARTBEAT_KEY, worker.to_s, time.iso8601)
+        while kill_thread_id = @redis.lpop(redis_key_for_worker_kill(worker))
+          worker.kill_worker_thread(kill_thread_id)
+        end
       end
 
       def all_heartbeats
@@ -274,6 +278,10 @@ module Resque
 
       def acquire_pruning_dead_worker_lock(worker, expiry)
         @redis.set(redis_key_for_worker_pruning, worker.to_s, :ex => expiry, :nx => true)
+      end
+
+      def kill_worker_thread(worker, thread_id)
+        @redis.rpush(redis_key_for_worker_kill(worker), thread_id)
       end
 
       def set_worker_thread_payload(worker_thread, data)
@@ -298,6 +306,10 @@ module Resque
 
       def redis_key_for_worker(worker)
         "worker:#{worker}"
+      end
+
+      def redis_key_for_worker_kill(worker)
+        "#{redis_key_for_worker(worker)}:kills"
       end
 
       def redis_key_for_worker_thread(worker_thread)

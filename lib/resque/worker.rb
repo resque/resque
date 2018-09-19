@@ -251,6 +251,10 @@ module Resque
       end
     end
 
+    def kill_worker_thread(id)
+      @worker_threads.select { |thread| thread.id == id }.each(&:kill)
+    end
+
     def kill_worker_threads
       @worker_threads.each(&:kill)
     end
