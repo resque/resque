@@ -240,8 +240,8 @@ module Resque
     def worker_process(interval, &block)
       @mutex = Mutex.new
       @jobs_processed = 0
-      @worker_threads = (1..thread_count).map { |i| WorkerThread.new(i, self, interval, &block).spawn }
-      @worker_threads.map(&:join)
+      @worker_threads = (1..thread_count).map { |i| WorkerThread.new(i, self, interval, &block) }
+      @worker_threads.map(&:spawn).map(&:join)
     end
 
     def set_procline_for_threads
@@ -692,8 +692,6 @@ module Resque
 
       @very_verbose = value
     end
-
-    private
 
     def log_with_severity(severity, message)
       Logging.log(severity, message)

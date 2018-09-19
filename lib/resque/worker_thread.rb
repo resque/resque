@@ -2,7 +2,7 @@ require 'time'
 
 module Resque
   class WorkerThread
-    attr_reader :id
+    attr_reader :id, :worker
 
     def initialize(id, worker, interval, &block)
       @id = id
@@ -27,13 +27,17 @@ module Resque
       worker.log_with_severity(severity, "[Thread #{@id}] #{message}")
     end
 
+    def payload_class_name
+      @job&.payload_class_name
+    end
+
     def spawn
       Thread.new { work }
     end
 
     def work
       loop do
-        if work_one_job(&block)
+        if work_one_job(&@block)
           @mutex.synchronize do
             @jobs_processed += 1
           end
@@ -51,7 +55,7 @@ module Resque
 
     def work_one_job(&block)
       return false if worker.paused?
-      return false unless @job = reserve
+      return false unless @job = worker.reserve
 
       worker.set_procline_for_threads
       set_worker_payload
@@ -85,7 +89,7 @@ module Resque
     end
 
     def set_worker_payload
-      data = encode \
+      data = worker.encode \
         :queue   => @job.queue,
         :run_at  => Time.now.utc.iso8601,
         :payload => @job.payload
