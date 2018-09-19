@@ -75,7 +75,8 @@ module Resque
       true
     end
 
-    def perform
+    def perform(job = nil)
+      @job = job if job
       begin
         @job.perform
       rescue Object => e
@@ -104,12 +105,12 @@ module Resque
     def report_failed_job(exception)
       log_with_severity :error, "#{@job.inspect} failed: #{exception.inspect}"
       begin
-        @job.fail(exception)
+        @job&.fail(exception)
       rescue Object => exception
         log_with_severity :error, "Received exception when reporting failure: #{exception.inspect}"
       end
       begin
-        failed!
+        worker.failed!
       rescue Object => exception
         log_with_severity :error, "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
       end

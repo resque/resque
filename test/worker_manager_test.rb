@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'tmpdir'
 
 describe "Resque::WorkerManager" do
   it "prunes dead workers with heartbeat older than prune interval" do
@@ -136,8 +135,6 @@ describe "Resque::WorkerManager" do
     end
   end
 
-  # This was added because PruneDeadWorkerDirtyExit does not have a backtrace,
-  # and the error handling code did not account for that.
   it "correctly reports errors that occur while pruning workers" do
     workerA = Resque::Worker.new(:jobs)
     workerA.to_s = "bar:3:jobs"

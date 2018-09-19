@@ -19,8 +19,13 @@ describe "Resque::Worker" do
     end
   end
 
+  def attach_worker_thread_to_worker
+    @worker.instance_variable_set(:@worker_threads, [ @worker_thread ])
+  end
+
   before do
     @worker = Resque::Worker.new(:jobs)
+    @worker_thread = Resque::WorkerThread.new(@worker)
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
@@ -40,7 +45,7 @@ describe "Resque::Worker" do
   it "does not allow exceptions from failure backend to escape" do
     job = Resque::Job.new(:jobs, {})
     with_failure_backend BadFailureBackend do
-      @worker.perform job
+      @worker_thread.perform job
     end
   end
 
@@ -68,20 +73,13 @@ describe "Resque::Worker" do
 
   it "does report failure for jobs with invalid payload" do
     job = Resque::Job.new(:jobs, { 'class' => 'NotAValidJobClass', 'args' => '' })
-    @worker.perform job
+    @worker_thread.perform job
     assert_equal 1, Resque::Failure.count, 'failure not reported'
   end
 
-  it "register 'run_at' time on UTC timezone in ISO8601 format" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    now = Time.now.utc.iso8601
-    @worker.working_on(job)
-    assert_equal now, @worker.processing['run_at']
-  end
-
   it "fails uncompleted jobs with DirtyExit by default on exit" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
+    @worker_thread.job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    attach_worker_thread_to_worker
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
     assert_equal('Resque::DirtyExit', Resque::Failure.all['exception'])
@@ -89,25 +87,11 @@ describe "Resque::Worker" do
   end
 
   it "fails uncompleted jobs with worker exception on exit" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
+    @worker_thread.job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
+    attach_worker_thread_to_worker
     @worker.unregister_worker(StandardError.new)
     assert_equal 1, Resque::Failure.count
     assert_equal('StandardError', Resque::Failure.all['exception'])
-  end
-
-  it "does not mask exception when timeout getting job metadata" do
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob', 'args' => "blah"})
-    @worker.working_on(job)
-    Resque.data_store.redis.stubs(:get).raises(Redis::CannotConnectError)
-
-    error_message = "Something bad happened"
-    exception_caught = assert_raises Redis::CannotConnectError do
-      @worker.unregister_worker(raised_exception(StandardError,error_message))
-    end
-    assert_match(/StandardError/, exception_caught.message)
-    assert_match(/#{error_message}/, exception_caught.message)
-    assert_match(/Redis::CannotConnectError/, exception_caught.message)
   end
 
   def raised_exception(klass,message)
@@ -127,8 +111,8 @@ describe "Resque::Worker" do
   end
 
   it "fails uncompleted jobs on exit, and calls failure hook" do
-    job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
-    @worker.working_on(job)
+    @worker_thread.job = Resque::Job.new(:jobs, {'class' => 'SimpleJobWithFailureHandling', 'args' => ""})
+    attach_worker_thread_to_worker
     @worker.unregister_worker
     assert_equal 1, Resque::Failure.count
     assert_kind_of Resque::DirtyExit, SimpleJobWithFailureHandling.exception
@@ -138,8 +122,8 @@ describe "Resque::Worker" do
     Resque.logger = DummyLogger.new
 
     begin
-      job = Resque::Job.new(:jobs, {'class' => 'BadJobWithOnFailureHookFail', 'args' => []})
-      @worker.working_on(job)
+      @worker_thread.job = Resque::Job.new(:jobs, {'class' => 'BadJobWithOnFailureHookFail', 'args' => []})
+      attach_worker_thread_to_worker
       @worker.unregister_worker
       messages = Resque.logger.messages
     ensure
@@ -171,7 +155,7 @@ describe "Resque::Worker" do
 
   it "only calls failure hook once on exception" do
     job = Resque::Job.new(:jobs, {'class' => 'SimpleFailingJob', 'args' => ""})
-    @worker.perform(job)
+    @worker_thread.perform(job)
     assert_equal 1, Resque::Failure.count
     assert_equal 1, SimpleFailingJob.exception_count
   end
@@ -411,19 +395,6 @@ describe "Resque::Worker" do
     end
   end
 
-  it "clears its status when not working on anything" do
-    @worker.work(0)
-    assert_equal Hash.new, @worker.job
-  end
-
-  it "knows when it is working" do
-    without_forking do
-      @worker.extend(AssertInWorkBlock).work(0) do
-        assert @worker.working?
-      end
-    end
-  end
-
   it "knows who is working" do
     without_forking do
       @worker.extend(AssertInWorkBlock).work(0) do
@@ -573,50 +544,6 @@ describe "Resque::Worker" do
     end
   end
 
-  it "cleans up dead worker info on start (crash recovery)" do
-    # first we fake out several dead workers
-    # 1: matches queue and hostname; gets pruned.
-    workerA = Resque::Worker.new(:jobs)
-    workerA.instance_variable_set(:@to_s, "#{`hostname`.chomp}:1:jobs")
-    workerA.register_worker
-    workerA.heartbeat!
-
-    # 2. matches queue but not hostname; no prune.
-    workerB = Resque::Worker.new(:jobs)
-    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:2:jobs")
-    workerB.register_worker
-    workerB.heartbeat!
-
-    # 3. matches hostname but not queue; no prune.
-    workerB = Resque::Worker.new(:high)
-    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}:3:high")
-    workerB.register_worker
-    workerB.heartbeat!
-
-    # 4. matches neither hostname nor queue; no prune.
-    workerB = Resque::Worker.new(:high)
-    workerB.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:4:high")
-    workerB.register_worker
-    workerB.heartbeat!
-
-    assert_equal 4, Resque.workers.size
-
-    # then we prune them
-    @worker.work(0)
-
-    worker_strings = Resque::Worker.all.map(&:to_s)
-
-    assert_equal 3, Resque.workers.size
-
-    # pruned
-    assert !worker_strings.include?("#{`hostname`.chomp}:1:jobs")
-
-    # not pruned
-    assert worker_strings.include?("#{`hostname`.chomp}-foo:2:jobs")
-    assert worker_strings.include?("#{`hostname`.chomp}:3:high")
-    assert worker_strings.include?("#{`hostname`.chomp}-foo:4:high")
-  end
-
   it "Processed jobs count" do
     @worker.work(0)
     assert_equal 1, Resque.info[:processed]
@@ -740,7 +667,8 @@ describe "Resque::Worker" do
   it "logs errors with the correct logging level" do
     messages = StringIO.new
     Resque.logger = Logger.new(messages)
-    @worker.report_failed_job(BadJobWithSyntaxError, SyntaxError)
+    @worker_thread.job = BadJobWithSyntaxError,
+    @worker_thread.report_failed_job(SyntaxError)
 
     assert_equal 0, messages.string.scan(/INFO/).count
     assert_equal 2, messages.string.scan(/ERROR/).count
@@ -811,27 +739,5 @@ describe "Resque::Worker" do
 
     assert_equal 3, messages.grep(/retrying/).count
     assert_equal 1, messages.grep(/quitting/).count
-  end
-
-  class SuicidalJob
-    @queue = :jobs
-
-    def self.perform
-      Process.kill('KILL', Process.pid)
-    end
-
-    def self.on_failure_store_exception(exc, *args)
-      @@failure_exception = exc
-    end
-  end
-
-  it "will throw a Resque::DirtyExit when a job is killed by a signal" do
-    Resque.enqueue(SuicidalJob)
-    suppress_warnings do
-      @worker.work(0)
-    end
-
-    exception = SuicidalJob.send(:class_variable_get, :@@failure_exception)
-    assert_kind_of Resque::DirtyExit, exception
   end
 end
