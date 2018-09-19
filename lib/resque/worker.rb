@@ -30,47 +30,6 @@ module Resque
       Resque.decode(object)
     end
 
-    def self.all
-      data_store.worker_ids.map { |id| find(id,true) }.compact
-    end
-
-    def self.working
-      names = all
-      return [] unless names.any?
-
-      reportedly_working = data_store.workers_map(names).reject { |key, value|
-        value.nil? || value.empty?
-      }
-
-      reportedly_working.keys.map { |key|
-        worker = find(key.sub("worker:", ''), true)
-        worker.job = worker.decode(reportedly_working[key])
-        worker
-      }.compact
-    end
-
-    def self.find(worker_id, known_to_exist = false)
-      if known_to_exist || exists?(worker_id)
-        host, pid, queues_raw = worker_id.split(':')
-        queues = queues_raw.split(',')
-        worker = new(*queues)
-        worker.hostname = host
-        worker.to_s = worker_id
-        worker.pid = pid.to_i
-        worker
-      else
-        nil
-      end
-    end
-
-    def self.attach(worker_id)
-      find(worker_id)
-    end
-
-    def self.exists?(worker_id)
-      data_store.worker_exists?(worker_id)
-    end
-
     def initialize(*queues)
       @shutdown = nil
       @paused = nil
@@ -243,7 +202,7 @@ module Resque
 
       register_signal_handlers
       start_heartbeat
-      prune_dead_workers
+      WorkerManager.prune_dead_workers
       register_worker
 
       $stdout.sync = true
@@ -298,28 +257,6 @@ module Resque
       data_store.heartbeat!(self, time)
     end
 
-    def self.all_heartbeats
-      data_store.all_heartbeats
-    end
-
-    def self.all_workers_with_expired_heartbeats
-      workers = Worker.all
-      heartbeats = Worker.all_heartbeats
-      now = data_store.server_time
-
-      workers.select do |worker|
-        id = worker.to_s
-        heartbeat = heartbeats[id]
-
-        if heartbeat
-          seconds_since_heartbeat = (now - Time.parse(heartbeat)).to_i
-          seconds_since_heartbeat > Resque.prune_interval
-        else
-          false
-        end
-      end
-    end
-
     def start_heartbeat
       remove_heartbeat
 
@@ -348,37 +285,6 @@ module Resque
     def unpause_processing
       log_with_severity :info, "CONT received; resuming job processing"
       @paused = false
-    end
-
-    def prune_dead_workers
-      return unless data_store.acquire_pruning_dead_worker_lock(self, Resque.heartbeat_interval)
-
-      all_workers = Worker.all
-
-      unless all_workers.empty?
-        known_workers = worker_pids
-        all_workers_with_expired_heartbeats = Worker.all_workers_with_expired_heartbeats
-      end
-
-      all_workers.each do |worker|
-        if all_workers_with_expired_heartbeats.include?(worker)
-          log_with_severity :info, "Pruning dead worker: #{worker}"
-          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s))
-          next
-        end
-
-        host, pid, worker_queues_raw = worker.id.split(':')
-        worker_queues = worker_queues_raw.split(",")
-        unless @queues.include?("*") || (worker_queues.to_set == @queues.to_set)
-          next
-        end
-
-        next unless host == hostname
-        next if known_workers.include?(pid)
-
-        log_with_severity :debug, "Pruning dead worker: #{worker}"
-        worker.unregister_worker
-      end
     end
 
     def register_worker
@@ -442,7 +348,6 @@ module Resque
       data_store.worker_start_time(self)
     end
 
-    # Tell Redis we've started
     def started!
       data_store.worker_started(self)
     end
@@ -455,14 +360,11 @@ module Resque
       "#<Worker #{to_s}>"
     end
 
-    # The string representation is the same as the id for this worker
-    # instance. Can be used with `Worker.find`.
     def to_s
       @to_s ||= "#{hostname}:#{pid}:#{@queues.join(',')}"
     end
     alias_method :id, :to_s
 
-    # chomp'd hostname of this worker's machine
     def hostname
       @hostname ||= Socket.gethostname
     end
@@ -472,50 +374,6 @@ module Resque
       @pid ||= Process.pid
     end
 
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def worker_pids
-      if RUBY_PLATFORM =~ /solaris/
-        solaris_worker_pids
-      elsif RUBY_PLATFORM =~ /mingw32/
-        windows_worker_pids
-      else
-        linux_worker_pids
-      end
-    end
-
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def windows_worker_pids
-      tasklist_output = `tasklist /FI "IMAGENAME eq ruby.exe" /FO list`.encode("UTF-8", Encoding.locale_charmap)
-      tasklist_output.split($/).select { |line| line =~ /^PID:/ }.collect { |line| line.gsub(/PID:\s+/, '') }
-    end
-
-    # Find Resque worker pids on Linux and OS X.
-    #
-    def linux_worker_pids
-      `ps -A -o pid,command | grep -E "[r]esque:work|[r]esque:\sStarting|[r]esque-[0-9]" | grep -v "resque-web"`.split("\n").map do |line|
-        line.split(' ')[0]
-      end
-    end
-
-    # Find Resque worker pids on Solaris.
-    #
-    # Returns an Array of string pids of all the other workers on this
-    # machine. Useful when pruning dead workers on startup.
-    def solaris_worker_pids
-      `ps -A -o pid,comm | grep "[r]uby" | grep -v "resque-web"`.split("\n").map do |line|
-        real_pid = line.split(' ')[0]
-        pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
-        if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
-          real_pid
-        end
-      end.compact
-    end
-
-    # Given a string, sets the procline ($0) and logs.
-    # Procline is always in the format of:
-    #   RESQUE_PROCLINE_PREFIXresque-VERSION: STRING
     def procline(string)
       $0 = "#{ENV['RESQUE_PROCLINE_PREFIX']}resque-#{Resque::Version}: #{string}"
       log_with_severity :debug, $0
@@ -528,7 +386,6 @@ module Resque
     def log!(message)
       debug(message)
     end
-
 
     attr_reader :verbose, :very_verbose
 

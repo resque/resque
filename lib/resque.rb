@@ -18,6 +18,7 @@ require 'resque/log_formatters/verbose_formatter'
 require 'resque/log_formatters/very_verbose_formatter'
 require 'resque/job'
 require 'resque/worker'
+require 'resque/worker_manager'
 require 'resque/worker_thread'
 require 'resque/plugin'
 require 'resque/data_store'
@@ -473,21 +474,12 @@ module Resque
   # worker shortcuts
   #
 
-  # A shortcut to Worker.all
   def workers
-    Worker.all
+    WorkerManager.all
   end
 
-  # A shortcut to Worker.working
-  def working
-    Worker.working
-  end
-
-  # A shortcut to unregister_worker
-  # useful for command line tool
-  def remove_worker(worker_id)
-    worker = Resque::Worker.find(worker_id)
-    worker.unregister_worker
+  def threads_working
+    WorkerManager.threads_working
   end
 
   #
@@ -501,7 +493,7 @@ module Resque
       :processed => Stat[:processed],
       :queues    => queues.size,
       :workers   => workers.size.to_i,
-      :working   => working.size,
+      :working   => threads_working.size,
       :failed    => data_store.num_failed,
       :servers   => [redis_id],
       :environment  => ENV['RAILS_ENV'] || ENV['RACK_ENV'] || 'development'

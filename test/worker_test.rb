@@ -776,12 +776,6 @@ describe "Resque::Worker" do
     assert worker_strings.include?("#{`hostname`.chomp}-foo:4:high")
   end
 
-  it "worker_pids returns pids" do
-    @worker.work(0)
-    known_workers = @worker.worker_pids
-    assert !known_workers.empty?
-  end
-
   it "Processed jobs count" do
     @worker.work(0)
     assert_equal 1, Resque.info[:processed]
