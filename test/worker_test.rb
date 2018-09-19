@@ -667,7 +667,7 @@ describe "Resque::Worker" do
   it "logs errors with the correct logging level" do
     messages = StringIO.new
     Resque.logger = Logger.new(messages)
-    @worker_thread.job = BadJobWithSyntaxError,
+    @worker_thread.job = BadJobWithSyntaxError
     @worker_thread.report_failed_job(SyntaxError)
 
     assert_equal 0, messages.string.scan(/INFO/).count

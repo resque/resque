@@ -1,8 +1,27 @@
 module Resque
+  module WorkerStatMethods
+    def failed
+      Stat["failed:#{self}"]
+    end
+
+    def heartbeat
+      data_store.heartbeat(self)
+    end
+
+    def processed
+      Stat["processed:#{self}"]
+    end
+
+    def started
+      data_store.worker_start_time(self)
+    end
+  end
+
   class Worker
     include Resque::Helpers
     extend Resque::Helpers
     include Resque::Logging
+    include WorkerStatMethods
 
     attr_accessor :term_timeout, :jobs_per_fork, :worker_count, :thread_count
     attr_reader :jobs_processed
@@ -245,10 +264,6 @@ module Resque
       @shutdown
     end
 
-    def heartbeat
-      data_store.heartbeat(self)
-    end
-
     def remove_heartbeat
       data_store.remove_heartbeat(self)
     end
@@ -326,26 +341,14 @@ module Resque
            exception_while_unregistering.backtrace)
     end
 
-    def processed
-      Stat["processed:#{self}"]
-    end
-
     def processed!
       Stat << "processed"
       Stat << "processed:#{self}"
     end
 
-    def failed
-      Stat["failed:#{self}"]
-    end
-
     def failed!
       Stat << "failed"
       Stat << "failed:#{self}"
-    end
-
-    def started
-      data_store.worker_start_time(self)
     end
 
     def started!

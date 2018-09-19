@@ -4,15 +4,6 @@
 <h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %> <%= "with class '#{params[:class]}'" if params[:class] %></h1>
 <% end %>
 
-<% unless failed_size.zero? %>
-<form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/clear" %>">
-  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
-</form>
-<form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/requeue/all" %>">
-  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" />
-</form>
-<% end %>
-
 <% if failed_multiple_queues? && !params[:queue] %>
 <%= partial :failed_queues_overview %>
 <% else %>

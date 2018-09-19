@@ -478,6 +478,10 @@ module Resque
     WorkerManager.all
   end
 
+  def working
+    WorkerManager.working
+  end
+
   def threads_working
     WorkerManager.threads_working
   end

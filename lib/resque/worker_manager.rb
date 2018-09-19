@@ -1,6 +1,8 @@
 module Resque
   module WorkerManager
     class WorkerStatus
+      include Resque::WorkerStatMethods
+
       def initialize(worker_id)
         @host, @pid, queues_raw = worker_id.split(':')
         @queues = queues_raw.split(',')
@@ -28,10 +30,13 @@ module Resque
     end
 
     class WorkerThreadStatus
+      attr_reader :worker
+
       def initialize(worker_thread_id, job = nil)
         @host, @pid, queues_raw, @thread_id = worker_thread_id.split(':')
         @queues = queues_raw.split(',')
         @job = Resque.decode(job) if job
+        @worker = WorkerStatus.new(worker_thread_id.split(':')[0..-2].join(":"))
       end
 
       def ==(other)
@@ -96,6 +101,10 @@ module Resque
       data_store.worker_threads_map(workers).map { |key,value|
         value ? WorkerThreadStatus.new(key, value) : nil
       }.compact
+    end
+
+    def self.working
+      threads_working.map(&:worker).uniq
     end
   end
 end
