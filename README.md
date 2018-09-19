@@ -40,6 +40,10 @@ management while allowing additional scale.  In production we are able
 to run thousands of jobs per FORK syscall, rather than the 1 job per
 fork syscall that the stock Resque provides.
 
+In addition to massively reducing the number of system calls required,
+this structure also has the benefit of allowing a single Rake task to be
+integrated to your system's service management infrastructure.
+
 
 ## Configuration
 
@@ -75,6 +79,10 @@ If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
 then `CONT` to start it again.
 
-If you want to kill a stale or stuck job, use `USR2` to stop the
+If you want to kill stale or stuck job(s), use `USR2` to stop the
 processing of new jobs.  Wait for the unstuck jobs to finish, then use
-`USR1` to simultaneously kill the stuck job and restart processing.
+`USR1` to simultaneously kill the stuck job(s) and restart processing.
+
+Signals sent to the Master Process will affect all Worker Processes and
+Worker Threads.  Signals sent to a specific Worker Process will affect
+that Worker Process only.
