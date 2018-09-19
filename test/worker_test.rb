@@ -862,84 +862,6 @@ describe "Resque::Worker" do
     assert_equal 1, Resque.info[:processed]
   end
 
-  it "Will call a before_first_fork hook only once" do
-    $BEFORE_FORK_CALLED = 0
-    Resque.before_first_fork = Proc.new { $BEFORE_FORK_CALLED += 1 }
-    workerA = Resque::Worker.new(:jobs)
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-
-    assert_equal 0, $BEFORE_FORK_CALLED
-
-    workerA.work(0)
-    assert_equal 1, $BEFORE_FORK_CALLED
-
-    #Verify it's only run once.
-    workerA.work(0)
-    assert_equal 1, $BEFORE_FORK_CALLED
-  end
-
-  it "Will call a before_pause hook before pausing" do
-    $BEFORE_PAUSE_CALLED = 0
-    $WORKER_NAME = nil
-    Resque.before_pause = Proc.new { |w| $BEFORE_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert_equal 0, $BEFORE_PAUSE_CALLED
-    workerA.pause_processing
-    assert_equal 1, $BEFORE_PAUSE_CALLED
-    assert_equal workerA.to_s, $WORKER_NAME
-  end
-
-  it "Will call a after_pause hook after pausing" do
-    $AFTER_PAUSE_CALLED = 0
-    $WORKER_NAME = nil
-    Resque.after_pause = Proc.new { |w| $AFTER_PAUSE_CALLED += 1; $WORKER_NAME = w.to_s; }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert_equal 0, $AFTER_PAUSE_CALLED
-    workerA.unpause_processing
-    assert_equal 1, $AFTER_PAUSE_CALLED
-    assert_equal workerA.to_s, $WORKER_NAME
-  end
-
-  it "Will call a before_fork hook before forking" do
-    $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert !$BEFORE_FORK_CALLED
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    workerA.work(0)
-    assert $BEFORE_FORK_CALLED
-  end
-
-  it "Will not call a before_fork hook when the worker cannot fork" do
-    without_forking do
-      $BEFORE_FORK_CALLED = false
-      Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-      workerA = Resque::Worker.new(:jobs)
-
-      assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
-      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-      workerA.work(0)
-      assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
-    end
-  end
-
-  it "Will not call a before_fork hook when forking set to false" do
-    $BEFORE_FORK_CALLED = false
-    Resque.before_fork = Proc.new { $BEFORE_FORK_CALLED = true }
-    workerA = Resque::Worker.new(:jobs)
-
-    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called before job runs"
-    Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-    # This sets ENV['FORK_PER_JOB'] = 'false' and then restores it
-    without_forking do
-      workerA.work(0)
-    end
-    assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
-  end
-
   it "setting verbose to true" do
     @worker.verbose = true
 
@@ -1023,46 +945,6 @@ describe "Resque::Worker" do
     assert_equal custom_formatter, Resque.logger.formatter
   end
 
-  it "won't fork if ENV['FORK_PER_JOB'] is false" do
-    old_fork_per_job = ENV["FORK_PER_JOB"]
-    begin
-      ENV["FORK_PER_JOB"] = 'false'
-      assert_equal false, Resque::Worker.new(:jobs).fork_per_job?
-    ensure
-      ENV["FORK_PER_JOB"] = old_fork_per_job
-    end
-  end
-
-  it "Will call an after_fork hook after forking" do
-    begin
-      pipe_rd, pipe_wr = IO.pipe
-
-      Resque.after_fork = Proc.new { pipe_wr.write('hey') }
-      workerA = Resque::Worker.new(:jobs)
-
-      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-      workerA.work(0)
-
-      assert_equal('hey', pipe_rd.read_nonblock(3))
-    ensure
-      pipe_rd.close
-      pipe_wr.close
-    end
-  end
-
-  it "Will not call an after_fork hook when the worker won't fork" do
-    without_forking do
-      $AFTER_FORK_CALLED = false
-      Resque.after_fork = Proc.new { $AFTER_FORK_CALLED = true }
-      workerA = Resque::Worker.new(:jobs)
-
-      assert !$AFTER_FORK_CALLED
-      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
-      workerA.work(0)
-      assert !$AFTER_FORK_CALLED
-    end
-  end
-
   it "returns PID of running process" do
     assert_equal @worker.to_s.split(":")[1].to_i, @worker.pid
   end
@@ -1113,186 +995,88 @@ describe "Resque::Worker" do
     assert_equal 0, messages.string.scan(/ERROR/).count
   end
 
-  class CounterJob
-    class << self
-      attr_accessor :perform_count
+  class ForkResultJob
+    @queue = :jobs
+
+    def self.perform_with_result(worker, &block)
+      @rd, @wr = IO.pipe
+      @block = block
+      Resque.enqueue(self)
+      worker.work(0)
+      @wr.close
+      Marshal.load(@rd.read)
+    ensure
+      @rd, @wr, @block = nil
     end
-    self.perform_count = 0
 
     def self.perform
-      self.perform_count += 1
+      result = @block.call
+      @wr.write(Marshal.dump(result))
+      @wr.close
     end
   end
 
-  it "runs jobs without forking if fork isn't implemented" do
-    nil while @worker.reserve # empty queue
-    @worker.expects(:fork).raises(NotImplementedError)
-    Resque.enqueue_to(:jobs, CounterJob)
+  def run_in_job(&block)
+    ForkResultJob.perform_with_result(@worker, &block)
+  end
 
-    begin
-      @worker.work(0)
-      assert_equal 1, CounterJob.perform_count
-      assert_equal false, @worker.fork_per_job?
-    ensure
-      CounterJob.perform_count = 0
+  it "reconnects to redis after fork" do
+    original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
+    new_connection = run_in_job do
+      Resque.redis._client.connection.instance_variable_get("@sock").object_id
+    end
+    refute_equal original_connection, new_connection
+  end
+
+  it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
+    @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+    @worker.stubs(:sleep)
+
+    Resque.logger = DummyLogger.new
+    @worker.work(0)
+    messages = Resque.logger.messages
+
+    assert_equal 3, messages.grep(/retrying/).count
+    assert_equal 1, messages.grep(/quitting/).count
+    assert_equal 0, messages.grep(/Failed to start worker/).count
+    assert_equal 1, messages.grep(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
+  end
+
+  it "tries to reconnect three times before giving up" do
+    @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
+    @worker.stubs(:sleep)
+
+    Resque.logger = DummyLogger.new
+    @worker.work(0)
+    messages = Resque.logger.messages
+
+    assert_equal 3, messages.grep(/retrying/).count
+    assert_equal 1, messages.grep(/quitting/).count
+  end
+
+  class SuicidalJob
+    @queue = :jobs
+
+    def self.perform
+      Process.kill('KILL', Process.pid)
+    end
+
+    def self.on_failure_store_exception(exc, *args)
+      @@failure_exception = exc
     end
   end
 
-  if !defined?(RUBY_ENGINE) || RUBY_ENGINE != "jruby"
-    class ForkResultJob
-      @queue = :jobs
-
-      def self.perform_with_result(worker, &block)
-        @rd, @wr = IO.pipe
-        @block = block
-        Resque.enqueue(self)
-        worker.work(0)
-        @wr.close
-        Marshal.load(@rd.read)
-      ensure
-        @rd, @wr, @block = nil
-      end
-
-      def self.perform
-        result = @block.call
-        @wr.write(Marshal.dump(result))
-        @wr.close
-      end
-    end
-
-    def run_in_job(&block)
-      ForkResultJob.perform_with_result(@worker, &block)
-    end
-
-    it "reconnects to redis after fork" do
-      original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
-      new_connection = run_in_job do
-        Resque.redis._client.connection.instance_variable_get("@sock").object_id
-      end
-      refute_equal original_connection, new_connection
-    end
-
-    it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
-      @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
-      @worker.stubs(:sleep)
-
-      Resque.logger = DummyLogger.new
+  it "will notify failure hooks and attach process status when a job is killed by a signal" do
+    Resque.enqueue(SuicidalJob)
+    suppress_warnings do
       @worker.work(0)
-      messages = Resque.logger.messages
-
-      assert_equal 3, messages.grep(/retrying/).count
-      assert_equal 1, messages.grep(/quitting/).count
-      assert_equal 0, messages.grep(/Failed to start worker/).count
-      assert_equal 1, messages.grep(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
     end
 
-    it "tries to reconnect three times before giving up" do
-      @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
-      @worker.stubs(:sleep)
+    exception = SuicidalJob.send(:class_variable_get, :@@failure_exception)
 
-      Resque.logger = DummyLogger.new
-      @worker.work(0)
-      messages = Resque.logger.messages
+    assert_kind_of Resque::DirtyExit, exception
+    assert_match(/Child process received unhandled signal pid \d+ SIGKILL \(signal 9\)/, exception.message)
 
-      assert_equal 3, messages.grep(/retrying/).count
-      assert_equal 1, messages.grep(/quitting/).count
-    end
-
-    if !defined?(RUBY_ENGINE) || defined?(RUBY_ENGINE) && RUBY_ENGINE != "jruby"
-      class PreShutdownLongRunningJob
-        @queue = :long_running_job
-
-        def self.perform(run_time)
-          Resque.redis.reconnect # get its own connection
-          Resque.redis.rpush('pre-term-timeout-test:start', Process.pid)
-          sleep run_time
-          Resque.redis.rpush('pre-term-timeout-test:result', 'Finished Normally')
-        rescue Resque::TermException => e
-          Resque.redis.rpush('pre-term-timeout-test:result', %Q(Caught TermException: #{e.inspect}))
-        ensure
-          Resque.redis.rpush('pre-term-timeout-test:final', 'exiting.')
-        end
-      end
-
-      {
-        'job finishes in allotted time' => 0.5,
-        'job takes too long' => 1.1
-      }.each do |scenario, run_time|
-        it "gives time to finish before sending term if pre_shutdown_timeout is set: when #{scenario}" do
-          begin
-            pre_shutdown_timeout = 1
-            Resque.enqueue(PreShutdownLongRunningJob, run_time)
-
-            worker_pid = Kernel.fork do
-              # reconnect to redis
-              Resque.redis.reconnect
-
-              worker = Resque::Worker.new(:long_running_job)
-              worker.pre_shutdown_timeout = pre_shutdown_timeout
-              worker.term_timeout = 2
-              worker.term_child = 1
-
-              worker.work(0)
-              exit!
-            end
-
-            # ensure the worker is started
-            start_status = Resque.redis.blpop('pre-term-timeout-test:start', 5)
-            refute start_status == nil
-            child_pid = start_status[1].to_i
-            assert_operator child_pid, :>, 0
-
-            # send signal to abort the worker
-            Process.kill('TERM', worker_pid)
-            Process.waitpid(worker_pid)
-
-            # wait to see how it all came down
-            result = Resque.redis.blpop('pre-term-timeout-test:result', 5)
-            refute result == nil
-
-            if run_time >= pre_shutdown_timeout
-              assert !result[1].start_with?('Finished Normally'), 'Job finished normally when running over pre term timeout'
-              assert result[1].start_with?('Caught TermException'), 'TermException not raised in child.'
-            else
-              assert result[1].start_with?('Finished Normally'), 'Job did not finish normally. Pre term timeout too short?'
-              assert !result[1].start_with?('Caught TermException'), 'TermException raised in child.'
-            end
-
-            # ensure that the child pid is no longer running
-            child_still_running = !(`ps -p #{child_pid.to_s} -o pid=`).empty?
-            assert !child_still_running
-          ensure
-            remaining_keys = Resque.redis.keys('pre-term-timeout-test:*') || []
-            Resque.redis.del(*remaining_keys) unless remaining_keys.empty?
-          end
-        end
-      end
-    end
-
-    class SuicidalJob
-      @queue = :jobs
-
-      def self.perform
-        Process.kill('KILL', Process.pid)
-      end
-
-      def self.on_failure_store_exception(exc, *args)
-        @@failure_exception = exc
-      end
-    end
-
-    it "will notify failure hooks and attach process status when a job is killed by a signal" do
-      Resque.enqueue(SuicidalJob)
-      suppress_warnings do
-        @worker.work(0)
-      end
-
-      exception = SuicidalJob.send(:class_variable_get, :@@failure_exception)
-
-      assert_kind_of Resque::DirtyExit, exception
-      assert_match(/Child process received unhandled signal pid \d+ SIGKILL \(signal 9\)/, exception.message)
-
-      assert_kind_of Process::Status, exception.process_status
-    end
+    assert_kind_of Process::Status, exception.process_status
   end
 end

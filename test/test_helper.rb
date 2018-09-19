@@ -249,12 +249,12 @@ ensure
 end
 
 def without_forking
-  orig_fork_per_job = ENV['FORK_PER_JOB']
+  orig_dont_fork = ENV['DONT_FORK']
   begin
-    ENV['FORK_PER_JOB'] = 'false'
+    ENV['DONT_FORK'] = '1'
     yield
   ensure
-    ENV['FORK_PER_JOB'] = orig_fork_per_job
+    ENV['DONT_FORK'] = orig_dont_fork
   end
 end
 

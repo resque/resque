@@ -266,7 +266,7 @@ describe "Resque" do
 
       @worker = Resque::Worker.new(:jobs)
       @worker.register_worker
-      2.times { @worker.process }
+      2.times { @worker.work_one_job }
 
       job = @worker.reserve
       @worker.working_on job

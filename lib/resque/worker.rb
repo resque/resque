@@ -15,7 +15,7 @@ module Resque
     extend Resque::Helpers
     include Resque::Logging
 
-    attr_accessor :term_timeout, :jobs_per_fork, :worker_count, :thread_count
+    attr_accessor :term_timeout, :jobs_per_fork, :worker_count, :thread_count, :dont_fork
     attr_writer :hostname, :to_s, :pid
 
     @@all_heartbeat_threads = []
@@ -135,6 +135,7 @@ module Resque
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
       self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 30.0).to_f
+      self.dont_fork = !!ENV['DONT_FORK']
       self.jobs_per_fork = [ (ENV['JOBS_PER_FORK'] || 1).to_i, 1 ].max
       self.worker_count = [ (ENV['WORKER_COUNT'] || 1).to_i, 1 ].max
       self.thread_count = [ (ENV['THREAD_COUNT'] || 1).to_i, 1 ].max
@@ -195,24 +196,33 @@ module Resque
       end.sort
     end
 
+    def dont_fork?
+      dont_fork
+    end
+
     def work(interval = 0.1, &block)
       interval = Float(interval)
       startup
-      @children = []
-      (1..worker_count).map { fork_worker_child(interval, &block) }
 
-      loop do
-        break if shutdown?
+      if dont_fork?
+        worker_child(interval, &block)
+      else
+        @children = []
+        (1..worker_count).map { fork_worker_child(interval, &block) }
 
-        @children.each do |child|
-          if Process.waitpid(child, Process::WNOHANG)
-            @children.delete(child)
-            break if interval.zero?
-            fork_worker_child(interval, &block)
+        loop do
+          break if shutdown?
+
+          @children.each do |child|
+            if Process.waitpid(child, Process::WNOHANG)
+              @children.delete(child)
+              break if interval.zero?
+              fork_worker_child(interval, &block)
+            end
           end
-        end
 
-        sleep interval
+          sleep interval
+        end
       end
 
       unregister_worker
@@ -228,7 +238,7 @@ module Resque
         exit!
       }
       srand # Reseed after child fork
-      procline "Forked worker children #{@children.join(",")} at #{Time.now.to_i}"
+      procline "Master Process.  Worker Children PIDs: #{@children.join(",")} Last Fork at #{Time.now.to_i}"
     end
 
     def worker_child(interval, &block)
@@ -248,7 +258,7 @@ module Resque
       end
     end
 
-    def work_one_job(job = nil, &block)
+    def work_one_job(&block)
       return false if paused?
       return false unless job ||= reserve
 
