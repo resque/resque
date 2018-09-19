@@ -8,7 +8,7 @@ module Resque
       end
 
       def to_s
-        worker_id
+        @worker_id
       end
     end
 
@@ -20,11 +20,11 @@ module Resque
       end
     end
 
-    def all
+    def self.all
       data_store.worker_ids.map { |id| WorkerStatus.new(id) }.compact
     end
 
-    def all_workers_with_expired_heartbeats
+    def self.all_workers_with_expired_heartbeats
       workers = all
       heartbeats = data_store.all_heartbeats
       now = data_store.server_time
@@ -42,15 +42,15 @@ module Resque
       }
     end
 
-    def data_store
+    def self.data_store
       Resque.data_store
     end
 
-    def exists?(worker_id)
+    def self.exists?(worker_id)
       data_store.worker_exists?(worker_id)
     end
 
-    def find(worker_id)
+    def self.find(worker_id)
       if exists?(worker_id)
         WorkerStatus.new(worker_id)
       else
@@ -58,7 +58,7 @@ module Resque
       end
     end
 
-    def prune_dead_workers
+    def self.prune_dead_workers
       return unless data_store.acquire_pruning_dead_worker_lock(self, Resque.heartbeat_interval)
 
       all_workers = all
@@ -74,7 +74,7 @@ module Resque
       end
     end
 
-    def threads_working
+    def self.threads_working
       workers = all
       return [] unless workers.any?
 
