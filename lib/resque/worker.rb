@@ -15,6 +15,9 @@ module Resque
     extend Resque::Helpers
     include Resque::Logging
 
+    attr_accessor :term_timeout
+    attr_writer :fork_per_job, :hostname, :to_s, :pid
+
     @@all_heartbeat_threads = []
     def self.kill_all_heartbeat_threads
       @@all_heartbeat_threads.each(&:kill).each(&:join)
@@ -31,7 +34,7 @@ module Resque
     end
 
     def self.data_store
-      self.redis
+      Resque.redis
     end
 
     # Given a Ruby object, returns a string suitable for storage in a
@@ -44,28 +47,6 @@ module Resque
     def decode(object)
       Resque.decode(object)
     end
-
-    attr_accessor :term_timeout
-
-    attr_accessor :pre_shutdown_timeout
-
-    attr_accessor :term_child_signal
-
-    # decide whether to use new_kill_child logic
-    attr_accessor :term_child
-
-    # should term kill workers gracefully (vs. immediately)
-    # Makes SIGTERM work like SIGQUIT
-    attr_accessor :graceful_term
-
-    # When set to true, forked workers will exit with `exit`, calling any `at_exit` code handlers that have been
-    # registered in the application. Otherwise, forked workers exit with `exit!`
-    attr_accessor :run_at_exit_hooks
-
-    attr_writer :fork_per_job
-    attr_writer :hostname
-    attr_writer :to_s
-    attr_writer :pid
 
     # Returns an array of all worker objects.
     def self.all
@@ -151,11 +132,8 @@ module Resque
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
-      self.pre_shutdown_timeout = (ENV['RESQUE_PRE_SHUTDOWN_TIMEOUT'] || 0.0).to_f
-      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 4.0).to_f
-      self.term_child = ENV['TERM_CHILD']
-      self.graceful_term = ENV['GRACEFUL_TERM']
-      self.run_at_exit_hooks = ENV['RUN_AT_EXIT_HOOKS']
+      self.term_timeout = (ENV['RESQUE_TERM_TIMEOUT'] || 10.0).to_f
+      self.jobs_per_fork = (ENV['JOBS_PER_FORK'] || 1).to_i
 
       self.queues = queues
     end
@@ -212,42 +190,56 @@ module Resque
       end.sort
     end
 
-    # This is the main workhorse method. Called on a Worker instance,
-    # it begins the worker life cycle.
-    #
-    # The following events occur during a worker's life cycle:
-    #
-    # 1. Startup:   Signals are registered, dead workers are pruned,
-    #               and this worker is registered.
-    # 2. Work loop: Jobs are pulled from a queue and processed.
-    # 3. Teardown:  This worker is unregistered.
-    #
-    # Can be passed a float representing the polling frequency.
-    # The default is 5 seconds, but for a semi-active site you may
-    # want to use a smaller value.
-    #
-    # Also accepts a block which will be passed the job as soon as it
-    # has completed processing. Useful for testing.
-    def work(interval = 5.0, &block)
+    def work(interval = 0.1, &block)
       interval = Float(interval)
       startup
 
       loop do
         break if shutdown?
+        fork_worker_child(interval, &block)
+      end
 
-        unless work_one_job(&block)
+      unregister_worker
+    rescue Exception => exception
+      return if exception.class == SystemExit && !@child
+      log_with_severity :error, "Worker Error: #{exception.inspect}"
+      unregister_worker(exception)
+    end
+
+    def fork_worker_child(interval, &block)
+      @child = fork do
+        unregister_signal_handlers if term_child
+        worker_child(interval, &block)
+        exit!
+      end
+
+      srand # Reseeding
+      procline "Forked worker child #{@child} at #{Time.now.to_i}"
+
+      begin
+        Process.waitpid(@child)
+      rescue SystemCallError
+        nil
+      end
+
+      @child = nil
+    end
+
+    def worker_child(interval, &block)
+      jobs_processed = 0
+      reconnect
+
+      loop do
+        if work_one_job(&block)
+          jobs_processed += 1
+        else
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
           sleep interval
         end
+        break if jobs_processed >= jobs_per_fork
       end
-
-      unregister_worker
-    rescue Exception => exception
-      return if exception.class == SystemExit && !@child && run_at_exit_hooks
-      log_with_severity :error, "Failed to start worker : #{exception.inspect}"
-      unregister_worker(exception)
     end
 
     def work_one_job(job = nil, &block)
@@ -260,26 +252,10 @@ module Resque
       log_with_severity :info, "got: #{job.inspect}"
       job.worker = self
 
-      if fork_per_job?
-        perform_with_fork(job, &block)
-      else
-        perform(job, &block)
-      end
-
-      done_working
-      true
-    end
-
-    # DEPRECATED. Processes a single job. If none is given, it will
-    # try to produce one. Usually run in the child.
-    def process(job = nil, &block)
-      return unless job ||= reserve
-
-      job.worker = self
-      working_on job
       perform(job, &block)
-    ensure
       done_working
+
+      true
     end
 
     # Reports the exception and marks the job as failed
@@ -301,10 +277,6 @@ module Resque
     # Processes a given job in the child.
     def perform(job)
       begin
-        if fork_per_job?
-          reconnect
-          run_hook :after_fork, job
-        end
         job.perform
       rescue Object => e
         report_failed_job(job,e)
@@ -384,16 +356,12 @@ module Resque
     # USR2: Don't process any new jobs
     # CONT: Start processing jobs again after a USR2
     def register_signal_handlers
-      trap('TERM') { graceful_term ? shutdown : shutdown!  }
-      trap('INT')  { shutdown!  }
+      trap('TERM') { shutdown! }
+      trap('INT')  { shutdown! }
 
       begin
-        trap('QUIT') { shutdown   }
-        if term_child
-          trap('USR1') { new_kill_child }
-        else
-          trap('USR1') { kill_child }
-        end
+        trap('QUIT') { shutdown }
+        trap('USR1') { kill_child }
         trap('USR2') { pause_processing }
         trap('CONT') { unpause_processing }
       rescue ArgumentError
@@ -435,7 +403,7 @@ module Resque
       shutdown
       if term_child
         if fork_per_job?
-          new_kill_child
+          kill_child
         else
           # Raise TermException in the same process
           trap('TERM') do
@@ -451,20 +419,6 @@ module Resque
     # Should this worker shutdown as soon as current job is finished?
     def shutdown?
       @shutdown
-    end
-
-    # Kills the forked child immediately, without remorse. The job it
-    # is processing will not be completed.
-    def kill_child
-      if @child
-        log_with_severity :debug, "Killing child at #{@child}"
-        if `ps -o pid,state -p #{@child}`
-          Process.kill("KILL", @child) rescue nil
-        else
-          log_with_severity :debug, "Child #{@child} not found, restarting."
-          shutdown
-        end
-      end
     end
 
     def heartbeat
@@ -524,14 +478,9 @@ module Resque
     # wait <term_timeout> seconds, and then a KILL signal if it has not quit
     # If pre_shutdown_timeout has been set to a positive number, it will allow
     # the child that many seconds before sending the aforementioned TERM and KILL.
-    def new_kill_child
+    def kill_child
       if @child
         unless child_already_exited?
-          if pre_shutdown_timeout && pre_shutdown_timeout > 0.0
-            log_with_severity :debug, "Waiting #{pre_shutdown_timeout.to_f}s for child process to exit"
-            return if wait_for_child_exit(pre_shutdown_timeout)
-          end
-
           log_with_severity :debug, "Sending TERM signal to child #{@child}"
           Process.kill("TERM", @child)
 
@@ -763,8 +712,7 @@ module Resque
     end
 
     def fork_per_job?
-      return @fork_per_job if defined?(@fork_per_job)
-      @fork_per_job = ENV["FORK_PER_JOB"] != 'false' && Kernel.respond_to?(:fork)
+      @fork_per_job ||= Kernel.respond_to?(:fork)
     end
 
     # Returns a symbol representing the current worker state,
@@ -885,34 +833,6 @@ module Resque
     end
 
     private
-
-    def perform_with_fork(job, &block)
-      run_hook :before_fork, job
-
-      begin
-        @child = fork do
-          unregister_signal_handlers if term_child
-          perform(job, &block)
-          exit! unless run_at_exit_hooks
-        end
-      rescue NotImplementedError
-        @fork_per_job = false
-        perform(job, &block)
-        return
-      end
-
-      srand # Reseeding
-      procline "Forked #{@child} at #{Time.now.to_i}"
-
-      begin
-        Process.waitpid(@child)
-      rescue SystemCallError
-        nil
-      end
-
-      job.fail(DirtyExit.new("Child process received unhandled signal #{$?}", $?)) if $?.signaled?
-      @child = nil
-    end
 
     def log_with_severity(severity, message)
       Logging.log(severity, message)
