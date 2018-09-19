@@ -486,6 +486,10 @@ module Resque
     WorkerManager.threads_working
   end
 
+  def jobs_running
+    WorkerManager.jobs_running
+  end
+
   #
   # stats
   #

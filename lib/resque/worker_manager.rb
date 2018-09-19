@@ -21,6 +21,12 @@ module Resque
         Resque.data_store
       end
 
+      def threads
+        data_store.worker_threads_map([ @worker_id ]).map { |key,value|
+          value ? WorkerThreadStatus.new(key, value) : nil
+        }.compact
+      end
+
       def unregister_worker(exception = nil)
         data_store.unregister_worker(self) do
           Stat.clear("processed:#{self}")
@@ -30,7 +36,7 @@ module Resque
     end
 
     class WorkerThreadStatus
-      attr_reader :worker
+      attr_reader :worker, :job
 
       def initialize(worker_thread_id, job = nil)
         @host, @pid, queues_raw, @thread_id = worker_thread_id.split(':')
@@ -84,6 +90,10 @@ module Resque
       else
         nil
       end
+    end
+
+    def self.jobs_running
+      threads_working.map { |thread| [ thread, thread.job ] }
     end
 
     def self.prune_dead_workers
