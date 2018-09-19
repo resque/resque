@@ -43,12 +43,6 @@ def kill_test_redis
   system("rm -f #{$dir}/dump.rdb #{$dir}/dump-cluster.rdb")
 end
 
-MiniTest::Unit.after_tests do
-  if Process.pid == $TEST_PID
-    kill_test_redis
-  end
-end
-
 class GlobalSpecHooks < MiniTest::Spec
   def setup
     super

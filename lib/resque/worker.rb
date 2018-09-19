@@ -229,8 +229,9 @@ module Resque
 
     def fork_worker_child(interval, &block)
       @children << fork {
-        worker_child(interval, &block)
-        reconnect
+        if reconnect
+          worker_child(interval, &block)
+        end
         exit!
       }
       srand # Reseed after child fork
@@ -328,6 +329,7 @@ module Resque
       tries = 0
       begin
         data_store.reconnect
+        true
       rescue Redis::BaseConnectionError
         if (tries += 1) <= 3
           log_with_severity :error, "Error reconnecting to Redis; retrying"
@@ -335,7 +337,7 @@ module Resque
           retry
         else
           log_with_severity :error, "Error reconnecting to Redis; quitting"
-          raise
+          false
         end
       end
     end

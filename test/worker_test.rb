@@ -964,7 +964,6 @@ describe "Resque::Worker" do
     assert_equal 3, messages.grep(/retrying/).count
     assert_equal 1, messages.grep(/quitting/).count
     assert_equal 0, messages.grep(/Failed to start worker/).count
-    assert_equal 1, messages.grep(/Redis::BaseConnectionError: Redis::BaseConnectionError/).count
   end
 
   it "tries to reconnect three times before giving up" do
@@ -991,17 +990,13 @@ describe "Resque::Worker" do
     end
   end
 
-  it "will notify failure hooks and attach process status when a job is killed by a signal" do
+  it "will throw a Resque::DirtyExit when a job is killed by a signal" do
     Resque.enqueue(SuicidalJob)
     suppress_warnings do
       @worker.work(0)
     end
 
     exception = SuicidalJob.send(:class_variable_get, :@@failure_exception)
-
     assert_kind_of Resque::DirtyExit, exception
-    assert_match(/Child process received unhandled signal pid \d+ SIGKILL \(signal 9\)/, exception.message)
-
-    assert_kind_of Process::Status, exception.process_status
   end
 end
