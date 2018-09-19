@@ -66,74 +66,6 @@ describe "Resque::Worker" do
     end
   end
 
-  it "executes at_exit hooks when configured with run_at_exit_hooks" do
-    tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
-    FileUtils.rm_f tmpfile
-
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert File.exist?(tmpfile), "The file '#{tmpfile}' does not exist"
-      assert_equal "at_exit", File.open(tmpfile).read.strip
-    else
-      # ensure we actually fork
-      Resque.redis.reconnect
-      Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
-      worker = Resque::Worker.new(:at_exit_jobs)
-      worker.run_at_exit_hooks = true
-      suppress_warnings do
-        worker.work(0)
-      end
-      exit
-    end
-
-  end
-
-  class ::RaiseExceptionOnFailure
-
-    def self.on_failure_throw_exception(exception,*args)
-      raise "The worker threw an exception"
-    end
-
-    def self.perform
-      ""
-    end
-  end
-
-  it "should not treat SystemExit as an exception in the child with run_at_exit_hooks == true" do
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-    else
-      # ensure we actually fork
-      Resque.redis.reconnect
-      Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
-      worker = Resque::Worker.new(:not_failing_job)
-      worker.run_at_exit_hooks = true
-      suppress_warnings do
-        worker.work(0)
-      end
-      exit
-    end
-  end
-
-  it "does not execute at_exit hooks by default" do
-    tmpfile = File.join(Dir.tmpdir, "resque_at_exit_test_file")
-    FileUtils.rm_f tmpfile
-
-    if worker_pid = Kernel.fork
-      Process.waitpid(worker_pid)
-      assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
-    else
-      # ensure we actually fork
-      Resque.redis.reconnect
-      Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
-      worker = Resque::Worker.new(:at_exit_jobs)
-      suppress_warnings do
-        worker.work(0)
-      end
-      exit
-    end
-  end
-
   it "does report failure for jobs with invalid payload" do
     job = Resque::Job.new(:jobs, { 'class' => 'NotAValidJobClass', 'args' => '' })
     @worker.perform job
@@ -274,9 +206,9 @@ describe "Resque::Worker" do
   it "catches exceptional jobs" do
     Resque::Job.create(:jobs, BadJob)
     Resque::Job.create(:jobs, BadJob)
-    @worker.process
-    @worker.process
-    @worker.process
+    @worker.work_one_job
+    @worker.work_one_job
+    @worker.work_one_job
     assert_equal 2, Resque::Failure.count
   end
 
@@ -316,11 +248,11 @@ describe "Resque::Worker" do
 
     worker = Resque::Worker.new(:critical, :high)
 
-    worker.process
+    worker.work_one_job
     assert_equal 1, Resque.size(:high)
     assert_equal 0, Resque.size(:critical)
 
-    worker.process
+    worker.work_one_job
     assert_equal 0, Resque.size(:high)
   end
 
@@ -328,11 +260,6 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, GoodJob)
     assert_equal 2, Resque.size(:jobs)
     assert_equal true, @worker.work_one_job
-    assert_equal 1, Resque.size(:jobs)
-
-    job = Resque::Job.new(:jobs, {'class' => 'GoodJob'})
-    assert_equal 1, Resque.size(:jobs)
-    assert_equal true, @worker.work_one_job(job)
     assert_equal 1, Resque.size(:jobs)
 
     @worker.pause_processing
@@ -529,8 +456,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, BadJob)
 
     3.times do
-      job = @worker.reserve
-      @worker.process job
+      @worker.work_one_job
     end
     assert_equal 3, @worker.processed
   end
@@ -540,8 +466,7 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, BadJob)
 
     3.times do
-      job = @worker.reserve
-      @worker.process job
+      @worker.work_one_job
     end
     assert_equal 2, @worker.failed
   end
