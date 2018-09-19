@@ -233,6 +233,7 @@ module Resque
       def register_worker(worker)
         @redis.pipelined do
           @redis.sadd(:workers, worker)
+          @redis.del(redis_key_for_worker_threads(worker))
           worker_started(worker)
         end
       end
@@ -244,6 +245,7 @@ module Resque
       def unregister_worker(worker, &block)
         @redis.pipelined do
           @redis.srem(:workers, worker)
+          @redis.del(redis_key_for_worker_threads(worker))
           @redis.del(redis_key_for_worker(worker))
           @redis.del(redis_key_for_worker_start_time(worker))
           @redis.hdel(HEARTBEAT_KEY, worker.to_s)
@@ -273,17 +275,20 @@ module Resque
         @redis.set(redis_key_for_worker_pruning, worker.to_s, :ex => expiry, :nx => true)
       end
 
-      def set_worker_payload(worker, data)
-        @redis.set(redis_key_for_worker(worker), data)
+      def set_worker_payload(worker_thread, data)
+        @redis.pipelined do
+          @redis.sadd(redis_key_for_worker_threads(worker_thread.worker), worker_thread)
+          @redis.set(redis_key_for_worker_thread(worker_thread), data)
+        end
       end
 
       def worker_start_time(worker)
         @redis.get(redis_key_for_worker_start_time(worker))
       end
 
-      def worker_done_working(worker, &block)
+      def worker_done_working(worker_thread, &block)
         @redis.pipelined do
-          @redis.del(redis_key_for_worker(worker))
+          @redis.del(redis_key_for_worker_thread(worker_thread))
           block.call
         end
       end
@@ -294,8 +299,16 @@ module Resque
         "worker:#{worker}"
       end
 
+      def redis_key_for_worker_thread(worker_thread)
+        "worker:#{worker_thread}"
+      end
+
       def redis_key_for_worker_start_time(worker)
         "#{redis_key_for_worker(worker)}:started"
+      end
+
+      def redis_key_for_worker_threads(worker)
+        "#{redis_key_for_worker(worker)}:threads"
       end
 
       def redis_key_for_worker_pruning

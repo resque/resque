@@ -85,7 +85,7 @@ end
 module AssertInWorkBlock
   # if a block is given, ensure that it is run, and that any assertion
   # failures that occur inside it propagate up to the test.
-  def work(*args, &block)
+  def worker_thread(*args, &block)
     return super unless block_given?
 
     ex = catch(:exception_in_block) do

@@ -138,7 +138,6 @@ module Resque
       self.jobs_per_fork = [ (ENV['JOBS_PER_FORK'] || 1).to_i, 1 ].max
       self.worker_count = [ (ENV['WORKER_COUNT'] || 1).to_i, 1 ].max
       self.thread_count = [ (ENV['THREAD_COUNT'] || 1).to_i, 1 ].max
-      raise "Thread counts greater than 1 not yet supported (but coming soon)" if thread_count > 1
 
       self.queues = queues
     end
@@ -200,10 +199,10 @@ module Resque
       startup
 
       if !!ENV['DONT_FORK']
-        worker_child(interval, &block)
+        worker_process(interval, &block)
       else
         @children = []
-        (1..worker_count).map { fork_worker_child(interval, &block) }
+        (1..worker_count).map { fork_worker_process(interval, &block) }
 
         loop do
           break if shutdown?
@@ -211,7 +210,7 @@ module Resque
             if Process.waitpid(child, Process::WNOHANG)
               @children.delete(child)
               break if interval.zero?
-              fork_worker_child(interval, &block)
+              fork_worker_process(interval, &block)
             end
           end
 
@@ -227,81 +226,30 @@ module Resque
       unregister_worker(exception)
     end
 
-    def fork_worker_child(interval, &block)
+    def fork_worker_process(interval, &block)
       @children << fork {
         if reconnect
-          worker_child(interval, &block)
+          worker_process(interval, &block)
         end
         exit!
       }
-      srand # Reseed after child fork
+      srand # Reseed after fork
       procline "Master Process.  Worker Children PIDs: #{@children.join(",")} Last Fork at #{Time.now.to_i}"
     end
 
-    def worker_child(interval, &block)
-      jobs_processed = 0
-
-      loop do
-        if work_one_job(&block)
-          jobs_processed += 1
-        else
-          break if interval.zero?
-          log_with_severity :debug, "Sleeping for #{interval} seconds"
-          procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
-          sleep interval
-        end
-        break if jobs_processed >= jobs_per_fork
-      end
+    def worker_process(interval, &block)
+      @mutex = Mutex.new
+      @jobs_processed = 0
+      @worker_threads = (1..thread_count).map { |i| WorkerThread.new(i, self, interval, &block).spawn }
+      @worker_threads.map(&:join)
     end
 
-    def work_one_job(&block)
-      return false if paused?
-      return false unless job ||= reserve
-
-      working_on job
-      procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
-
-      log_with_severity :info, "got: #{job.inspect}"
-      job.worker = self
-
-      begin
-        @worker_thread = Thread.new { perform(job, &block) }
-        @worker_thread.join
-        @worker_thread = nil
-      rescue Object => e
-        report_failed_job(job, e)
-      end
-
-      done_working
-
-      true
-    end
-
-    # Reports the exception and marks the job as failed
-    def report_failed_job(job,exception)
-      log_with_severity :error, "#{job.inspect} failed: #{exception.inspect}"
-      begin
-        job.fail(exception)
-      rescue Object => exception
-        log_with_severity :error, "Received exception when reporting failure: #{exception.inspect}"
-      end
-      begin
-        failed!
-      rescue Object => exception
-        log_with_severity :error, "Received exception when increasing failed jobs counter (redis issue) : #{exception.inspect}"
-      end
-    end
-
-    # Processes a given job.
-    def perform(job)
-      begin
-        job.perform
-      rescue Object => e
-        report_failed_job(job,e)
+    def set_procline_for_threads
+      jobs = @worker_threads.map { |thread| thread.payload_class_name }.compact
+      if jobs.size > 0
+        procline "Processing Job(s): #{jobs.join(", ")}"
       else
-        log_with_severity :info, "done: #{job.inspect}"
-      ensure
-        yield job if block_given?
+        procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
       end
     end
 
@@ -576,24 +524,6 @@ module Resque
       fail(exception_while_unregistering.class,
            message,
            exception_while_unregistering.backtrace)
-    end
-
-    # Given a job, tells Redis we're working on it. Useful for seeing
-    # what workers are doing and when.
-    def working_on(job)
-      data = encode \
-        :queue   => job.queue,
-        :run_at  => Time.now.utc.iso8601,
-        :payload => job.payload
-      data_store.set_worker_payload(self,data)
-    end
-
-    # Called when we are done working - clears our `working_on` state
-    # and tells Redis we processed a job.
-    def done_working
-      data_store.worker_done_working(self) do
-        processed!
-      end
     end
 
     # How many jobs has this worker processed? Returns an int.
