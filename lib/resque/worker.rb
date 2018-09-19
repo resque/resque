@@ -207,11 +207,11 @@ module Resque
         @children.each do |child|
           if Process.waitpid(child, Process::WNOHANG)
             @children.delete(child)
+            break if interval.zero?
             fork_worker_child(interval, &block)
           end
         end
 
-        break if interval.zero?
         sleep interval
       end
 
@@ -259,7 +259,9 @@ module Resque
       job.worker = self
 
       begin
-        Thread.new { perform(job, &block) }.join
+        @worker_thread = Thread.new { perform(job, &block) }
+        @worker_thread.join
+        @worker_thread = nil
       rescue Object => e
         report_failed_job(job, e)
       end
