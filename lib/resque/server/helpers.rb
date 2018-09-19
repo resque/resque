@@ -1,8 +1,4 @@
 Resque::Server.helpers do
-  ####################
-  #failed.erb helpers#
-  ####################
-
   def failed_date_format
     "%Y/%m/%d %T %z"
   end

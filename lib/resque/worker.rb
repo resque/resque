@@ -337,24 +337,14 @@ module Resque
     def startup
       $0 = "resque: Starting"
 
-      enable_gc_optimizations
       register_signal_handlers
       start_heartbeat
       prune_dead_workers
-      run_hook :before_first_fork
       register_worker
 
       # Fix buffering so we can `rake resque:work > resque.log` and
       # get output from the child in there.
       $stdout.sync = true
-    end
-
-    # Enables GC Optimizations if you're running REE.
-    # http://www.rubyenterpriseedition.com/faq.html#adapt_apps_for_cow
-    def enable_gc_optimizations
-      if GC.respond_to?(:copy_on_write_friendly=)
-        GC.copy_on_write_friendly = true
-      end
     end
 
     # Registers the various signal handlers a worker responds to.
@@ -537,21 +527,6 @@ module Resque
     # lifecycle on startup.
     def register_worker
       data_store.register_worker(self)
-    end
-
-    # Runs a named hook, passing along any arguments.
-    def run_hook(name, *args)
-      hooks = Resque.send(name)
-      return if hooks.empty?
-      return if name == :before_first_fork && @before_first_fork_hook_ran
-      msg = "Running #{name} hooks"
-      msg << " with #{args.inspect}" if args.any?
-      log_with_severity :info, msg
-
-      hooks.each do |hook|
-        args.any? ? hook.call(*args) : hook.call
-        @before_first_fork_hook_ran = true if name == :before_first_fork
-      end
     end
 
     def kill_background_threads
