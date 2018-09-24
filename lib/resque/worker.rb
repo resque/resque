@@ -63,6 +63,7 @@ module Resque
     attr_accessor :run_at_exit_hooks
 
     attr_writer :fork_per_job
+    attr_writer :fork_reconnect_redis
     attr_writer :hostname
     attr_writer :to_s
     attr_writer :pid
@@ -767,6 +768,11 @@ module Resque
     def fork_per_job?
       return @fork_per_job if defined?(@fork_per_job)
       @fork_per_job = ENV["FORK_PER_JOB"] != 'false' && Kernel.respond_to?(:fork)
+    end
+
+    def fork_reconnect_redis?
+      return @fork_reconnect_redis if defined?(@fork_reconnect_redis)
+      @fork_reconnect_redis = ENV['FORK_RECONNECT_REDIS'] != false
     end
 
     # Returns a symbol representing the current worker state,
