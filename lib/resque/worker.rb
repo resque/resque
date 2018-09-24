@@ -303,7 +303,7 @@ module Resque
     def perform(job)
       begin
         if fork_per_job?
-          reconnect
+          reconnect if fork_reconnect_redis?
           run_hook :after_fork, job
         end
         job.perform
