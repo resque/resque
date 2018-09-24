@@ -772,7 +772,7 @@ module Resque
 
     def fork_reconnect_redis?
       return @fork_reconnect_redis if defined?(@fork_reconnect_redis)
-      @fork_reconnect_redis = ENV['FORK_RECONNECT_REDIS'] != false
+      @fork_reconnect_redis = ENV['FORK_RECONNECT_REDIS'] != 'false'
     end
 
     # Returns a symbol representing the current worker state,
