@@ -833,6 +833,20 @@ For example, if you want to run all jobs in the same process for cucumber, try:
 Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 ```
 
+If you have an environment with a lot of tasks or special resource constraints
+around your Redis installation, you can configure Resque to share a redis
+connection between pre- and post-fork processes. This removes some of the
+safety provided by Resque's forking model, but can help moderate load and
+connection churn on your Redis environment. Do this by setting the
+`share_redis` configuration option like so:
+
+``` ruby
+Resque.share_redis = true
+```
+
+Note that you need to use the `inherit_socket` option of
+[redis-rb](https://github.com/redis/redis-rb#expert-mode-options) for this
+to work properly.
 
 Plugins and Hooks
 -----------------
