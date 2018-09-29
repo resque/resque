@@ -1178,6 +1178,20 @@ describe "Resque::Worker" do
       refute_equal original_connection, new_connection
     end
 
+    it "does not reconnect to redis after fork if not configured to do so" do
+      begin
+        Resque.share_redis = true
+        original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
+
+        new_connection = run_in_job do
+          Resque.redis._client.connection.instance_variable_get("@sock").object_id
+        end
+        assert_equal new_connection, original_connection
+      ensure
+        Resque.share_redis = false
+      end
+    end
+
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
       @worker.redis._client.stubs(:reconnect).raises(Redis::BaseConnectionError)
       @worker.stubs(:sleep)
