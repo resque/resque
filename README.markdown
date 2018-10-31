@@ -285,6 +285,33 @@ If you want Resque to log to a file, in Rails do:
 Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
 ```
 
+### Storing Stats
+ Resque allows to store count of processed and failed jobs.
+
+ By default it will store it in Redis using the keys `processed:#{worker_id}` and `failed:#{worker_id}`
+
+ Some apps would want another stats store, or even a null store:
+
+ ```ruby
+# config/initializers/resque.rb
+class NullDataStore
+  def stat(stat)
+    0
+  end
+
+  def increment_stat(stat, by)
+  end
+
+  def decrement_stat(stat, by)
+  end
+
+  def clear_stat(stat)
+  end
+end
+
+Resque.stat_data_store = NullDataStore.new
+```
+
 ### Process IDs (PIDs)
 
 There are scenarios where it's helpful to record the PID of a resque
@@ -463,7 +490,7 @@ solution is to give a small amount of time for the job to finish
 before killing it.
 
 Resque doesn't handle this out of the box (for both cedar-14 and heroku-16), you need to
-install the [`resque-heroku-signals`](https://github.com/iloveitaly/resque-heroku-signals) 
+install the [`resque-heroku-signals`](https://github.com/iloveitaly/resque-heroku-signals)
 addon which adds the required signal handling to make the behavior described above work.
 Related issue: https://github.com/resque/resque/issues/1559
 
