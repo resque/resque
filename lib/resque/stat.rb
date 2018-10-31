@@ -8,6 +8,11 @@ module Resque
   module Stat
     extend self
 
+    def redis
+      warn '[Resque] [Deprecation] Resque::Stat #redis method is deprecated (please use #data_strore)'
+      data_store
+    end
+
     def data_store
       @data_store ||= Resque.redis
     end
