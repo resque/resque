@@ -40,17 +40,9 @@ namespace :resque do
   # Preload app files if this is Rails
   task :preload => :setup do
     if defined?(Rails)
-      if Rails::VERSION::MAJOR > 3 && Rails.application.config.eager_load
+      if Rails.application.config.eager_load
         ActiveSupport.run_load_hooks(:before_eager_load, Rails.application)
         Rails.application.config.eager_load_namespaces.each(&:eager_load!)
-
-      elsif Rails::VERSION::MAJOR == 3
-        ActiveSupport.run_load_hooks(:before_eager_load, Rails.application)
-        Rails.application.eager_load!
-
-      elsif defined?(Rails::Initializer)
-        $rails_rake_task = false
-        Rails::Initializer.run :load_application_classes
       end
     end
   end
