@@ -1,9 +1,31 @@
 require 'test_helper'
 
 describe "Resque::Stat" do
+  class DummyStatStore
+    def initialize
+      @stat = Hash.new(0)
+    end
+
+    def stat(stat)
+      @stat[stat]
+    end
+
+    def increment_stat(stat, by)
+      @stat[stat] += by
+    end
+
+    def decrement_stat(stat, by)
+      @stat[stat] -= by
+    end
+
+    def clear_stat(stat)
+      @stat[stat] = 0
+    end
+  end
+
   before do
     @original_data_store = Resque::Stat.data_store
-    @dummy_data_store = Object.new
+    @dummy_data_store = DummyStatStore.new
     Resque::Stat.data_store = @dummy_data_store
   end
 
@@ -12,46 +34,55 @@ describe "Resque::Stat" do
   end
 
   it '#redis show deprecation warning' do
-    assert_output(nil, /\[Resque\] \[Deprecation\]/ ) { Resque::Stat.redis }
+    assert_output(nil, /\[Resque\] \[Deprecation\]/ ) do
+      assert_equal @dummy_data_store, Resque::Stat.redis
+    end
   end
 
   it '#redis returns data_store' do
-    data_store = Resque::Stat.redis
-    assert_equal @dummy_data_store, data_store
+    assert_equal @dummy_data_store, Resque::Stat.data_store
   end
 
   it "#get" do
-    @dummy_data_store.expects(:stat).with('hello')
-    Resque::Stat.get('hello')
+    assert_equal 0, Resque::Stat.get('hello')
   end
 
   it "#[]" do
-    @dummy_data_store.expects(:stat).with('hello')
-    Resque::Stat['hello']
+    assert_equal 0, Resque::Stat['hello']
   end
 
   it "#incr" do
-    @dummy_data_store.expects(:increment_stat).with('hello', 2)
-    Resque::Stat.incr('hello', 2)
+    assert_equal 2, Resque::Stat.incr('hello', 2)
+    assert_equal 2, Resque::Stat['hello']
   end
 
   it "#<<" do
-    @dummy_data_store.expects(:increment_stat).with('hello', 1)
-    Resque::Stat << 'hello'
+    assert_equal 1, Resque::Stat << 'hello'
+    assert_equal 1, Resque::Stat['hello']
   end
 
   it "#decr" do
-    @dummy_data_store.expects(:decrement_stat).with('hello', 2)
-    Resque::Stat.decr('hello', 2)
+    assert_equal 2, Resque::Stat.incr('hello', 2)
+    assert_equal 2, Resque::Stat['hello']
+
+    assert_equal 0, Resque::Stat.decr('hello', 2)
+    assert_equal 0, Resque::Stat['hello']
   end
 
   it "#>>" do
-    @dummy_data_store.expects(:decrement_stat).with('hello', 1)
-    Resque::Stat >> 'hello'
+    assert_equal 2, Resque::Stat.incr('hello', 2)
+    assert_equal 2, Resque::Stat['hello']
+
+    assert_equal 1, Resque::Stat >> 'hello'
+    assert_equal 1, Resque::Stat['hello']
   end
 
   it '#clear' do
-    @dummy_data_store.expects(:clear_stat).with('hello')
+    assert_equal 2, Resque::Stat.incr('hello', 2)
+    assert_equal 2, Resque::Stat['hello']
+
     Resque::Stat.clear('hello')
+
+    assert_equal 0, Resque::Stat['hello']
   end
 end
