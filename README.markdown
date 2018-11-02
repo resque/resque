@@ -541,18 +541,6 @@ From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/
     Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
 
 
-#### ActiveJob
-
-If you're going to need to use the database in a number of different jobs, consider adding this to your ApplicationJob file:
-
-``` ruby
-class ApplicationJob < ActiveJob::Base
-  before_perform do |job|
-    ActiveRecord::Base.clear_active_connections!
-  end
-end
-```
-
 
 The Front End
 -------------
