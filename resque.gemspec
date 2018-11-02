@@ -20,6 +20,8 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
+  spec.required_ruby_version = ">= 2.3.0"
+
   s.add_dependency "redis-namespace", "~> 1.6"
   s.add_dependency "vegas", "~> 0.1.2"
   s.add_dependency "sinatra", ">= 0.9.2"
