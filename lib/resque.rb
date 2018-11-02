@@ -151,7 +151,7 @@ module Resque
   #
   # By default it uses the same as `Resque.redis`, but different stores can be used.
   #
-  # A custom store nees to obei the following API to work correctly
+  # A custom store needs to obey the following API to work correctly
   #
   # class NullDataStore
   #   # Returns the current value for the given stat.
