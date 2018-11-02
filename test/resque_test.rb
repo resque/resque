@@ -290,7 +290,7 @@ describe "Resque" do
 
   describe "stats" do
     it "allows to set custom stat_data_store" do
-      dummy = DummyStatStore.new
+      dummy = Object.new
       Resque.stat_data_store = dummy
       assert_equal dummy, Resque.stat_data_store
     end
