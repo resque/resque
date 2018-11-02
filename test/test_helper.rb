@@ -188,6 +188,21 @@ ensure
   Resque::Failure.backend = previous_backend
 end
 
+class DummyStatStore
+  def stat(stat)
+    0
+  end
+
+  def increment_stat(stat, by)
+  end
+
+  def decrement_stat(stat, by)
+  end
+
+  def clear_stat(stat)
+  end
+end
+
 require 'time'
 
 class Time

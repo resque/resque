@@ -147,6 +147,15 @@ module Resque
     data_store.identifier
   end
 
+  def stat_data_store=(stat_data_store)
+    stat = Resque::Stat.data_store = stat_data_store
+    @stat_data_store = stat
+  end
+
+  def stat_data_store
+    @stat_data_store ||= Resque::Stat.data_store
+  end
+
   # Set or retrieve the current logger object
   attr_accessor :logger
 

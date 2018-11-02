@@ -3,10 +3,12 @@ require 'test_helper'
 describe "Resque" do
   before do
     @original_redis = Resque.redis
+    @original_stat_data_store = Resque.stat_data_store
   end
 
   after do
     Resque.redis = @original_redis
+    Resque.stat_data_store = @original_stat_data_store
   end
 
   it "can push an item that depends on redis for encoding" do
@@ -287,6 +289,12 @@ describe "Resque" do
   end
 
   describe "stats" do
+    it "allows to set custom stat_data_store" do
+      dummy = DummyStatStore.new
+      Resque.stat_data_store = dummy
+      assert_equal dummy, Resque.stat_data_store
+    end
+
     it "queue_sizes with one queue" do
       Resque.enqueue_to(:queue1, SomeJob)
 
