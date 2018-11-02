@@ -49,10 +49,15 @@ module Resque
                               :worker_start_time,
                               :worker_done_working
 
-      def_delegators :@stats_access, :clear_stat,
-                                     :decremet_stat,
-                                     :increment_stat,
-                                     :stat
+    def_delegators :@stats_access, :clear_stat,
+                                   :decrement_stat,
+                                   :increment_stat,
+                                   :stat
+
+    def decremet_stat(*args)
+      warn '[Resque] [Deprecation] Resque::DataStore #decremet_stat method is deprecated (please use #decrement_stat)'
+      decrement_stat(*args)
+    end
 
     # Compatibility with any non-Resque classes that were using Resque.redis as a way to access Redis
     def method_missing(sym,*args,&block)

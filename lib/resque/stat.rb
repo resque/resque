@@ -49,7 +49,7 @@ module Resque
     # Can optionally accept a second int parameter. The stat is then
     # decremented by that amount.
     def decr(stat, by = 1)
-      data_store.decremet_stat(stat,by)
+      data_store.decrement_stat(stat,by)
     end
 
     # Decrements a stat by one.
