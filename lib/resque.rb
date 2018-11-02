@@ -171,13 +171,12 @@ module Resque
   #   end
   # end
   def stat_data_store=(stat_data_store)
-    stat = Resque::Stat.data_store = stat_data_store
-    @stat_data_store = stat
+    Resque::Stat.data_store = stat_data_store
   end
 
   # Returns the data store for the statistics module.
   def stat_data_store
-    @stat_data_store ||= Resque::Stat.data_store
+    Resque::Stat.data_store
   end
 
   # Set or retrieve the current logger object
