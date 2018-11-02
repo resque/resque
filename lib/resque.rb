@@ -147,11 +147,35 @@ module Resque
     data_store.identifier
   end
 
+  # Set the data store for the processed and failed statistics.
+  #
+  # By default it uses the same as `Resque.redis`, but different stores can be used.
+  #
+  # A custom store nees to obei the following API to work correctly
+  #
+  # class NullDataStore
+  #   # Returns the current value for the given stat.
+  #   def stat(stat)
+  #   end
+  #
+  #   # Increments the stat by the given value.
+  #   def increment_stat(stat, by)
+  #   end
+  #
+  #   # Decrements the stat by the given value.
+  #   def decrement_stat(stat, by)
+  #   end
+  #
+  #   # Clear the values for the given stat.
+  #   def clear_stat(stat)
+  #   end
+  # end
   def stat_data_store=(stat_data_store)
     stat = Resque::Stat.data_store = stat_data_store
     @stat_data_store = stat
   end
 
+  # Returns the data store for the statistics module.
   def stat_data_store
     @stat_data_store ||= Resque::Stat.data_store
   end

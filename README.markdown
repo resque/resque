@@ -285,10 +285,10 @@ If you want Resque to log to a file, in Rails do:
 Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
 ```
 
-### Storing Stats
+### Storing Statistics
  Resque allows to store count of processed and failed jobs.
 
- By default it will store it in Redis using the keys `processed:#{worker_id}` and `failed:#{worker_id}`
+ By default it will store it in Redis using the keys `stats:processed` and `stats:failed`.
 
  Some apps would want another stats store, or even a null store:
 
