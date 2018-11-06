@@ -1,4 +1,4 @@
-## Unreleased
+## 2.0.0 (2018-11-06)
 
 ### Fixed
 * Fix Airbrake failure backend
