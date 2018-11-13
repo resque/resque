@@ -6,7 +6,7 @@ describe "Resque::Failure::Redis" do
   let(:exception)  { StandardError.exception(bad_string) }
   let(:worker)     { Resque::Worker.new(:test) }
   let(:queue)      { "queue" }
-  let(:payload)    { { "class" => Object, "args" => 3 } }
+  let(:payload)    { { "class" => "Object", "args" => 3 } }
 
   before do
     Resque::Failure::Redis.clear
