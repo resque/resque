@@ -72,6 +72,11 @@ module Resque
       data_store.worker_ids.map { |id| find(id, :skip_exists => true) }.compact
     end
 
+    # Returns an array of localhost worker objects.
+    def self.all_localhost
+      data_store.worker_ids.map { |id| find(id, :skip_exists => true, :only_localhost => true) }.compact
+    end
+
     # Returns an array of all worker objects currently processing
     # jobs.
     def self.working
@@ -101,9 +106,11 @@ module Resque
     # Returns a single worker object. Accepts a string id.
     def self.find(worker_id, options = {})
       skip_exists = options[:skip_exists]
+      only_localhost = options[:only_localhost]
 
       if skip_exists || exists?(worker_id)
         host, pid, queues_raw = worker_id.split(':')
+        return nil if only_localhost && (host != Socket.gethostname)
         queues = queues_raw.split(',')
         worker = new(*queues)
         worker.hostname = host

@@ -600,6 +600,30 @@ describe "Resque::Worker" do
     end
   end
 
+  it "can be found only localhost" do
+    without_forking do
+      # inject fake worker
+      other_worker = Resque::Worker.new(:other_host_jobs)
+      other_worker.instance_variable_set(:@to_s, "#{`hostname`.chomp}-foo:4:high")
+      other_worker.pid = 123456
+      other_worker.register_worker
+
+      begin
+        @worker.extend(AssertInWorkBlock).work(0) do
+          found = Resque::Worker.find(@worker.to_s, :only_localhost => true)
+
+          # we ensure that the found ivar @pid is set to the correct value since
+          # Resque::Worker#pid will use it instead of Process.pid if present
+          assert_equal @worker.pid, found.instance_variable_get(:@pid)
+
+          assert_equal 2, Resque.workers.count
+        end
+      ensure
+        other_worker.unregister_worker
+      end
+    end
+  end
+
   it 'can find others' do
     without_forking do
       # inject fake worker
