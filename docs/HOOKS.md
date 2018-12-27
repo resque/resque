@@ -118,7 +118,7 @@ Modules are even better because jobs can use many of them.
     module ScaledJob
       def after_enqueue_scale_workers(*args)
         Logger.info "Scaling worker count up"
-        Scaler.up! if Redis.info[:pending].to_i > 25
+        Scaler.up! if Resque.info[:pending].to_i > 25
       end
     end
 
