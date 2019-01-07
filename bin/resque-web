@@ -6,7 +6,7 @@ begin
 rescue LoadError
   require 'rubygems'
   require 'vegas'
-end  
+end
 require 'resque/server'
 
 
