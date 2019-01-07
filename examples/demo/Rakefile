@@ -4,6 +4,6 @@ require 'resque/tasks'
 require 'job'
 
 desc "Start the demo using `rackup`"
-task :start do 
+task :start do
   exec "rackup config.ru"
 end

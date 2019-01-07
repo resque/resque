@@ -7,7 +7,7 @@ module Resque
     def self.log(severity, message)
       Resque.logger.__send__(severity, message) if Resque.logger
     end
-    
+
     # Log level aliases
     def debug(message); Logging.log :debug, message; end
     def info(message);  Logging.log :info,  message; end

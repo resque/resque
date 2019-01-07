@@ -9,7 +9,7 @@ module Demo
       puts "Processed a job!"
     end
   end
-  
+
   module FailingJob
     @queue = :failing
 

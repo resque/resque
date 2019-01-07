@@ -31,7 +31,7 @@ module Resque
 
         if class_name
           n = 0
-          each(0, count(queue), queue, class_name) { n += 1 } 
+          each(0, count(queue), queue, class_name) { n += 1 }
           n
         else
           data_store.num_failed
