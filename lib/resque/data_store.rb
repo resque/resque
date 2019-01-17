@@ -223,12 +223,18 @@ module Resque
       # in redis, even if that value maps to nil
       def workers_map(worker_ids)
         redis_keys = worker_ids.map { |id| "worker:#{id}" }
-        @redis.mapped_mget(*redis_keys)
+        # list = @redis.mapped_mget(*redis_keys)        
+        list = {}
+        for key in redis_keys
+          list.merge({key => @redis.hget(key, "payload")})
+        end
+        return list
       end
 
       # return the worker's payload i.e. job
       def get_worker_payload(worker_id)
-        @redis.get("worker:#{worker_id}")
+        # @redis.get("worker:#{worker_id}")
+        @redis.hget("worker:#{worker_id}", "payload")
       end
 
       def worker_exists?(worker_id)
@@ -243,14 +249,16 @@ module Resque
       end
 
       def worker_started(worker)
-        @redis.set(redis_key_for_worker_start_time(worker), Time.now.to_s)
+        # @redis.set(redis_key_for_worker_start_time(worker), Time.now.to_s)
+        @redis.hset(redis_key_for_worker(worker), "started", Time.now.to_s)
       end
 
       def unregister_worker(worker, &block)
         @redis.pipelined do
           @redis.srem(:workers, worker)
           @redis.del(redis_key_for_worker(worker))
-          @redis.del(redis_key_for_worker_start_time(worker))
+          # @redis.del(redis_key_for_worker_start_time(worker))
+          # @redis.hdel(redis_key_for_worker(worker), "started")
           @redis.hdel(HEARTBEAT_KEY, worker.to_s)
 
           block.call
@@ -279,16 +287,19 @@ module Resque
       end
 
       def set_worker_payload(worker, data)
-        @redis.set(redis_key_for_worker(worker), data)
+        # @redis.set(redis_key_for_worker(worker), data)
+        @redis.hset(redis_key_for_worker(worker), "payload", data)
       end
 
       def worker_start_time(worker)
-        @redis.get(redis_key_for_worker_start_time(worker))
+        # @redis.get(redis_key_for_worker_start_time(worker))
+        @redis.hget(redis_key_for_worker(worker), "started")
       end
 
       def worker_done_working(worker, &block)
         @redis.pipelined do
-          @redis.del(redis_key_for_worker(worker))
+          # @redis.del(redis_key_for_worker(worker))
+          @redis.hdel(redis_key_for_worker(worker), "payload")
           block.call
         end
       end
