@@ -222,15 +222,12 @@ module Resque
       # Given a list of worker ids, returns a map of those ids to the worker's value
       # in redis, even if that value maps to nil
       def workers_map(worker_ids)
-        # redis_keys = worker_ids.map { |id| "worker:#{id}" }
-        # list = @redis.mapped_mget(*redis_keys)        
-        return @redis.hgetall("worker:processing")
+        return @redis.hgetall(redis_key_for_state("processing"))
       end
 
       # return the worker's payload i.e. job
       def get_worker_payload(worker_id)
-        # @redis.get("worker:#{worker_id}")
-        @redis.hget("worker:processing", worker_id)
+        @redis.hget(redis_key_for_state("processing"), worker_id)
       end
 
       def worker_exists?(worker_id)
@@ -245,17 +242,14 @@ module Resque
       end
 
       def worker_started(worker)
-        # @redis.set(redis_key_for_worker_start_time(worker), Time.now.to_s)
-        @redis.hset("worker:started", worker, Time.now.to_s)
+        @redis.hset(redis_key_for_state("started"), worker, Time.now.to_s)
       end
 
       def unregister_worker(worker, &block)
         @redis.pipelined do
           @redis.srem(:workers, worker)
-          @redis.hdel("worker:started", worker)
-          @redis.hdel("worker:processing", worker)
-          # @redis.del(redis_key_for_worker_start_time(worker))
-          # @redis.hdel(redis_key_for_worker(worker), "started")
+          @redis.hdel(redis_key_for_state("started"), worker)
+          @redis.hdel(redis_key_for_state("processing"), worker)
           @redis.hdel(HEARTBEAT_KEY, worker.to_s)
 
           block.call
@@ -284,24 +278,25 @@ module Resque
       end
 
       def set_worker_payload(worker, data)
-        # @redis.set(redis_key_for_worker(worker), data)
-        @redis.hset("worker:processing", worker, data)
+        @redis.hset(redis_key_for_state("processing"), worker, data)
       end
 
       def worker_start_time(worker)
-        # @redis.get(redis_key_for_worker_start_time(worker))
-        @redis.hget("worker:started", worker)
+        @redis.hget(redis_key_for_state("started"), worker)
       end
 
       def worker_done_working(worker, &block)
         @redis.pipelined do
-          # @redis.del(redis_key_for_worker(worker))
-          @redis.hdel("worker:processing", worker)
+          @redis.hdel(redis_key_for_state("processing"), worker)
           block.call
         end
       end
 
     private
+      
+      def redis_key_for_state(state)
+        "workers:worker:#{state}"
+      end
 
       def redis_key_for_worker(worker)
         "worker:#{worker}"
