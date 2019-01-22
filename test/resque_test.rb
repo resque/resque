@@ -219,17 +219,17 @@ describe "Resque" do
     end
 
     it "can peek at a queue" do
-      assert_equal({ 'name' => 'chris' }, Resque.peek(:people))
+      assert_equal({ 'name' => 'mark' }, Resque.peek(:people))
       assert_equal 3, Resque.size(:people)
     end
 
     it "can peek multiple items on a queue" do
       assert_equal({ 'name' => 'bob' }, Resque.peek(:people, 1, 1))
 
-      assert_equal([{ 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 1, 2))
-      assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
-      assert_equal([{ 'name' => 'chris' }, { 'name' => 'bob' }, { 'name' => 'mark' }], Resque.peek(:people, 0, 3))
-      assert_equal({ 'name' => 'mark' }, Resque.peek(:people, 2, 1))
+      assert_equal([{ 'name' => 'bob' }, { 'name' => 'chris' }], Resque.peek(:people, 1, 2))
+      assert_equal([{ 'name' => 'mark' }, { 'name' => 'bob' }], Resque.peek(:people, 0, 2))
+      assert_equal([{ 'name' => 'mark' }, { 'name' => 'bob' }, { 'name' => 'chris' }], Resque.peek(:people, 0, 3))
+      assert_equal({ 'name' => 'chris' }, Resque.peek(:people, 2, 1))
       assert_nil Resque.peek(:people, 3)
       assert_equal [], Resque.peek(:people, 3, 2)
     end
@@ -356,8 +356,8 @@ describe "Resque" do
       assert_equal 2, queues['queue1'][:size]
 
       samples = queues['queue1'][:samples]
-      assert_equal([{'arg1' => '1'}], samples[0]['args'])
-      assert_equal([{'arg1' => '2'}], samples[1]['args'])
+      assert_equal([{'arg1' => '2'}], samples[0]['args'])
+      assert_equal([{'arg1' => '1'}], samples[1]['args'])
     end
 
     it "sample_queues with more jobs only returns sample size number of jobs" do

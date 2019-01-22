@@ -101,13 +101,13 @@ module Resque
       def push_to_queue(queue,encoded_item)
         @redis.pipelined do
           watch_queue(queue)
-          @redis.rpush redis_key_for_queue(queue), encoded_item
+          @redis.lpush redis_key_for_queue(queue), encoded_item
         end
       end
 
       # Pop whatever is on queue
       def pop_from_queue(queue)
-        @redis.lpop(redis_key_for_queue(queue))
+        @redis.rpop(redis_key_for_queue(queue))
       end
 
       # Get the number of items in the queue
