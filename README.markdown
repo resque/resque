@@ -838,7 +838,7 @@ Plugins and Hooks
 -----------------
 
 For a list of available plugins see
-<http://wiki.github.com/resque/resque/plugins>.
+<https://github.com/resque/resque/wiki/plugins>.
 
 If you'd like to write your own plugin, or want to customize Resque
 using hooks (such as `Resque.after_fork`), see
