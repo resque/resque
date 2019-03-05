@@ -320,8 +320,12 @@ module Resque
         @redis.incrby("stat:#{stat}", by)
       end
 
-      def decremet_stat(stat, by = 1)
+      def decrement_stat(stat, by = 1)
         @redis.decrby("stat:#{stat}", by)
+      end
+
+      def decremet_stat(stat, by = 1)
+        decrement_stat(stat, by)
       end
 
       def clear_stat(stat)
