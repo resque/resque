@@ -36,6 +36,9 @@ general usage stats, and helps you track failures.
 Resque now supports Ruby 2.3.0 and above.
 We will also only be supporting Redis 3.0 and above going forward.
 
+### Ruby 2.5.* Compatibility Warning
+Ruby 2.5.* has [a bug that affects Resque 1.27.0+](https://github.com/resque/resque/issues/1675). Consider using 1.26.0 or upgrade / downgrade your Ruby version.
+
 
 The Blog Post
 -------------
