@@ -1,3 +1,13 @@
+## Unreleased
+
+### Added
+* Added two new hooks.
+  - `queue_empty` when the job queue empties and the worker becomes idle
+  - `worker_exit` when the worker exits
+
+  See [docs/HOOKS.md](http://github.com/resque/resque/blob/master/docs/HOOKS.md) for
+  further details. (@jeremywadsack)
+
 ## 2.0.0 (2018-11-06)
 
 ### Fixed
