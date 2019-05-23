@@ -946,6 +946,68 @@ describe "Resque::Worker" do
     assert !$BEFORE_FORK_CALLED, "before_fork should not have been called after job runs"
   end
 
+  describe "Resque::Job queue_empty" do
+    before { Resque.send(:clear_hooks, :queue_empty) }
+
+    it "will call the queue empty hook when the worker becomes idle" do
+      # There is already a job in the queue from line 24
+      $QUEUE_EMPTY_CALLED = false
+      Resque.queue_empty = Proc.new { $QUEUE_EMPTY_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
+
+      assert !$QUEUE_EMPTY_CALLED
+      workerA.work(0)
+      assert $QUEUE_EMPTY_CALLED
+    end
+
+    it "will not call the queue empty hook on start-up when it has no jobs to process" do
+      Resque.remove_queue(:jobs)
+      $QUEUE_EMPTY_CALLED = false
+      Resque.queue_empty = Proc.new { $QUEUE_EMPTY_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
+
+      assert !$QUEUE_EMPTY_CALLED
+      workerA.work(0)
+      assert !$QUEUE_EMPTY_CALLED
+    end
+
+    it "will call the queue empty hook only once at the beginning and end of a series of jobs" do
+      $QUEUE_EMPTY_CALLED = 0
+      Resque.queue_empty = Proc.new { $QUEUE_EMPTY_CALLED += 1 }
+      workerA = Resque::Worker.new(:jobs)
+
+      assert_equal(0, $QUEUE_EMPTY_CALLED)
+      Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
+      workerA.work(0)
+      assert_equal(1, $QUEUE_EMPTY_CALLED)
+    end
+  end
+
+  describe "Resque::Job worker_exit" do
+    before { Resque.send(:clear_hooks, :worker_exit) }
+
+    it "will call the worker exit hook when the worker terminates normally" do
+      $WORKER_EXIT_CALLED = false
+      Resque.worker_exit = Proc.new { $WORKER_EXIT_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
+
+      assert !$WORKER_EXIT_CALLED
+      workerA.work(0)
+      assert $WORKER_EXIT_CALLED
+    end
+
+    it "will call the worker exit hook when the worker fails to start" do
+      $WORKER_EXIT_CALLED = false
+      Resque.worker_exit = Proc.new { $WORKER_EXIT_CALLED = true }
+      workerA = Resque::Worker.new(:jobs)
+      workerA.stubs(:startup).raises(Exception.new("testing startup failure"))
+
+      assert !$WORKER_EXIT_CALLED
+      workerA.work(0)
+      assert $WORKER_EXIT_CALLED
+    end
+  end
+
   it "setting verbose to true" do
     @worker.verbose = true
 

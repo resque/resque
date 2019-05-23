@@ -35,13 +35,28 @@ And after forking:
     end
 
 The `after_fork` hook will be run in the child process and is passed
-the current job. Any changes you make, therefor, will only live as
+the current job. Any changes you make, therefore, will only live as
 long as the job currently being processes.
 
 All worker hooks can also be set using a setter, e.g.
 
     Resque.after_fork = proc { puts "called" }
 
+When the worker finds no more jobs in the queue:
+
+    Resque.queue_empty do
+      puts "Call me whenever the worker becomes idle"
+    end
+
+The `queue_empty` hook will be run in the **parent** process.
+
+When the worker exits:
+
+    Resque.worker_exit do
+      puts "Call me when the work is about to terminate"
+    end
+
+The `worker_exit` hook will be run in the **parent** process.
 
 Workers can also take advantage of running any code defined using Ruby's `at_exit` block by setting
 `ENV["RUN_AT_EXIT_HOOKS"]=1`. By default, this is turned off. Be advised that setting this value might execute
