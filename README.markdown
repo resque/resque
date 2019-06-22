@@ -838,10 +838,10 @@ around your Redis installation, you can configure Resque to share a redis
 connection between pre- and post-fork processes. This removes some of the
 safety provided by Resque's forking model, but can help moderate load and
 connection churn on your Redis environment. Do this by setting the
-`share_redis` configuration option like so:
+`reconnect_redis_per_job` configuration option to false like so:
 
 ``` ruby
-Resque.share_redis = true
+Resque.reconnect_redis_per_job = false
 ```
 
 Note that you need to use the `inherit_socket` option of

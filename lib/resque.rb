@@ -298,15 +298,21 @@ module Resque
   # The 'inline' is false Resque jobs will be put in queue regularly.
   alias :inline? :inline
 
-  # if `share_redis` is true, workers will share their redis connections
-  # with children across a fork. when false, children will establish their
-  # own connections to redis. this should be used with caution, and in
-  # conjunction with the `inherit_socket` option of the redis-rb redis
-  # adapter, but can ease connection churn on redis instances for environments
-  # with a lot of tasks.
-  attr_accessor :share_redis
+  # if `reconnect_redis_per_job` is true (default), each job will get a
+  # fresh Redis connection. if false, Resque workers will instantiate a
+  # single Redis connection and share it across forks with individual workers.
+  # a false setting tends to be more efficient in terms of connection overhead,
+  # but may not work with all client libraries.
+  attr_writer :reconnect_redis_per_job
+  def reconnect_redis_per_job
+    if defined? @reconnect_redis_per_job
+      @reconnect_redis_per_job
+    else
+      @reconnect_redis_per_job = true
+    end
+  end
 
-  alias :share_redis? :share_redis
+  alias :reconnect_redis_per_job? :reconnect_redis_per_job
 
   #
   # queue manipulation

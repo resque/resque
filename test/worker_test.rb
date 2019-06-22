@@ -1180,7 +1180,7 @@ describe "Resque::Worker" do
 
     it "does not reconnect to redis after fork if not configured to do so" do
       begin
-        Resque.share_redis = true
+        Resque.reconnect_redis_per_job = false
         original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
 
         new_connection = run_in_job do
@@ -1188,7 +1188,7 @@ describe "Resque::Worker" do
         end
         assert_equal new_connection, original_connection
       ensure
-        Resque.share_redis = false
+        Resque.reconnect_redis_per_job = true
       end
     end
 
