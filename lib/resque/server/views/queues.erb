@@ -2,7 +2,7 @@
 
 <% if current_queue = params[:id] %>
 
-  <h1>Pending jobs on <span class='hl'><%= current_queue %></span></h1>
+  <h1>Pending jobs on <span class='hl'><%= h current_queue %></span></h1>
   <form method="POST" action="<%=u "/queues/#{current_queue}/remove" %>" class='remove-queue'>
     <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
   </form>
