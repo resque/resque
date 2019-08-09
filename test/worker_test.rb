@@ -642,6 +642,14 @@ describe "Resque::Worker" do
     end
   end
 
+  it "retrieve queues (includes colon) from worker_id" do
+    worker = Resque::Worker.new("jobs", "foo:bar")
+    worker.register_worker
+
+    found = Resque::Worker.find(worker.to_s)
+    assert_equal worker.queues, found.queues
+  end
+
   it "prunes dead workers with heartbeat older than prune interval" do
     assert_equal({}, Resque::Worker.all_heartbeats)
     now = Time.now

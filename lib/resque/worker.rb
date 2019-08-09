@@ -103,7 +103,7 @@ module Resque
       skip_exists = options[:skip_exists]
 
       if skip_exists || exists?(worker_id)
-        host, pid, queues_raw = worker_id.split(':')
+        host, pid, queues_raw = worker_id.split(':', 3)
         queues = queues_raw.split(',')
         worker = new(*queues)
         worker.hostname = host
