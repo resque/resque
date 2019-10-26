@@ -275,6 +275,7 @@ You can control the logging threshold using `Resque.logger.level`:
 
 ```ruby
 # config/initializers/resque.rb
+Resque.logger = Logger.new(STDOUT)
 Resque.logger.level = Logger::DEBUG
 ```
 
@@ -283,6 +284,11 @@ If you want Resque to log to a file, in Rails do:
 ```ruby
 # config/initializers/resque.rb
 Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
+```
+
+Then inside your background job
+```ruby
+Resque.logger.debug "Your custom log"
 ```
 
 ### Storing Statistics
