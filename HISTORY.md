@@ -1,3 +1,6 @@
+### Changed
+* Enable Rails logger to be displayed in STDOUT by default in the development environment.
+
 ## 2.0.0 (2018-11-06)
 
 ### Fixed

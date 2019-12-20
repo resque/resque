@@ -44,6 +44,17 @@ namespace :resque do
         ActiveSupport.run_load_hooks(:before_eager_load, Rails.application)
         Rails.application.config.eager_load_namespaces.each(&:eager_load!)
       end
+
+      if Rails.env.development? && !ENV['BACKGROUND'] &&
+        !ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+
+        # log to stdout
+        console = ActiveSupport::Logger.new(STDOUT)
+        console.formatter = Rails.logger.formatter
+        console.level = Rails.logger.level
+
+        Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+      end
     end
   end
 
