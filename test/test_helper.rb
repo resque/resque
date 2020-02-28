@@ -2,7 +2,7 @@ require 'rubygems'
 require 'bundler/setup'
 require 'minitest/autorun'
 require 'redis/namespace'
-require 'mocha/setup'
+require 'mocha/minitest'
 require 'tempfile'
 
 $dir = File.dirname(File.expand_path(__FILE__))
@@ -33,7 +33,7 @@ end
 # kill it when they end
 #
 
-MiniTest::Unit.after_tests do
+MiniTest.after_run do
   if Process.pid == $TEST_PID
     processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
     pids = processes.map { |process| process.split(" ")[0] }
