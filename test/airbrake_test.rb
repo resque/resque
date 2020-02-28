@@ -7,7 +7,7 @@ rescue LoadError
   warn "Install airbrake gem to run Airbrake tests."
 end
 
-if defined? Airbrake
+if defined? Airbrake::AIRBRAKE_VERSION
   require 'resque/failure/airbrake'
   describe "Airbrake" do
     it "should be notified of an error" do
