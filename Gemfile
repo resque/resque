@@ -10,4 +10,3 @@ gem "rack-test", "~> 0.5"
 gem "rake"
 gem "rubocop", "~> 0.80"
 gem "pry"
-gem "airbrake", require: false # to make airbrake backend test work
