@@ -239,16 +239,8 @@ Starting a worker is simple. Here's our example from earlier:
     $ QUEUE=file_serve rake resque:work
 
 By default Resque won't know about your application's
-environment. That is, it won't be able to find and run your jobs - it
-needs to load your application into memory.
-
-If we've installed Resque as a Rails plugin, we might run this command
-from our RAILS_ROOT:
-
-    $ QUEUE=file_serve rake environment resque:work
-
-This will load the environment before starting a worker. Alternately
-we can define a `resque:setup` task with a dependency on the
+environment. That is, it won't be able to find and run your jobs.
+You'll need to define a `resque:setup` task with a dependency on the
 `environment` rake task:
 
 ``` ruby
@@ -265,7 +257,6 @@ end
 
 We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
-
 
 ### Logging
 
@@ -700,53 +691,6 @@ Now:
 
 Alternately you can define a `resque:setup` hook in your Rakefile if you
 don't want to load your app every time rake runs.
-
-
-### In a Rails 2.x app, as a gem
-
-First install the gem.
-
-    $ gem install resque
-
-Next include it in your application.
-
-    $ cat config/initializers/load_resque.rb
-    require 'resque'
-
-Now start your application:
-
-    $ ./script/server
-
-That's it! You can now create Resque jobs from within your app.
-
-To start a worker, add this to your Rakefile in `RAILS_ROOT`:
-
-``` ruby
-require 'resque/tasks'
-```
-
-Now:
-
-    $ QUEUE=* rake environment resque:work
-
-Don't forget you can define a `resque:setup` hook in
-`lib/tasks/whatever.rake` that loads the `environment` task every time.
-
-
-### In a Rails 2.x app, as a plugin
-
-    $ ./script/plugin install git://github.com/resque/resque
-
-That's it! Resque will automatically be available when your Rails app
-loads.
-
-To start a worker:
-
-    $ QUEUE=* rake environment resque:work
-
-Don't forget you can define a `resque:setup` hook in
-`lib/tasks/whatever.rake` that loads the `environment` task every time.
-
 
 ### In a Rails 3.x or 4.x app, as a gem
 
