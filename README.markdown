@@ -531,8 +531,6 @@ From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/
 
     Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
 
-
-
 The Front End
 -------------
 
@@ -642,89 +640,39 @@ Choose DelayedJob if:
 In no way is Resque a "better" DelayedJob, so make sure you pick the
 tool that's best for your app.
 
-Resque Dependencies
--------------------
-
-    $ gem install bundler
-    $ bundle install
-
-
 Installing Resque
 -----------------
 
-### In a Rack app, as a gem
+Add the gem to your Gemfile:
 
-First install the gem.
+    gem 'resque'
 
-    $ gem install resque
+Next, install it with Bundler:
 
-Next include it in your application.
+    $ bundle
+
+### Rack
+
+Include it in your application.
 
 ``` ruby
 require 'resque'
 ```
-
-Now start your application:
-
-    rackup config.ru
-
-That's it! You can now create Resque jobs from within your app.
-
-To start a worker, create a Rakefile in your app's root (or add this
-to an existing Rakefile):
-
-``` ruby
-require 'your/app'
-require 'resque/tasks'
-```
-
-If you're using Rails 5.x, include the following in lib/tasks/resque.rake:
-
-```ruby
-require 'resque/tasks'
-task 'resque:setup' => :environment
-```
-
-Now:
-
-    $ QUEUE=* rake resque:work
-
-Alternately you can define a `resque:setup` hook in your Rakefile if you
-don't want to load your app every time rake runs.
-
-### In a Rails 3.x or 4.x app, as a gem
-
-First include it in your Gemfile.
-
-    $ cat Gemfile
-    ...
-    gem 'resque'
-    ...
-
-Next install it with Bundler.
-
-    $ bundle install
-
-Now start your application:
-
-    $ rails server
-
-That's it! You can now create Resque jobs from within your app.
-
-To start a worker, add this to a file in `lib/tasks` (ex:
-`lib/tasks/resque.rake`):
+Create a Rakefile in your app's root (or add this to an existing Rakefile):
 
 ``` ruby
 require 'resque/tasks'
 ```
 
-Now:
+You can define a `resque:setup` hook in your Rakefile if you want to load your app every time rake runs.
 
-    $ QUEUE=* rake environment resque:work
+### Rails 3+
 
-Don't forget you can define a `resque:setup` hook in
-`lib/tasks/whatever.rake` that loads the `environment` task every time.
+Add this to a file in `lib/tasks` (ex: `lib/tasks/resque.rake`):
 
+``` ruby
+require 'resque/tasks'
+```
 
 Configuration
 -------------
