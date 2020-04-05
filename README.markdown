@@ -112,7 +112,6 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
-
 Jobs
 ----
 
@@ -137,7 +136,6 @@ Keep in mind that you don't need a web app to use Resque - we just
 mention "foreground" and "background" because they make conceptual
 sense. You could easily be spidering sites and sticking data which
 needs to be crunched later into a queue.
-
 
 ### Persistence
 
@@ -216,48 +214,6 @@ Resque::Failure.backend = Resque::Failure::Multiple
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
 
-
-Workers
--------
-
-Resque workers are rake tasks that run forever. They basically do this:
-
-``` ruby
-start
-loop do
-  if job = reserve
-    job.process
-  else
-    sleep 5 # Polling frequency = 5
-  end
-end
-shutdown
-```
-
-Starting a worker is simple. Here's our example from earlier:
-
-    $ QUEUE=file_serve rake resque:work
-
-By default Resque won't know about your application's
-environment. That is, it won't be able to find and run your jobs.
-You'll need to define a `resque:setup` task with a dependency on the
-`environment` rake task:
-
-``` ruby
-task "resque:setup" => :environment
-```
-
-GitHub's setup task looks like this:
-
-``` ruby
-task "resque:setup" => :environment do
-  Grit::Git.git_timeout = 10.minutes
-end
-```
-
-We don't want the `git_timeout` as high as 10 minutes in our web app,
-but in the Resque workers it's fine.
-
 ### Logging
 
 Workers support basic logging to STDOUT.
@@ -303,90 +259,6 @@ end
 Resque.stat_data_store = NullDataStore.new
 ```
 
-### Process IDs (PIDs)
-
-There are scenarios where it's helpful to record the PID of a resque
-worker process.  Use the PIDFILE option for easy access to the PID:
-
-    $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
-
-### Running in the background
-
-There are scenarios where it's helpful for
-the resque worker to run itself in the background (usually in combination with
-PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
-worker is started.
-
-    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
-        rake environment resque:work
-
-### Polling frequency
-
-You can pass an INTERVAL option which is a float representing the polling frequency.
-The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
-
-    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
-
-### Priorities and Queue Lists
-
-Resque doesn't support numeric priorities but instead uses the order
-of queues you give it. We call this list of queues the "queue list."
-
-Let's say we add a `warm_cache` queue in addition to our `file_serve`
-queue. We'd now start a worker like so:
-
-    $ QUEUES=file_serve,warm_cache rake resque:work
-
-When the worker looks for new jobs, it will first check
-`file_serve`. If it finds a job, it'll process it then check
-`file_serve` again. It will keep checking `file_serve` until no more
-jobs are available. At that point, it will check `warm_cache`. If it
-finds a job it'll process it then check `file_serve` (repeating the
-whole process).
-
-In this way you can prioritize certain queues. At GitHub we start our
-workers with something like this:
-
-    $ QUEUES=critical,archive,high,low rake resque:work
-
-Notice the `archive` queue - it is specialized and in our future
-architecture will only be run from a single machine.
-
-At that point we'll start workers on our generalized background
-machines with this command:
-
-    $ QUEUES=critical,high,low rake resque:work
-
-And workers on our specialized archive machine with this command:
-
-    $ QUEUE=archive rake resque:work
-
-
-### Running All Queues
-
-If you want your workers to work off of every queue, including new
-queues created on the fly, you can use a splat:
-
-    $ QUEUE=* rake resque:work
-
-Queues will be processed in alphabetical order.
-
-
-### Running Multiple Workers
-
-At GitHub we use god to start and stop multiple workers. A sample god
-configuration file is included under `examples/god`. We recommend this
-method.
-
-If you'd like to run multiple workers in development mode, you can do
-so using the `resque:workers` rake task:
-
-    $ COUNT=5 QUEUE=* rake resque:workers
-
-This will spawn five Resque workers, each in its own process. Hitting
-ctrl-c should be sufficient to stop them all.
-
-
 ### Forking
 
 On certain platforms, when a Resque worker reserves a job it
@@ -427,7 +299,6 @@ to add and remove them to the global listing - which becomes
 complicated.
 
 Workers instead handle their own state.
-
 
 ### Parents and Children
 
@@ -586,14 +457,13 @@ run Rack::URLMap.new \
 Check `examples/demo/config.ru` for a functional example (including
 HTTP basic auth).
 
-### Rails 3
+### Rails 3+
 
 You can also mount Resque on a subpath in your existing Rails 3 app by adding `require 'resque/server'` to the top of your routes file or in an initializer then adding this to `routes.rb`:
 
 ``` ruby
 mount Resque::Server.new, :at => "/resque"
 ```
-
 
 Resque vs DelayedJob
 --------------------
@@ -653,28 +523,136 @@ Next, install it with Bundler:
 
 ### Rack
 
-Include it in your application.
+In your Rakefile, or some other file in `lib/tasks` (ex: `lib/tasks/resque.rake`), load the resque rake tasks:
 
 ``` ruby
 require 'resque'
-```
-Create a Rakefile in your app's root (or add this to an existing Rakefile):
-
-``` ruby
 require 'resque/tasks'
+require 'your/app' # Include this line if you want your workers to have access to your application
 ```
-
-You can define a `resque:setup` hook in your Rakefile if you want to load your app every time rake runs.
 
 ### Rails 3+
 
-Add this to a file in `lib/tasks` (ex: `lib/tasks/resque.rake`):
+In your Rakefile, or some other file in `lib/tasks` (ex: `lib/tasks/resque.rake`),
+load the resque rake tasks. Also, by default Resque won't know about your application's
+environment. That is, it won't be able to find and run your jobs. You'll need to define
+a `resque:setup` task with a dependency on the `environment` rake task:
 
 ``` ruby
 require 'resque/tasks'
+task "resque:setup" => :environment
 ```
 
-Configuration
+GitHub's setup task looks like this:
+
+``` ruby
+task "resque:setup" => :environment do
+  Grit::Git.git_timeout = 10.minutes
+end
+```
+
+We don't want the `git_timeout` as high as 10 minutes in our web app,
+but in the Resque workers it's fine.
+
+Running Workers
+-------
+
+Resque workers are rake tasks that run forever. They basically do this:
+
+``` ruby
+start
+loop do
+  if job = reserve
+    job.process
+  else
+    sleep 5 # Polling frequency = 5
+  end
+end
+shutdown
+```
+
+Starting a worker is simple:
+
+    $ QUEUE=* rake resque:work
+
+Or, you can start multiple workers:
+
+    $ COUNT=2 QUEUE=* rake resque:workers
+
+This will spawn five Resque workers, each in its own process. Hitting
+ctrl-c should be sufficient to stop them all.
+
+### Priorities and Queue Lists
+
+Resque doesn't support numeric priorities but instead uses the order
+of queues you give it. We call this list of queues the "queue list."
+
+Let's say we add a `warm_cache` queue in addition to our `file_serve`
+queue. We'd now start a worker like so:
+
+    $ QUEUES=file_serve,warm_cache rake resque:work
+
+When the worker looks for new jobs, it will first check
+`file_serve`. If it finds a job, it'll process it then check
+`file_serve` again. It will keep checking `file_serve` until no more
+jobs are available. At that point, it will check `warm_cache`. If it
+finds a job it'll process it then check `file_serve` (repeating the
+whole process).
+
+In this way you can prioritize certain queues. At GitHub we start our
+workers with something like this:
+
+    $ QUEUES=critical,archive,high,low rake resque:work
+
+Notice the `archive` queue - it is specialized and in our future
+architecture will only be run from a single machine.
+
+At that point we'll start workers on our generalized background
+machines with this command:
+
+    $ QUEUES=critical,high,low rake resque:work
+
+And workers on our specialized archive machine with this command:
+
+    $ QUEUE=archive rake resque:work
+
+### Running All Queues
+
+If you want your workers to work off of every queue, including new
+queues created on the fly, you can use a splat:
+
+    $ QUEUE=* rake resque:work
+
+Queues will be processed in alphabetical order.
+
+Or, prioritize some queues above `*`:
+
+    # QUEUE=critical,* rake resque:work
+
+### Process IDs (PIDs)
+
+There are scenarios where it's helpful to record the PID of a resque
+worker process.  Use the PIDFILE option for easy access to the PID:
+
+    $ PIDFILE=./resque.pid QUEUE=file_serve rake resque:work
+
+### Running in the background
+
+There are scenarios where it's helpful for
+the resque worker to run itself in the background (usually in combination with
+PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
+worker is started.
+
+    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve rake resque:work
+
+### Polling frequency
+
+You can pass an INTERVAL option which is a float representing the polling frequency.
+The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+
+    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
+
+Configuring Redis
 -------------
 
 You may want to change the Redis host and port Resque connects to, or
@@ -724,7 +702,6 @@ For example, if you want to run all jobs in the same process for cucumber, try:
 ``` ruby
 Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 ```
-
 
 Plugins and Hooks
 -----------------
