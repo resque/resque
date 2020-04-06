@@ -53,7 +53,7 @@ module Resque
       def tab(name)
         dname = name.to_s.downcase
         path = url_path(dname)
-        "<li #{class_if_current(path)}><a href='#{path}'>#{name}</a></li>"
+        "<li #{class_if_current(path)}><a href='#{path.gsub(" ", "_")}'>#{name}</a></li>"
       end
 
       def tabs
