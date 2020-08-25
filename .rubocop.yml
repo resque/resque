@@ -11,7 +11,7 @@ AllCops:
     - 'vendor/**/*'
 
 # Detect hard tabs, no hard tabs.
-Layout/Tab:
+Layout/IndentationStyle:
   Enabled: true
 
 # Blank lines should not have any spaces.
