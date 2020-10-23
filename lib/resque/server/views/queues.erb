@@ -6,6 +6,14 @@
   <form method="POST" action="<%=u "/queues/#{current_queue}/remove" %>" class='remove-queue'>
     <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
   </form>
+  <form method="POST" action="<%=u "/queues/#{current_queue}/remove-jobs" %>" class='remove-jobs'>
+    <select id="job_class" name="job_class">
+      <% Resque::Job.list_job_classes(current_queue).each do |job_class, _| %>
+        <option value="<%= job_class %>"><%= job_class %></option>
+      <% end %>
+    </select>
+    <input type='submit' name='' value='Remove Jobs'/>
+  </form>
   <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(current_queue), 'job' %></p>
   <table class='jobs'>
     <tr>

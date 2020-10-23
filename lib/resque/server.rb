@@ -184,6 +184,11 @@ module Resque
       redirect u('queues')
     end
 
+    post "/queues/:queue/remove-jobs" do
+      Resque::Job.destroy(params[:queue], params[:job_class])
+      redirect url_path("/queues/#{params[:queue]}")
+    end
+
     get "/failed/?" do
       if Resque::Failure.url
         redirect Resque::Failure.url

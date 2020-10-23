@@ -126,7 +126,8 @@ module Resque
 
       if args.empty?
         data_store.everything_in_queue(queue).each do |string|
-          if decode(string)['class'] == klass
+          job = decode(string)
+          if job['class'] == klass || job.dig('args', 0, 'job_class') == klass
             destroyed += data_store.remove_from_queue(queue,string).to_i
           end
         end
@@ -135,6 +136,29 @@ module Resque
       end
 
       destroyed
+    end
+
+    # Counts the occurences of each enqueued class. Expects a string queue name
+    #
+    # Returns a hash with the job classname as the key, and the number of
+    # occurences as the value.
+    #
+    # This method can be potentially very slow and memory intensive,
+    # depending on the size of your queue, as it loads all jobs into
+    # a Ruby array before processing.
+    def self.list_job_classes(queue)
+      klasses = {}
+
+      data_store.everything_in_queue(queue).each do |string|
+        job = decode(string)
+        klass = job['class']
+        klass = job.dig('args', 0, 'job_class') if klass == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper'
+
+        klasses[klass] ||= 0
+        klasses[klass] += 1
+      end
+
+      klasses
     end
 
     # Given a string queue name, returns an instance of Resque::Job
