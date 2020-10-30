@@ -1,6 +1,9 @@
 ## Unreleased
 
 ### Added
+
+* Added button to the Queues page to remove all jobs of a given class
+* Added button to the Queues page to remove a specific job
 * Added two new hooks.
   - `queue_empty` when the job queue empties and the worker becomes idle
   - `worker_exit` when the worker exits
