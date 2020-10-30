@@ -1,12 +1,12 @@
+<form method="POST" action="<%=u "/queues/#{current_queue}/remove-jobs" %>" class="inline_form">
+  <input id="job_class" name="job_class" type="hidden" value=<%=job['class']%> />
+  <input id="job_args" name="job_args" type="hidden" value=<%=job['args'].to_json%> />
+  <input title="Destroy Job" class="delete_job" type='submit' name='' value='X' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+</form>
+
 <% if job['class'] == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper' %>
   <code><%= job['args'].first['job_class'] %></code>
   <small><a href="http://edgeguides.rubyonrails.org/active_job_basics.html" target="_blank">(via ActiveJob)</a></small>
 <% else %>
   <code><%= job['class'] %></code>
 <% end %>
-
-<form method="POST" action="<%=u "/queues/#{current_queue}/remove-jobs" %>" class='remove-job'>
-  <input id="job_class" name="job_class" type="hidden" value=<%=job['class']%> />
-  <input id="job_args" name="job_args" type="hidden" value=<%=job['args'].to_json%> />
-  <input type='submit' name='' value='Remove Job' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
-</form>
