@@ -185,7 +185,11 @@ module Resque
     end
 
     post "/queues/:queue/remove-jobs" do
-      Resque::Job.destroy(params[:queue], params[:job_class])
+      if params[:job_args].present?
+        Resque::Job.destroy(params[:queue], params[:job_class], *JSON.parse(params[:job_args]))
+      else
+        Resque::Job.destroy(params[:queue], params[:job_class])
+      end
       redirect url_path("/queues/#{params[:queue]}")
     end
 

@@ -4,3 +4,9 @@
 <% else %>
   <code><%= job['class'] %></code>
 <% end %>
+
+<form method="POST" action="<%=u "/queues/#{current_queue}/remove-jobs" %>" class='remove-job'>
+  <input id="job_class" name="job_class" type="hidden" value=<%=job['class']%> />
+  <input id="job_args" name="job_args" type="hidden" value=<%=job['args'].to_json%> />
+  <input type='submit' name='' value='Remove Job' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+</form>
