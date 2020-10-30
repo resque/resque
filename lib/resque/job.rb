@@ -128,7 +128,10 @@ module Resque
         data_store.everything_in_queue(queue).each do |string|
           job = decode(string)
           job_klass = job['class']
-          job_klass = job.dig('args', 0, 'job_class') if job_klass == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper'
+
+          if job_klass == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper'
+            job_klass = job.dig('args', 0, 'job_class')
+          end
 
           if job_klass == klass
             destroyed += data_store.remove_from_queue(queue,string).to_i
@@ -155,7 +158,10 @@ module Resque
       data_store.everything_in_queue(queue).each do |string|
         job = decode(string)
         klass = job['class']
-        klass = job.dig('args', 0, 'job_class') if klass == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper'
+
+        if klass == 'ActiveJob::QueueAdapters::ResqueAdapter::JobWrapper'
+          klass = job.dig('args', 0, 'job_class')
+        end
 
         klasses[klass] ||= 0
         klasses[klass] += 1
