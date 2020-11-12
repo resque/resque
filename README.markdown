@@ -204,7 +204,7 @@ Or, you can start multiple workers:
 
     $ COUNT=2 QUEUE=* rake resque:workers
 
-This will spawn five Resque workers, each in its own process. Hitting
+This will spawn two Resque workers, each in its own process. Hitting
 ctrl-c should be sufficient to stop them all.
 
 #### Priorities and Queue Lists
