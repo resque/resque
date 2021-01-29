@@ -1,5 +1,8 @@
 ## Unreleased
 
+### Fixed
+* Fix closing parent Redis connection in child process after fork
+
 ### Added
 * Added two new hooks.
   - `queue_empty` when the job queue empties and the worker becomes idle
