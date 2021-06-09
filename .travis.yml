@@ -8,10 +8,10 @@ before_install:
 script: bundle exec rake
 
 rvm:
-  - 2.4.9
-  - 2.5.7
-  - 2.6.5
-  - 2.7.0
+  - 2.4.10
+  - 2.5.9
+  - 2.6.7
+  - 2.7.3
   - ruby-head
 
 matrix:
@@ -19,5 +19,5 @@ matrix:
     - rvm: ruby-head
   fast_finish: true
   include:
-    - rvm: 2.4.9
+    - rvm: 2.7.3
       script: bundle exec rubocop
