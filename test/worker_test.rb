@@ -720,6 +720,24 @@ describe "Resque::Worker" do
     assert_equal 1, Resque.workers.size
   end
 
+  it "prunes workers that haven't been registered but have set a heartbeat" do
+    assert_equal({}, Resque::Worker.all_heartbeats)
+    now = Time.now
+
+    workerA = Resque::Worker.new(:jobs)
+    workerA.to_s = "bar:3:jobs"
+    workerA.heartbeat!(now - Resque.prune_interval - 1)
+
+    assert_equal 0, Resque.workers.size
+    assert Resque::Worker.all_heartbeats.key?(workerA.to_s)
+    assert_equal [], Resque::Worker.all
+
+    @worker.prune_dead_workers
+
+    assert_equal 0, Resque.workers.size
+    assert_equal({}, Resque::Worker.all_heartbeats)
+  end
+
   it "does return a valid time when asking for heartbeat" do
     workerA = Resque::Worker.new(:jobs)
     workerA.register_worker
