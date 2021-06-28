@@ -2,7 +2,7 @@ Resque
 ======
 
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
-[![Build Status](https://travis-ci.org/resque/resque.svg)](https://travis-ci.org/resque/resque)
+[![Build Status](https://github.com/resque/resque/actions/workflows/ci.yml/badge.svg)](https://github.com/resque/resque/actions/workflows/ci.yml)
 
 Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing
@@ -871,4 +871,3 @@ Author
 ------
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
-
