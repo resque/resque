@@ -135,34 +135,6 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
-#### Rails example
-
-If you are using ActiveJob here's how your job definition will look:
-
-``` ruby
-class ArchiveJob < ApplicationJob
-  queue_as :file_serve
-
-  def perform(repo_id, branch = 'master')
-    repo = Repository.find(repo_id)
-    repo.create_archive(branch)
-  end
-end
-```
-
-``` ruby
-class Repository
-  def async_create_archive(branch)
-    ArchiveJob.perform_later(self.id, branch)
-  end
-end
-```
-
-It is important to run `ArchiveJob.perform_later(self.id, branch)` rather than `Resque.enqueue(Archive, self.id, branch)`.
-Otherwise the Resque will process the job without actually doing anything.
-Even if you put obviously buggy line like `0/0` in the `perform` method,
-the job will still succeed.
-
 Installation
 ------------
 
@@ -469,6 +441,35 @@ Resque::Failure.backend = Resque::Failure::Multiple
 
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
+
+
+#### Rails example
+
+If you are using ActiveJob here's how your job definition will look:
+
+``` ruby
+class ArchiveJob < ApplicationJob
+  queue_as :file_serve
+
+  def perform(repo_id, branch = 'master')
+    repo = Repository.find(repo_id)
+    repo.create_archive(branch)
+  end
+end
+```
+
+``` ruby
+class Repository
+  def async_create_archive(branch)
+    ArchiveJob.perform_later(self.id, branch)
+  end
+end
+```
+
+It is important to run `ArchiveJob.perform_later(self.id, branch)` rather than `Resque.enqueue(Archive, self.id, branch)`.
+Otherwise the Resque will process the job without actually doing anything.
+Even if you put obviously buggy line like `0/0` in the `perform` method,
+the job will still succeed.
 
 
 Configuration
