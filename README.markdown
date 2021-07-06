@@ -137,7 +137,7 @@ access to the Redis server.
 
 #### Rails example
 
-If you installed the Resque as a Rails gem, the above example will look like this:
+If you are using ActiveJob here's how your job definition will look:
 
 ``` ruby
 class ArchiveJob < ApplicationJob
