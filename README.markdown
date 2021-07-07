@@ -467,8 +467,8 @@ end
 ```
 
 It is important to run `ArchiveJob.perform_later(self.id, branch)` rather than `Resque.enqueue(Archive, self.id, branch)`.
-Otherwise the Resque will process the job without actually doing anything.
-Even if you put obviously buggy line like `0/0` in the `perform` method,
+Otherwise Resque will process the job without actually doing anything.
+Even if you put an obviously buggy line like `0/0` in the `perform` method,
 the job will still succeed.
 
 
