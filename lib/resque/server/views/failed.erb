@@ -9,7 +9,7 @@
   <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
 </form>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/requeue/all" %>">
-  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" />
+  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone."); />
 </form>
 <% end %>
 
