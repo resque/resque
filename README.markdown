@@ -158,17 +158,7 @@ require 'your/app' # Include this line if you want your workers to have access t
 
 #### Rails 3+
 
-In your Rakefile, or some other file in `lib/tasks` (ex: `lib/tasks/resque.rake`),
-load the resque rake tasks. Also, by default Resque won't know about your application's
-environment. That is, it won't be able to find and run your jobs. You'll need to define
-a `resque:setup` task with a dependency on the `environment` rake task:
-
-``` ruby
-require 'resque/tasks'
-task "resque:setup" => :environment
-```
-
-GitHub's setup task looks like this:
+To make resque specific changes, you can override the `resque:setup` job in `lib/tasks` (ex: `lib/tasks/resque.rake`). GitHub's setup task looks like this:
 
 ``` ruby
 task "resque:setup" => :environment do
@@ -275,7 +265,7 @@ worker is started.
 You can pass an INTERVAL option which is a float representing the polling frequency.
 The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
 
-    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
+    $ INTERVAL=0.1 QUEUE=file_serve rake resque:work
 
 The Front End
 -------------
