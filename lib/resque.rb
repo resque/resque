@@ -23,6 +23,8 @@ require 'resque/thread_signal'
 
 require 'resque/vendor/utf8_util'
 
+require 'resque/railtie' if defined?(Rails)
+
 module Resque
   include Helpers
   extend self
@@ -285,6 +287,34 @@ module Resque
   # Register an after_pause proc.
   def after_pause=(block)
     register_hook(:after_pause, block)
+  end
+
+  # The `queue_empty` hook will be run in the **parent** process when
+  # the worker finds no more jobs in the queue and becomes idle.
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def queue_empty(&block)
+    block ? register_hook(:queue_empty, block) : hooks(:queue_empty)
+  end
+
+  # Register a queue_empty proc.
+  def queue_empty=(block)
+    register_hook(:queue_empty, block)
+  end
+
+  # The `worker_exit` hook will be run in the **parent** process
+  # after the worker has existed (via SIGQUIT, SIGTERM, SIGINT, etc.).
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def worker_exit(&block)
+    block ? register_hook(:worker_exit, block) : hooks(:worker_exit)
+  end
+
+  # Register a worker_exit proc.
+  def worker_exit=(block)
+    register_hook(:worker_exit, block)
   end
 
   def to_s

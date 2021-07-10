@@ -154,7 +154,7 @@ module Resque
 
       begin
         # Execute before_perform hook. Abort the job gracefully if
-        # Resque::DontPerform is raised.
+        # Resque::Job::DontPerform is raised.
         begin
           before_hooks.each do |hook|
             job.send(hook, *job_args)

@@ -148,6 +148,8 @@ module Resque
       @heartbeat_thread = nil
       @heartbeat_thread_signal = nil
 
+      @last_state = :idle
+
       verbose_value = ENV['LOGGING'] || ENV['VERBOSE']
       self.verbose = verbose_value if verbose_value
       self.very_verbose = ENV['VVERBOSE'] if ENV['VVERBOSE']
@@ -236,6 +238,7 @@ module Resque
         break if shutdown?
 
         unless work_one_job(&block)
+          state_change
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
@@ -244,10 +247,12 @@ module Resque
       end
 
       unregister_worker
+      run_hook :worker_exit
     rescue Exception => exception
       return if exception.class == SystemExit && !@child && run_at_exit_hooks
       log_with_severity :error, "Failed to start worker : #{exception.inspect}"
       unregister_worker(exception)
+      run_hook :worker_exit
     end
 
     def work_one_job(job = nil, &block)
@@ -704,6 +709,7 @@ module Resque
         :run_at  => Time.now.utc.iso8601,
         :payload => job.payload
       data_store.set_worker_payload(self,data)
+      state_change
     end
 
     # Called when we are done working - clears our `working_on` state
@@ -711,6 +717,14 @@ module Resque
     def done_working
       data_store.worker_done_working(self) do
         processed!
+      end
+    end
+
+    def state_change
+      current_state = state
+      if current_state != @last_state
+        run_hook :queue_empty if current_state == :idle
+        @last_state = current_state
       end
     end
 

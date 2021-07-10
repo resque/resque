@@ -2,7 +2,7 @@ Resque
 ======
 
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
-[![Build Status](https://travis-ci.org/resque/resque.svg)](https://travis-ci.org/resque/resque)
+[![Build Status](https://github.com/resque/resque/actions/workflows/ci.yml/badge.svg)](https://github.com/resque/resque/actions/workflows/ci.yml)
 
 Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing
@@ -37,15 +37,38 @@ Resque now supports Ruby 2.3.0 and above.
 We will also only be supporting Redis 3.0 and above going forward.
 
 
-The Blog Post
--------------
+Table of Contents
+-----------------
 
-For the backstory, philosophy, and history of Resque's beginnings,
-please see [the blog post][0].
-
+* [Overview](#overview)
+* [Installation](#installation)
+* [Running Workers](#running-workers)
+* [The Front End](#the-front-end)
+* [Jobs](#jobs)
+* [Configuration](#configuration)
+* * [Redis](#redis)
+* * [Logging](#logging)
+* * [Namespaces](#namespaces)
+* * [Storing Statistics](#storing-statistics)
+* [Plugins and Hooks](#plugins-and-hooks)
+* [Additional Information](#additional-information)
+* * [Resque vs DelayedJob](#resque-vs-delayedjob)
+* * [Forking](#forking)
+* * [Signals](#signals)
+* * [Heroku](#heroku)
+* * [Monitoring](#monitoring)
+* * [Mysql::Error](#mysqlerror-mysql-server-has-gone-away)
+* [Development](#development)
+* * [Demo](#demo)
+* * [Contributing](#contributing)
+* [Questions](#questions)
+* [Meta](#meta)
+* [Author](#author)
 
 Overview
 --------
+
+For the backstory, philosophy, and history of Resque's beginnings, please see [the blog post](http://github.com/blog/542-introducing-resque).
 
 Resque allows you to create jobs and place them on a queue, then,
 later, pull those jobs off the queue and process them.
@@ -112,6 +135,200 @@ Workers can be given multiple queues (a "queue list") and run on
 multiple machines. In fact they can be run anywhere with network
 access to the Redis server.
 
+Installation
+------------
+
+Add the gem to your Gemfile:
+
+    gem 'resque'
+
+Next, install it with Bundler:
+
+    $ bundle
+
+#### Rack
+
+In your Rakefile, or some other file in `lib/tasks` (ex: `lib/tasks/resque.rake`), load the resque rake tasks:
+
+``` ruby
+require 'resque'
+require 'resque/tasks'
+require 'your/app' # Include this line if you want your workers to have access to your application
+```
+
+#### Rails 3+
+
+To make resque specific changes, you can override the `resque:setup` job in `lib/tasks` (ex: `lib/tasks/resque.rake`). GitHub's setup task looks like this:
+
+``` ruby
+task "resque:setup" => :environment do
+  Grit::Git.git_timeout = 10.minutes
+end
+```
+
+We don't want the `git_timeout` as high as 10 minutes in our web app,
+but in the Resque workers it's fine.
+
+Running Workers
+---------------
+
+Resque workers are rake tasks that run forever. They basically do this:
+
+``` ruby
+start
+loop do
+  if job = reserve
+    job.process
+  else
+    sleep 5 # Polling frequency = 5
+  end
+end
+shutdown
+```
+
+Starting a worker is simple:
+
+    $ QUEUE=* rake resque:work
+
+Or, you can start multiple workers:
+
+    $ COUNT=2 QUEUE=* rake resque:workers
+
+This will spawn two Resque workers, each in its own process. Hitting
+ctrl-c should be sufficient to stop them all.
+
+#### Priorities and Queue Lists
+
+Resque doesn't support numeric priorities but instead uses the order
+of queues you give it. We call this list of queues the "queue list."
+
+Let's say we add a `warm_cache` queue in addition to our `file_serve`
+queue. We'd now start a worker like so:
+
+    $ QUEUES=file_serve,warm_cache rake resque:work
+
+When the worker looks for new jobs, it will first check
+`file_serve`. If it finds a job, it'll process it then check
+`file_serve` again. It will keep checking `file_serve` until no more
+jobs are available. At that point, it will check `warm_cache`. If it
+finds a job it'll process it then check `file_serve` (repeating the
+whole process).
+
+In this way you can prioritize certain queues. At GitHub we start our
+workers with something like this:
+
+    $ QUEUES=critical,archive,high,low rake resque:work
+
+Notice the `archive` queue - it is specialized and in our future
+architecture will only be run from a single machine.
+
+At that point we'll start workers on our generalized background
+machines with this command:
+
+    $ QUEUES=critical,high,low rake resque:work
+
+And workers on our specialized archive machine with this command:
+
+    $ QUEUE=archive rake resque:work
+
+#### Running All Queues
+
+If you want your workers to work off of every queue, including new
+queues created on the fly, you can use a splat:
+
+    $ QUEUE=* rake resque:work
+
+Queues will be processed in alphabetical order.
+
+Or, prioritize some queues above `*`:
+
+    # QUEUE=critical,* rake resque:work
+
+#### Process IDs (PIDs)
+
+There are scenarios where it's helpful to record the PID of a resque
+worker process.  Use the PIDFILE option for easy access to the PID:
+
+    $ PIDFILE=./resque.pid QUEUE=file_serve rake resque:work
+
+#### Running in the background
+
+There are scenarios where it's helpful for
+the resque worker to run itself in the background (usually in combination with
+PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
+worker is started.
+
+    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve rake resque:work
+
+#### Polling frequency
+
+You can pass an INTERVAL option which is a float representing the polling frequency.
+The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
+
+    $ INTERVAL=0.1 QUEUE=file_serve rake resque:work
+
+The Front End
+-------------
+
+Resque comes with a Sinatra-based front end for seeing what's up with
+your queue.
+
+![The Front End](https://camo.githubusercontent.com/64d150a243987ffbc33f588bd6d7722a0bb8d69a/687474703a2f2f7475746f7269616c732e6a756d7073746172746c61622e636f6d2f696d616765732f7265737175655f6f766572766965772e706e67)
+
+#### Standalone
+
+If you've installed Resque as a gem running the front end standalone is easy:
+
+    $ resque-web
+
+It's a thin layer around `rackup` so it's configurable as well:
+
+    $ resque-web -p 8282
+
+If you have a Resque config file you want evaluated just pass it to
+the script as the final argument:
+
+    $ resque-web -p 8282 rails_root/config/initializers/resque.rb
+
+You can also set the namespace directly using `resque-web`:
+
+    $ resque-web -p 8282 -N myapp
+
+or set the Redis connection string if you need to do something like select a different database:
+
+    $ resque-web -p 8282 -r localhost:6379:2
+
+#### Passenger
+
+Using Passenger? Resque ships with a `config.ru` you can use. See
+Phusion's guide:
+
+Apache: <https://www.phusionpassenger.com/library/deploy/apache/deploy/ruby/>
+Nginx: <https://www.phusionpassenger.com/library/deploy/nginx/deploy/ruby/>
+
+#### Rack::URLMap
+
+If you want to load Resque on a subpath, possibly alongside other
+apps, it's easy to do with Rack's `URLMap`:
+
+``` ruby
+require 'resque/server'
+
+run Rack::URLMap.new \
+  "/"       => Your::App.new,
+  "/resque" => Resque::Server.new
+```
+
+Check `examples/demo/config.ru` for a functional example (including
+HTTP basic auth).
+
+#### Rails 3+
+
+You can also mount Resque on a subpath in your existing Rails 3 app by adding `require 'resque/server'` to the top of your routes file or in an initializer then adding this to `routes.rb`:
+
+``` ruby
+mount Resque::Server.new, :at => "/resque"
+```
 
 Jobs
 ----
@@ -138,8 +355,7 @@ mention "foreground" and "background" because they make conceptual
 sense. You could easily be spidering sites and sticking data which
 needs to be crunched later into a queue.
 
-
-### Persistence
+#### Persistence
 
 Jobs are persisted to queues as JSON objects. Let's take our `Archive`
 example from above. We'll run the following code to create a job:
@@ -184,7 +400,7 @@ If your jobs were run against marshaled objects, they could
 potentially be operating on a stale record with out-of-date information.
 
 
-### send_later / async
+#### send_later / async
 
 Want something like DelayedJob's `send_later` or the ability to use
 instance methods instead of just methods for jobs? See the `examples/`
@@ -193,7 +409,7 @@ directory for goodies.
 We plan to provide first class `async` support in a future release.
 
 
-### Failure
+#### Failure
 
 If a job raises an exception, it is logged and handed off to the
 `Resque::Failure` module. Failures are logged either locally in Redis
@@ -217,57 +433,89 @@ Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
 
 
-Workers
--------
+#### Rails example
 
-Resque workers are rake tasks that run forever. They basically do this:
+If you are using ActiveJob here's how your job definition will look:
 
 ``` ruby
-start
-loop do
-  if job = reserve
-    job.process
-  else
-    sleep 5 # Polling frequency = 5
+class ArchiveJob < ApplicationJob
+  queue_as :file_serve
+
+  def perform(repo_id, branch = 'master')
+    repo = Repository.find(repo_id)
+    repo.create_archive(branch)
   end
 end
-shutdown
 ```
 
-Starting a worker is simple. Here's our example from earlier:
-
-    $ QUEUE=file_serve rake resque:work
-
-By default Resque won't know about your application's
-environment. That is, it won't be able to find and run your jobs - it
-needs to load your application into memory.
-
-If we've installed Resque as a Rails plugin, we might run this command
-from our RAILS_ROOT:
-
-    $ QUEUE=file_serve rake environment resque:work
-
-This will load the environment before starting a worker. Alternately
-we can define a `resque:setup` task with a dependency on the
-`environment` rake task:
-
 ``` ruby
-task "resque:setup" => :environment
-```
-
-GitHub's setup task looks like this:
-
-``` ruby
-task "resque:setup" => :environment do
-  Grit::Git.git_timeout = 10.minutes
+class Repository
+  def async_create_archive(branch)
+    ArchiveJob.perform_later(self.id, branch)
+  end
 end
 ```
 
-We don't want the `git_timeout` as high as 10 minutes in our web app,
-but in the Resque workers it's fine.
+It is important to run `ArchiveJob.perform_later(self.id, branch)` rather than `Resque.enqueue(Archive, self.id, branch)`.
+Otherwise Resque will process the job without actually doing anything.
+Even if you put an obviously buggy line like `0/0` in the `perform` method,
+the job will still succeed.
 
 
-### Logging
+Configuration
+-------------
+
+#### Redis
+
+You may want to change the Redis host and port Resque connects to, or
+set various other options at startup.
+
+Resque has a `redis` setter which can be given a string or a Redis
+object. This means if you're already using Redis in your app, Resque
+can re-use the existing connection.
+
+String: `Resque.redis = 'localhost:6379'`
+
+Redis: `Resque.redis = $redis`
+
+For our rails app we have a `config/initializers/resque.rb` file where
+we load `config/resque.yml` by hand and set the Redis information
+appropriately.
+
+Here's our `config/resque.yml`:
+
+    development: localhost:6379
+    test: localhost:6379
+    staging: redis1.se.github.com:6379
+    fi: localhost:6379
+    production: <%= ENV['REDIS_URL'] %>
+
+And our initializer:
+
+``` ruby
+rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
+rails_env = ENV['RAILS_ENV'] || 'development'
+config_file = rails_root + '/config/resque.yml'
+
+resque_config = YAML::load(ERB.new(IO.read(config_file)).result)
+Resque.redis = resque_config[rails_env]
+```
+
+Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
+this way we can tell our Sinatra app about the config file:
+
+    $ RAILS_ENV=production resque-web rails_root/config/initializers/resque.rb
+
+Now everyone is on the same page.
+
+Also, you could disable jobs queueing by setting 'inline' attribute.
+For example, if you want to run all jobs in the same process for cucumber, try:
+
+``` ruby
+Resque.inline = ENV['RAILS_ENV'] == "cucumber"
+```
+
+#### Logging
 
 Workers support basic logging to STDOUT.
 
@@ -285,7 +533,26 @@ If you want Resque to log to a file, in Rails do:
 Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
 ```
 
-### Storing Statistics
+#### Namespaces
+
+If you're running multiple, separate instances of Resque you may want
+to namespace the keyspaces so they do not overlap. This is not unlike
+the approach taken by many memcached clients.
+
+This feature is provided by the [redis-namespace](http://github.com/resque/redis-namespace) library, which
+Resque uses by default to separate the keys it manages from other keys
+in your Redis server.
+
+Simply use the `Resque.redis.namespace` accessor:
+
+``` ruby
+Resque.redis.namespace = "resque:GitHub"
+```
+
+We recommend sticking this in your initializer somewhere after Redis
+is configured.
+
+#### Storing Statistics
  Resque allows to store count of processed and failed jobs.
 
  By default it will store it in Redis using the keys `stats:processed` and `stats:failed`.
@@ -312,91 +579,65 @@ end
 Resque.stat_data_store = NullDataStore.new
 ```
 
-### Process IDs (PIDs)
+Plugins and Hooks
+-----------------
 
-There are scenarios where it's helpful to record the PID of a resque
-worker process.  Use the PIDFILE option for easy access to the PID:
+For a list of available plugins see
+<https://github.com/resque/resque/wiki/plugins>.
 
-    $ PIDFILE=./resque.pid QUEUE=file_serve rake environment resque:work
-
-### Running in the background
-
-There are scenarios where it's helpful for
-the resque worker to run itself in the background (usually in combination with
-PIDFILE).  Use the BACKGROUND option so that rake will return as soon as the
-worker is started.
-
-    $ PIDFILE=./resque.pid BACKGROUND=yes QUEUE=file_serve \
-        rake environment resque:work
-
-### Polling frequency
-
-You can pass an INTERVAL option which is a float representing the polling frequency.
-The default is 5 seconds, but for a semi-active app you may want to use a smaller value.
-
-    $ INTERVAL=0.1 QUEUE=file_serve rake environment resque:work
-
-### Priorities and Queue Lists
-
-Resque doesn't support numeric priorities but instead uses the order
-of queues you give it. We call this list of queues the "queue list."
-
-Let's say we add a `warm_cache` queue in addition to our `file_serve`
-queue. We'd now start a worker like so:
-
-    $ QUEUES=file_serve,warm_cache rake resque:work
-
-When the worker looks for new jobs, it will first check
-`file_serve`. If it finds a job, it'll process it then check
-`file_serve` again. It will keep checking `file_serve` until no more
-jobs are available. At that point, it will check `warm_cache`. If it
-finds a job it'll process it then check `file_serve` (repeating the
-whole process).
-
-In this way you can prioritize certain queues. At GitHub we start our
-workers with something like this:
-
-    $ QUEUES=critical,archive,high,low rake resque:work
-
-Notice the `archive` queue - it is specialized and in our future
-architecture will only be run from a single machine.
-
-At that point we'll start workers on our generalized background
-machines with this command:
-
-    $ QUEUES=critical,high,low rake resque:work
-
-And workers on our specialized archive machine with this command:
-
-    $ QUEUE=archive rake resque:work
+If you'd like to write your own plugin, or want to customize Resque
+using hooks (such as `Resque.after_fork`), see
+[docs/HOOKS.md](http://github.com/resque/resque/blob/master/docs/HOOKS.md).
 
 
-### Running All Queues
+Additional Information
+----------------------
 
-If you want your workers to work off of every queue, including new
-queues created on the fly, you can use a splat:
+#### Resque vs DelayedJob
 
-    $ QUEUE=* rake resque:work
+How does Resque compare to DelayedJob, and why would you choose one
+over the other?
 
-Queues will be processed in alphabetical order.
+* Resque supports multiple queues
+* DelayedJob supports finer grained priorities
+* Resque workers are resilient to memory leaks / bloat
+* DelayedJob workers are extremely simple and easy to modify
+* Resque requires Redis
+* DelayedJob requires ActiveRecord
+* Resque can only place JSONable Ruby objects on a queue as arguments
+* DelayedJob can place _any_ Ruby object on its queue as arguments
+* Resque includes a Sinatra app for monitoring what's going on
+* DelayedJob can be queried from within your Rails app if you want to
+  add an interface
 
+If you're doing Rails development, you already have a database and
+ActiveRecord. DelayedJob is super easy to setup and works great.
+GitHub used it for many months to process almost 200 million jobs.
 
-### Running Multiple Workers
+Choose Resque if:
 
-At GitHub we use god to start and stop multiple workers. A sample god
-configuration file is included under `examples/god`. We recommend this
-method.
+* You need multiple queues
+* You don't care / dislike numeric priorities
+* You don't need to persist every Ruby object ever
+* You have potentially huge queues
+* You want to see what's going on
+* You expect a lot of failure / chaos
+* You can setup Redis
+* You're not running short on RAM
 
-If you'd like to run multiple workers in development mode, you can do
-so using the `resque:workers` rake task:
+Choose DelayedJob if:
 
-    $ COUNT=5 QUEUE=* rake resque:workers
+* You like numeric priorities
+* You're not doing a gigantic amount of jobs each day
+* Your queue stays small and nimble
+* There is not a lot failure / chaos
+* You want to easily throw anything on the queue
+* You don't want to setup Redis
 
-This will spawn five Resque workers, each in its own process. Hitting
-ctrl-c should be sufficient to stop them all.
+In no way is Resque a "better" DelayedJob, so make sure you pick the
+tool that's best for your app.
 
-
-### Forking
+#### Forking
 
 On certain platforms, when a Resque worker reserves a job it
 immediately forks a child process. The child processes the job then
@@ -437,8 +678,7 @@ complicated.
 
 Workers instead handle their own state.
 
-
-### Parents and Children
+#### Parents and Children
 
 Here's a parent / child pair doing some work:
 
@@ -459,7 +699,7 @@ waiting for work on:
     92099 resque: Waiting for file_serve,warm_cache
 
 
-### Signals
+#### Signals
 
 Resque workers respond to a few different signals:
 
@@ -481,7 +721,7 @@ If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
 then `CONT` to start it again.
 
-#### Signals on Heroku
+#### Heroku
 
 When shutting down processes, Heroku sends every process a TERM signal at the
 same time. By default this causes an immediate shutdown of any running job
@@ -503,11 +743,25 @@ time to complete before being forced to die.
 
 * `RESQUE_TERM_TIMEOUT` - By default you have a few seconds to handle `Resque::TermException` in your job. `RESQUE_TERM_TIMEOUT` and `RESQUE_PRE_SHUTDOWN_TIMEOUT` must be lower than the [heroku dyno timeout](https://devcenter.heroku.com/articles/limits#exit-timeout).
 
-### Mysql::Error: MySQL server has gone away
+#### Monitoring
+
+##### god
+
+If you're using god to monitor Resque, we have provided example
+configs in `examples/god/`. One is for starting / stopping workers,
+the other is for killing workers that have been running too long.
+
+##### monit
+
+If you're using monit, `examples/monit/resque.monit` is provided free
+of charge. This is **not** used by GitHub in production, so please
+send patches for any tweaks or improvements you can make to it.
+
+#### Mysql::Error: MySQL server has gone away
 
 If your workers remain idle for too long they may lose their MySQL connection. Depending on your version of Rails, we recommend the following:
 
-#### Rails 3.x
+##### Rails 3.x
 In your `perform` method, add the following line:
 
 ``` ruby
@@ -523,7 +777,7 @@ The Rails doc says the following about `verify_active_connections!`:
 
     Verify active connections and remove and disconnect connections associated with stale threads.
 
-#### Rails 4.x
+##### Rails 4.x
 
 In your `perform` method, instead of `verify_active_connections!`, use:
 
@@ -540,6 +794,7 @@ From the Rails docs on [`clear_active_connections!`](http://api.rubyonrails.org/
 
     Returns any connections in use by the current thread back to the pool, and also returns connections to the pool cached by threads that are no longer alive.
 
+<<<<<<< HEAD
 
 
 The Front End
@@ -911,6 +1166,8 @@ Questions
 Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or open an issue on this repo.
 
 
+=======
+>>>>>>> master
 Development
 -----------
 
@@ -940,26 +1197,27 @@ it:
 If you get an error requiring any of the dependencies, you may have
 failed to install them or be seeing load path issues.
 
+#### Demo
+Resque ships with a demo Sinatra app for creating jobs that are later
+processed in the background.
 
-Contributing
-------------
+Try it out by looking at the README, found at `examples/demo/README.markdown`.
+
+#### Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
 Once you've made your great commits:
 
-1. [Fork][1] Resque
+1. [Fork](http://help.github.com/forking/) Resque
 2. Create a topic branch - `git checkout -b my_branch`
 3. Push to your branch - `git push origin my_branch`
 4. Create a [Pull Request](http://help.github.com/pull-requests/) from your branch
-5. That's it!
 
+Questions
+---------
 
-Mailing List
-------------
-
-This mailing list is no longer maintained. The archive can be found at <http://librelist.com/browser/resque/>.
-
+Please add them to the [FAQ](https://github.com/resque/resque/wiki/FAQ) or open an issue on this repo.
 
 Meta
 ----
@@ -968,21 +1226,12 @@ Meta
 * Home: <http://github.com/resque/resque>
 * Docs: <http://rubydoc.info/gems/resque>
 * Bugs: <http://github.com/resque/resque/issues>
-* List: <resque@librelist.com>
 * Chat: <irc://irc.freenode.net/resque>
-* Gems: <http://gemcutter.org/gems/resque>
+* Gems: <https://rubygems.org/gems/resque>
 
-This project uses [Semantic Versioning][sv].
-
+This project uses [Semantic Versioning](http://semver.org/)
 
 Author
 ------
 
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
-
-[0]: http://github.com/blog/542-introducing-resque
-[1]: http://help.github.com/forking/
-[2]: http://github.com/resque/resque/issues
-[sv]: http://semver.org/
-[rs]: http://github.com/resque/redis-namespace
-[cb]: http://wiki.github.com/resque/resque/contributing
