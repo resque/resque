@@ -515,6 +515,24 @@ For example, if you want to run all jobs in the same process for cucumber, try:
 Resque.inline = ENV['RAILS_ENV'] == "cucumber"
 ```
 
+By default, Resque child processes will establish their own Redis connection
+before starting work (instead of reusing the inherited connection from their
+parent process). This guards the parent process and other tasks against failures
+in any one task that corrupt connection state, but can cause load issues on
+Redis in especially high volume installations (exhausting, e.g., the number of
+concurrently open/recently closed TCP allowed by the operating system). You can
+disable this post-fork reconnection behavior with the `reconnect_redis_per_job`
+configuration option, like so:
+
+``` ruby
+Resque.reconnect_redis_per_job = false
+```
+
+Note that this has only been tested with `redis-rb`, and requires the
+`inherit_socket` option of
+[redis-rb](https://github.com/redis/redis-rb#expert-mode-options) to work
+properly.
+
 #### Logging
 
 Workers support basic logging to STDOUT.
