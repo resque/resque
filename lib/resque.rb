@@ -331,8 +331,16 @@ module Resque
   # if `reconnect_redis_per_job` is true (default), each job will get a
   # fresh Redis connection. if false, Resque workers will instantiate a
   # single Redis connection and share it across forks with individual workers.
-  # a false setting tends to be more efficient in terms of connection overhead,
-  # but may not work with all client libraries.
+  #
+  # the default value of `true` is safe; it minimizes the amount of state
+  # shared between individual task executions. a value of `false` is more
+  # efficient in terms of redis usage – it can dramatically reduce connection
+  # churn in a busy installation – but trades away some of the isolation
+  # provided by the default value.
+  #
+  # NB: this has only been tested extensively with the redis-rb library.
+  # it may work with other libraries, but you're encouraged to test before
+  # using the feature with them.
   attr_writer :reconnect_redis_per_job
   def reconnect_redis_per_job
     if defined? @reconnect_redis_per_job
