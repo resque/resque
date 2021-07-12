@@ -533,6 +533,20 @@ If you want Resque to log to a file, in Rails do:
 Resque.logger = Logger.new(Rails.root.join('log', "#{Rails.env}_resque.log"))
 ```
 
+If you want to see the Rails logger at the `rake resque:work` terminal in the development environment:
+```ruby
+# config/initializers/resque.rb
+if Rails.env.development? && !ENV['BACKGROUND'] &&
+  !ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
+
+  # Redirect Rails log STDOUT
+  console = ActiveSupport::Logger.new(STDOUT)
+  console.formatter = Rails.logger.formatter
+  console.level = Rails.logger.level
+  Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
+end
+```
+
 #### Namespaces
 
 If you're running multiple, separate instances of Resque you may want
