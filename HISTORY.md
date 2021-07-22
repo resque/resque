@@ -8,6 +8,9 @@
   See [docs/HOOKS.md](http://github.com/resque/resque/blob/master/docs/HOOKS.md) for
   further details. (@jeremywadsack)
 
+### Fixed
+* Prune workers which haven't been registered but have set a heartbeat
+
 ## 2.0.0 (2018-11-06)
 
 ### Fixed

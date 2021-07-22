@@ -491,20 +491,22 @@ module Resque
     # Returns a list of workers that have sent a heartbeat in the past, but which
     # already expired (does NOT include workers that have never sent a heartbeat at all).
     def self.all_workers_with_expired_heartbeats
-      workers = Worker.all
+      # Use `Worker.all_heartbeats` instead of `Worker.all`
+      # to prune workers which haven't been registered but have set a heartbeat.
+      # https://github.com/resque/resque/pull/1751
       heartbeats = Worker.all_heartbeats
       now = data_store.server_time
 
-      workers.select do |worker|
-        id = worker.to_s
-        heartbeat = heartbeats[id]
-
+      heartbeats.select do |id, heartbeat|
         if heartbeat
           seconds_since_heartbeat = (now - Time.parse(heartbeat)).to_i
           seconds_since_heartbeat > Resque.prune_interval
         else
           false
         end
+      end.each_key.map do |id|
+        # skip_exists must be true to include not registered workers
+        find(id, :skip_exists => true)
       end
     end
 
@@ -601,23 +603,23 @@ module Resque
 
       all_workers = Worker.all
 
-      unless all_workers.empty?
-        known_workers = worker_pids
-        all_workers_with_expired_heartbeats = Worker.all_workers_with_expired_heartbeats
-      end
-
-      all_workers.each do |worker|
+      known_workers = worker_pids
+      all_workers_with_expired_heartbeats = Worker.all_workers_with_expired_heartbeats
+      all_workers_with_expired_heartbeats.each do |worker|
         # If the worker hasn't sent a heartbeat, remove it from the registry.
         #
         # If the worker hasn't ever sent a heartbeat, we won't remove it since
         # the first heartbeat is sent before the worker is registred it means
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
-        if all_workers_with_expired_heartbeats.include?(worker)
-          log_with_severity :info, "Pruning dead worker: #{worker}"
+        log_with_severity :info, "Pruning dead worker: #{worker}"
 
-          job_class = worker.job(false)['payload']['class'] rescue nil
-          worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s, job_class))
+        job_class = worker.job(false)['payload']['class'] rescue nil
+        worker.unregister_worker(PruneDeadWorkerDirtyExit.new(worker.to_s, job_class))
+      end
+
+      all_workers.each do |worker|
+        if all_workers_with_expired_heartbeats.include?(worker)
           next
         end
 
