@@ -30,7 +30,7 @@
 
 ### Fixed
 
-* live poller shouldn't restart itself until it successds or fails. # 1740
+* live poller shouldn't restart itself until it successds or fails. #1740
 * Fix parsing worker_id when queue name includes colon. #1691
 * Prune workers which haven't been registered but have set a heartbeat. #1751
 
