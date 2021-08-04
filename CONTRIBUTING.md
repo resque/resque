@@ -12,8 +12,9 @@ The main way to contribute to Resque is to write some code! Here's how:
    branch
 5. That's it!
 
-If you're not doing some sort of refactoring, a CHANGELOG entry is appropriate.
-Please include them in pull requests adding features or fixing bugs.
+An entry in the `HISTORY.md` is appropriate for changes that aren't of purely
+internal consequences. Please include a modification of HISTORY.md adding a
+bullet for your change in your pull request where relevant.
 
 Oh, and 80 character columns, please!
 
