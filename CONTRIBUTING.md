@@ -18,11 +18,6 @@ bullet for your change in your pull request where relevant.
 
 Oh, and 80 character columns, please!
 
-See Steve Klabnik's post (2015) here about the direction and state of Resque:
-[Rescuing Resque...again](http://words.steveklabnik.com/rescuing-resque-again).
-TODO: include some more up-to-date context on current state of
-resque maintenance, sustainability, and future.
-
 Tests
 -----
 
