@@ -8,6 +8,15 @@ Resque (pronounced like "rescue") is a Redis-backed library for creating
 background jobs, placing those jobs on multiple queues, and processing
 them later.
 
+---------
+### Note on the future of this repo
+
+Would you like to be involved in Resque? Do you have thoughts about what 
+Resque should be and do going forward? There's currently an [open discussion here](https://github.com/resque/resque/issues/1759) 
+on just that topic, so please feel free to join in. We'd love to hear your thoughts
+and/or have people volunteer to be a part of the project!
+
+---------
 Background jobs can be any Ruby class or module that responds to
 `perform`. Your existing classes can easily be converted to background
 jobs or you can create new classes specifically to do work. Or, you
