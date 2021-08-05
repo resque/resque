@@ -1181,6 +1181,29 @@ describe "Resque::Worker" do
     assert_equal 1, Resque::Failure.count
   end
 
+  it '.clear_retried should clear all retried jobs' do
+    # Job 1
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new('queue'), :queue => 'queue', :payload => {'class' => 'GoodJob' })
+
+    # Job 2
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new('queue'), :queue => 'queue', :payload => {'class' => 'GoodJob' })
+
+    # Job 3
+    Resque::Failure.create(:exception => Exception.new, :worker => Resque::Worker.new('queue'), :queue => 'other_queue', :payload => {'class' => 'GoodJob' })
+
+    assert_equal 3, Resque::Failure.count
+
+    # Retry Job 1 and Job 3
+    Resque::Failure.requeue(0)
+    Resque::Failure.requeue(2)
+
+    assert_equal 3, Resque::Failure.count
+
+    Resque::Failure.clear_retried
+
+    assert_equal 1, Resque::Failure.count
+  end
+
   it "no reconnects to redis when not forking" do
     original_connection = Resque.redis._client.connection.instance_variable_get("@sock")
     without_forking do
