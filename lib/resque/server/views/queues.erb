@@ -4,7 +4,7 @@
 
   <h1>Pending jobs on <span class='hl'><%= h current_queue %></span></h1>
   <form method="POST" action="<%=u "/queues/#{current_queue}/remove" %>" class='remove-queue'>
-    <input type='submit' name='' value='Remove Queue' onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+    <input type='submit' name='' value='Remove Queue' class="confirmSubmission" />
   </form>
   <p class='sub'><%= page_entries_info start = params[:start].to_i, start + 19, size = resque.size(current_queue), 'job' %></p>
   <table class='jobs'>
