@@ -21,4 +21,17 @@ describe 'Resque::Failure::Multiple' do
       assert_equal 'mapped_queue', Resque::Failure::Multiple.requeue_queue('queue')
     end
   end
+
+  it 'remove passes the queue on to its backend' do
+    with_failure_backend(Resque::Failure::Multiple) do
+      mock = Object.new
+      def mock.remove(_id, queue)
+        @queue = queue
+      end
+
+      Resque::Failure::Multiple.classes = [mock]
+      Resque::Failure::Multiple.remove(1, :test_queue)
+      assert_equal :test_queue, mock.instance_variable_get('@queue')
+    end
+  end
 end
