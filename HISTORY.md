@@ -12,6 +12,9 @@
 * Prune workers which haven't been registered but have set a heartbeat
 * `Resque::Failure::Multiple.remove` did not pass on the queue parameter
 
+### Changed
+* Update jQuery from 1.12.4 to 3.6.0
+
 ## 2.0.0 (2018-11-06)
 
 ### Fixed
