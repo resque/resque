@@ -11,6 +11,7 @@
 ### Fixed
 * Prune workers which haven't been registered but have set a heartbeat
 * `Resque::Failure::Multiple.remove` did not pass on the queue parameter
+* Replace onclick handlers in server code to support Content Security Policies that don't allow 'unsafe-inline'
 
 ## 2.0.0 (2018-11-06)
 
