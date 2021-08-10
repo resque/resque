@@ -6,10 +6,10 @@
 
 <% unless failed_size.zero? %>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/clear" %>">
-  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" class="confirmSubmission" />
 </form>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/requeue/all" %>">
-  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone."); />
+  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" class="confirmSubmission" />
 </form>
 <% end %>
 

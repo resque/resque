@@ -15,6 +15,8 @@
 ### Security
 
 * Fix XSS via URL path in admin web UI queues view #1687
+* Replace onclick handlers in server code to support Content Security Policies that don't allow 'unsafe-inline'
+* Update jQuery from 1.12.4 to 3.6.0
 
 ### Added
 
@@ -33,7 +35,7 @@
 * live poller shouldn't restart itself until it successds or fails. #1740
 * Fix parsing worker_id when queue name includes colon. #1691
 * Prune workers which haven't been registered but have set a heartbeat. #1751
-
+* `Resque::Failure::Multiple.remove` did not pass on the queue parameter
 
 ## 2.0.0 (2018-11-06)
 
