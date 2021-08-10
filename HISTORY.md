@@ -11,6 +11,7 @@
 ### Fixed
 * Prune workers which haven't been registered but have set a heartbeat
 * `Resque::Failure::Multiple.remove` did not pass on the queue parameter
+* Replace onclick handlers in server code to support Content Security Policies that don't allow 'unsafe-inline'
 
 ### Changed
 * Update jQuery from 1.12.4 to 3.6.0
