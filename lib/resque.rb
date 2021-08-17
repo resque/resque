@@ -23,7 +23,7 @@ require 'resque/thread_signal'
 
 require 'resque/vendor/utf8_util'
 
-require 'resque/railtie' if defined?(Rails)
+require 'resque/railtie' if defined?(Rails::Railtie)
 
 module Resque
   include Helpers
