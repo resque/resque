@@ -7,7 +7,7 @@
 
 ### Fixed
 
-*
+* Loading railtie when it did not exist #1765
 *
 
 ## 2.1.0
