@@ -2,6 +2,7 @@
 
 ### Fixed
 * Fix closing parent Redis connection in child process after fork
+* Fix the failed queues list on /queues UI when the RedisMultiQueue backend is used #1638
 
 ### Added
 
