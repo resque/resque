@@ -21,12 +21,7 @@ Oh, and 80 character columns, please!
 Tests
 -----
 
-We use minitest for testing. If you're working against master, you'll find
-a bunch of tests in `test/legacy`. These are the older Resque tests. Don't
-look at them unless your code breaks them. Consider these black-box acceptance
-tests. We don't like them, but we want to make sure we're not breaking
-anything.
-
+We use minitest for testing. 
 A simple `bundle exec rake` will run all the tests. Make sure they pass when
 you submit a pull request.
 
