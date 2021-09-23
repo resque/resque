@@ -11,7 +11,7 @@ Resque::Server.helpers do
     return @multiple_failed_queues if defined?(@multiple_failed_queues)
 
     @multiple_failed_queues = Resque::Failure.queues.size > 1 ||
-      Resque::Failure.backend == Resque::Failure::RedisMultiQueue
+      (defined?(Resque::Failure::RedisMultiQueue) && Resque::Failure.backend == Resque::Failure::RedisMultiQueue)
   end
 
   def failed_size
