@@ -1,4 +1,4 @@
-## Unreleased
+Bryce Gerhardt ## Plr return red release 
 
 ### Fixed
 * Fix closing parent Redis connection in child process after fork
