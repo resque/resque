@@ -181,7 +181,8 @@ module Resque
 
     def queues=(queues)
       queues = queues.empty? ? (ENV["QUEUES"] || ENV['QUEUE']).to_s.split(',') : queues
-      @queues = queues.map { |queue| queue.to_s.strip }
+      @ignore_queues = queues.select { |queue| queue.match(/^!/) }
+      @queues = queues.map { |queue| queue.to_s.strip }.reject { |queue| queue.match(/^!/) }
       @has_dynamic_queues = WILDCARDS.any? {|char| @queues.join.include?(char) }
       validate_queues
     end
@@ -201,7 +202,7 @@ module Resque
     # can be useful for dynamically adding new queues.
     def queues
       if @has_dynamic_queues
-        current_queues = Resque.queues
+        current_queues = Resque.queues.reject { |queue| @ignore_queues.map { |q| q.gsub(/!/, '') }.include? queue }
         @queues.map { |queue| glob_match(current_queues, queue) }.flatten.uniq
       else
         @queues

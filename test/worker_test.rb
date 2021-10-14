@@ -414,6 +414,22 @@ describe "Resque::Worker" do
     assert_equal 0, Resque.size(:test_two)
   end
 
+  it "ignore a queue when used a wildcard" do
+    Resque::Job.create(:high, GoodJob)
+    Resque::Job.create(:critical, GoodJob)
+    Resque::Job.create(:blahblah, GoodJob)
+    Resque::Job.create(:beer, GoodJob)
+
+    @worker = Resque::Worker.new("!blahblah", "!beer", "*")
+    assert_equal ["critical", "high", "jobs"], @worker.queues
+
+    @worker.work(0)
+    assert_equal 0, Resque.size(:high)
+    assert_equal 0, Resque.size(:critical)
+    assert_equal 1, Resque.size(:blahblah)
+    assert_equal 1, Resque.size(:beer)
+  end
+
   it "has a unique id" do
     assert_equal "#{`hostname`.chomp}:#{$$}:jobs", @worker.to_s
   end
