@@ -1,18 +1,26 @@
 ## Unreleased
 
 ### Fixed
-* Fix closing parent Redis connection in child process after fork
-* Fix the failed queues list on /queues UI when the RedisMultiQueue backend is used #1638
+
+*
+*
 
 ### Added
 
 *
 *
 
+## 2.2.0
+
+### Added
+
+* Add 'Retry Failed Jobs' button to Failed page
+
 ### Fixed
 
 * Loading railtie when it did not exist #1765
-*
+* Fix closing parent Redis connection in child process after fork
+* Fix the failed queues list on /queues UI when the RedisMultiQueue backend is used #1638
 
 ## 2.1.0
 
