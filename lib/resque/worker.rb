@@ -852,7 +852,7 @@ module Resque
       `ps -A -o pid,comm | grep "[r]uby" | grep -v "resque-web"`.split("\n").map do |line|
         real_pid = line.split(' ')[0]
         pargs_command = `pargs -a #{real_pid} 2>/dev/null | grep [r]esque | grep -v "resque-web"`
-        if pargs_command.split(':')[1] == " resque-#{Resque::Version}"
+        if pargs_command.split(':')[1] == " resque-#{Resque::VERSION}"
           real_pid
         end
       end.compact
@@ -862,7 +862,7 @@ module Resque
     # Procline is always in the format of:
     #   RESQUE_PROCLINE_PREFIXresque-VERSION: STRING
     def procline(string)
-      $0 = "#{ENV['RESQUE_PROCLINE_PREFIX']}resque-#{Resque::Version}: #{string}"
+      $0 = "#{ENV['RESQUE_PROCLINE_PREFIX']}resque-#{Resque::VERSION}: #{string}"
       log_with_severity :debug, $0
     end
 

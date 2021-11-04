@@ -272,7 +272,7 @@ describe "Resque::Worker" do
   it "supports setting the procline to have arbitrary prefixes and suffixes" do
     prefix = 'WORKER-TEST-PREFIX/'
     suffix = 'worker-test-suffix'
-    ver = Resque::Version
+    ver = Resque::VERSION
 
     old_prefix = ENV['RESQUE_PROCLINE_PREFIX']
     ENV.delete('RESQUE_PROCLINE_PREFIX')
@@ -578,7 +578,7 @@ describe "Resque::Worker" do
     without_forking do
       @worker.extend(AssertInWorkBlock).work(0) do
         prefix = ENV['RESQUE_PROCLINE_PREFIX']
-        ver = Resque::Version
+        ver = Resque::VERSION
         assert_equal "#{prefix}resque-#{ver}: Processing jobs since #{Time.now.to_i} [SomeJob]", $0
       end
     end
