@@ -861,7 +861,6 @@ Meta
 * Home: <http://github.com/resque/resque>
 * Docs: <http://rubydoc.info/gems/resque>
 * Bugs: <http://github.com/resque/resque/issues>
-* Chat: <irc://irc.freenode.net/resque>
 * Gems: <https://rubygems.org/gems/resque>
 
 This project uses [Semantic Versioning](http://semver.org/)
