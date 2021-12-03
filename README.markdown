@@ -4,9 +4,7 @@ Resque
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
 [![Build Status](https://github.com/resque/resque/actions/workflows/ci.yml/badge.svg)](https://github.com/resque/resque/actions/workflows/ci.yml)
 
-Resque (pronounced like "rescue") is a Redis-backed library for creating
-background jobs, placing those jobs on multiple queues, and processing
-them later.
+Resque is a Redis-backed queueing system.
 
 ---------
 ### Note on the future of this repo
@@ -17,39 +15,12 @@ on just that topic, so please feel free to join in. We'd love to hear your thoug
 and/or have people volunteer to be a part of the project!
 
 ---------
-Background jobs can be any Ruby class or module that responds to
-`perform`. Your existing classes can easily be converted to background
-jobs or you can create new classes specifically to do work. Or, you
-can do both.
-
-Resque is heavily inspired by DelayedJob (which rocks) and comprises
-three parts:
-
-1. A Ruby library for creating, querying, and processing jobs
-2. A Rake task for starting a worker which processes jobs
-3. A Sinatra app for monitoring queues, jobs, and workers.
-
-Resque workers can be distributed between multiple machines,
-support priorities, are resilient to memory bloat / "leaks," are
-optimized for REE (but work on MRI and JRuby), tell you what they're
-doing, and expect failure.
-
-Resque queues are persistent; support constant time, atomic push and
-pop (thanks to Redis); provide visibility into their contents; and
-store jobs as simple JSON packages.
-
-The Resque frontend tells you what workers are doing, what workers are
-not doing, what queues you're using, what's in those queues, provides
-general usage stats, and helps you track failures.
-
-Resque now supports Ruby 2.3.0 and above.
-We will also only be supporting Redis 3.0 and above going forward.
-
 
 Table of Contents
 -----------------
 
-* [Overview](#overview)
+* [Introduction](#introduction)
+* [Example](#example)
 * [Installation](#installation)
 * [Running Workers](#running-workers)
 * [The Front End](#the-front-end)
@@ -74,13 +45,46 @@ Table of Contents
 * [Meta](#meta)
 * [Author](#author)
 
-Overview
---------
+Introduction
+------------
 
-For the backstory, philosophy, and history of Resque's beginnings, please see [the blog post](http://github.com/blog/542-introducing-resque).
+Resque (pronounced like "rescue") is a Redis-backed library for creating
+background jobs, placing those jobs on multiple queues, and processing
+them later.
 
-Resque allows you to create jobs and place them on a queue, then,
-later, pull those jobs off the queue and process them.
+For the backstory, philosophy, and history of Resque's beginnings, please see [the blog post](http://github.com/blog/542-introducing-resque) (2009).
+
+Background jobs can be any Ruby class or module that responds to
+`perform`. Your existing classes can easily be converted to background
+jobs or you can create new classes specifically to do work. Or, you
+can do both.
+
+Resque is heavily inspired by DelayedJob (which rocks) and comprises
+three parts:
+
+1. A Ruby library for creating, querying, and processing jobs
+2. A Rake task for starting a worker which processes jobs
+3. A Sinatra app for monitoring queues, jobs, and workers.
+
+Resque workers can be  given multiple queues (a "queue list"),
+distributed between multiple machines,
+run anywhere with network access to the Redis server,
+support priorities, are resilient to memory bloat / "leaks,"
+tell you what they're doing, and expect failure.
+
+Resque queues are persistent; support constant time, atomic push and
+pop (thanks to Redis); provide visibility into their contents; and
+store jobs as simple JSON packages.
+
+The Resque frontend tells you what workers are doing, what workers are
+not doing, what queues you're using, what's in those queues, provides
+general usage stats, and helps you track failures.
+
+Resque now supports Ruby 2.3.0 and above.
+We will also only be supporting Redis 3.0 and above going forward.
+
+Example
+-------
 
 Resque jobs are Ruby classes (or modules) which respond to the
 `perform` method. Here's an example:
@@ -139,10 +143,6 @@ This starts one Resque worker and tells it to work off the
 `Resque.reserve` code snippet above and process jobs until it can't
 find any more, at which point it will sleep for a small period and
 repeatedly poll the queue for more jobs.
-
-Workers can be given multiple queues (a "queue list") and run on
-multiple machines. In fact they can be run anywhere with network
-access to the Redis server.
 
 Installation
 ------------
