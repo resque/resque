@@ -15,7 +15,7 @@ module Resque
     PORT       = 5678
     HOST       = WINDOWS ? 'localhost' : '0.0.0.0'
 
-    def initialize(app, app_name, set_options = {}, runtime_args = ARGV, &block)
+    def initialize(app, app_name, set_options = {}, runtime_args = ARGV)
       @options = set_options || {}
 
       self.class.logger.level = options[:debug] ? Logger::DEBUG : Logger::INFO
@@ -26,19 +26,11 @@ module Resque
       @filesystem_friendly_app_name = @app_name.gsub(/\W+/, "_")
       @quoted_app_name = "'#{app_name}'"
 
-      @runtime_args = runtime_args
       @rack_handler = setup_rack_handler
 
-      # load options from opt parser
-      @args = define_options do |opts|
-        if block_given?
-          opts.separator ''
-          opts.separator "#{quoted_app_name} options:"
-          yield(self, opts, app)
-        end
-      end
+      @args = load_options(runtime_args)
 
-      if @should_kill
+      if should_kill
         kill!
         exit!(0)
       end
@@ -291,14 +283,21 @@ module Resque
       end
     end
 
-    def define_options
+    attr_reader :should_kill
+
+    def load_options(runtime_args)
+      option_parser.parse!(runtime_args)
+    rescue OptionParser::MissingArgument => e
+      logger.warn "#{e}, run -h for options"
+      exit
+    end
+
+    def option_parser
       OptionParser.new("", 24, '  ') do |opts|
-        # TODO instead of app_name, we should determine the name of the script
-        # used to invoke Vegas and use that here
         opts.banner = "Usage: #{$0 || app_name} [options]"
 
         opts.separator ""
-        opts.separator "Vegas options:"
+        opts.separator "#{quoted_app_name} options:"
 
         opts.on('-K', "--kill", "kill the running process and exit") {|k|
           @should_kill = true
@@ -343,9 +342,18 @@ module Resque
         opts.on("--url-file URL_FILE", "set the path to the URL file (default: app_dir/#{filesystem_friendly_app_name}.url)") {|url_file|
           @options[:url_file] = url_file
         }
-
-        yield opts if block_given?
-
+        opts.on('-N NAMESPACE', "--namespace NAMESPACE", "set the Redis namespace") {|namespace|
+          runner.logger.info "Using Redis namespace '#{namespace}'"
+          Resque.redis.namespace = namespace
+        }
+        opts.on('-r redis-connection', "--redis redis-connection", "set the Redis connection string") {|redis_conf|
+          logger.info "Using Redis connection '#{redis_conf}'"
+          Resque.redis = redis_conf
+        }
+        opts.on('-a url-prefix', "--append url-prefix", "set reverse_proxy friendly prefix to links") {|url_prefix|
+          logger.info "Using URL Prefix '#{url_prefix}'"
+          Resque::Server.url_prefix = url_prefix
+        }
         opts.separator ""
         opts.separator "Common options:"
 
@@ -360,11 +368,7 @@ module Resque
           puts "sinatra #{Sinatra::VERSION}" if defined?(Sinatra)
           exit
         end
-
-      end.parse! @runtime_args
-    rescue OptionParser::MissingArgument => e
-      logger.warn "#{e}, run -h for options"
-      exit
+      end
     end
 
     def kill_commands

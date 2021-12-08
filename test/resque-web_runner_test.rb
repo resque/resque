@@ -4,12 +4,12 @@ require 'resque/server'
 require 'resque/web_runner'
 
 describe 'Resque::WebRunner' do
-  def web_runner(*args, &block)
+  def web_runner(*args)
     Resque::WebRunner.any_instance.stubs(:daemonize!).once
 
     Resque::JRUBY ? Rack::Handler::WEBrick.stubs(:run).once : Rack::Handler::Thin.stubs(:run).once
 
-    @runner = Resque::WebRunner.new(*args, &block)
+    @runner = Resque::WebRunner.new(*args)
   end
 
   before do
