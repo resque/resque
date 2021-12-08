@@ -1,16 +1,19 @@
 #!/usr/bin/env ruby
 
 $LOAD_PATH.unshift File.expand_path(File.dirname(__FILE__) + '/../lib')
-begin
-  require 'vegas'
-rescue LoadError
-  require 'rubygems'
-  require 'vegas'
+
+if !!(RUBY_PLATFORM =~ /(mingw|bccwin|wince|mswin32)/i)
+  begin
+    require 'win32/process'
+  rescue
+    puts "Sorry, in order to use resque-web on Windows you need the win32-process gem:",
+         "gem install win32-process"
+  end
 end
 require 'resque/server'
+require 'resque/web_runner'
 
-
-Vegas::Runner.new(Resque::Server, 'resque-web', {
+Resque::WebRunner.new(Resque::Server, 'resque-web', {
   :before_run => lambda {|v|
     path = (ENV['RESQUECONFIG'] || v.args.first)
     load path.to_s.strip if path
