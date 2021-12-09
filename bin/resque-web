@@ -10,7 +10,6 @@ if !!(RUBY_PLATFORM =~ /(mingw|bccwin|wince|mswin32)/i)
          "gem install win32-process"
   end
 end
-require 'resque/server'
 require 'resque/web_runner'
 
-Resque::WebRunner.new(Resque::Server, 'resque-web')
+Resque::WebRunner.new(*ARGV)

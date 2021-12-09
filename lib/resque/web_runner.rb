@@ -3,6 +3,7 @@ require 'logger'
 require 'optparse'
 require 'fileutils'
 require 'rack'
+require 'resque/server'
 
 module Resque
   WINDOWS = !!(RUBY_PLATFORM =~ /(mingw|bccwin|wince|mswin32)/i)
@@ -15,13 +16,13 @@ module Resque
     PORT       = 5678
     HOST       = WINDOWS ? 'localhost' : '0.0.0.0'
 
-    def initialize(app, app_name, set_options = {}, runtime_args = ARGV)
-      @options = set_options || {}
+    def initialize(*runtime_args)
+      @options = runtime_args.last.is_a?(Hash) ? runtime_args.pop : {}
 
       self.class.logger.level = options[:debug] ? Logger::DEBUG : Logger::INFO
 
-      @app      = app
-      @app_name = app_name
+      @app      = Resque::Server
+      @app_name = 'resque-web'
 
       @filesystem_friendly_app_name = @app_name.gsub(/\W+/, "_")
       @quoted_app_name = "'#{app_name}'"

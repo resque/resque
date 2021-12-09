@@ -25,7 +25,7 @@ describe 'Resque::WebRunner' do
     describe 'basic usage' do
       before do
         Resque::WebRunner.any_instance.expects(:system).once
-        web_runner(Resque::Server, 'test_app_1', {:sessions => true}, ["route","--debug"])
+        web_runner("route","--debug", sessions: true)
       end
 
       it "sets app" do
@@ -33,65 +33,9 @@ describe 'Resque::WebRunner' do
       end
 
       it "sets app name" do
-        assert_equal @runner.app_name, 'test_app_1'
-      end
-
-      it "sets quoted app name" do
-        assert_equal @runner.quoted_app_name, "'test_app_1'"
-      end
-
-      it "sets filesystem friendly app name" do
-        assert_equal @runner.filesystem_friendly_app_name, 'test_app_1'
-      end
-
-      it "stores options" do
-        assert @runner.options[:sessions]
-      end
-
-      it "puts unparsed args into args" do
-        assert_equal @runner.args, ["route"]
-      end
-
-      it "parses options into @options" do
-        assert @runner.options[:debug]
-      end
-
-      it "writes the app dir" do
-        assert File.exist?(@runner.app_dir)
-      end
-
-      it "writes a url with the port" do
-        assert File.exist?(@runner.url_file)
-        assert File.read(@runner.url_file).match(/0.0.0.0\:#{@runner.port}/)
-      end
-
-      it "knows where to find the pid file" do
-        assert_equal @runner.pid_file, \
-          File.join(@runner.app_dir, @runner.filesystem_friendly_app_name + ".pid")
-        # assert File.exist?(@runner.pid_file), "#{@runner.pid_file} not found."
-      end
-    end
-
-    describe 'basic usage with a funky app name' do
-      before do
-        Resque::WebRunner.any_instance.expects(:system).once
-        web_runner(Resque::Server, 'Funky YEAH!1!', {:sessions => true}, ["route","--debug"])
-      end
-
-      it "sets app" do
-        assert_equal @runner.app, Resque::Server
-      end
-
-      it "sets app name" do
-        assert_equal @runner.app_name, 'Funky YEAH!1!'
-      end
-
-      it "sets quoted app name" do
-        assert_equal @runner.quoted_app_name, "'Funky YEAH!1!'"
-      end
-
-      it "sets filesystem friendly app name" do
-        assert_equal @runner.filesystem_friendly_app_name, 'Funky_YEAH_1_'
+        assert_equal @runner.app_name, 'resque-web'
+        assert_equal @runner.quoted_app_name, "'resque-web'"
+        assert_equal @runner.filesystem_friendly_app_name, 'resque_web'
       end
 
       it "stores options" do
@@ -132,7 +76,7 @@ describe 'Resque::WebRunner' do
       before do
         Resque::Server.set :server, "webrick"
         Rack::Handler::WEBrick.stubs(:run)
-        web_runner(Resque::Server, 'test_app_1', {:skip_launch => true, :sessions => true}, ["route","--debug"])
+        web_runner("route","--debug", skip_launch: true, sessions: true)
       end
       after do
         Resque::Server.set :server, false
@@ -145,7 +89,7 @@ describe 'Resque::WebRunner' do
 
     describe 'with a simple rack app' do
       before do
-        web_runner(Resque::Server, 'rack_app_1', {:skip_launch => true, :sessions => true})
+        web_runner(skip_launch: true, sessions: true)
       end
 
       it "sets default rack handler to thin when in ruby and WEBrick when in jruby" do
@@ -160,10 +104,7 @@ describe 'Resque::WebRunner' do
     describe 'with a launch path specified as a proc' do
       it 'evaluates the proc in the context of the runner' do
         Resque::WebRunner.any_instance.expects(:system).once.with {|s| s =~ /\?search\=blah$/ }
-        web_runner(Resque::Server,
-              'test_app_2',
-              {:launch_path => Proc.new {|r| "?search=#{r.args.first}" }},
-              ["--debug", "blah"])
+        web_runner("--debug", "blah", launch_path: Proc.new {|r| "?search=#{r.args.first}" })
         assert @runner.options[:launch_path].is_a?(Proc)
       end
     end
@@ -171,10 +112,7 @@ describe 'Resque::WebRunner' do
     describe 'with a launch path specified as string' do
       it 'launches to the specific path' do
         Resque::WebRunner.any_instance.expects(:system).once.with {|s| s =~ /\?search\=blah$/ }
-        web_runner(Resque::Server,
-              'test_app_2',
-              {:launch_path => "?search=blah"},
-              ["--debug", "blah"])
+        web_runner("--debug", "blah", launch_path: "?search=blah")
         assert_equal @runner.options[:launch_path], "?search=blah"
       end
     end
@@ -189,14 +127,14 @@ describe 'Resque::WebRunner' do
       after { ENV['HOME'] = @home }
 
       it 'should be ok with --app-dir' do
-        web_runner(Resque::Server, 'rack_app_1', {:skip_launch => true, :app_dir => @app_dir})
+        web_runner(skip_launch: true, app_dir: @app_dir)
         assert_equal @runner.app_dir, @app_dir
       end
 
       it 'should raise an exception without --app-dir' do
         success = false
         begin
-          Resque::WebRunner.new(Resque::Server, 'rack_app_1', {:skip_launch => true})
+          Resque::WebRunner.new(skip_launch: true)
         rescue ArgumentError
           success = true
         end
