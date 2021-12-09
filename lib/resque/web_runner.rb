@@ -41,22 +41,21 @@ module Resque
       # Set app options
       @host = options[:host] || HOST
 
-        app.set(options)
+      app.set(options)
       app.set(:web_runner, self)
 
       # Make sure app dir is setup
       FileUtils.mkdir_p(app_dir)
 
-      return if options[:start] == false
+      start unless options[:start] == false
+    end
 
-      # evaluate the launch_path
-      path = if options[:launch_path].respond_to?(:call)
+    def launch_path
+      if options[:launch_path].respond_to?(:call)
         options[:launch_path].call(self)
       else
         options[:launch_path]
       end
-
-      start(path)
     end
 
     def app_dir
@@ -87,7 +86,7 @@ module Resque
       load_config_file(path.to_s.strip) if path
     end
 
-    def start(path = nil)
+    def start(path = launch_path)
       logger.info "Running with Windows Settings" if WINDOWS
       logger.info "Running with JRuby" if JRUBY
       logger.info "Starting #{quoted_app_name}..."
