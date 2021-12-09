@@ -35,10 +35,7 @@ module Resque
         exit!(0)
       end
 
-      # Handle :before_run hook
-      if (before_run = options.delete(:before_run)).respond_to?(:call)
-        before_run.call(self)
-      end
+      before_run
 
       # Set app options
       @host = options[:host] || HOST
@@ -82,6 +79,11 @@ module Resque
 
     def url
       "http://#{host}:#{port}"
+    end
+
+    def before_run
+      path = (ENV['RESQUECONFIG'] || args.first)
+      load_config_file(path.to_s.strip) if path
     end
 
     def start(path = nil)

@@ -13,6 +13,8 @@ describe 'Resque::WebRunner' do
   end
 
   before do
+    ENV['RESQUECONFIG'] = 'examples/resque_config.rb'
+
     FileUtils.rm_rf(File.join(File.dirname(__FILE__), 'tmp'))
     @log = StringIO.new
     Resque::WebRunner.logger = Logger.new(@log)

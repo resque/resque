@@ -13,9 +13,4 @@ end
 require 'resque/server'
 require 'resque/web_runner'
 
-Resque::WebRunner.new(Resque::Server, 'resque-web', {
-  :before_run => lambda {|v|
-    path = (ENV['RESQUECONFIG'] || v.args.first)
-    load path.to_s.strip if path
-  }
-})
+Resque::WebRunner.new(Resque::Server, 'resque-web')
