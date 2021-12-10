@@ -25,18 +25,25 @@ module Resque
       @app_name = 'resque-web'
       @filesystem_friendly_app_name = @app_name.gsub(/\W+/, "_")
 
-      @rack_handler = setup_rack_handler
-
       @args = load_options(runtime_args)
 
-      if should_kill
+      @rack_handler = (s = options[:rack_handler]) ? Rack::Handler.get(s) : setup_rack_handler
+
+      case option_parser.command
+      when :help
+        puts option_parser
+      when :kill
         kill!
-        exit!(0)
+      when :status
+        status
+      when :version
+        puts "resque #{Resque::VERSION}"
+        puts "rack #{Rack::VERSION.join('.')}"
+        puts "sinatra #{Sinatra::VERSION}" if defined?(Sinatra)
+      else
+        before_run
+        start unless options[:start] == false
       end
-
-      before_run
-
-      start unless options[:start] == false
     end
 
     def launch_path
@@ -75,6 +82,18 @@ module Resque
     end
 
     def before_run
+      if (namespace = options[:redis_namespace])
+        runner.logger.info "Using Redis namespace '#{namespace}'"
+        Resque.redis.namespace = namespace
+      end
+      if (redis_conf = options[:redis_conf])
+        logger.info "Using Redis connection '#{redis_conf}'"
+        Resque.redis = redis_conf
+      end
+      if (url_prefix = options[:url_prefix])
+        logger.info "Using URL Prefix '#{url_prefix}'"
+        Resque::Server.url_prefix = url_prefix
+      end
       app.set(options.merge web_runner: self)
       path = (ENV['RESQUECONFIG'] || args.first)
       load_config_file(path.to_s.strip) if path
@@ -281,91 +300,56 @@ module Resque
       end
     end
 
-    attr_reader :should_kill
-
     def load_options(runtime_args)
-      option_parser.parse!(runtime_args)
+      @args = option_parser.parse!(runtime_args)
+      options.merge!(option_parser.options)
+      args
     rescue OptionParser::MissingArgument => e
       logger.warn "#{e}, run -h for options"
       exit
     end
 
     def option_parser
-      OptionParser.new("", 24, '  ') do |opts|
-        opts.banner = "Usage: #{$0 || app_name} [options]"
+      @option_parser ||= Parser.new(app_name)
+    end
 
-        opts.separator ""
-        opts.separator "#{quoted_app_name} options:"
+    class Parser < OptionParser
+      attr_reader :command, :options
 
-        opts.on('-K', "--kill", "kill the running process and exit") {|k|
-          @should_kill = true
-        }
-        opts.on('-S', "--status", "display the current running PID and URL then quit") {|s|
-          status
-          exit!(0)
-        }
-        opts.on("-s", "--server SERVER", "serve using SERVER (thin/mongrel/webrick)") { |s|
-          @rack_handler = Rack::Handler.get(s)
-        }
-        opts.on("-o", "--host HOST", "listen on HOST (default: #{HOST})") { |host|
-          @options[:host] = host
-        }
-        opts.on("-p", "--port PORT", "use PORT (default: #{PORT})") { |port|
-          @options[:port] = port
-        }
-        opts.on("-x", "--no-proxy", "ignore env proxy settings (e.g. http_proxy)") { |p|
-          @options[:no_proxy] = true
-        }
-        opts.on("-e", "--env ENVIRONMENT", "use ENVIRONMENT for defaults (default: development)") { |e|
-          @options[:environment] = e
-        }
-        opts.on("-F", "--foreground", "don't daemonize, run in the foreground") { |f|
-          @options[:foreground] = true
-        }
-        opts.on("-L", "--no-launch", "don't launch the browser") { |f|
-          @options[:skip_launch] = true
-        }
-        opts.on('-d', "--debug", "raise the log level to :debug (default: :info)") {|s|
-          @options[:debug] = true
-        }
-        opts.on("--app-dir APP_DIR", "set the app dir where files are stored (default: ~/#{filesystem_friendly_app_name})/)") {|app_dir|
-          @options[:app_dir] = app_dir
-        }
-        opts.on("-P", "--pid-file PID_FILE", "set the path to the pid file (default: app_dir/#{filesystem_friendly_app_name}.pid)") {|pid_file|
-          @options[:pid_file] = pid_file
-        }
-        opts.on("--log-file LOG_FILE", "set the path to the log file (default: app_dir/#{filesystem_friendly_app_name}.log)") {|log_file|
-          @options[:log_file] = log_file
-        }
-        opts.on("--url-file URL_FILE", "set the path to the URL file (default: app_dir/#{filesystem_friendly_app_name}.url)") {|url_file|
-          @options[:url_file] = url_file
-        }
-        opts.on('-N NAMESPACE', "--namespace NAMESPACE", "set the Redis namespace") {|namespace|
-          runner.logger.info "Using Redis namespace '#{namespace}'"
-          Resque.redis.namespace = namespace
-        }
-        opts.on('-r redis-connection', "--redis redis-connection", "set the Redis connection string") {|redis_conf|
-          logger.info "Using Redis connection '#{redis_conf}'"
-          Resque.redis = redis_conf
-        }
-        opts.on('-a url-prefix', "--append url-prefix", "set reverse_proxy friendly prefix to links") {|url_prefix|
-          logger.info "Using URL Prefix '#{url_prefix}'"
-          Resque::Server.url_prefix = url_prefix
-        }
-        opts.separator ""
-        opts.separator "Common options:"
+      def initialize(app_name)
+        super("", 24, '  ')
+        self.banner = "Usage: #{app_name} [options]"
 
-        opts.on_tail("-h", "--help", "Show this message") do
-          puts opts
-          exit
-        end
+        @options = {}
+        basename = app_name.gsub(/\W+/, "_")
+        on('-K', "--kill", "kill the running process and exit") { @command = :kill }
+        on('-S', "--status", "display the current running PID and URL then quit") { @command = :status }
+        string_option("-s", "--server SERVER", "serve using SERVER (thin/mongrel/webrick)", :rack_handler)
+        string_option("-o", "--host HOST", "listen on HOST (default: #{HOST})", :host)
+        string_option("-p", "--port PORT", "use PORT (default: #{PORT})", :port)
+        on("-x", "--no-proxy", "ignore env proxy settings (e.g. http_proxy)") { opts[:no_proxy] = true }
+        boolean_option("-F", "--foreground", "don't daemonize, run in the foreground", :foreground)
+        boolean_option("-L", "--no-launch", "don't launch the browser", :skip_launch)
+        boolean_option('-d', "--debug", "raise the log level to :debug (default: :info)", :debug)
+        string_option("--app-dir APP_DIR", "set the app dir where files are stored (default: ~/#{basename}/)", :app_dir)
+        string_option("-P", "--pid-file PID_FILE", "set the path to the pid file (default: app_dir/#{basename}.pid)", :pid_file)
+        string_option("--log-file LOG_FILE", "set the path to the log file (default: app_dir/#{basename}.log)", :log_file)
+        string_option("--url-file URL_FILE", "set the path to the URL file (default: app_dir/#{basename}.url)", :url_file)
+        string_option('-N NAMESPACE', "--namespace NAMESPACE", "set the Redis namespace", :redis_namespace)
+        string_option('-r redis-connection', "--redis redis-connection", "set the Redis connection string", :redis_conf)
+        string_option('-a url-prefix', "--append url-prefix", "set reverse_proxy friendly prefix to links", :url_prefix)
+        separator ""
+        separator "Common options:"
+        on_tail("-h", "--help", "Show this message") { @command = :help }
+        on_tail("--version", "Show version") { @command = :version }
+      end
 
-        opts.on_tail("--version", "Show version") do
-          puts "resque #{Resque::VERSION}"
-          puts "rack #{Rack::VERSION.join('.')}"
-          puts "sinatra #{Sinatra::VERSION}" if defined?(Sinatra)
-          exit
-        end
+      def boolean_option(*argv)
+        k = argv.pop; on(*argv) { options[k] = true }
+      end
+
+      def string_option(*argv)
+        k = argv.pop; on(*argv) { |value| options[k] = value }
       end
     end
 
