@@ -11,7 +11,7 @@ module Resque
 
   class WebRunner
     attr_reader :app, :app_name, :filesystem_friendly_app_name, :quoted_app_name,
-      :rack_handler, :port, :host, :options, :args
+      :rack_handler, :port, :options, :args
 
     PORT       = 5678
     HOST       = WINDOWS ? 'localhost' : '0.0.0.0'
@@ -39,8 +39,6 @@ module Resque
       before_run
 
       # Set app options
-      @host = options[:host] || HOST
-
       app.set(options)
       app.set(:web_runner, self)
 
@@ -72,6 +70,10 @@ module Resque
 
     def log_file
       options[:log_file] || File.join(app_dir, "#{filesystem_friendly_app_name}.log")
+    end
+
+    def host
+      options.fetch(:host) { HOST }
     end
 
     def url
