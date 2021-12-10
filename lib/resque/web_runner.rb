@@ -134,11 +134,15 @@ module Resque
     def port_open?(check_url = nil)
       begin
         check_url ||= url
-        options[:no_proxy] ? URI.open(check_url, :proxy => nil) : URI.open(check_url)
+        options[:no_proxy] ? uri_open(check_url, :proxy => nil) : uri_open(check_url)
         false
       rescue Errno::ECONNREFUSED, Errno::EPERM, Errno::ETIMEDOUT
         true
       end
+    end
+
+    def uri_open(*args)
+      (RbConfig::CONFIG['ruby_version'] < '2.7') ? open(*args) : URI.open(*args)
     end
 
     def write_url
