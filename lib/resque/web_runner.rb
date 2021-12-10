@@ -44,9 +44,6 @@ module Resque
       app.set(options)
       app.set(:web_runner, self)
 
-      # Make sure app dir is setup
-      FileUtils.mkdir_p(app_dir)
-
       start unless options[:start] == false
     end
 
@@ -140,6 +137,8 @@ module Resque
     end
 
     def write_url
+      # Make sure app dir is setup
+      FileUtils.mkdir_p(app_dir)
       File.open(url_file, 'w') {|f| f << url }
     end
 
