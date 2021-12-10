@@ -38,10 +38,6 @@ module Resque
 
       before_run
 
-      # Set app options
-      app.set(options)
-      app.set(:web_runner, self)
-
       start unless options[:start] == false
     end
 
@@ -81,6 +77,7 @@ module Resque
     end
 
     def before_run
+      app.set(options.merge web_runner: self)
       path = (ENV['RESQUECONFIG'] || args.first)
       load_config_file(path.to_s.strip) if path
     end
