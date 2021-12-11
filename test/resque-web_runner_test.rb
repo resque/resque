@@ -34,7 +34,6 @@ describe 'Resque::WebRunner' do
 
       it "sets app name" do
         assert_equal @runner.app_name, 'resque-web'
-        assert_equal @runner.quoted_app_name, "'resque-web'"
         assert_equal @runner.filesystem_friendly_app_name, 'resque_web'
       end
 

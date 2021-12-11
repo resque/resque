@@ -10,7 +10,7 @@ module Resque
   JRUBY = !!(RbConfig::CONFIG["RUBY_INSTALL_NAME"] =~ /^jruby/i)
 
   class WebRunner
-    attr_reader :app, :app_name, :filesystem_friendly_app_name, :quoted_app_name,
+    attr_reader :app, :app_name, :filesystem_friendly_app_name,
       :rack_handler, :port, :options, :args
 
     PORT       = 5678
@@ -23,9 +23,7 @@ module Resque
 
       @app      = Resque::Server
       @app_name = 'resque-web'
-
       @filesystem_friendly_app_name = @app_name.gsub(/\W+/, "_")
-      @quoted_app_name = "'#{app_name}'"
 
       @rack_handler = setup_rack_handler
 
@@ -85,7 +83,7 @@ module Resque
     def start(path = launch_path)
       logger.info "Running with Windows Settings" if WINDOWS
       logger.info "Running with JRuby" if JRUBY
-      logger.info "Starting #{quoted_app_name}..."
+      logger.info "Starting '#{app_name}'..."
 
       check_for_running(path)
       find_port
@@ -94,7 +92,7 @@ module Resque
       daemonize! unless options[:foreground]
       run!
     rescue RuntimeError => e
-      logger.warn "There was an error starting #{quoted_app_name}: #{e}"
+      logger.warn "There was an error starting '#{app_name}': #{e}"
       exit
     end
 
@@ -145,7 +143,7 @@ module Resque
       if File.exist?(pid_file) && File.exist?(url_file)
         running_url = File.read(url_file)
         if !port_open?(running_url)
-          logger.warn "#{quoted_app_name} is already running at #{running_url}"
+          logger.warn "'#{app_name}' is already running at #{running_url}"
           launch!(running_url, path)
           exit!(1)
         end
@@ -160,7 +158,7 @@ module Resque
           trap(command) do
             ## Use thins' hard #stop! if available, otherwise just #stop
             server.respond_to?(:stop!) ? server.stop! : server.stop
-            logger.info "#{quoted_app_name} received INT ... stopping"
+            logger.info "'#{app_name}' received INT ... stopping"
             delete_pid!
           end
         end
@@ -215,11 +213,11 @@ module Resque
 
     def status
       if File.exists?(pid_file)
-        logger.info "#{quoted_app_name} running"
+        logger.info "'#{app_name}' running"
         logger.info "PID #{File.read(pid_file)}"
         logger.info "URL #{File.read(url_file)}" if File.exists?(url_file)
       else
-        logger.info "#{quoted_app_name} not running!"
+        logger.info "'#{app_name}' not running!"
       end
     end
 
