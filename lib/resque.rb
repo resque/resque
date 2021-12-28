@@ -364,8 +364,8 @@ module Resque
     data_store.queue_size(queue)
   end
 
-  # Returns an array of items currently queued. Queue name should be
-  # a string.
+  # Returns an array of items currently queued, or the item itself
+  # if count = 1. Queue name should be a string.
   #
   # start and count should be integer and can be used for pagination.
   # start is the item to begin, count is how many items to return.
