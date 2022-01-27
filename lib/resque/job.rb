@@ -119,8 +119,13 @@ module Resque
     #
     # This method can be potentially very slow and memory intensive,
     # depending on the size of your queue, as it loads all jobs into
-    # a Ruby array before processing.
-    def self.destroy(queue, klass, *args)
+    # a Ruby array before processing.  For each job that is deleted, redis will
+    # be sent an "LREM" command, which can introduce a lot of latency to
+    # redis-server if it is run on a large queue.
+    #
+    # See also Job#destroy, which uses less memory and only uses low-latency
+    # redis commands, but temporarily drains the main queue.
+    def self.destroy!(queue, klass, *args)
       klass = klass.to_s
       destroyed = 0
 
@@ -135,6 +140,89 @@ module Resque
       end
 
       destroyed
+    end
+
+    # Removes a job from a queue. Expects a string queue name, a
+    # string class name, and, optionally, args.
+    #
+    # Returns the number of jobs destroyed.
+    #
+    # If no args are provided, it will remove all jobs of the class
+    # provided.
+    #
+    # That is, for these two jobs:
+    #
+    # { 'class' => 'UpdateGraph', 'args' => ['defunkt'] }
+    # { 'class' => 'UpdateGraph', 'args' => ['mojombo'] }
+    #
+    # The following call will remove both:
+    #
+    #   Resque::Job.destroy(queue, 'UpdateGraph')
+    #
+    # Whereas specifying args will only remove the 2nd job:
+    #
+    #   Resque::Job.destroy(queue, 'UpdateGraph', 'mojombo')
+    #
+    # This looks at only one job at a time, so it isn't fast.  Also, it will
+    # drain the target queue into a temporary queue, in order to check
+    # every job safely.  It doesn't move the jobs back into the target queue
+    # until after it has fully drained.  However, it never runs any slow redis
+    # commands, and its memory usage is bounded to a single job, and it uses an
+    # atomic rpoplpush to ensure that jobs which should not be removed are never
+    # removed from redis entirely.  If the method is interrupted or crashes, one
+    # or both of the following queues will need to be moved back into the actual
+    # queue:
+    #
+    #  * Holds each individual job while it is being checked:
+    #    "#{queue}:tmp:destroy:#{Time.now.to_i}"
+    #
+    #  * Holds all of the jobs which do not match and will be requeued:
+    #    "#{queue}:tmp:requeue"
+    #
+    # This is safe to run multiple times concurrently, so long as it isn't
+    # started more than once during a single second.
+    #
+    # See also Job#destroy, which processes the entire queue in memory and
+    # issues a (potentially very slow) "lrem" command to redis for each deleted
+    # job.
+    def self.destroy(queue, klass, *args)
+      klass = klass.to_s
+      args  = decode(encode(args))
+      queue = "queue:#{queue}"
+      destroyed = 0
+
+      tmp_queue = "#{queue}:tmp:destroy:#{Time.now.to_i}"
+      requeue_queue = "#{queue}:tmp:requeue"
+
+      # constructed now as a precaution to reduce memory or stack pressure later
+      # just in case...
+      potential_error_msg = <<~MSG
+        An exception occurred while destroying jobs.
+
+        Some jobs may need to be added back to #{queue} from one or both of:
+         * #{tmp_queue}
+         * #{requeue_queue}
+
+        Check with Resque.redis.llen(qname)
+      MSG
+
+      while string = redis.rpoplpush(queue, tmp_queue)
+        decoded = decode(string)
+        if decoded['class'] == klass && (args.empty? || decoded['args'] == args)
+          destroyed += redis.del(tmp_queue).to_i
+        else
+          redis.rpoplpush(tmp_queue, requeue_queue)
+        end
+      end
+
+      loop do
+        redis.rpoplpush(requeue_queue, queue) or break
+      end
+
+      destroyed
+    rescue Exception
+      logger.error potential_error_msg
+      raise
     end
 
     # Given a string queue name, returns an instance of Resque::Job
