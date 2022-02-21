@@ -1,6 +1,6 @@
 <% @subtabs = resque.queues unless partial? || params[:id].nil? %>
 
-<% if current_queue = params[:id] %>
+<% if current_queue = escape_html(params[:id]) %>
 
   <h1>Pending jobs on <span class='hl'><%= h current_queue %></span></h1>
   <form method="POST" action="<%=u "/queues/#{current_queue}/remove" %>" class='remove-queue'>

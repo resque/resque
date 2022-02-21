@@ -1,5 +1,5 @@
 <% if key = params[:key] %>
-  <h1>Key "<%= key %>" is a <%= resque.redis.type key %></h1>
+  <h1>Key "<%= escape_html(key) %>" is a <%= resque.redis.type key %></h1>
   <h2>size: <%= redis_get_size(key) %></h2>
   <table>
     <tr>
