@@ -703,6 +703,12 @@ complicated.
 
 Workers instead handle their own state.
 
+#### `at_exit` Callbacks
+
+Resque uses `Kernel#exit!` for exiting its workers' child processes. So any `at_exit` callback defined in your application won't be executed when the job is finished and the child process exits.
+
+You can alter this behavior by setting the `RUN_AT_EXIT_HOOKS` environment variable.
+
 #### Parents and Children
 
 Here's a parent / child pair doing some work:
