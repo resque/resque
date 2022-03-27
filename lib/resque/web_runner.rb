@@ -5,6 +5,9 @@ require 'fileutils'
 require 'rack'
 require 'resque/server'
 
+# only used with `bin/resque-web`
+# https://github.com/resque/resque/pull/1780
+
 module Resque
   WINDOWS = !!(RUBY_PLATFORM =~ /(mingw|bccwin|wince|mswin32)/i)
   JRUBY = !!(RbConfig::CONFIG["RUBY_INSTALL_NAME"] =~ /^jruby/i)
