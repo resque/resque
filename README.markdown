@@ -4,47 +4,6 @@ Resque
 [![Gem Version](https://badge.fury.io/rb/resque.svg)](https://rubygems.org/gems/resque)
 [![Build Status](https://github.com/resque/resque/actions/workflows/ci.yml/badge.svg)](https://github.com/resque/resque/actions/workflows/ci.yml)
 
-Resque is a Redis-backed queueing system.
-
----------
-### Note on the future of this repo
-
-Would you like to be involved in Resque? Do you have thoughts about what 
-Resque should be and do going forward? There's currently an [open discussion here](https://github.com/resque/resque/issues/1759) 
-on just that topic, so please feel free to join in. We'd love to hear your thoughts
-and/or have people volunteer to be a part of the project!
-
----------
-
-Table of Contents
------------------
-
-* [Introduction](#introduction)
-* [Example](#example)
-* [Installation](#installation)
-* [Running Workers](#running-workers)
-* [The Front End](#the-front-end)
-* [Jobs](#jobs)
-* [Configuration](#configuration)
-* * [Redis](#redis)
-* * [Logging](#logging)
-* * [Namespaces](#namespaces)
-* * [Storing Statistics](#storing-statistics)
-* [Plugins and Hooks](#plugins-and-hooks)
-* [Additional Information](#additional-information)
-* * [Resque vs DelayedJob](#resque-vs-delayedjob)
-* * [Forking](#forking)
-* * [Signals](#signals)
-* * [Heroku](#heroku)
-* * [Monitoring](#monitoring)
-* * [Mysql::Error](#mysqlerror-mysql-server-has-gone-away)
-* [Development](#development)
-* * [Demo](#demo)
-* * [Contributing](#contributing)
-* [Questions](#questions)
-* [Meta](#meta)
-* [Author](#author)
-
 Introduction
 ------------
 
@@ -82,6 +41,13 @@ general usage stats, and helps you track failures.
 
 Resque now supports Ruby 2.3.0 and above.
 We will also only be supporting Redis 3.0 and above going forward.
+
+### Note on the future of Resque
+
+Would you like to be involved in Resque? Do you have thoughts about what
+Resque should be and do going forward? There's currently an [open discussion here](https://github.com/resque/resque/issues/1759)
+on just that topic, so please feel free to join in. We'd love to hear your thoughts
+and/or have people volunteer to be a part of the project!
 
 Example
 -------
