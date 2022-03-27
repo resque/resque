@@ -1,12 +1,12 @@
 <% if failed_multiple_queues? && !params[:queue] %>
 <h1>All Failed Queues: <%= Resque::Failure.queues.size %> total</h1>
 <% else %>
-<h1>Failed Jobs <%= "on '#{params[:queue]}'" if params[:queue] %> <%= "with class '#{params[:class]}'" if params[:class] %></h1>
+<h1>Failed Jobs <%= "on '#{escape_html(params[:queue])}'" if params[:queue] %> <%= "with class '#{escape_html(params[:class])}'" if params[:class] %></h1>
 <% end %>
 
 <% unless failed_size.zero? %>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/clear" %>">
-  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" class="confirmSubmission" />
+  <input type="submit" name="" value="Clear <%= params[:queue] ? "'#{escape_html(params[:queue])}'" : 'Failed' %> Jobs" class="confirmSubmission" />
 </form>
 
 <% unless params[:queue] %>
@@ -15,7 +15,7 @@
   </form>
 <% end %>
 <form method="POST" action="<%= u "failed#{'/' + params[:queue] if params[:queue]}/requeue/all" %>">
-  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{params[:queue]}'" : 'Failed' %> Jobs" class="confirmSubmission" />
+  <input type="submit" name="" value="Retry <%= params[:queue] ? "'#{escape_html(params[:queue])}'" : 'Failed' %> Jobs" class="confirmSubmission" />
 </form>
 <% end %>
 
