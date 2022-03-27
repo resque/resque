@@ -2,13 +2,19 @@
 
 ### Fixed
 
-*
-*
+### Added
+
+## 2.2.1
+
+### Fixed
+
+* Escape HTML from the params to avoid XSS (#1790)
+* Remove vegas as a dependency (#1780)
 
 ### Added
 
 * Add support for specifying queues that workers should ignore when using globs
-*
+* Allow plugins to have spaces in their name (#1718)
 
 ## 2.2.0
 
