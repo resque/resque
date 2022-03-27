@@ -186,6 +186,8 @@ module Resque
       @skip_queues, @queues = queues.partition { |queue| queue.start_with?('!') }
       @skip_queues.map! { |queue| queue[1..-1] }
 
+      # The behavior of `queues` is dependent on the value of `@has_dynamic_queues: if it's true, the method returns the result of filtering @queues with `glob_match`
+      # if it's false, the method returns @queues directly. Since `glob_match` will cause skipped queues to be filtered out, we want to make sure it's called if we have @skip_queues.any?
       @has_dynamic_queues =
         @skip_queues.any? || WILDCARDS.any? { |char| @queues.join.include?(char) }
 
