@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.3.0"
 
   s.add_dependency "redis-namespace", "~> 1.6"
-  s.add_dependency "vegas", "~> 0.1.2"
   s.add_dependency "sinatra", ">= 0.9.2"
   s.add_dependency "multi_json", "~> 1.0"
   s.add_dependency "mono_logger", "~> 1.0"
@@ -44,6 +43,9 @@ Gem::Specification.new do |s|
     * A Rake task for starting a worker which processes jobs
     * A Sinatra app for monitoring queues, jobs, and workers.
 description
+
+  s.add_development_dependency "thin"
+  s.add_development_dependency "webrick"
 
   s.metadata['changelog_uri'] = 'https://github.com/resque/resque/blob/master/HISTORY.md'
 end
