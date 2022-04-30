@@ -2,6 +2,8 @@
 
 ### Fixed
 
+* Fix NoMethodError: undefined method 'application' for Rails:Module when Rails module is defined but not a full Rails app (#1799)
+
 ### Added
 
 ## 2.2.1
