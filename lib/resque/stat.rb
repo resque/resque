@@ -35,8 +35,8 @@ module Resque
     #
     # Can optionally accept a second int parameter. The stat is then
     # incremented by that amount.
-    def incr(stat, by = 1)
-      data_store.increment_stat(stat,by)
+    def incr(stat, by = 1, **opts)
+      data_store.increment_stat(stat, by, **opts)
     end
 
     # Increments a stat by one.
@@ -58,8 +58,8 @@ module Resque
     end
 
     # Removes a stat from Redis, effectively setting it to 0.
-    def clear(stat)
-      data_store.clear_stat(stat)
+    def clear(stat, **opts)
+      data_store.clear_stat(stat, **opts)
     end
   end
 end
