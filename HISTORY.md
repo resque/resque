@@ -3,6 +3,7 @@
 ### Fixed
 
 * Fix NoMethodError: undefined method 'application' for Rails:Module when Rails module is defined but not a full Rails app (#1799)
+* Fix pagination section (#1809)
 
 ### Added
 
