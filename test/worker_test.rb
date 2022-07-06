@@ -24,6 +24,23 @@ describe "Resque::Worker" do
     Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
   end
 
+  it 'worker is paused' do
+    Resque.redis.set('pause-all-workers', 'true')
+    assert_equal true, @worker.paused?
+    Resque.redis.set('pause-all-workers', 'TRUE')
+    assert_equal true, @worker.paused?
+    Resque.redis.set('pause-all-workers', 'True')
+    assert_equal true, @worker.paused?
+  end
+
+  it 'worker is not paused' do
+    assert_equal false, @worker.paused?
+    Resque.redis.set('pause-all-workers', 'false')
+    assert_equal false, @worker.paused?
+    Resque.redis.del('pause-all-workers')
+    assert_equal false, @worker.paused?
+  end
+
   it "can fail jobs" do
     Resque::Job.create(:jobs, BadJob)
     @worker.work(0)

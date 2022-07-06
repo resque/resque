@@ -4,6 +4,7 @@
 
 * Fix NoMethodError: undefined method 'application' for Rails:Module when Rails module is defined but not a full Rails app (#1799)
 * Fix pagination section (#1809)
+* Added support for pausing all workers by setting the Redis key `pause-all-workers` to string value "true" (#1803)
 
 ### Added
 

@@ -579,7 +579,7 @@ module Resque
 
     # are we paused?
     def paused?
-      @paused
+      @paused || redis.get('pause-all-workers').to_s.strip.downcase == 'true'
     end
 
     # Stop processing jobs after the current one has completed (if we're
