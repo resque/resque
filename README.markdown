@@ -716,7 +716,7 @@ If you want to kill a stale or stuck child and shutdown, use `TERM`
 
 If you want to stop processing jobs, but want to leave the worker running
 (for example, to temporarily alleviate load), use `USR2` to stop processing,
-then `CONT` to start it again.
+then `CONT` to start it again. It's also possible to [pause all workers](#pausing-all-workers).
 
 #### Heroku
 
@@ -739,6 +739,22 @@ time to complete before being forced to die.
 * `TERM_CHILD` - Must be set for `RESQUE_PRE_SHUTDOWN_TIMEOUT` to be used. After the timeout, if the child is still running it will raise a `Resque::TermException` and exit.
 
 * `RESQUE_TERM_TIMEOUT` - By default you have a few seconds to handle `Resque::TermException` in your job. `RESQUE_TERM_TIMEOUT` and `RESQUE_PRE_SHUTDOWN_TIMEOUT` must be lower than the [heroku dyno timeout](https://devcenter.heroku.com/articles/limits#exit-timeout).
+
+#### Pausing all workers
+
+Workers will not process pending jobs if the Redis key `pause-all-workers` is set with the string value "true".
+
+``` ruby
+Resque.redis.set('pause-all-workers', 'true')
+```
+
+Nothing happens to jobs that are already being processed by workers.
+
+Unpause by removing the Redis key `pause-all-workers`.
+
+``` ruby
+Resque.redis.del('pause-all-workers')
+```
 
 #### Monitoring
 
