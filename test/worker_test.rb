@@ -34,6 +34,7 @@ describe "Resque::Worker" do
   end
 
   it 'worker is not paused' do
+    assert_equal false, @worker.paused?
     Resque.redis.set('pause-all-workers', 'false')
     assert_equal false, @worker.paused?
     Resque.redis.del('pause-all-workers')
