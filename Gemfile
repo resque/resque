@@ -1,11 +1,11 @@
 source "https://rubygems.org"
 gemspec
 
-case resque_version = ENV.fetch('REDIS_VERSION', 'latest')
+case redis_version = ENV.fetch('REDIS_VERSION', 'latest')
 when 'latest'
   gem 'redis', '~> 4.7'
 else
-  gem 'redis', resque_version
+  gem 'redis', redis_version
 end
 
 gem "json"
