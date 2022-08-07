@@ -9,6 +9,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
     strategy:
       fail-fast: false
       matrix:
@@ -25,6 +31,13 @@ jobs:
           - "3.0"
           - 3.1
           - head
+        exclude:
+          - ruby-version: 2.3
+            redis-version: latest
+          - ruby-version: head
+            redis-version: 3.3
+
+
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
 
@@ -34,7 +47,6 @@ jobs:
         with:
           ruby-version: "${{ matrix.ruby-version }}"
           bundler-cache: true
-      - run: sudo apt-get install redis-server
       - run: bundle exec rake
 
   rubocop:
