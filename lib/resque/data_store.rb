@@ -94,9 +94,9 @@ module Resque
         @redis = redis
       end
       def push_to_queue(queue,encoded_item)
-        @redis.pipelined do
+        @redis.pipelined do |pipeline|
           watch_queue(queue)
-          @redis.rpush redis_key_for_queue(queue), encoded_item
+          pipeline.rpush redis_key_for_queue(queue), encoded_item
         end
       end
 
@@ -123,9 +123,9 @@ module Resque
       end
 
       def remove_queue(queue)
-        @redis.pipelined do
-          @redis.srem(:queues, queue.to_s)
-          @redis.del(redis_key_for_queue(queue))
+        @redis.pipelined do |pipeline|
+          pipeline.srem(:queues, queue.to_s)
+          pipeline.del(redis_key_for_queue(queue))
         end
       end
 
@@ -231,8 +231,8 @@ module Resque
       end
 
       def register_worker(worker)
-        @redis.pipelined do
-          @redis.sadd(:workers, worker)
+        @redis.pipelined do |pipeline|
+          pipeline.sadd(:workers, worker)
           worker_started(worker)
         end
       end
@@ -242,11 +242,11 @@ module Resque
       end
 
       def unregister_worker(worker, &block)
-        @redis.pipelined do
-          @redis.srem(:workers, worker)
-          @redis.del(redis_key_for_worker(worker))
-          @redis.del(redis_key_for_worker_start_time(worker))
-          @redis.hdel(HEARTBEAT_KEY, worker.to_s)
+        @redis.pipelined do |pipeline|
+          pipeline.srem(:workers, worker)
+          pipeline.del(redis_key_for_worker(worker))
+          pipeline.del(redis_key_for_worker_start_time(worker))
+          pipeline.hdel(HEARTBEAT_KEY, worker.to_s)
 
           block.call
         end
@@ -282,8 +282,8 @@ module Resque
       end
 
       def worker_done_working(worker, &block)
-        @redis.pipelined do
-          @redis.del(redis_key_for_worker(worker))
+        @redis.pipelined do |pipeline|
+          pipeline.del(redis_key_for_worker(worker))
           block.call
         end
       end
