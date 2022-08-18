@@ -24,4 +24,26 @@ module Resque
 
   # Raised when child process is TERM'd so job can rescue this to do shutdown work.
   class TermException < SignalException; end
+
+  class EagerLoadConfigurationError < StandardError
+    def initialize
+      super(with_message)
+    end
+
+    private
+
+    def with_message
+      <<~MSG
+        Eager load for environments is not configured correctly.
+        You need to specify a block with boolean values set for each
+        of your project environments. For example:
+        
+          Resque.rails_eager_load_configure do |environment|
+            environment.development = false
+            environment.staging = true
+            environment.production = true
+          end
+      MSG
+    end
+  end
 end

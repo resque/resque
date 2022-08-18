@@ -886,7 +886,7 @@ module Resque
 
     attr_reader :verbose, :very_verbose
 
-    def verbose=(value);
+    def verbose=(value)
       if value && !very_verbose
         Resque.logger.formatter = VerboseFormatter.new
         Resque.logger.level = Logger::INFO

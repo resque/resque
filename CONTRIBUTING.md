@@ -72,6 +72,6 @@ helpful.
 Help
 ----
 
-If you have a question or want to discuss something, the Resque mailng list
+If you have a question or want to discuss something, the Resque mailing list
 might just be the place. [resque@librelist.com](mailto:resque@librelist.com)
 is the address you want, send an email there and it'll take care of you.
