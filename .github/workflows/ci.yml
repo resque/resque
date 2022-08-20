@@ -12,6 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        redis-version:
+          - 4.0
+          - 4.1
+          - 4.2
+          - 4.3
+          - 4.4
+          - 4.5
+          - 4.6
+          - latest
         ruby-version:
           - 2.3
           - 2.4
@@ -21,6 +30,13 @@ jobs:
           - "3.0"
           - 3.1
           - head
+        exclude:
+          - { ruby-version: 2.3, redis-version: 4.5 }
+          - { ruby-version: 2.3, redis-version: 4.6 }
+          - { ruby-version: 2.3, redis-version: latest }
+    env:
+      REDIS_VERSION: "${{ matrix.redis-version }}"
+
     steps:
       - uses: actions/checkout@v3
       - uses: ruby/setup-ruby@v1
