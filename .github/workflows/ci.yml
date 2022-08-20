@@ -27,9 +27,13 @@ jobs:
           - 2.5
           - 2.6
           - 2.7
-          - 3.0
+          - "3.0"
           - 3.1
           - head
+        exclude:
+          - { ruby-version: 2.3, redis-version: 4.5 }
+          - { ruby-version: 2.3, redis-version: 4.6 }
+          - { ruby-version: 2.3, redis-version: latest }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
 
