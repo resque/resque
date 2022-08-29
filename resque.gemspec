@@ -23,6 +23,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = ">= 2.3.0"
 
   s.add_dependency "redis-namespace", "~> 1.6"
+  s.add_dependency "redis", ">= 4", "<5"
   s.add_dependency "sinatra", ">= 0.9.2"
   s.add_dependency "multi_json", "~> 1.0"
   s.add_dependency "mono_logger", "~> 1.0"
