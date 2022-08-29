@@ -3,7 +3,7 @@ gemspec
 
 case redis_version = ENV.fetch('REDIS_VERSION', 'latest')
 when 'latest'
-  gem 'redis', '~> 4.7'
+  gem 'redis', '~> 5.0'
 else
   gem 'redis', "~> #{redis_version}.0"
 end

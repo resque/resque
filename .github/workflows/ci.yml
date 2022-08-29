@@ -20,6 +20,8 @@ jobs:
           - 4.4
           - 4.5
           - 4.6
+          - 4.7
+          - 4.8
           - latest
         ruby-version:
           - 2.3
