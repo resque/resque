@@ -93,7 +93,7 @@ describe "Resque::Worker" do
       assert_equal "at_exit", File.open(tmpfile).read.strip
     else
       # ensure we actually fork
-      Resque.redis.reconnect
+      Resque.redis.disconnect!
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       worker.run_at_exit_hooks = true
@@ -121,7 +121,7 @@ describe "Resque::Worker" do
       Process.waitpid(worker_pid)
     else
       # ensure we actually fork
-      Resque.redis.reconnect
+      Resque.redis.disconnect!
       Resque::Job.create(:not_failing_job, RaiseExceptionOnFailure)
       worker = Resque::Worker.new(:not_failing_job)
       worker.run_at_exit_hooks = true
@@ -141,7 +141,7 @@ describe "Resque::Worker" do
       assert !File.exist?(tmpfile), "The file '#{tmpfile}' exists, at_exit hooks were run"
     else
       # ensure we actually fork
-      Resque.redis.reconnect
+      Resque.redis.disconnect!
       Resque::Job.create(:at_exit_jobs, AtExitJob, tmpfile)
       worker = Resque::Worker.new(:at_exit_jobs)
       suppress_warnings do
@@ -1197,6 +1197,7 @@ describe "Resque::Worker" do
       Resque::Job.create(:jobs, SomeJob, 20, '/tmp')
       workerA.work(0)
 
+      pipe_rd.wait_readable(1)
       assert_equal('hey', pipe_rd.read_nonblock(3))
     ensure
       pipe_rd.close
@@ -1264,12 +1265,12 @@ describe "Resque::Worker" do
     assert_equal 1, Resque::Failure.count
   end
 
-  it "no reconnects to redis when not forking" do
-    original_connection = Resque.redis._client.connection.instance_variable_get("@sock")
+  it "no disconnect from redis when not forking" do
+    original_connection = redis_socket(Resque.redis)
     without_forking do
       @worker.work(0)
     end
-    assert_equal original_connection, Resque.redis._client.connection.instance_variable_get("@sock")
+    assert_equal original_connection, redis_socket(Resque.redis)
   end
 
   it "logs errors with the correct logging level" do
@@ -1342,9 +1343,9 @@ describe "Resque::Worker" do
     end
 
     it "reconnects to redis after fork" do
-      original_connection = Resque.redis._client.connection.instance_variable_get("@sock").object_id
+      original_connection = redis_socket(Resque.redis).object_id
       new_connection = run_in_job do
-        Resque.redis._client.connection.instance_variable_get("@sock").object_id
+        redis_socket(Resque.redis).object_id
       end
       assert Resque.redis._client.connected?
       refute_equal original_connection, new_connection
@@ -1381,7 +1382,7 @@ describe "Resque::Worker" do
         @queue = :long_running_job
 
         def self.perform(run_time)
-          Resque.redis.reconnect # get its own connection
+          Resque.redis.disconnect! # get its own connection
           Resque.redis.rpush('pre-term-timeout-test:start', Process.pid)
           sleep run_time
           Resque.redis.rpush('pre-term-timeout-test:result', 'Finished Normally')
@@ -1403,7 +1404,7 @@ describe "Resque::Worker" do
 
             worker_pid = Kernel.fork do
               # reconnect to redis
-              Resque.redis.reconnect
+              Resque.redis.disconnect!
 
               worker = Resque::Worker.new(:long_running_job)
               worker.pre_shutdown_timeout = pre_shutdown_timeout
@@ -1471,6 +1472,16 @@ describe "Resque::Worker" do
       assert_match(/Child process received unhandled signal pid \d+ SIGKILL \(signal 9\)/, exception.message)
 
       assert_kind_of Process::Status, exception.process_status
+    end
+  end
+
+  private
+
+  def redis_socket(redis)
+    if ::Redis::VERSION < "5"
+      redis._client.connection.instance_variable_get(:@sock)
+    else
+      redis._client.instance_variable_get(:@raw_connection)
     end
   end
 end

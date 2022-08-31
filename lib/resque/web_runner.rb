@@ -286,7 +286,7 @@ module Resque
             begin
               handler = Rack::Handler.get(server)
               break
-            rescue LoadError, NameError => e
+            rescue LoadError, NameError
               next
             end
           end
