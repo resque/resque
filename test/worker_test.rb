@@ -1415,7 +1415,7 @@ describe "Resque::Worker" do
             end
 
             # ensure the worker is started
-            start_status = Resque.redis.blpop('pre-term-timeout-test:start', 5)
+            start_status = Resque.redis.blpop('pre-term-timeout-test:start', timeout: 5)
             refute start_status == nil
             child_pid = start_status[1].to_i
             assert_operator child_pid, :>, 0
@@ -1425,7 +1425,7 @@ describe "Resque::Worker" do
             Process.waitpid(worker_pid)
 
             # wait to see how it all came down
-            result = Resque.redis.blpop('pre-term-timeout-test:result', 5)
+            result = Resque.redis.blpop('pre-term-timeout-test:result', timeout: 5)
             refute result == nil
 
             if run_time >= pre_shutdown_timeout
