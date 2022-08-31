@@ -7,7 +7,7 @@ describe "Resque::Worker" do
     @queue = :long_running_job
 
     def self.perform( sleep_time, rescue_time=nil )
-      Resque.redis.reconnect # get its own connection
+      Resque.redis.disconnect! # get its own connection
       Resque.redis.rpush( 'sigterm-test:start', Process.pid )
       sleep sleep_time
       Resque.redis.rpush( 'sigterm-test:result', 'Finished Normally' )
@@ -23,8 +23,8 @@ describe "Resque::Worker" do
     Resque.enqueue( LongRunningJob, 3, rescue_time )
 
     worker_pid = Kernel.fork do
-      # reconnect since we just forked
-      Resque.redis.reconnect
+      # disconnect since we just forked
+      Resque.redis.disconnect!
 
       worker = Resque::Worker.new(:long_running_job)
       worker.term_timeout = term_timeout

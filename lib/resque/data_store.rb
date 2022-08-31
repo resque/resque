@@ -79,7 +79,9 @@ module Resque
     # Force a reconnect to Redis without closing the connection in the parent
     # process after a fork.
     def reconnect
-      @redis._client.connect
+      @redis.disconnect!
+      @redis.ping
+      nil
     end
 
     # Returns an array of all known Resque keys in Redis. Redis' KEYS operation
@@ -238,7 +240,7 @@ module Resque
 
       def register_worker(worker)
         @redis.pipelined do |piped|
-          piped.sadd(:workers, [worker])
+          piped.sadd(:workers, [worker.id])
           worker_started(worker, redis: piped)
         end
       end
@@ -249,7 +251,7 @@ module Resque
 
       def unregister_worker(worker, &block)
         @redis.pipelined do |piped|
-          piped.srem(:workers, [worker])
+          piped.srem(:workers, [worker.id])
           piped.del(redis_key_for_worker(worker))
           piped.del(redis_key_for_worker_start_time(worker))
           piped.hdel(HEARTBEAT_KEY, worker.to_s)
