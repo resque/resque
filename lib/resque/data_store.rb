@@ -130,7 +130,7 @@ module Resque
 
       def remove_queue(queue)
         @redis.pipelined do |piped|
-          piped.srem(:queues, queue.to_s)
+          piped.srem(:queues, [queue.to_s])
           piped.del(redis_key_for_queue(queue))
         end
       end
@@ -146,7 +146,7 @@ module Resque
 
       # Private: do not call
       def watch_queue(queue, redis: @redis)
-        redis.sadd(:queues, queue.to_s)
+        redis.sadd(:queues, [queue.to_s])
       end
 
       # Private: do not call
@@ -172,7 +172,7 @@ module Resque
       end
 
       def add_failed_queue(failed_queue_name)
-        @redis.sadd(:failed_queues, failed_queue_name)
+        @redis.sadd(:failed_queues, [failed_queue_name])
       end
 
       def remove_failed_queue(failed_queue_name=:failed)
@@ -238,7 +238,7 @@ module Resque
 
       def register_worker(worker)
         @redis.pipelined do |piped|
-          piped.sadd(:workers, worker)
+          piped.sadd(:workers, [worker])
           worker_started(worker, redis: piped)
         end
       end
@@ -249,7 +249,7 @@ module Resque
 
       def unregister_worker(worker, &block)
         @redis.pipelined do |piped|
-          piped.srem(:workers, worker)
+          piped.srem(:workers, [worker])
           piped.del(redis_key_for_worker(worker))
           piped.del(redis_key_for_worker_start_time(worker))
           piped.hdel(HEARTBEAT_KEY, worker.to_s)
