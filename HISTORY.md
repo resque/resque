@@ -1,3 +1,12 @@
+## 2.4.0
+
+### Fixed
+
+* Remove `thread_safe` arg in Redis instantiaons (#1822)
+* Updated Test Matrix for Redis 5.0 (#1824)
+* Fix redis-rb 4.8 deprecation warnings (#1827)
+* Fix redis-rb 5.0 compatibility issues (#1828)
+
 ## 2.3.0
 
 ### Fixed
