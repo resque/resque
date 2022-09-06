@@ -139,9 +139,10 @@ module Resque
 
     # Given a string queue name, returns an instance of Resque::Job
     # if any jobs are available. If not, returns nil.
-    def self.reserve(queue)
-      return unless payload = Resque.pop(queue)
-      new(queue, payload)
+    def self.reserve(*queues, interval: 0)
+      queue, payload = Resque.pop(*queues, interval: interval)
+      return if !queue || !payload
+      return new(queue, payload)
     end
 
     # Attempts to perform the work represented by this job instance.

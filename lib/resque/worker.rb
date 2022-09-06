@@ -246,12 +246,18 @@ module Resque
       loop do
         break if shutdown?
 
-        unless work_one_job(&block)
+        # Wait until queues are populated. If queues is a glob and there are no
+        # queues defined yet, we can wait until the queues become defined in
+        # redis.
+        while queues.empty?
+          procline "Waiting for queues to be defined"
+          sleep 5.seconds
+        end
+
+        unless work_one_job(interval: interval, &block)
           state_change
           break if interval.zero?
-          log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
-          sleep interval
         end
       end
 
@@ -264,9 +270,9 @@ module Resque
       run_hook :worker_exit
     end
 
-    def work_one_job(job = nil, &block)
+    def work_one_job(job = nil, interval: 0, &block)
       return false if paused?
-      return false unless job ||= reserve
+      return false unless job ||= reserve(interval: interval)
 
       working_on job
       procline "Processing #{job.queue} since #{Time.now.to_i} [#{job.payload_class_name}]"
@@ -331,16 +337,8 @@ module Resque
 
     # Attempts to grab a job off one of the provided queues. Returns
     # nil if no job can be found.
-    def reserve
-      queues.each do |queue|
-        log_with_severity :debug, "Checking #{queue}"
-        if job = Resque.reserve(queue)
-          log_with_severity :debug, "Found job on #{queue}"
-          return job
-        end
-      end
-
-      nil
+    def reserve(interval: 0)
+      return Resque.reserve(*queues, interval: interval)
     rescue Exception => e
       log_with_severity :error, "Error reserving job: #{e.inspect}"
       log_with_severity :error, e.backtrace.join("\n")

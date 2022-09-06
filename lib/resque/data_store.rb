@@ -106,9 +106,17 @@ module Resque
         end
       end
 
-      # Pop whatever is on queue
-      def pop_from_queue(queue)
-        @redis.lpop(redis_key_for_queue(queue))
+      # Pop whatever is on queue. Returns the queue name and the object if
+      # popped or nil.
+      def pop_from_queue(*queues, interval: 0)
+        if interval.to_i > 0
+          return @redis.blpop(queues.map { redis_key_for_queue(_1) }, interval.to_i)
+        else
+          return queues.detect do |queue|
+            value = @redis.lpop(redis_key_for_queue(queue))
+            break [queue, value] if !value.nil?
+          end
+        end
       end
 
       # Get the number of items in the queue
