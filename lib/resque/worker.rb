@@ -15,6 +15,8 @@ module Resque
     extend Resque::Helpers
     include Resque::Logging
 
+    REPORTING_INTERVAL = 5 # seconds
+
     @@all_heartbeat_threads = []
     def self.kill_all_heartbeat_threads
       @@all_heartbeat_threads.each(&:kill).each(&:join)
@@ -243,20 +245,29 @@ module Resque
       interval = Float(interval)
       startup
 
-      loop do
-        break if shutdown?
+      # Wait until queues are populated. If queues is a glob and there are no
+      # queues defined yet, we can wait until the queues become defined in
+      # redis.
+      while queues.empty?
+        procline "Waiting for queues to be defined"
+        sleep 5.seconds
+      end
 
-        # Wait until queues are populated. If queues is a glob and there are no
-        # queues defined yet, we can wait until the queues become defined in
-        # redis.
-        while queues.empty?
-          procline "Waiting for queues to be defined"
-          sleep 5.seconds
-        end
+      procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
 
-        unless work_one_job(interval: interval, &block)
-          state_change
+      while !shutdown?
+        # If the worker is currently idle, block to pull an item off the queue.
+        # If one is successfully completed, the state will transition to
+        # :working, otherwise it will remain :idle and we'll loop again to block
+        # for the interval. If we're :working because work was done, pop another
+        # work item off the queue *without* blocking. If work is immediately
+        # available, remain in the :working state, otherwise, transition to
+        # :idle and then block the next time.
+        if interval > 0 && @last_state == :idle
+          state_change if !work_one_job(interval: interval, &block)
+        elsif !work_one_job(&block)
           break if interval.zero?
+          state_change
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
         end
       end
@@ -523,9 +534,24 @@ module Resque
       @heartbeat_thread_signal = Resque::ThreadSignal.new
 
       @heartbeat_thread = Thread.new do
+        next_heartbeat = Time.now.utc + Resque.heartbeat_interval
+        next_report = Time.now.utc + REPORTING_INTERVAL
+        interval = [REPORTING_INTERVAL, Resque.heartbeat_interval].min
+
         loop do
-          heartbeat!
-          signaled = @heartbeat_thread_signal.wait_for_signal(Resque.heartbeat_interval)
+          now = Time.now.utc
+
+          if now + interval > next_heartbeat
+            heartbeat!
+            next_heartbeat = now + Resque.heartbeat_interval
+          end
+
+          if now + interval > next_report
+            report_state
+            next_report = now + REPORTING_INTERVAL
+          end
+
+          signaled = @heartbeat_thread_signal.wait_for_signal(interval)
           break if signaled
         end
       end
@@ -729,7 +755,26 @@ module Resque
       end
     end
 
+    def report_state
+      current_state = state
+      current_time = Time.now.utc
+      @last_report_time ||= current_time
+
+      # Report at least every 5 seconds if the state is the same, otherwise
+      # report on state changes.
+      if @last_state.present? && (current_state != @last_state || @last_report_time.before?(current_time - REPORTING_INTERVAL))
+        @queue_tags ||= self.queues.each_with_index.to_h { |queue, index| [:"queue_#{index}", StringUtil.datadog_pretty(queue)] }.merge(
+          queues: StringUtil.datadog_pretty(self.queues.join(':')),
+          worker_uuid: "#{ENV['HOSTNAME']}-#{Process.pid}",
+        )
+        BranchUtil.increment(:'active_job.worker', by: current_time - @last_report_time, worker_status: @last_state, **@queue_tags)
+        STATSD.flush
+        @last_report_time = current_time
+      end
+    end
+
     def state_change
+      report_state
       current_state = state
       if current_state != @last_state
         run_hook :queue_empty if current_state == :idle
