@@ -3,6 +3,22 @@ require 'test_helper'
 describe "Resque::Job before_perform" do
   include PerformJob
 
+  class ::UnnamedHookIsIgnored
+    def self.before_perform(history)
+      history << :before_perform
+    end
+
+    def self.perform(history)
+      history << :perform
+    end
+  end
+
+  it "it does not perofrm before_perform" do
+    result = perform_job(UnnamedHookIsIgnored, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [:perform]
+  end
+
   class ::BeforePerformJob
     def self.before_perform_record_history(history)
       history << :before_perform
