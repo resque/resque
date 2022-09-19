@@ -3,19 +3,19 @@ require 'test_helper'
 describe "Resque::Plugin finding hooks" do
   module SimplePlugin
     extend self
-    def before_perform1; end
-    def before_perform; end
-    def before_perform2; end
-    def after_perform1; end
-    def after_perform; end
-    def after_perform2; end
+    def before_perform_second; end
+    def before_perform_first; end
+    def before_perform_third; end
+    def after_perform_second; end
+    def after_perform_first; end
+    def after_perform_third; end
     def perform; end
-    def around_perform1; end
-    def around_perform; end
-    def around_perform2; end
-    def on_failure1; end
-    def on_failure; end
-    def on_failure2; end
+    def around_perform_second; end
+    def around_perform_first; end
+    def around_perform_third; end
+    def on_failure_second; end
+    def on_failure_first; end
+    def on_failure_third; end
   end
 
   module HookBlacklistJob
@@ -29,19 +29,19 @@ describe "Resque::Plugin finding hooks" do
   end
 
   it "before_perform hooks are found and sorted" do
-    assert_equal ["before_perform", "before_perform1", "before_perform2"], Resque::Plugin.before_hooks(SimplePlugin).map {|m| m.to_s}
+    assert_equal ["before_perform_first", "before_perform_second", "before_perform_third"], Resque::Plugin.before_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   it "after_perform hooks are found and sorted" do
-    assert_equal ["after_perform", "after_perform1", "after_perform2"], Resque::Plugin.after_hooks(SimplePlugin).map {|m| m.to_s}
+    assert_equal ["after_perform_first", "after_perform_second", "after_perform_third"], Resque::Plugin.after_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   it "around_perform hooks are found and sorted" do
-    assert_equal ["around_perform", "around_perform1", "around_perform2"], Resque::Plugin.around_hooks(SimplePlugin).map {|m| m.to_s}
+    assert_equal ["around_perform_first", "around_perform_second", "around_perform_third"], Resque::Plugin.around_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   it "on_failure hooks are found and sorted" do
-    assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
+    assert_equal ["on_failure_first", "on_failure_second", "on_failure_third"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
   end
 
   it 'uses job.hooks if available get hook methods' do
@@ -100,31 +100,31 @@ describe "Resque::Plugin linting" do
   end
 
   module GoodBefore
-    def self.before_perform1; end
+    def self.before_perform_second; end
   end
   module GoodAfter
-    def self.after_perform1; end
+    def self.after_perform_second; end
   end
   module GoodAround
-    def self.around_perform1; end
+    def self.around_perform_second; end
   end
   module GoodFailure
-    def self.on_failure1; end
+    def self.on_failure_second; end
   end
 
-  it "before_perform1 is an ok name" do
+  it "before_perform_second is an ok name" do
     Resque::Plugin.lint(GoodBefore)
   end
 
-  it "after_perform1 is an ok name" do
+  it "after_perform_second is an ok name" do
     Resque::Plugin.lint(GoodAfter)
   end
 
-  it "around_perform1 is an ok name" do
+  it "around_perform_second is an ok name" do
     Resque::Plugin.lint(GoodAround)
   end
 
-  it "on_failure1 is an ok name" do
+  it "on_failure_second is an ok name" do
     Resque::Plugin.lint(GoodFailure)
   end
 end
