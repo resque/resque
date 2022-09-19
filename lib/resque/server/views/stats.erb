@@ -6,7 +6,7 @@
 
 <% elsif params[:id] == "resque" %>
 
-  <h1><%= resque %></h1>
+  <h1><%= h resque %></h1>
   <table class='stats'>
   <% for key, value in resque.info.to_a.sort_by { |i| i[0].to_s } %>
     <tr>
