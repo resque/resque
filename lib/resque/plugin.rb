@@ -2,27 +2,6 @@ module Resque
   module Plugin
     extend self
 
-    LintError = Class.new(RuntimeError)
-
-    # Ensure that your plugin conforms to good hook naming conventions.
-    #
-    #   Resque::Plugin.lint(MyResquePlugin)
-    def lint(plugin)
-      hooks = before_hooks(plugin) + around_hooks(plugin) + after_hooks(plugin)
-
-      hooks.each do |hook|
-        if hook.to_s.end_with?("perform")
-          raise LintError, "#{plugin}.#{hook} is not namespaced"
-        end
-      end
-
-      failure_hooks(plugin).each do |hook|
-        if hook.to_s.end_with?("failure")
-          raise LintError, "#{plugin}.#{hook} is not namespaced"
-        end
-      end
-    end
-
     @job_methods = {}
     def job_methods(job)
       @job_methods[job] ||= job.methods.collect{|m| m.to_s}

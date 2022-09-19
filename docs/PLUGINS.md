@@ -78,18 +78,4 @@ Bad:
 * on_failure
 
 
-Lint
-----
-
-Plugins should test compliance to this document using the
-`Resque::Plugin.lint` method.
-
-For example:
-
-``` ruby
-assert_nothing_raised do
-  Resque::Plugin.lint(Resque::Plugins::Lock)
-end
-```
-
 [sv]: http://semver.org/
