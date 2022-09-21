@@ -81,8 +81,47 @@ describe 'Resque::WebRunner' do
         Resque::Server.set :server, false
       end
 
-      it 'sets the rack handler automaticaly' do
+      it 'sets the rack handler automatically' do
         assert_equal @runner.rack_handler, Rack::Handler::WEBrick
+      end
+    end
+
+    describe 'with a sinatra app without an explicit server setting' do
+      def web_runner(*args)
+        Resque::WebRunner.any_instance.stubs(:daemonize!).once
+        Rack::Handler::WEBrick.stubs(:run).once
+        @runner = Resque::WebRunner.new(*args)
+      end
+
+      before do
+        Resque::Server.set :server, ["invalid", "webrick", "thin"]
+        Rack::Handler::WEBrick.stubs(:run)
+        web_runner("route", "--debug", skip_launch: true, sessions: true)
+      end
+
+      after do
+        Resque::Server.set :server, false
+      end
+
+      it 'sets the first valid rack handler' do
+        assert_equal @runner.rack_handler, Rack::Handler::WEBrick
+      end
+    end
+
+    describe 'with a sinatra app without available server settings' do
+      before do
+        Resque::Server.set :server, ["invalid"]
+      end
+
+      after do
+        Resque::Server.set :server, false
+      end
+
+      it 'raises an error indicating that no available Rack handler was found' do
+        err = assert_raises StandardError do
+          Resque::WebRunner.new(skip_launch: true, sessions: true)
+        end
+        assert_match('No available Rack handler (e.g. WEBrick, Thin, Puma, etc.) was found.', err.message)
       end
     end
 

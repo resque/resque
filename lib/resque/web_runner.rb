@@ -290,6 +290,8 @@ module Resque
               next
             end
           end
+          raise 'No available Rack handler (e.g. WEBrick, Thin, Puma, etc.) was found.' if handler.nil?
+
           handler
 
         # :server might be set explicitly to a single option like "mongrel"
