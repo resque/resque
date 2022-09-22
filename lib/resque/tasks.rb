@@ -16,7 +16,7 @@ namespace :resque do
     end
 
     worker.prepare
-    worker.log "Starting worker #{self}"
+    worker.log "Starting worker #{worker}"
     worker.work(ENV['INTERVAL'] || 5) # interval, will block
   end
 
