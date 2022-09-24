@@ -67,7 +67,9 @@ module Resque
       def redis_get_size(key)
         case Resque.redis.type(key)
         when 'none'
-          []
+          0
+        when 'hash'
+          Resque.redis.hlen(key)
         when 'list'
           Resque.redis.llen(key)
         when 'set'
@@ -83,6 +85,8 @@ module Resque
         case Resque.redis.type(key)
         when 'none'
           []
+        when 'hash'
+          Resque.redis.hgetall(key).to_a[start..(start + 20)]
         when 'list'
           Resque.redis.lrange(key, start, start + 20)
         when 'set'
