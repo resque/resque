@@ -234,10 +234,10 @@ module Resque
     end
 
     def status
-      if File.exists?(pid_file)
+      if File.exist?(pid_file)
         logger.info "'#{app_name}' running"
         logger.info "PID #{File.read(pid_file)}"
-        logger.info "URL #{File.read(url_file)}" if File.exists?(url_file)
+        logger.info "URL #{File.read(url_file)}" if File.exist?(url_file)
       else
         logger.info "'#{app_name}' not running!"
       end
