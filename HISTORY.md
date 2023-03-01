@@ -1,3 +1,18 @@
+## 2.5.0
+
+### Fixed
+
+* Replace `File.exists?` with `File.exist?` (#1846)
+* Escape `Resque.redis_id` for stats page (#1834)
+* Escape resque info values (#1832)
+* Correctly show the values of hash and none type on stats tab (#1838)
+* Fix logging the worker name when starting the task (#1837)
+
+### Added
+
+* Raise an error when no available Rack server was found (#1836)
+* Move code in `Resque::Server.helpers` block into a module to make it testable (#1851)
+
 ## 2.4.0
 
 ### Fixed
