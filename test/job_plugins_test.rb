@@ -40,8 +40,8 @@ describe "Resque::Plugin ordering before_perform" do
   include PerformJob
 
   module BeforePerformPlugin
-    def before_perform1(history)
-      history << :before_perform1
+    def before_perform_plugin(history)
+      history << :before_perform_plugin
     end
   end
 
@@ -50,15 +50,15 @@ describe "Resque::Plugin ordering before_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.before_perform(history)
-      history << :before_perform
+    def self.before_perform_job(history)
+      history << :before_perform_job
     end
   end
 
   it "before_perform hooks are executed in order" do
     result = perform_job(JobPluginsTestBeforePerformJob, history=[])
     assert_equal true, result, "perform returned true"
-    assert_equal [:before_perform, :before_perform1, :perform], history
+    assert_equal [:before_perform_job, :before_perform_plugin, :perform], history
   end
 end
 
@@ -67,7 +67,7 @@ describe "Resque::Plugin ordering after_perform" do
 
   module AfterPerformPlugin
     def after_perform_record_history(history)
-      history << :after_perform1
+      history << :after_perform_plugin
     end
   end
 
@@ -76,15 +76,15 @@ describe "Resque::Plugin ordering after_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.after_perform(history)
-      history << :after_perform
+    def self.after_perform_job(history)
+      history << :after_perform_job
     end
   end
 
   it "after_perform hooks are executed in order" do
     result = perform_job(JobPluginsTestAfterPerformJob, history=[])
     assert_equal true, result, "perform returned true"
-    assert_equal [:perform, :after_perform, :after_perform1], history
+    assert_equal [:perform, :after_perform_job, :after_perform_plugin], history
   end
 end
 
@@ -92,7 +92,7 @@ describe "Resque::Plugin ordering around_perform" do
   include PerformJob
 
   module AroundPerformPlugin1
-    def around_perform1(history)
+    def around_perform_plugin1(history)
       history << :around_perform_plugin1
       yield
     end
@@ -116,8 +116,8 @@ describe "Resque::Plugin ordering around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
-      history << :around_perform
+    def self.around_perform_job(history)
+      history << :around_perform_job
       yield
     end
   end
@@ -125,11 +125,11 @@ describe "Resque::Plugin ordering around_perform" do
   it "around_perform hooks are executed in order" do
     result = perform_job(JobPluginsTestAroundPerformJob, history=[])
     assert_equal true, result, "perform returned true"
-    assert_equal [:around_perform, :around_perform_plugin1, :perform], history
+    assert_equal [:around_perform_job, :around_perform_plugin1, :perform], history
   end
 
   module AroundPerformPlugin2
-    def around_perform2(history)
+    def around_perform_plugin2(history)
       history << :around_perform_plugin2
       yield
     end
@@ -141,8 +141,8 @@ describe "Resque::Plugin ordering around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
-      history << :around_perform
+    def self.around_perform_job(history)
+      history << :around_perform_job
       yield
     end
   end
@@ -150,12 +150,12 @@ describe "Resque::Plugin ordering around_perform" do
   it "many around_perform are executed in order" do
     result = perform_job(AroundPerformJob2, history=[])
     assert_equal true, result, "perform returned true"
-    assert_equal [:around_perform, :around_perform_plugin1, :around_perform_plugin2, :perform], history
+    assert_equal [:around_perform_job, :around_perform_plugin1, :around_perform_plugin2, :perform], history
   end
 
   module AroundPerformDoesNotYield
-    def around_perform0(history)
-      history << :around_perform0
+    def around_perform_plugin(history)
+      history << :around_perform_plugin
     end
   end
 
@@ -166,8 +166,8 @@ describe "Resque::Plugin ordering around_perform" do
     def self.perform(history)
       history << :perform
     end
-    def self.around_perform(history)
-      history << :around_perform
+    def self.around_perform_job(history)
+      history << :around_perform_job
       yield
     end
   end
@@ -175,7 +175,7 @@ describe "Resque::Plugin ordering around_perform" do
   it "the job is aborted if an around_perform hook does not yield" do
     result = perform_job(AroundPerformJob3, history=[])
     assert_equal false, result, "perform returned false"
-    assert_equal [:around_perform, :around_perform0], history
+    assert_equal [:around_perform_job, :around_perform_plugin], history
   end
 
   module AroundPerformGetsJobResult
@@ -204,7 +204,7 @@ describe "Resque::Plugin ordering on_failure" do
   include PerformJob
 
   module OnFailurePlugin
-    def on_failure1(exception, history)
+    def on_failure_plugin(exception, history)
       history << "#{exception.message} plugin"
     end
   end
@@ -215,7 +215,7 @@ describe "Resque::Plugin ordering on_failure" do
       history << :perform
       raise StandardError, "oh no"
     end
-    def self.on_failure(exception, history)
+    def self.on_failure_job(exception, history)
       history << exception.message
     end
   end
