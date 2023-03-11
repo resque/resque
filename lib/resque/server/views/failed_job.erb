@@ -13,11 +13,8 @@
           <a href="<%= u "#{queue}/remove/#{id}" %>" class="remove" rel="remove">Remove</a>
         </div>
       <% else %>
-        <div class='controls'>
-          <a href="<%= u "#{queue}/requeue/#{id}" %>" rel="retry">Retry</a>
-          or
-          <a href="<%= u "#{queue}/remove/#{id}" %>" rel="remove">Remove</a>
-        </div>
+        <a class='controls' href="<%= u "#{queue}/requeue/#{id}" %>" rel="retry">Retry</a>
+        <a class='controls' href="<%= u "#{queue}/remove/#{id}" %>" rel="remove">Remove</a>
       <% end %>
     </dd>
     <dt>Class</dt>
