@@ -371,4 +371,99 @@ describe "Resque" do
       assert_equal 10, samples.count
     end
   end
+
+  describe '.rails_eager_load_enabled?' do
+    before { EagerLoadTestHelper.reset_config! }
+    after { ENV['RAILS_ENV'] = nil }
+
+    it 'returns eager load config value set to false by default when configuration has not been set' do
+      refute Resque.rails_eager_load_enabled?
+    end
+
+    it 'returns eager load config value when configuration has been set for all environments' do
+      Resque::Railtie::EagerLoad.configure { |configuration| configuration.enabled = true }
+
+      assert Resque.rails_eager_load_enabled?
+    end
+  end
+
+  describe '.rails_eager_load_enabled=' do
+    before { EagerLoadTestHelper.reset_config! }
+    after { ENV['RAILS_ENV'] = nil }
+
+    it 'returns eager load config value when configuration has been set for all environments' do
+      Resque.rails_eager_load_enabled = true
+
+      assert Resque.rails_eager_load_enabled?
+    end
+  end
+
+  describe '.rails_eager_load_configure(&block)' do
+    before { EagerLoadTestHelper.reset_config! }
+    after { ENV['RAILS_ENV'] = nil }
+
+    it 'returns eager load config value when configuration has been set for all environments' do
+      Resque.rails_eager_load_configure do |environment|
+        environment.development = false
+        environment.staging = true
+        environment.production = true
+      end
+
+      refute Resque.rails_eager_load_enabled?
+    end
+
+    it 'returns eager load config value when configuration has been set for all environments' do
+      ENV['RAILS_ENV'] = 'staging'
+
+      Resque.rails_eager_load_configure do |environment|
+        environment.development = false
+        environment.staging = true
+        environment.production = true
+      end
+
+      assert Resque.rails_eager_load_enabled?
+
+      environment_configuration = { 'development' => false, 'staging' => true, 'production' => true }
+
+      assert_equal environment_configuration, Resque::Railtie::EagerLoad.configuration.for_environments
+    end
+
+    it 'returns eager load config value when configuration has been set for all environments' do
+      ENV['RAILS_ENV'] = 'production'
+
+      Resque.rails_eager_load_configure do |environment|
+        environment.development = true
+        environment.staging = false
+        environment.production = true
+      end
+
+      assert Resque.rails_eager_load_enabled?
+
+      environment_configuration = { 'development' => true, 'staging' => false, 'production' => true }
+
+      assert_equal environment_configuration, Resque::Railtie::EagerLoad.configuration.for_environments
+    end
+
+    describe 'invalid configuration' do
+      it 'raises a ConfigurationError with the explanation' do
+        Resque.rails_eager_load_configure do |environment|
+          environment.invalid = true
+        end
+
+        error = _ { Resque.rails_eager_load_enabled? }.must_raise ::Resque::EagerLoadConfigurationError
+
+        assert_match EagerLoadTestHelper.configuration_error_message, error.message
+      end
+
+      it 'raises a ConfigurationError with the explanation when the configuration value for environments is not correct' do
+        error = assert_raises ::Resque::EagerLoadConfigurationError do
+          Resque.rails_eager_load_configure do |environment|
+            environment.development = 'invalid'
+          end
+        end
+
+        assert_match EagerLoadTestHelper.configuration_error_message, error.message
+      end
+    end
+  end
 end

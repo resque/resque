@@ -1,3 +1,17 @@
+## Unreleased
+
+### Fixed
+
+* Fix - Run `eager_load!` only if `Rails.application.config.eager_load` is true - from 2.0.0 version release
+  by adding flexible configuration. (#1818)
+
+### Added
+
+* `Resque::Railtie::EagerLoad` and `Resque::Railtie::EagerLoad::Configuration` classes for flexible eager load
+  configuration for Resque when used in a Rails application (#1818)
+
+*
+
 ## 2.5.0
 
 ### Fixed
@@ -82,7 +96,7 @@
 
 ### Fixed
 
-* live poller shouldn't restart itself until it successds or fails. #1740
+* live poller shouldn't restart itself until it succeeds or fails. #1740
 * Fix parsing worker_id when queue name includes colon. #1691
 * Prune workers which haven't been registered but have set a heartbeat. #1751
 * `Resque::Failure::Multiple.remove` did not pass on the queue parameter

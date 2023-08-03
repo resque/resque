@@ -188,6 +188,38 @@ ensure
   Resque::Failure.backend = previous_backend
 end
 
+class Rails
+  class Rails::Railtie
+    def self.rake_tasks; end
+  end
+end
+
+class EagerLoadTestHelper
+  class << self
+    def reset_config!
+      Resque.remove_instance_variable(:@rails_eager_load_enabled) if Resque.instance_variable_defined?(:@rails_eager_load_enabled)
+      Resque::Railtie::EagerLoad.instance_variable_set(:@_configuration, nil)
+      Resque::Railtie::EagerLoad.instance_variable_set(:@current_environment, nil)
+
+      ENV['RAILS_ENV'] = 'development'
+    end
+
+    def configuration_error_message
+      <<~MSG
+        Eager load for environments is not configured correctly.
+        You need to specify a block with boolean values set for each
+        of your project environments. For example:
+    
+          Resque.rails_eager_load_configure do |environment|
+            environment.development = false
+            environment.staging = true
+            environment.production = true
+          end
+      MSG
+    end
+  end
+end
+
 require 'time'
 
 class Time

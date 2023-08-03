@@ -144,6 +144,42 @@ end
 We don't want the `git_timeout` as high as 10 minutes in our web app,
 but in the Resque workers it's fine.
 
+#### Eager load configuration for Rails (`Resque::Railtie::EagerLoad`)
+
+Since `Resque` starts from the Rake task, the configuration of the `eager_load` option is permanently set to `false` by default
+from [this commit](https://github.com/rails/rails/pull/11389/files#diff-84292fcaae327f1a70e7c3b1ebb55b193dea016c1118a8566930bc5cd2a51ba5)
+at Rails. If your Rails application is `6.1.0` version or higher, you can configure eager loading for
+the Rake tasks environment using the `rake_eager_load` option that was added in [this commit](https://github.com/rails/rails/pull/28209/files#diff-84292fcaae327f1a70e7c3b1ebb55b193dea016c1118a8566930bc5cd2a51ba5)
+to provide the ability to override the default `false` value **for each Rake task of the environment**.
+
+To configure the `eager_load` option using the `Resque` interface, you can add in `config/initializers/resque.rb` the following:
+```ruby
+Resque.rails_eager_load_enabled = true # one configuration for each of your application environments
+```
+
+Or if you would like to configure the `eager_load` option depending on your Rails application environment, for example:
+```ruby
+Resque.rails_eager_load_configure do |environment|
+  environment.development = false
+  environment.staging = true
+  environment.production = true
+end
+```
+**NOTE:** If you use `rake_eager_load = true` in your Rails application (`version >= 6.1.0`) configuration, do not use
+`Resque.rails_eager_load_enabled=` or `Resque.rails_eager_load_configure(&block)` to avoid redundant eager namespaces loading.
+
+To check the eager load configuration from the Rails console:
+```ruby
+# If one configuration value is set for any environment.
+Resque::Railtie::EagerLoad.config.enabled
+
+# Show the configuration for all environments of your application.
+Resque::Railtie::EagerLoad.config.for_environments
+
+# Returns the value for current environment if it has been set (the default is `false`).
+Resque.rails_eager_load_enabled?
+```
+
 Running Workers
 ---------------
 

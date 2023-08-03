@@ -1,7 +1,6 @@
 # require 'resque/tasks'
 # will give you the resque tasks
 
-
 namespace :resque do
   task :setup
 
@@ -40,7 +39,7 @@ namespace :resque do
   # Preload app files if this is Rails
   task :preload => :setup do
     if defined?(Rails) && Rails.respond_to?(:application)
-      if Rails.application.config.eager_load
+      if Resque.rails_eager_load_enabled?
         ActiveSupport.run_load_hooks(:before_eager_load, Rails.application)
         Rails.application.config.eager_load_namespaces.each(&:eager_load!)
       end

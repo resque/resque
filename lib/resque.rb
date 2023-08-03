@@ -180,6 +180,21 @@ module Resque
     Resque::Stat.data_store
   end
 
+  def rails_eager_load_enabled
+    return @rails_eager_load_enabled if defined?(@rails_eager_load_enabled)
+
+    @rails_eager_load_enabled = Resque::Railtie::EagerLoad.enabled?
+  end
+  alias rails_eager_load_enabled? rails_eager_load_enabled
+
+  def rails_eager_load_enabled=(value)
+    Resque::Railtie::EagerLoad.configure.enabled = value
+  end
+
+  def rails_eager_load_configure(&block)
+    Resque::Railtie::EagerLoad.configure_for_environments(&block)
+  end
+
   # Set or retrieve the current logger object
   attr_accessor :logger
 
@@ -561,7 +576,7 @@ module Resque
 
   # Returns a hash, similar to redis-rb's #info, of interesting stats.
   def info
-    return {
+    {
       :pending   => queue_sizes.inject(0) { |sum, (_queue_name, queue_size)| sum + queue_size },
       :processed => Stat[:processed],
       :queues    => queues.size,
