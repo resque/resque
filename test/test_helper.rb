@@ -33,7 +33,7 @@ end
 # kill it when they end
 #
 
-MiniTest.after_run do
+Minitest.after_run do
   if Process.pid == $TEST_PID
     processes = `ps -A -o pid,command | grep [r]edis-test`.split("\n")
     pids = processes.map { |process| process.split(" ")[0] }
@@ -43,7 +43,7 @@ MiniTest.after_run do
   end
 end
 
-class GlobalSpecHooks < MiniTest::Spec
+class GlobalSpecHooks < Minitest::Spec
   def setup
     super
     reset_logger
@@ -101,7 +101,7 @@ module AssertInWorkBlock
         begin
           block_called = true
           block.call(*bargs)
-        rescue MiniTest::Assertion => ex
+        rescue Minitest::Assertion => ex
           throw :exception_in_block, ex
         end
       end
