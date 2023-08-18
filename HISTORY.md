@@ -1,3 +1,11 @@
+## 2.6.0
+
+### Fixed
+
+* Fix reflected XSS in queue (#1865)
+* Format job arguments in YAML (#1875)
+* Documentation for how to make the worker shut down when the queue is empty (#1873)
+
 ## 2.5.0
 
 ### Fixed
