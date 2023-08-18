@@ -15,7 +15,7 @@ describe 'Resque::Failure::Multiple' do
 
   it 'requeue_queue delegates to the first class and returns a mapped queue name' do
     with_failure_backend(Resque::Failure::Multiple) do
-      mock_class = MiniTest::Mock.new
+      mock_class = Minitest::Mock.new
       mock_class.expect(:requeue_queue, 'mapped_queue', ['queue'])
       Resque::Failure::Multiple.classes = [mock_class]
       assert_equal 'mapped_queue', Resque::Failure::Multiple.requeue_queue('queue')
