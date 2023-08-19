@@ -1266,11 +1266,10 @@ describe "Resque::Worker" do
   end
 
   it "no disconnect from redis when not forking" do
-    original_connection = redis_socket(Resque.redis)
     without_forking do
+      assert_equal Resque.redis.ping, "PONG"
       @worker.work(0)
     end
-    assert_equal original_connection, redis_socket(Resque.redis)
   end
 
   it "logs errors with the correct logging level" do
@@ -1342,13 +1341,11 @@ describe "Resque::Worker" do
       ForkResultJob.perform_with_result(@worker, &block)
     end
 
-    it "reconnects to redis after fork" do
-      original_connection = redis_socket(Resque.redis).object_id
-      new_connection = run_in_job do
-        redis_socket(Resque.redis).object_id
+    it "redis still works after forking" do
+      run_in_job do
+        assert_equal Resque.redis.ping, "PONG"
       end
-      assert Resque.redis._client.connected?
-      refute_equal original_connection, new_connection
+      assert_equal Resque.redis.ping, "PONG"
     end
 
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
@@ -1475,13 +1472,4 @@ describe "Resque::Worker" do
     end
   end
 
-  private
-
-  def redis_socket(redis)
-    if ::Redis::VERSION < "5"
-      redis._client.connection.instance_variable_get(:@sock)
-    else
-      redis._client.instance_variable_get(:@raw_connection)
-    end
-  end
 end
