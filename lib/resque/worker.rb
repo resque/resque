@@ -245,6 +245,7 @@ module Resque
 
       loop do
         break if shutdown?
+        start_heartbeat if !heartbeat_alive?
 
         unless work_one_job(&block)
           state_change
@@ -533,6 +534,10 @@ module Resque
       end
 
       @@all_heartbeat_threads << @heartbeat_thread
+    end
+
+    def heartbeat_alive?
+      !@heartbeat_thread.nil? && !@heartbeat_thread.status.nil?
     end
 
     # Kills the forked child immediately with minimal remorse. The job it
