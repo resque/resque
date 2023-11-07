@@ -16,6 +16,9 @@ describe "Resque::Plugin finding hooks" do
     def on_failure1; end
     def on_failure; end
     def on_failure2; end
+    def always1; end
+    def always; end
+    def always2; end
   end
 
   module HookBlacklistJob
@@ -42,6 +45,10 @@ describe "Resque::Plugin finding hooks" do
 
   it "on_failure hooks are found and sorted" do
     assert_equal ["on_failure", "on_failure1", "on_failure2"], Resque::Plugin.failure_hooks(SimplePlugin).map {|m| m.to_s}
+  end
+
+  it "always hooks are found and sorted" do
+    assert_equal ["always", "always1", "always2"], Resque::Plugin.always_hooks(SimplePlugin).map(&:to_s)
   end
 
   it 'uses job.hooks if available get hook methods' do
