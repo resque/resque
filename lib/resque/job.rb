@@ -201,6 +201,8 @@ module Resque
       rescue Object => e
         run_failure_hooks(e)
         raise e
+      ensure
+        run_always_hooks
       end
     end
 
@@ -278,6 +280,10 @@ module Resque
       @failure_hooks ||= Plugin.failure_hooks(payload_class)
     end
 
+    def always_hooks
+      @always_hooks ||= Plugin.always_hooks(payload_class)
+    end
+
     def run_failure_hooks(exception)
       begin
         job_args = args || []
@@ -291,6 +297,18 @@ module Resque
       ensure
         @failure_hooks_ran = true
       end
+    end
+
+    def run_always_hooks
+      job_args = args || []
+      always_hooks.each { |hook| payload_class.send(hook, *job_args) } if has_payload_class?
+    rescue Exception => e
+      if e.cause
+        error_message = "Additional error (#{e.class}: #{e}) occurred in running always hooks for job #{inspect}\n" \
+          "Original error that caused job failure was #{e.class}: #{e.cause.class}: #{e.cause.message}"
+        raise RuntimeError.new(error_message)
+      end
+      raise e
     end
   end
 end
