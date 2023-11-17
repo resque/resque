@@ -127,6 +127,9 @@ The available hooks are:
 * `on_failure`: Called with the exception and job args if any exception occurs
   while performing the job (or hooks), this includes Resque::DirtyExit.
 
+* `always`: Called with the job args regardless of the success or failure of 
+  the job or any other hooks. Runs after `after_perform` and `on_failure` hooks. 
+
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.
 
@@ -167,10 +170,17 @@ module RetriedJob
   end
 end
 
+module CleanupJob
+  def always_cleanup(*_args)
+    cleanup!
+  end
+end
+
 class MyJob
   extend LoggedJob
   extend RetriedJob
   extend ScaledJob
+  extend CleanupJob
   def self.perform(*args)
     ...
   end
