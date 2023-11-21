@@ -207,19 +207,6 @@ module Resque
     end
   end
 
-  # By default, jobs are pushed to the back of the queue and popped from
-  # the front, resulting in "first in, first out" (FIFO) execution order.
-  # Set to true to push jobs to the front of the queue instead, resulting
-  # in "last in, first out" (LIFO) execution order.
-  attr_writer :enqueue_front
-  def enqueue_front
-    if defined? @enqueue_front
-      @enqueue_front
-    else
-      @enqueue_front = false
-    end
-  end
-
   # The `before_first_fork` hook will be run in the **parent** process
   # only once, before forking to run the first job. Be careful- any
   # changes you make will be permanent for the lifespan of the
