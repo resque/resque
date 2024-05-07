@@ -1,3 +1,16 @@
+## 2.6.0
+
+### Fixed
+
+* resque-web: Fix reflected XSS in queues endpoint (#1865)
+* resque-web: Format args in YAML (#1875)
+* Fix MiniTest undefined errors (#1879)
+* Fix failing reconnect tests (#1880)
+
+### Added
+
+* Documents how to make the worker shutdown when the queue is empty (#1873)
+
 ## 2.5.0
 
 ### Fixed

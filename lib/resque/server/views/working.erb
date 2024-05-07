@@ -21,7 +21,7 @@
         <td>
           <code><%= payload.key?('class') ? payload['class'] : "—" %></code>
         </td>
-        <td><%=h payload.key?('args') ? payload['args'].inspect : "—" %></td>
+        <td><pre><%=h payload.key?('args') ? show_args(payload['args']) : "—" %></pre></td>
       </tr>
   </table>
 

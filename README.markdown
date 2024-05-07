@@ -258,6 +258,9 @@ The default is 5 seconds, but for a semi-active app you may want to use a smalle
 
     $ INTERVAL=0.1 QUEUE=file_serve rake resque:work
 
+When INTERVAL is set to 0 it will run until the queue is empty and then
+shutdown the worker, instead of waiting for new jobs.
+
 The Front End
 -------------
 
