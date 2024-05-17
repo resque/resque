@@ -585,14 +585,16 @@ module Resque
     # Stop processing jobs after the current one has completed (if we're
     # currently running one).
     def pause_processing
-      log_with_severity :info, "USR2 received; pausing job processing"
+      _, self_write = IO.pipe
+      self_write.puts "USR2 received; pausing job processing"
       run_hook :before_pause, self
       @paused = true
     end
 
     # Start processing jobs again after a pause
     def unpause_processing
-      log_with_severity :info, "CONT received; resuming job processing"
+      _, self_write = IO.pipe
+      self_write.puts "CONT received; resuming job processing"
       @paused = false
       run_hook :after_pause, self
     end
