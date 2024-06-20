@@ -171,7 +171,11 @@ module Resque
       end
 
       if ENV['PIDFILE']
-        File.open(ENV['PIDFILE'], 'w') { |f| f << pid }
+        File.open(ENV['PIDFILE'], 'a') { |f| 
+          f.flock(File::LOCK_EX)
+          f << pid << "\n"
+          f.flock(File::LOCK_UN)
+        }
       end
 
       self.reconnect if ENV['BACKGROUND']
