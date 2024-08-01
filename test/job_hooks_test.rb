@@ -238,6 +238,112 @@ describe "Resque::Job on_failure" do
   end
 end
 
+describe "Resque::Job always" do
+  include PerformJob
+  class ::AlwaysJobThatDoesNotFail
+    def self.perform(history)
+      history << :perform
+    end
+    def self.always_track_history(history)
+      history << :always_track_history
+    end
+  end
+
+  it "it calls always if it does not fail" do
+    result = perform_job(AlwaysJobThatDoesNotFail, history=[])
+    assert_equal true, result, "perform returned true"
+    assert_equal history, [:perform, :always_track_history]
+  end
+
+  class ::AlwaysJobThatFails
+    def self.perform(history)
+      history << :perform
+      raise StandardError, "oh no"
+    end
+    def self.on_failure_record_failure(exception, history)
+      history << exception.message
+    end
+
+    def self.always_record_history(history)
+      history << :always_record_history
+    end
+  end
+
+  it "it calls always after on_failure and allows exception to re-raise" do
+    history = []
+    assert_raises StandardError do
+      perform_job(AlwaysJobThatFails, history)
+    end
+    assert_equal history, [:perform, "oh no", :always_record_history]
+  end
+
+  class ::AlwaysJobThatFailsBadly
+    def self.perform(history)
+      history << :perform
+      raise SyntaxError, "oh no"
+    end
+    def self.always_record_history(history)
+      history << :always_record_history
+    end
+  end
+
+  it "it calls always even with bad exceptions" do
+    history = []
+    assert_raises SyntaxError do
+      perform_job(AlwaysJobThatFailsBadly, history)
+    end
+    assert_equal history, [:perform, :always_record_history]
+  end
+
+  class AlwaysHookFailure < StandardError; end
+  class GoodJobWithAlwaysHookFail < GoodJob
+    def self.always_hook(*_args)
+      raise AlwaysHookFailure.new("Your ensure block has failed")
+    end
+  end
+
+  it "propagates error from within the always hook if the only failure occurs during the always hooks" do
+    err = assert_raises AlwaysHookFailure do
+      perform_job(GoodJobWithAlwaysHookFail, 'my good job')
+    end
+    assert_match('Your ensure block has failed', err.message)
+  end
+
+  class BadJobWithAlwaysHookFail < BadJobWithSyntaxError
+    def self.always_hook(*_args)
+      raise AlwaysHookFailure.new("Your ensure block has failed")
+    end
+  end
+
+  it "throws errors with helpful messages if failure occurs during always hooks and perform" do
+    err = assert_raises RuntimeError do
+      perform_job(BadJobWithAlwaysHookFail)
+    end
+    assert_match('Additional error (AlwaysHookFailure: Your ensure block has failed)', err.message)
+    assert_match('occurred in running always hooks', err.message)
+    assert_match('for job (Job{testqueue} | BadJobWithAlwaysHookFail | [])', err.message)
+    assert_match('Original error that caused job failure was AlwaysHookFailure: SyntaxError: Extra Bad job!', err.message)
+  end
+
+  class BadJobEverythingFails < BadJobWithOnFailureHookFail
+    def self.always_hook(*_args)
+      raise AlwaysHookFailure.new("Your ensure block has failed")
+    end
+  end
+
+  it "throws errors with helpful messages if failure occurs during always hooks, on_failure hooks and perform" do
+    err = assert_raises RuntimeError do
+      perform_job(BadJobEverythingFails)
+    end
+    assert_match('Additional error (AlwaysHookFailure: Your ensure block has failed', err.message)
+    assert_match('occurred in running always hooks', err.message)
+    assert_match('for job (Job{testqueue} | BadJobEverythingFails | [])', err.message)
+    assert_match('Original error that caused job failure was AlwaysHookFailure: RuntimeError: Additional error', err.message)
+    assert_match('(RuntimeError: This job is just so bad!) occurred in running failure hooks', err.message)
+    assert_match('Original error that caused job failure was RuntimeError: SyntaxError: Extra Bad job!', err.message)
+  end
+end
+
 describe "Resque::Job after_enqueue" do
   include PerformJob
 
