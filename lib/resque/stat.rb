@@ -9,7 +9,7 @@ module Resque
     extend self
 
     def redis
-      warn '[Resque] [Deprecation] Resque::Stat #redis method is deprecated (please use #data_strore)'
+      warn '[Resque] [Deprecation] Resque::Stat #redis method is deprecated (please use #data_store)'
       data_store
     end
 
