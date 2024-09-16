@@ -52,6 +52,77 @@ jobs:
       - run: sudo apt-get install redis-server
       - run: bundle exec rake
 
+  test-activejob:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        redis-version:
+          - "4.0"
+          - 4.8
+          - latest
+        ruby-version:
+          - 3.1
+          - 3.2
+          - head
+        rails-version:
+          - 7.1
+          - 7.2
+          - "8.0"
+          - main
+    env:
+      REDIS_VERSION: "${{ matrix.redis-version }}"
+      BUNDLE_GEMFILE: "test/gemfiles/Gemfile-rails-${{ matrix.rails-version }}"
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{ matrix.ruby-version }}"
+          bundler-cache: true
+          cache-version: 3
+      - run: sudo apt-get install redis-server
+      - run: bundle exec rake test:activejob
+
+  test-activejob-integration:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        redis-version:
+          - "4.0"
+          - 4.8
+          - latest
+        ruby-version:
+          - 3.1
+          - 3.2
+          - head
+        rails-version:
+          - 7.1
+          - 7.2
+          - "8.0"
+          - main
+        include:
+          - ruby-version: head
+            rails-version: "8.0"
+            continue-on-error: true
+          - ruby-version: head
+            rails-version: main
+            continue-on-error: true
+    env:
+      REDIS_VERSION: "${{ matrix.redis-version }}"
+      BUNDLE_GEMFILE: "test/gemfiles/Gemfile-rails-${{ matrix.rails-version }}"
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "${{ matrix.ruby-version }}"
+          bundler-cache: true
+          cache-version: 3
+      - run: sudo apt-get install redis-server
+      - run: bundle exec rake test:activejob:integration
+
   rubocop:
     runs-on: ubuntu-latest
     steps:
