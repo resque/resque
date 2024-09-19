@@ -20,33 +20,7 @@ class ActiveJobTestCaseTest < ActiveJob::TestCase
   end
 
   def test_set_test_adapter
-    # The queue adapter the job uses depends on the Active Job config.
-    # See https://github.com/rails/rails/pull/48585 for logic.
-    expected = case ActiveJob::Base.queue_adapter_name.to_sym
-               when :test
-                 ActiveJob::QueueAdapters::TestAdapter
-               when :inline
-                 ActiveJob::QueueAdapters::InlineAdapter
-               when :async
-                 ActiveJob::QueueAdapters::AsyncAdapter
-               when :backburner
-                 ActiveJob::QueueAdapters::BackburnerAdapter
-               when :delayed_job
-                 ActiveJob::QueueAdapters::DelayedJobAdapter
-               when :queue_classic
-                 ActiveJob::QueueAdapters::QueueClassicAdapter
-               when :resque
-                 ActiveJob::QueueAdapters::ResqueAdapter
-               when :sidekiq
-                 ActiveJob::QueueAdapters::SidekiqAdapter
-               when :sneakers
-                 ActiveJob::QueueAdapters::SneakersAdapter
-               when :sucker_punch
-                 ActiveJob::QueueAdapters::SuckerPunchAdapter
-               else
-                 raise NotImplementedError.new
-    end
-
+    expected = ActiveJob::QueueAdapters::ResqueAdapter
     assert_kind_of expected, queue_adapter
   end
 
