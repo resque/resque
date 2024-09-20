@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
 require "helper"
-require "jobs/logging_job"
 require "jobs/hello_job"
-require "jobs/provider_jid_job"
 require "active_support/core_ext/numeric/time"
 
 class QueuingTest < ActiveSupport::TestCase
