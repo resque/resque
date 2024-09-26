@@ -1,3 +1,9 @@
+## 2.7.0
+
+### Added
+
+* `always` hooks that run regardless of the success or failure of the job(#1886)
+
 ## 2.6.0
 
 ### Fixed

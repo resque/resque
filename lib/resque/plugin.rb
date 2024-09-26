@@ -55,6 +55,11 @@ module Resque
       get_hook_names(job, 'on_failure')
     end
 
+    # Given an object, returns a list of `always` hook names
+    def always_hooks(job)
+      get_hook_names(job, 'always')
+    end
+
     # Given an object, returns a list `after_enqueue` hook names.
     def after_enqueue_hooks(job)
       get_hook_names(job, 'after_enqueue')
