@@ -10,7 +10,6 @@ module Resque
     initializer "resque.active_job" do
       ActiveSupport.on_load(:active_job) do
         require "active_job/queue_adapters/resque_adapter"
-        ActiveJob::Base.queue_adapter = :resque
       end
     end
   end
