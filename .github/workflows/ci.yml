@@ -111,6 +111,8 @@ jobs:
           - ruby-version: head
             rails-version: main
             continue-on-error: true
+        exclude:
+          - { ruby-version: 3.1, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       BUNDLE_GEMFILE: "test/gemfiles/Gemfile-rails-${{ matrix.rails-version }}"
