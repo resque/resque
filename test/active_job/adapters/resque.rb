@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
-require "resque/active_job_extension"
+require "active_job/queue_adapters/resque_adapter"
 ActiveJob::Base.queue_adapter = :resque
