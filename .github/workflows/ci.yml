@@ -70,6 +70,8 @@ jobs:
           - 7.2
           - "8.0"
           - main
+        exclude:
+          - { ruby-version: 3.1, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       BUNDLE_GEMFILE: "test/gemfiles/Gemfile-rails-${{ matrix.rails-version }}"
