@@ -24,7 +24,6 @@ require 'resque/thread_signal'
 require 'resque/vendor/utf8_util'
 
 require 'resque/railtie' if defined?(Rails::Railtie)
-require 'active_job/queue_adapters/resque_adapter' if defined?(ActiveJob)
 
 module Resque
   include Helpers
