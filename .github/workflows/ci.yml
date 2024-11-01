@@ -71,6 +71,7 @@ jobs:
           - "8.0"
           - main
         exclude:
+          - { ruby-version: 3.1, rails-version: "8.0" }
           - { ruby-version: 3.1, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
@@ -112,6 +113,7 @@ jobs:
             rails-version: main
             continue-on-error: true
         exclude:
+          - { ruby-version: 3.1, rails-version: "8.0" }
           - { ruby-version: 3.1, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
