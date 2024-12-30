@@ -1,3 +1,11 @@
+## 2.7.0
+
+### Fixed
+* Update README.markdown (#1891)
+* Ruby does not allow logging within trap handlers (#1729)
+* Fix typo in stat.rb warning: data_strore -> data_store (#1904)
+* Ensure ruby 3.3 compatibility (#1907)
+
 ## 2.6.0
 
 ### Fixed
