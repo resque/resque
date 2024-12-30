@@ -4,10 +4,15 @@ require 'resque/server'
 require 'resque/web_runner'
 
 describe 'Resque::WebRunner' do
+  def get_rackup_or_rack_handler
+    Resque::WebRunner.get_rackup_or_rack_handler
+  end
+
   def web_runner(*args)
     Resque::WebRunner.any_instance.stubs(:daemonize!).once
 
-    Resque::JRUBY ? Rack::Handler::WEBrick.stubs(:run).once : Rack::Handler::Thin.stubs(:run).once
+    rack_server = Resque::JRUBY ? 'webrick' : 'puma'
+    get_rackup_or_rack_handler.get(rack_server).stubs(:run).once
 
     @runner = Resque::WebRunner.new(*args)
   end
@@ -68,13 +73,13 @@ describe 'Resque::WebRunner' do
     describe 'with a sinatra app using an explicit server setting' do
       def web_runner(*args)
         Resque::WebRunner.any_instance.stubs(:daemonize!).once
-        Rack::Handler::WEBrick.stubs(:run).once
+        get_rackup_or_rack_handler::WEBrick.stubs(:run).once
         @runner = Resque::WebRunner.new(*args)
       end
 
       before do
         Resque::Server.set :server, "webrick"
-        Rack::Handler::WEBrick.stubs(:run)
+        get_rackup_or_rack_handler::WEBrick.stubs(:run)
         web_runner("route","--debug", skip_launch: true, sessions: true)
       end
       after do
@@ -82,20 +87,20 @@ describe 'Resque::WebRunner' do
       end
 
       it 'sets the rack handler automatically' do
-        assert_equal @runner.rack_handler, Rack::Handler::WEBrick
+        assert_equal @runner.rack_handler, get_rackup_or_rack_handler::WEBrick
       end
     end
 
     describe 'with a sinatra app without an explicit server setting' do
       def web_runner(*args)
         Resque::WebRunner.any_instance.stubs(:daemonize!).once
-        Rack::Handler::WEBrick.stubs(:run).once
+        get_rackup_or_rack_handler::WEBrick.stubs(:run).once
         @runner = Resque::WebRunner.new(*args)
       end
 
       before do
         Resque::Server.set :server, ["invalid", "webrick", "thin"]
-        Rack::Handler::WEBrick.stubs(:run)
+        get_rackup_or_rack_handler::WEBrick.stubs(:run)
         web_runner("route", "--debug", skip_launch: true, sessions: true)
       end
 
@@ -104,7 +109,7 @@ describe 'Resque::WebRunner' do
       end
 
       it 'sets the first valid rack handler' do
-        assert_equal @runner.rack_handler, Rack::Handler::WEBrick
+        assert_equal @runner.rack_handler, get_rackup_or_rack_handler::WEBrick
       end
     end
 
@@ -130,11 +135,11 @@ describe 'Resque::WebRunner' do
         web_runner(skip_launch: true, sessions: true)
       end
 
-      it "sets default rack handler to thin when in ruby and WEBrick when in jruby" do
+      it "sets default rack handler to puma when in ruby and WEBrick when in jruby" do
         if Resque::JRUBY
-          assert_equal @runner.rack_handler, Rack::Handler::WEBrick
+          assert_equal @runner.rack_handler, get_rackup_or_rack_handler::WEBrick
         else
-          assert_equal @runner.rack_handler, Rack::Handler::Thin
+          assert_equal @runner.rack_handler, get_rackup_or_rack_handler::Puma
         end
       end
     end
