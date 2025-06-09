@@ -260,6 +260,7 @@ module Resque
     rescue Exception => exception
       return if exception.class == SystemExit && !@child && run_at_exit_hooks
       log_with_severity :error, "Failed to start worker : #{exception.inspect}"
+      log_with_severity :error, exception.backtrace.join("\n")
       unregister_worker(exception)
       run_hook :worker_exit
     end
@@ -441,6 +442,8 @@ module Resque
     def shutdown
       log_with_severity :info, 'Exiting...'
       @shutdown = true
+      run_hook :shutdown
+      true
     end
 
     # Kill the child and shutdown immediately.

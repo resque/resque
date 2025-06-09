@@ -99,4 +99,43 @@ describe "Resque::Worker" do
       ENV['FORK_PER_JOB'] = old_job_per_fork
     end
   end
+
+  it "calls the shutdown hook" do
+    Resque.send(:clear_hooks, :shutdown)
+
+    shutdown_file = Tempfile.new("shutdown_hook")
+
+    Resque.shutdown do
+      # Shutdown hook is called inside a signal handler and can't write to redis
+      File.open(shutdown_file, "w") { |f| f.write "resque:shutdown_hook_called" }
+    end
+
+    worker_pid, child_pid, _result = start_worker(0, true)
+
+    shutdown_hook_called = File.read(shutdown_file) == "resque:shutdown_hook_called"
+    assert shutdown_hook_called, 'Shutdown hook was not called in parent worker'
+  end
+
+  it "calls the shutdown hook when not forking" do
+    Resque.send(:clear_hooks, :shutdown)
+
+    shutdown_file = Tempfile.new("shutdown_hook")
+
+    Resque.shutdown do
+      # Shutdown hook is called inside a signal handler and can't write to redis
+      File.open(shutdown_file, "w") { |f| f.write "resque:shutdown_hook_called" }
+    end
+
+    old_fork_per_job = ENV['TERM_CHILD']
+    begin
+      ENV['FORK_PER_JOB'] = 'false'
+
+      worker_pid, child_pid, _result = start_worker(0, true)
+
+      shutdown_hook_called = File.read(shutdown_file) == "resque:shutdown_hook_called"
+      assert shutdown_hook_called, 'Shutdown hook was not called in parent worker'
+    ensure
+      ENV['FORK_PER_JOB'] = old_fork_per_job
+    end
+  end
 end

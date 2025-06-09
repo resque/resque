@@ -316,6 +316,20 @@ module Resque
     register_hook(:worker_exit, block)
   end
 
+  # The `shutdown` hook will be run in the **child** process
+  # when the worker has received a signal to stop processing
+  #
+  # Call with a block to register a hook.
+  # Call with no arguments to return all registered hooks.
+  def shutdown(&block)
+    block ? register_hook(:shutdown, block) : hooks(:shutdown)
+  end
+
+  # Register a shutdown proc.
+  def shutdown=(block)
+    register_hook(:shutdown, block)
+  end
+
   def to_s
     "Resque Client connected to #{redis_id}"
   end

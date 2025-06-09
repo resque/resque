@@ -1094,6 +1094,20 @@ describe "Resque::Worker" do
     end
   end
 
+  describe "Resque::Job shutdown" do
+    before { Resque.send(:clear_hooks, :shutdown) }
+
+    it "will call the shutdown hook when the shutdown is called" do
+      shutdown_called = false
+      Resque.shutdown = Proc.new { shutdown_called = true }
+      workerA = Resque::Worker.new(:jobs)
+
+      assert !shutdown_called
+      workerA.shutdown
+      assert shutdown_called
+    end
+  end
+
   it "setting verbose to true" do
     @worker.verbose = true
 

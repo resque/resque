@@ -60,6 +60,19 @@ end
 
 The `queue_empty` hook will be run in the **parent** process.
 
+
+When the worker is shutdown. If the worker is terminating
+gracefully it may still complete jobs in progress.
+
+``` ruby
+Resque.shutdown do
+  puts "Call me when the worker is shutdown"
+end
+```
+
+The `shutdown` hook will be run in the **parent** process.
+
+
 When the worker exits:
 
 ``` ruby
