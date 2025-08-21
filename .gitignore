@@ -11,3 +11,4 @@ pkg
 .ruby-gemset
 *.sw?
 vendor/bundle
+test/gemfiles/*.lock
