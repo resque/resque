@@ -9,6 +9,10 @@ describe "Resque web" do
     Resque::Server.new
   end
 
+  def default_host
+    'localhost'
+  end
+
   # Root path test
   describe "on GET to /" do
     before { get "/" }

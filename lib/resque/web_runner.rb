@@ -3,6 +3,10 @@ require 'logger'
 require 'optparse'
 require 'fileutils'
 require 'rack'
+begin
+  require 'rackup'
+rescue LoadError
+end
 require 'resque/server'
 
 # only used with `bin/resque-web`
@@ -30,7 +34,7 @@ module Resque
 
       @args = load_options(runtime_args)
 
-      @rack_handler = (s = options[:rack_handler]) ? Rack::Handler.get(s) : setup_rack_handler
+      @rack_handler = (s = options[:rack_handler]) ? self.class.get_rackup_or_rack_handler.get(s) : setup_rack_handler
 
       case option_parser.command
       when :help
@@ -270,6 +274,10 @@ module Resque
       self.class.logger
     end
 
+    def self.get_rackup_or_rack_handler
+      defined?(::Rackup::Handler) && ::Rack.release >= '3' ? ::Rackup::Handler : ::Rack::Handler
+    end
+
   private
     def setup_rack_handler
       # First try to set Rack handler via a special hook we honor
@@ -284,24 +292,25 @@ module Resque
           handler = nil
           @app.server.each do |server|
             begin
-              handler = Rack::Handler.get(server)
+              handler = self.class.get_rackup_or_rack_handler.get(server)
               break
             rescue LoadError, NameError
               next
             end
           end
-          raise 'No available Rack handler (e.g. WEBrick, Thin, Puma, etc.) was found.' if handler.nil?
+          raise 'No available Rack handler (e.g. WEBrick, Puma, etc.) was found.' if handler.nil?
 
           handler
 
         # :server might be set explicitly to a single option like "mongrel"
         else
-          Rack::Handler.get(@app.server)
+          self.class.get_rackup_or_rack_handler.get(@app.server)
         end
 
-      # If all else fails, we'll use Thin
+      # If all else fails, we'll use Puma
       else
-        JRUBY ? Rack::Handler::WEBrick : Rack::Handler::Thin
+        rack_server = JRUBY ? 'webrick' : 'puma'
+        self.class.get_rackup_or_rack_handler.get(rack_server)
       end
     end
 

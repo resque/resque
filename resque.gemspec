@@ -20,8 +20,9 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
-  s.required_ruby_version = ">= 2.3.0"
+  s.required_ruby_version = ">= 2.6.0"
 
+  s.add_dependency "logger"
   s.add_dependency "redis-namespace", "~> 1.6"
   s.add_dependency "sinatra", ">= 0.9.2"
   s.add_dependency "multi_json", "~> 1.0"
@@ -44,7 +45,7 @@ Gem::Specification.new do |s|
     * A Sinatra app for monitoring queues, jobs, and workers.
 description
 
-  s.add_development_dependency "thin"
+  s.add_development_dependency "puma"
   s.add_development_dependency "webrick"
 
   s.metadata['changelog_uri'] = 'https://github.com/resque/resque/blob/master/HISTORY.md'
