@@ -133,8 +133,6 @@ require 'your/app' # Include this line if you want your workers to have access t
 
 #### Rails
 
-##### Rails 7.1
-
 To make resque specific changes, you can override the `resque:setup` job in `lib/tasks` (ex: `lib/tasks/resque.rake`). GitHub's setup task looks like this:
 
 ``` ruby
