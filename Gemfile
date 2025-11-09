@@ -13,5 +13,5 @@ gem "minitest", "~> 5.11"
 gem "mocha", "~> 2.0", require: false
 gem "rack-test", "~> 2.0"
 gem "rake"
-gem "rubocop", "~> 0.80"
+gem "rubocop", "~> 1.48"
 gem "pry"
