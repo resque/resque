@@ -18,6 +18,14 @@ module Resque
     end
     alias_method :u, :url_path
 
+    def script_tag(src)
+      "<script src=\"#{url_path(src)}\" type=\"text/javascript\"></script>"
+    end
+
+    def link_tag(src)
+      "<link href=\"#{url_path(src)}\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\">"
+    end
+
     def path_prefix
       request.env['SCRIPT_NAME']
     end
