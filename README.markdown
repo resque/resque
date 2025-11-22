@@ -39,15 +39,23 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
-Resque now supports Ruby 2.6.0 and above.
-We will also only be supporting Redis 3.0 and above going forward.
+Resque 3.0 requires Ruby 3.0.0 or newer.
 
-### Note on the future of Resque
+**Version Support:**
+- Ruby: 3.0, 3.1, 3.2, 3.3, 3.4+
+- Redis gem: 4.0+
+- Rack: 2.x or 3.x
+- Rails (for ActiveJob): 7.2+ (requires Ruby 3.1+ for Rails 8.0+)
 
-Would you like to be involved in Resque? Do you have thoughts about what
-Resque should be and do going forward? There's currently an [open discussion here](https://github.com/resque/resque/issues/1759)
-on just that topic, so please feel free to join in. We'd love to hear your thoughts
-and/or have people volunteer to be a part of the project!
+### Resque 3.0
+
+Resque 3.0 is a major release that modernizes the codebase with updated dependency requirements:
+- Requires Ruby 3.0+ (drops support for Ruby 2.x)
+- Requires redis gem 4.0+ (tested with redis gem 4.x and 5.x)
+- Requires Sinatra 2.0+ (with Rack 2.x or 3.x support via appropriate Sinatra version)
+- Maintains compatibility with Rails 7.2+ and ActiveJob
+
+If you need Ruby 2.x support, please use Resque 2.x.
 
 Example
 -------

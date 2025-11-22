@@ -20,11 +20,13 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "LICENSE", "README.markdown" ]
   s.rdoc_options      = ["--charset=UTF-8"]
 
-  s.required_ruby_version = ">= 2.6.0"
+  s.required_ruby_version = ">= 3.0.0"
 
+  s.add_dependency "base64", "~> 0.1"
   s.add_dependency "logger"
   s.add_dependency "redis-namespace", "~> 1.6"
-  s.add_dependency "sinatra", ">= 0.9.2"
+  s.add_dependency "redis", ">= 4.0"
+  s.add_dependency "sinatra", ">= 2.0"
   s.add_dependency "multi_json", "~> 1.0"
   s.add_dependency "mono_logger", "~> 1"
 
