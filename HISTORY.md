@@ -1,3 +1,27 @@
+## 3.0.0
+
+### Breaking Changes
+
+* **Minimum Ruby version is now 3.0.0** - Ruby 2.x is no longer supported
+* **Minimum Sinatra version is now 2.0** - old Sinatra versions (0.9-1.x) are no longer supported
+* **Rack 1.x is no longer supported** - Resque now requires Rack 2.x or greater
+
+### Added
+
+* Rack 3 support and switched default Rack handler to Puma (#1912)
+* Ruby 3.4 and Rails 8.1 support (#1912 and #1906)
+* Upstream Active Job adapter from Rails (#1906)
+* Explicit `redis` (>= 4.0) and `base64` (~> 0.1) gem dependencies (#1922)
+* Added `shutdown` hooks - allows plugins and adapters to know when a worker is shutting down, enabling features like Active Job Continuations (#1916, #1924)
+* Added support for dynamic interval sleep - workers can now use a faster polling interval that automatically backs off when idle, reducing Redis load (#1920)
+
+### Fixed
+
+* Fix circular require from Rails ActiveJob adapter (#1906)
+* Fix failed job `retried_at` timezone data (#1918)
+* Fix double Redis get when checking for paused workers (#1919)
+* Documentation cleanup (#1903, #1917)
+
 ## 2.7.0
 
 ### Fixed
