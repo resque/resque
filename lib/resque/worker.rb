@@ -237,18 +237,41 @@ module Resque
     # The default is 5 seconds, but for a semi-active site you may
     # want to use a smaller value.
     #
+    # Can also be passed 3 interval floats: max, min, backoff.
+    # The actual sleep amount will float between these min/max
+    # bounds.
+    #
+    # If a job is picked up we sleep for the minimum amount of
+    # time, but as the queues empty we increase the backoff to the
+    # max interval. This prevents idle workers from hammering the
+    # redis server with lpop requests.
+    #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
-    def work(interval = 5.0, &block)
-      interval = Float(interval)
+    def work(interval = 5.0,
+             min_interval: nil,     # defaults to interval
+             max_interval: nil,     # defaults to interval
+             backoff_interval: nil, # defaults to 0.1
+             &block)
+      interval = Float(interval || 5.0)
+      max_interval = Float(max_interval || interval)
+      min_interval = Float(min_interval || interval).clamp(nil, max_interval)
+      backoff_interval = Float(backoff_interval || 0.1).clamp(nil, max_interval)
+      interval = interval.clamp(min_interval, max_interval)
       startup
 
       loop do
         break if shutdown?
 
-        unless work_one_job(&block)
+        if work_one_job(&block)
+          interval = min_interval
+        else
           state_change
           break if interval.zero?
+
+          interval = (interval + backoff_interval)
+            .clamp(nil, max_interval)
+
           log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
           sleep interval
