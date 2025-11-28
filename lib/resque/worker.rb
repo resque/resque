@@ -249,36 +249,33 @@ module Resque
     #
     # Also accepts a block which will be passed the job as soon as it
     # has completed processing. Useful for testing.
-    def work(max_interval = 5.0, min_interval = 5.0, backoff_interval = 0.1, &block)
-      max_interval = Float(max_interval)
-      min_interval = Float(min_interval)
-      backoff_interval = Float(backoff_interval)
-      dynamic_interval = max_interval
+    def work(interval = 5.0,
+             min_interval: nil,     # defaults to interval
+             max_interval: nil,     # defaults to interval
+             backoff_interval: nil, # defaults to 0.1
+             &block)
+      interval = Float(interval || 5.0)
+      max_interval = Float(max_interval || interval)
+      min_interval = Float(min_interval || interval).clamp(nil, max_interval)
+      backoff_interval = Float(backoff_interval || 0.1).clamp(nil, max_interval)
+      interval = interval.clamp(min_interval, max_interval)
       startup
 
       loop do
         break if shutdown?
 
         if work_one_job(&block)
-          # Could be set via a classic INTERVAL
-          if min_interval < max_interval
-            dynamic_interval = min_interval
-          end
+          interval = min_interval
         else
           state_change
-          break if max_interval.zero?
+          break if interval.zero?
 
-          if dynamic_interval < max_interval
-            dynamic_interval += backoff_interval
+          interval = (interval + backoff_interval)
+            .clamp(nil, max_interval)
 
-            if dynamic_interval > max_interval
-              dynamic_interval = max_interval
-            end
-          end
-
-          log_with_severity :debug, "Sleeping for #{dynamic_interval} seconds"
+          log_with_severity :debug, "Sleeping for #{interval} seconds"
           procline @cached_pause_value ? "Paused" : "Waiting for #{queues.join(',')}"
-          sleep dynamic_interval
+          sleep interval
         end
       end
 
