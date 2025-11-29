@@ -23,7 +23,7 @@ module Resque
     end
 
     def link_tag(src)
-      "<link href=\"#{url_path(src)}\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\">"
+      %Q(<link href="#{url_path(src)}" media="screen" rel="stylesheet" type="text/css">)
     end
 
     def path_prefix
