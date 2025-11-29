@@ -19,7 +19,7 @@ module Resque
     alias_method :u, :url_path
 
     def script_tag(src)
-      "<script src=\"#{url_path(src)}\" type=\"text/javascript\"></script>"
+      %Q(<script src="#{url_path(src)}" type="text/javascript"></script>)
     end
 
     def link_tag(src)
