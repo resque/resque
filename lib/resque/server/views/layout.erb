@@ -17,6 +17,10 @@
         <%= tab tab_name %>
       <% end %>
     </ul>
+    <button class="theme-toggle" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+      <span class="sun">&#9728;</span>
+      <span class="moon">&#9790;</span>
+    </button>
     <% if Resque.redis.namespace != :resque %>
       <abbr class="namespace" title="Resque's Redis Namespace">
        <%= Resque.redis.namespace %>
