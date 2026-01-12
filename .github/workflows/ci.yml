@@ -64,6 +64,7 @@ jobs:
           - { ruby-version: 3.1, rails-version: "8.0" }
           - { ruby-version: 3.1, rails-version: 8.1 }
           - { ruby-version: 3.1, rails-version: main }
+          - { ruby-version: 3.2, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       RACK_VERSION: "${{ matrix.rack-version }}"
@@ -112,6 +113,7 @@ jobs:
           - { ruby-version: 3.1, rails-version: "8.0" }
           - { ruby-version: 3.1, rails-version: 8.1 }
           - { ruby-version: 3.1, rails-version: main }
+          - { ruby-version: 3.2, rails-version: main }
     env:
       REDIS_VERSION: "${{ matrix.redis-version }}"
       RACK_VERSION: "${{ matrix.rack-version }}"
