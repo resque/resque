@@ -133,7 +133,7 @@ module Resque
       def remove_queue(queue)
         @redis.pipelined do |piped|
           piped.srem(:queues, [queue.to_s])
-          piped.del(redis_key_for_queue(queue))
+          piped.unlink(redis_key_for_queue(queue))
         end
       end
 
@@ -178,7 +178,7 @@ module Resque
       end
 
       def remove_failed_queue(failed_queue_name=:failed)
-        @redis.del(failed_queue_name)
+        @redis.unlink(failed_queue_name)
       end
 
       def num_failed(failed_queue_name=:failed)
@@ -198,7 +198,7 @@ module Resque
       end
 
       def clear_failed_queue(failed_queue_name=:failed)
-        @redis.del(failed_queue_name)
+        @redis.unlink(failed_queue_name)
       end
 
       def update_item_in_failed_queue(index_in_failed_queue,new_item_data,failed_queue_name=:failed)
@@ -252,8 +252,8 @@ module Resque
       def unregister_worker(worker, &block)
         @redis.pipelined do |piped|
           piped.srem(:workers, [worker.id])
-          piped.del(redis_key_for_worker(worker))
-          piped.del(redis_key_for_worker_start_time(worker))
+          piped.unlink(redis_key_for_worker(worker))
+          piped.unlink(redis_key_for_worker_start_time(worker))
           piped.hdel(HEARTBEAT_KEY, worker.to_s)
 
           block.call redis: piped
@@ -291,7 +291,7 @@ module Resque
 
       def worker_done_working(worker, &block)
         @redis.pipelined do |piped|
-          piped.del(redis_key_for_worker(worker))
+          piped.unlink(redis_key_for_worker(worker))
           block.call redis: piped
         end
       end
@@ -328,7 +328,7 @@ module Resque
       end
 
       def clear_stat(stat, redis: @redis)
-        redis.del("stat:#{stat}")
+        redis.unlink("stat:#{stat}")
       end
     end
   end
