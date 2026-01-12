@@ -517,8 +517,9 @@ module Resque
   # Given a class, try to extrapolate an appropriate queue based on a
   # class instance variable or `queue` method.
   def queue_from_class(klass)
-    (klass.instance_variable_defined?(:@queue) && klass.instance_variable_get(:@queue)) ||
-      (klass.respond_to?(:queue) and klass.queue)
+    klass.instance_variable_get(:@queue) ||
+    (klass.respond_to?(:queue) && klass.queue) ||
+    (klass.respond_to?(:queue_name) && klass.new.queue_name)
   end
 
   # This method will return a `Resque::Job` object or a non-true value
