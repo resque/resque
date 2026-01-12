@@ -1,0 +1,7 @@
+eval_gemfile "../../Gemfile"
+
+gem "rails", github: "rails/rails"
+gem "zeitwerk"
+gem "bootsnap"
+gem "resque-scheduler", github: 'resque/resque-scheduler'
+gem "sqlite3"

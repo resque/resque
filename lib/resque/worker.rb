@@ -143,6 +143,7 @@ module Resque
     def initialize(*queues)
       @shutdown = nil
       @paused = nil
+      @cached_pause_value = nil
       @before_first_fork_hook_ran = false
 
       @heartbeat_thread = nil
@@ -250,7 +251,7 @@ module Resque
           state_change
           break if interval.zero?
           log_with_severity :debug, "Sleeping for #{interval} seconds"
-          procline paused? ? "Paused" : "Waiting for #{queues.join(',')}"
+          procline @cached_pause_value ? "Paused" : "Waiting for #{queues.join(',')}"
           sleep interval
         end
       end
@@ -260,6 +261,7 @@ module Resque
     rescue Exception => exception
       return if exception.class == SystemExit && !@child && run_at_exit_hooks
       log_with_severity :error, "Failed to start worker : #{exception.inspect}"
+      log_with_severity :error, exception.backtrace.join("\n")
       unregister_worker(exception)
       run_hook :worker_exit
     end
@@ -441,6 +443,8 @@ module Resque
     def shutdown
       log_with_severity :info, 'Exiting...'
       @shutdown = true
+      run_hook :shutdown
+      true
     end
 
     # Kill the child and shutdown immediately.
@@ -579,7 +583,7 @@ module Resque
 
     # are we paused?
     def paused?
-      @paused || redis.get('pause-all-workers').to_s.strip.downcase == 'true'
+      @cached_pause_value = @paused || redis.get('pause-all-workers').to_s.strip.downcase == 'true'
     end
 
     # Stop processing jobs after the current one has completed (if we're

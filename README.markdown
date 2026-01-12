@@ -39,15 +39,23 @@ The Resque frontend tells you what workers are doing, what workers are
 not doing, what queues you're using, what's in those queues, provides
 general usage stats, and helps you track failures.
 
-Resque now supports Ruby 2.3.0 and above.
-We will also only be supporting Redis 3.0 and above going forward.
+Resque 3.0 requires Ruby 3.0.0 or newer.
 
-### Note on the future of Resque
+**Version Support:**
+- Ruby: 3.0, 3.1, 3.2, 3.3, 3.4+
+- Redis gem: 4.0+
+- Rack: 2.x or 3.x
+- Rails (for ActiveJob): 7.2+ (requires Ruby 3.1+ for Rails 8.0+)
 
-Would you like to be involved in Resque? Do you have thoughts about what
-Resque should be and do going forward? There's currently an [open discussion here](https://github.com/resque/resque/issues/1759)
-on just that topic, so please feel free to join in. We'd love to hear your thoughts
-and/or have people volunteer to be a part of the project!
+### Resque 3.0
+
+Resque 3.0 is a major release that modernizes the codebase with updated dependency requirements:
+- Requires Ruby 3.0+ (drops support for Ruby 2.x)
+- Requires redis gem 4.0+ (tested with redis gem 4.x and 5.x)
+- Requires Sinatra 2.0+ (with Rack 2.x or 3.x support via appropriate Sinatra version)
+- Maintains compatibility with Rails 7.2+ and ActiveJob
+
+If you need Ruby 2.x support, please use Resque 2.x.
 
 Example
 -------
@@ -132,15 +140,6 @@ require 'your/app' # Include this line if you want your workers to have access t
 ```
 
 #### Rails
-
-##### Rails 7.1
-
-If you're using Rails 7.1.x, use [rack-session version 1.0.2](https://rubygems.org/gems/rack-session/versions/1.0.2). This is because resque-web's dependency, [Sinatra, isn't compatible with rack 3.0](https://github.com/sinatra/sinatra/issues/1797), which is [required by rack-session 2.0.0](https://rubygems.org/gems/rack-session/versions/2.0.0).
-
-```
-  gem 'rails', '~> 7.1'
-  gem 'rack-session', '~> 1.0', '>= 1.0.2'
-```
 
 To make resque specific changes, you can override the `resque:setup` job in `lib/tasks` (ex: `lib/tasks/resque.rake`). GitHub's setup task looks like this:
 
