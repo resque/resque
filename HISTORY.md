@@ -5,6 +5,7 @@
 * **Minimum Ruby version is now 3.0.0** - Ruby 2.x is no longer supported
 * **Minimum Sinatra version is now 2.0** - old Sinatra versions (0.9-1.x) are no longer supported
 * **Rack 1.x is no longer supported** - Resque now requires Rack 2.x or greater
+* **Minimum Rails version is now 7.2** - You can use Resque without Rails, but if you use it with Rails it must be a version that is still supported
 
 ### Added
 
