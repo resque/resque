@@ -41,15 +41,8 @@ namespace :resque do
     threads.each { |thread| thread.join }
   end
 
-  # Preload app files if this is Rails
-  task :preload => :setup do
-    if defined?(Rails) && Rails.respond_to?(:application)
-      if Rails.application.config.eager_load
-        ActiveSupport.run_load_hooks(:before_eager_load, Rails.application)
-        Rails.application.config.eager_load_namespaces.each(&:eager_load!)
-      end
-    end
-  end
+  # Defined for backwards compatibility.
+  task :preload => :setup
 
   namespace :failures do
     desc "Sort the 'failed' queue for the redis_multi_queue failure backend"
