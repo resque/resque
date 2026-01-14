@@ -5,8 +5,8 @@
 namespace :resque do
   task :setup
 
-  desc "Start a Resque worker"
-  task :work => [ :preload, :setup ] do
+  desc "Run a Resque worker"
+  task :run => [ :preload, :setup ] do
     require 'resque'
 
     begin
@@ -24,6 +24,15 @@ namespace :resque do
                 backoff_interval: ENV['BACKOFF_INTERVAL'])
   end
 
+  desc "Start a Resque worker"
+  task :work do
+    if ENV['PIDFILE'] && File.file?(ENV['PIDFILE'])
+      File.truncate(ENV['PIDFILE'], 0)
+    end
+    Rake::Task['resque:run'].reenable
+    Rake::Task['resque:run'].invoke
+  end
+
   desc "Start multiple Resque workers. Should only be used in dev mode."
   task :workers do
     threads = []
@@ -32,9 +41,13 @@ namespace :resque do
       abort "set COUNT env var, e.g. $ COUNT=2 rake resque:workers"
     end
 
+    if ENV['PIDFILE'] && File.file?(ENV['PIDFILE'])
+      File.truncate(ENV['PIDFILE'], 0)
+    end
+
     ENV['COUNT'].to_i.times do
       threads << Thread.new do
-        system "rake resque:work"
+        system "rake resque:run"
       end
     end
 
