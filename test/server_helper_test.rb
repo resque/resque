@@ -12,6 +12,33 @@ describe 'Resque::ServerHelper' do
     end
   end
 
+  describe 'failed_end_at' do
+    def params
+      @params || {}
+    end
+
+    it 'returns last index on last page when items do not fill the page' do
+      @params = { start: '40' }
+      @failed_size = 49
+
+      assert_equal 48, failed_end_at
+    end
+
+    it 'returns last index on a full page' do
+      @params = { start: '20' }
+      @failed_size = 49
+
+      assert_equal 39, failed_end_at
+    end
+
+    it 'returns last index when total equals per page' do
+      @params = { start: '0' }
+      @failed_size = 20
+
+      assert_equal 19, failed_end_at
+    end
+  end
+
   describe 'redis_get_size' do
     describe 'when the data type is none' do
       it 'returns 0' do

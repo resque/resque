@@ -150,7 +150,7 @@ module Resque
 
     def failed_end_at
       if failed_start_at + failed_per_page > failed_size
-        failed_size
+        failed_size - 1
       else
         failed_start_at  + failed_per_page - 1
       end
