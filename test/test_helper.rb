@@ -51,6 +51,10 @@ class GlobalSpecHooks < Minitest::Spec
     Resque.before_first_fork = nil
     Resque.before_fork = nil
     Resque.after_fork = nil
+    Resque.before_pause = nil
+    Resque.after_pause = nil
+    Resque.queue_empty = nil
+    Resque.worker_exit = nil
     Resque.shutdown = nil
   end
 

@@ -251,7 +251,7 @@ module Resque
     register_hook(:before_fork, block)
   end
 
-  # The `after_fork` hook will be run in the child process and is passed
+  # The `after_fork` hook will be run in the **child** process and is passed
   # the current job. Any changes you make, therefore, will only live as
   # long as the job currently being processed.
   #
@@ -266,7 +266,7 @@ module Resque
     register_hook(:after_fork, block)
   end
 
-  # The `before_pause` hook will be run in the parent process before the
+  # The `before_pause` hook will be run in the **parent** process before the
   # worker has paused processing (via #pause_processing or SIGUSR2).
   def before_pause(&block)
     block ? register_hook(:before_pause, block) : hooks(:before_pause)
@@ -277,7 +277,7 @@ module Resque
     register_hook(:before_pause, block)
   end
 
-  # The `after_pause` hook will be run in the parent process after the
+  # The `after_pause` hook will be run in the **parent** process after the
   # worker has paused (via SIGCONT).
   def after_pause(&block)
     block ? register_hook(:after_pause, block) : hooks(:after_pause)
@@ -316,7 +316,7 @@ module Resque
     register_hook(:worker_exit, block)
   end
 
-  # The `shutdown` hook will be run in the **child** process
+  # The `shutdown` hook will be run in the **parent** process
   # when the worker has received a signal to stop processing
   #
   # Call with a block to register a hook.

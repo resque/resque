@@ -28,7 +28,7 @@ Resque.before_fork do |job|
 end
 ```
 
-The `before_fork` hook will be run in the **parent** process. So, be
+Both `before_first_fork` and `before_fork` hooks will be run in the **parent** process. So, be
 careful - any changes you make will be permanent for the lifespan of
 the worker.
 
@@ -40,7 +40,7 @@ Resque.after_fork do |job|
 end
 ```
 
-The `after_fork` hook will be run in the child process and is passed
+The `after_fork` hook will be run in the **child** process and is passed
 the current job. Any changes you make, therefore, will only live as
 long as the job currently being processes.
 
@@ -49,6 +49,28 @@ All worker hooks can also be set using a setter, e.g.
 ``` ruby
 Resque.after_fork = proc { puts "called" }
 ```
+
+When the worker is paused (via SIGUSR2):
+
+``` ruby
+Resque.before_pause do |worker|
+  puts "Call me before the worker pauses"
+end
+```
+
+The `before_pause` hook will be run in the **parent** process.
+
+
+When the worker resumes after a pause (via SIGCONT):
+
+``` ruby
+Resque.after_pause do |worker|
+  puts "Call me after the worker resumes"
+end
+```
+
+The `after_pause` hook will be run in the **parent** process.
+
 
 When the worker finds no more jobs in the queue:
 
