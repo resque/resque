@@ -23,7 +23,7 @@
     <dt>Class</dt>
     <dd>
       <% if job['payload'] && job['payload']['class'] %>
-        <a href="<%= u "failed/#{params[:queue]}?class=#{job['payload']['class']}" %>">
+        <a href="<%= u "#{queue}?class=#{job['payload']['class']}" %>">
           <%= partial :job_class, :job => job['payload'] %>
         </a>
       <% else %>
