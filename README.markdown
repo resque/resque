@@ -495,12 +495,14 @@ Here's our `config/resque.yml`:
 And our initializer:
 
 ``` ruby
-rails_root = ENV['RAILS_ROOT'] || File.dirname(__FILE__) + '/../..'
-rails_env = ENV['RAILS_ENV'] || 'development'
-config_file = rails_root + '/config/resque.yml'
+config_file = 'config/resque.yml'
+rails_env = ENV['RAILS_ENV'] || Rails.env
 
-resque_config = YAML::load(ERB.new(IO.read(config_file)).result)
+resque_config = YAML::load_file(config_file)
 Resque.redis = resque_config[rails_env]
+
+# OR auto load with current env
+Resque.redis = Rails.application.config_for(:resque)
 ```
 
 Easy peasy! Why not just use `RAILS_ROOT` and `RAILS_ENV`? Because
@@ -632,7 +634,7 @@ Choose DelayedJob if:
 * You like numeric priorities
 * You're not doing a gigantic amount of jobs each day
 * Your queue stays small and nimble
-* There is not a lot failure / chaos
+* There is not a lot of failure / chaos
 * You want to easily throw anything on the queue
 * You don't want to setup Redis
 
