@@ -31,8 +31,15 @@ module Resque
 
   # Given a Ruby object, returns a string suitable for storage in a
   # queue.
+  #
+  # multi_json has renamed its core methods twice: first encode/decode became
+  # dump/load, then multi_json 1.21 renamed dump/load to generate/parse. Old
+  # names keep working as deprecated aliases. Check the newest name first so
+  # we prefer it while staying compatible with older installed versions.
   def encode(object)
-    if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+    if MultiJson.respond_to?(:generate) && MultiJson.respond_to?(:parse)
+      MultiJson.generate object
+    elsif MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
       MultiJson.dump object
     else
       MultiJson.encode object
@@ -40,11 +47,15 @@ module Resque
   end
 
   # Given a string, returns a Ruby object.
+  #
+  # See `Resque.encode`, above, for why generate/parse are checked before dump/load.
   def decode(object)
     return unless object
 
     begin
-      if MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
+      if MultiJson.respond_to?(:generate) && MultiJson.respond_to?(:parse)
+        MultiJson.parse object
+      elsif MultiJson.respond_to?(:dump) && MultiJson.respond_to?(:load)
         MultiJson.load object
       else
         MultiJson.decode object
