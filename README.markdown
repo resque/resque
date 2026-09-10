@@ -436,6 +436,10 @@ accepts one, so the same failure can be correlated across them. Failures are
 still addressed by index; the id is additive metadata. See
 [docs/FAILURE_IDS.md](https://github.com/resque/resque/blob/master/docs/FAILURE_IDS.md).
 
+A backend that raises while saving no longer stops the ones after it. Once every
+backend has run, `Resque::Failure::Multiple::BackendError` is raised; its
+`original_errors` maps each failed backend class to the exception it raised.
+
 Keep this in mind when writing your jobs: you may want to throw
 exceptions you would not normally throw in order to assist debugging.
 
