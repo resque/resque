@@ -174,6 +174,30 @@ describe "Resque" do
       refute Resque.queue_from_class(klass)
     end
 
+    it "ignores a queue_name that needs arguments" do
+      klass = Class.new do
+        def self.queue_name(scope); scope; end
+      end
+
+      refute Resque.queue_from_class(klass)
+    end
+
+    it "ignores a queue_name that needs a keyword argument" do
+      klass = Class.new do
+        def self.queue_name(scope:); scope; end
+      end
+
+      refute Resque.queue_from_class(klass)
+    end
+
+    it "still reads a queue_name that only has optional arguments" do
+      klass = Class.new do
+        def self.queue_name(scope = 'reports'); scope; end
+      end
+
+      assert_equal 'reports', Resque.queue_from_class(klass)
+    end
+
     it "returns nothing for a class with no queue at all" do
       refute Resque.queue_from_class(Class.new)
     end

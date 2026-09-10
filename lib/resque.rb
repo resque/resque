@@ -444,8 +444,10 @@ module Resque
   #
   #   a) has a @queue ivar set
   #   b) responds to `queue`
+  #   c) responds to `queue_name`, as Active Job does, and it does not need
+  #      arguments or resolve to a callable
   #
-  # If either of those conditions are met, it will use the value obtained
+  # If any of those conditions are met, it will use the value obtained
   # from performing one of the above operations to determine the queue.
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
@@ -489,8 +491,10 @@ module Resque
   #
   #   a) has a @queue ivar set
   #   b) responds to `queue`
+  #   c) responds to `queue_name`, as Active Job does, and it does not need
+  #      arguments or resolve to a callable
   #
-  # If either of those conditions are met, it will use the value obtained
+  # If any of those conditions are met, it will use the value obtained
   # from performing one of the above operations to determine the queue.
   #
   # If no queue can be inferred this method will raise a `Resque::NoQueueError`
@@ -654,6 +658,12 @@ module Resque
   # instance and its arguments, which there is nothing to supply here.
   def queue_name_from_class(klass)
     return false unless klass.respond_to?(:queue_name)
+
+    # Any class is free to have a `queue_name` that means something else and
+    # takes arguments. There is nothing to pass it, so leave it alone rather
+    # than raise out of a queue lookup.
+    parameters = klass.method(:queue_name).parameters
+    return false if parameters.any? { |type, _| type == :req || type == :keyreq }
 
     queue_name = klass.queue_name
     queue_name unless queue_name.respond_to?(:call)
