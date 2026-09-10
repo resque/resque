@@ -23,7 +23,6 @@
   --text-failure: #d37474;
   --text-queue-tag: #3274a2;
   --border-color: #ccc;
-  --border-header: #444;
   --border-footer: #ccc;
 }
 
@@ -50,7 +49,6 @@
     --text-failure: #e88;
     --text-queue-tag: #6ab0e0;
     --border-color: #555;
-    --border-header: #555;
     --border-footer: #444;
   }
 }
@@ -77,14 +75,13 @@
   --text-failure: #e88;
   --text-queue-tag: #6ab0e0;
   --border-color: #555;
-  --border-header: #555;
   --border-footer: #444;
 }
 
 html { background: var(--bg-primary); font-family:Arial, Verdana, sans-serif; font-size:13px; }
 body { padding:0; margin:0; }
 
-.header { background: var(--bg-header); padding:8px 5% 0 5%; border-bottom:1px solid var(--border-header);border-bottom:5px solid var(--accent); position: relative;}
+.header { background: var(--bg-header); padding:8px 5% 0 5%; border-bottom:5px solid var(--accent); position: relative;}
 .header h1 { color: var(--text-header); font-size:90%; font-weight:bold; margin-bottom:6px;}
 .header ul li { display:inline;}
 .header ul li a { color: var(--text-white); text-decoration:none; margin-right:10px; display:inline-block;  padding:8px; -webkit-border-top-right-radius:6px; -webkit-border-top-left-radius:6px; -moz-border-radius-topleft:6px; -moz-border-radius-topright:6px; }
