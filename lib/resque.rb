@@ -530,7 +530,8 @@ module Resque
   # class instance variable or `queue` method.
   def queue_from_class(klass)
     (klass.instance_variable_defined?(:@queue) && klass.instance_variable_get(:@queue)) ||
-      (klass.respond_to?(:queue) and klass.queue)
+      (klass.respond_to?(:queue) and klass.queue) ||
+      queue_name_from_class(klass)
   end
 
   # This method will return a `Resque::Job` object or a non-true value
@@ -647,6 +648,16 @@ module Resque
   end
 
   private
+
+  # Active Job names its queue `queue_name` and exposes it on the class.
+  # `queue_as` also accepts a block, and that only resolves against a job
+  # instance and its arguments, which there is nothing to supply here.
+  def queue_name_from_class(klass)
+    return false unless klass.respond_to?(:queue_name)
+
+    queue_name = klass.queue_name
+    queue_name unless queue_name.respond_to?(:call)
+  end
 
   @hooks = Hash.new { |h, k| h[k] = [] }
 

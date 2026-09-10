@@ -140,6 +140,45 @@ describe "Resque" do
     assert_nil Resque.reserve(:method)
   end
 
+  describe "queue_from_class" do
+    it "prefers the @queue ivar" do
+      assert_equal :ivar, Resque.queue_from_class(SomeIvarJob)
+    end
+
+    it "falls back to a queue method" do
+      assert_equal :method, Resque.queue_from_class(SomeMethodJob)
+    end
+
+    it "reads queue_name off the class the way Active Job exposes it" do
+      klass = Class.new do
+        def self.queue_name; 'mailers'; end
+      end
+
+      assert_equal 'mailers', Resque.queue_from_class(klass)
+    end
+
+    it "does not instantiate the class to read queue_name" do
+      klass = Class.new do
+        def self.queue_name; 'needy'; end
+        def initialize(_required); end
+      end
+
+      assert_equal 'needy', Resque.queue_from_class(klass)
+    end
+
+    it "ignores a queue_name that has to be resolved against a job instance" do
+      klass = Class.new do
+        def self.queue_name; proc { 'dynamic' }; end
+      end
+
+      refute Resque.queue_from_class(klass)
+    end
+
+    it "returns nothing for a class with no queue at all" do
+      refute Resque.queue_from_class(Class.new)
+    end
+  end
+
   it "can define a queue for jobs by way of a method" do
     assert_equal 0, Resque.size(:method)
     assert Resque.enqueue_to(:new_queue, SomeMethodJob, 20, '/tmp')
