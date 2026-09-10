@@ -33,8 +33,13 @@ describe "Resque web" do
 
   describe "With append-prefix option on GET to /overview" do
     reverse_proxy_prefix = 'proxy_site/resque'
-    Resque::Server.url_prefix = reverse_proxy_prefix
-    before { get "/overview" }
+
+    before do
+      Resque::Server.url_prefix = reverse_proxy_prefix
+      get "/overview"
+    end
+
+    after { Resque::Server.url_prefix = nil }
 
     it "should contain reverse proxy prefix for asset urls and links" do
       assert last_response.body.include?(reverse_proxy_prefix)
