@@ -878,6 +878,29 @@ describe "Resque::Worker" do
     workerA.start_heartbeat
   end
 
+  it "keeps the heartbeat thread running when a heartbeat fails" do
+    workerA = Resque::Worker.new(:jobs)
+    workerA.register_worker
+
+    attempts = Queue.new
+    workerA.define_singleton_method(:heartbeat!) do |*|
+      attempts << :attempted
+      raise Redis::CannotConnectError, 'redis is down'
+    end
+
+    original_interval = Resque.heartbeat_interval
+    begin
+      Resque.heartbeat_interval = 0.01
+      workerA.start_heartbeat
+
+      Timeout.timeout(5) { 3.times { attempts.pop } }
+
+      assert workerA.instance_variable_get(:@heartbeat_thread).alive?
+    ensure
+      Resque.heartbeat_interval = original_interval
+    end
+  end
+
   it "cleans up heartbeat after unregistering" do
     workerA = Resque::Worker.new(:jobs)
     workerA.register_worker

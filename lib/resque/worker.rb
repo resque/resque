@@ -553,7 +553,15 @@ module Resque
 
       @heartbeat_thread = Thread.new do
         loop do
-          heartbeat!
+          begin
+            heartbeat!
+          rescue => e
+            # A raise here would kill the thread and stop the worker
+            # heartbeating, but the worker itself keeps running and is then
+            # pruned out from under itself.
+            log_with_severity :error, "Failed to heartbeat: #{e.class}: #{e.message}"
+          end
+
           signaled = @heartbeat_thread_signal.wait_for_signal(Resque.heartbeat_interval)
           break if signaled
         end
