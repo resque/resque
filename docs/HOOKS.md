@@ -162,8 +162,10 @@ The available hooks are:
 * `on_failure`: Called with the exception and job args if any exception occurs
   while performing the job (or hooks), this includes Resque::DirtyExit.
 
-* `always`: Called with the job args regardless of the success or failure of 
-  the job or any other hooks. Runs after `after_perform` and `on_failure` hooks. 
+* `always`: Called with the job args regardless of the success or failure of
+  the job or any other hooks. Runs after `after_perform` and `on_failure` hooks.
+  It also runs when `before_perform` aborts the job with
+  `Resque::Job::DontPerform`, so it can be reached without the job performing.
 
 Hooks are easily implemented with superclasses or modules. A superclass could
 look something like this.

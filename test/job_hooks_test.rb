@@ -342,6 +342,24 @@ describe "Resque::Job always" do
     assert_match('(RuntimeError: This job is just so bad!) occurred in running failure hooks', err.message)
     assert_match('Original error that caused job failure was RuntimeError: SyntaxError: Extra Bad job!', err.message)
   end
+
+  class ::AlwaysJobThatDoesNotPerform
+    def self.before_perform_dont(history)
+      raise Resque::Job::DontPerform
+    end
+    def self.perform(history)
+      history << :perform
+    end
+    def self.always_track_history(history)
+      history << :always_track_history
+    end
+  end
+
+  it "it calls always when before_perform aborts the job with DontPerform" do
+    result = perform_job(AlwaysJobThatDoesNotPerform, history=[])
+    assert_equal false, result, "perform returned false"
+    assert_equal history, [:always_track_history]
+  end
 end
 
 describe "Resque::Job after_enqueue" do
