@@ -343,6 +343,33 @@ describe "Resque::Job always" do
     assert_match('Original error that caused job failure was RuntimeError: SyntaxError: Extra Bad job!', err.message)
   end
 
+  class ::AlwaysJobSucceedsHookRescuesInternally
+    class InternalDetail < StandardError; end
+    class HookFailure < StandardError; end
+
+    def self.perform(history)
+      history << :perform
+    end
+
+    def self.always_hook(history)
+      begin
+        raise InternalDetail, 'internal detail'
+      rescue InternalDetail
+        raise HookFailure, 'hook blew up'
+      end
+    end
+  end
+
+  it "does not blame the job when only the always hook fails" do
+    history = []
+    err = assert_raises AlwaysJobSucceedsHookRescuesInternally::HookFailure do
+      perform_job(AlwaysJobSucceedsHookRescuesInternally, history)
+    end
+
+    assert_equal 'hook blew up', err.message
+    assert_equal [:perform], history
+  end
+
   class ::AlwaysJobThatDoesNotPerform
     def self.before_perform_dont(history)
       raise Resque::Job::DontPerform
