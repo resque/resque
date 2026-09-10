@@ -56,6 +56,50 @@ describe "Resque web" do
   end
 
   # Queues
+  describe "on POST to /queues/:id/remove-job" do
+    before do
+      Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+      Resque::Job.create(:jobs, 'SomeJob', 30, '/tmp')
+      Resque::Job.create(:jobs, 'OtherJob')
+      Resque::Job.create(:jobs, 'OtherJob')
+    end
+
+    def payload_for(klass, *args)
+      Resque.encode('class' => klass, 'args' => args)
+    end
+
+    it "removes only the job whose payload was submitted" do
+      post "/queues/jobs/remove-job", :payload => payload_for('SomeJob', 20, '/tmp')
+
+      follow_redirect!
+      assert last_response.ok?, last_response.errors
+      assert_equal 3, Resque.size(:jobs)
+      assert_equal [30, '/tmp'], Resque.peek(:jobs)['args']
+    end
+
+    it "does not take sibling jobs of the same class with it" do
+      post "/queues/jobs/remove-job", :payload => payload_for('OtherJob')
+
+      assert_equal 2, Resque.size(:jobs)
+      remaining = Resque.peek(:jobs, 0, 2).map { |job| job['class'] }
+      assert_equal ['SomeJob', 'SomeJob'], remaining
+    end
+
+    it "rejects a payload that is not valid JSON" do
+      post "/queues/jobs/remove-job", :payload => 'not json'
+
+      assert_equal 400, last_response.status
+      assert_equal 4, Resque.size(:jobs)
+    end
+
+    it "rejects a missing payload" do
+      post "/queues/jobs/remove-job"
+
+      assert_equal 400, last_response.status
+      assert_equal 4, Resque.size(:jobs)
+    end
+  end
+
   describe "on GET to /queues" do
     before { Resque::Failure.stubs(:count).returns(1) }
 

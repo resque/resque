@@ -11,16 +11,23 @@
     <tr>
       <th>Class</th>
       <th>Args</th>
+      <th>&nbsp;</th>
     </tr>
     <% for job in (jobs = resque.peek(current_queue, start, 20)) %>
     <tr>
       <td class='class'><%= partial :job_class, :job => job %></td>
       <td class='args'><%=h job['args'].inspect %></td>
+      <td class='remove-job'>
+        <form method="POST" action="<%= h u("/queues/#{current_queue}/remove-job") %>">
+          <input type="hidden" name="payload" value="<%= h Resque.encode(job) %>" />
+          <input type="submit" name="" value="Delete" class="confirmSubmission" />
+        </form>
+      </td>
     </tr>
     <% end %>
     <% if jobs.empty? %>
     <tr>
-      <td class='no-data' colspan='2'>There are no pending jobs in this queue</td>
+      <td class='no-data' colspan='3'>There are no pending jobs in this queue</td>
     </tr>
     <% end %>
   </table>

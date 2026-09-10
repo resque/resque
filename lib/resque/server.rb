@@ -73,6 +73,21 @@ module Resque
       redirect u('queues')
     end
 
+    post "/queues/:id/remove-job" do
+      halt 400, 'Missing job payload' if params[:payload].to_s.empty?
+
+      begin
+        # Round-tripped so the value removed is encoded exactly the way the
+        # queue holds it, whatever the form sent.
+        payload = Resque.encode(Resque.decode(params[:payload]))
+      rescue Resque::Helpers::DecodeException
+        halt 400, 'Invalid job payload'
+      end
+
+      Resque.data_store.remove_from_queue(params[:id], payload)
+      redirect u("queues/#{params[:id]}")
+    end
+
     get "/failed/?" do
       if Resque::Failure.url
         redirect Resque::Failure.url

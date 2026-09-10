@@ -120,6 +120,8 @@ body { padding:0; margin:0; }
 
 #main table.jobs td.class { font-family:Monaco, "Courier New", monospace; font-size:90%; width:50%;}
 #main table.jobs td.args{ width:50%;}
+#main table.jobs td.remove-job { width:1%; text-align:right;}
+#main table.jobs td.remove-job form { float:none; margin:0;}
 
 #main table.workers td.icon {width:1%; background: var(--bg-highlight);text-align:center;}
 #main table.workers td.icon img { height: 16px; width: 16px; }
