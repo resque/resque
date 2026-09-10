@@ -43,6 +43,7 @@ Resque requires Ruby 3.2.0 or newer.
 
 **Version Support:**
 - Ruby: 3.2, 3.3, 3.4, 4.0
+- Redis server: 4.0+
 - Redis gem: 4.0+
 - Rack: 2.x or 3.x
 - Rails (for ActiveJob): 7.2+
