@@ -14,6 +14,7 @@ jobs:
       matrix:
         redis-version:
           - 4.8
+          - 5.4
           - latest
         ruby-version:
           - 3.2
