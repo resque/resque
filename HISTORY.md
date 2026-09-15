@@ -1,3 +1,27 @@
+## 3.1.0
+
+### Breaking Changes
+
+* **Minimum Ruby version is now 3.2.0** - Ruby 3.0 and 3.1 are no longer supported (#1958)
+* **Minimum Redis server version is now 4.0** - key removal now uses `UNLINK` instead of `DEL` (#1962)
+
+### Added
+
+* Added `always` hooks - run after a job finishes, whether it succeeded or failed (#1966)
+* Each failure now has a unique `failure_id` (#1943)
+* resque-web: Dark mode (#1963)
+* resque-web: Delete button for queued jobs (#1969)
+* resque-web: `link` and `script` tag helpers for plugins (#1914)
+
+### Fixed
+
+* Keep the heartbeat thread alive when a heartbeat fails (#1967)
+* `Resque::Failure::Multiple` saves to every backend even when one of them raises (#1964)
+* Let Rails eager load the application rather than doing it ourselves (#1867)
+* Test the Rails and Redis versions the CI matrix claims to cover (#1978)
+* Require `minitest/mock` from its extracted gem (#1976)
+* Get on modern RuboCop (#1977)
+
 ## 3.0.3
 
 ### Fixed
