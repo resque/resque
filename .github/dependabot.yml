@@ -10,3 +10,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    ignore:
+      # Rails 7.2 patches Minitest::Runnable.run with a signature minitest 6
+      # no longer calls. Lift this once 7.2 leaves the CI matrix.
+      - dependency-name: "minitest"
+        versions: [">= 6"]

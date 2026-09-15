@@ -18,6 +18,7 @@ end
 gem "benchmark"
 gem "json"
 gem "minitest", "~> 5.11"
+gem "minitest-mock"
 gem "mocha", "~> 3.1", require: false
 gem "ostruct"
 gem "pry"
