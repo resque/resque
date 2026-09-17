@@ -110,6 +110,20 @@ describe "Resque" do
     assert_equal 2, Resque.size(:jobs)
   end
 
+  it "jobs can be destroyed (unsafely)" do
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 30, '/tmp')
+    assert Resque::Job.create(:jobs, 'BadJob', 20, '/tmp')
+
+    assert_equal 5, Resque.size(:jobs)
+    assert_equal 2, Resque::Job.destroy!(:jobs, 'SomeJob')
+    assert_equal 3, Resque.size(:jobs)
+    assert_equal 1, Resque::Job.destroy!(:jobs, 'BadJob', 30, '/tmp')
+    assert_equal 2, Resque.size(:jobs)
+  end
+
   it "jobs can it for equality" do
     assert Resque::Job.create(:jobs, 'SomeJob', 20, '/tmp')
     assert Resque::Job.create(:jobs, 'some-job', 20, '/tmp')
