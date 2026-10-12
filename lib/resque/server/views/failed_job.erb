@@ -10,13 +10,18 @@
       <% if job['retried_at'] %>
         <div class='retried'>
           Retried <b><span class="time"><%= DateTime.parse(job['retried_at']).strftime(failed_date_format) %></span></b>
-          <a href="<%= h u("#{queue}/remove/#{id}") %>" class="remove" rel="remove">Remove</a>
+          <form method="POST" action="<%= h u("#{queue}/remove/#{id}") %>" class="remove">
+            <input type="submit" name="" value="Remove" />
+          </form>
         </div>
       <% else %>
         <div class='controls'>
-          <a href="<%= h u("#{queue}/requeue/#{id}") %>" rel="retry">Retry</a>
-          or
-          <a href="<%= h u("#{queue}/remove/#{id}") %>" rel="remove">Remove</a>
+          <form method="POST" action="<%= h u("#{queue}/requeue/#{id}") %>" class="retry">
+            <input type="submit" name="" value="Retry" />
+          </form>
+          <form method="POST" action="<%= h u("#{queue}/remove/#{id}") %>">
+            <input type="submit" name="" value="Remove" />
+          </form>
         </div>
       <% end %>
     </dd>

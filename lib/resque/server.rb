@@ -28,6 +28,20 @@ module Resque
       include Resque::ServerHelper
     end
 
+    before do
+      halt 403, 'Cross-site request rejected' if !request.safe? && cross_site_request?
+    end
+
+    def cross_site_request?
+      if (fetch_site = request.env['HTTP_SEC_FETCH_SITE'])
+        !%w[same-origin none].include?(fetch_site)
+      elsif (origin = request.env['HTTP_ORIGIN'])
+        origin.sub(%r{\A[a-z][a-z0-9+.-]*://}i, '') != request.host_with_port
+      else
+        false
+      end
+    end
+
     def show(page, layout = true)
       response["Cache-Control"] = "max-age=0, private, must-revalidate"
       begin
@@ -129,7 +143,7 @@ module Resque
       redirect url_path("/failed/#{params[:queue]}")
     end
 
-    get "/failed/requeue/:index/?" do
+    post "/failed/requeue/:index/?" do
       Resque::Failure.requeue(params[:index])
       if request.xhr?
         return Resque::Failure.all(params[:index])['retried_at']
@@ -138,7 +152,7 @@ module Resque
       end
     end
 
-    get "/failed/:queue/requeue/:index/?" do
+    post "/failed/:queue/requeue/:index/?" do
       Resque::Failure.requeue(params[:index], params[:queue])
       if request.xhr?
         return Resque::Failure.all(params[:index],1,params[:queue])['retried_at']
@@ -147,12 +161,12 @@ module Resque
       end
     end
 
-    get "/failed/remove/:index/?" do
+    post "/failed/remove/:index/?" do
       Resque::Failure.remove(params[:index])
       redirect u('failed')
     end
 
-    get "/failed/:queue/remove/:index/?" do
+    post "/failed/:queue/remove/:index/?" do
       Resque::Failure.remove(params[:index], params[:queue])
       redirect url_path("/failed/#{params[:queue]}")
     end
