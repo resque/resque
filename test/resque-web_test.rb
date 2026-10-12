@@ -13,6 +13,11 @@ describe "Resque web" do
     'localhost'
   end
 
+  def create_failure
+    Resque::Failure.create(exception: StandardError.new('boom'), worker: Resque::Worker.new(:jobs),
+                           queue: 'jobs', payload: { 'class' => 'SomeJob', 'args' => [] })
+  end
+
   # Root path test
   describe "on GET to /" do
     before { get "/" }
@@ -43,6 +48,48 @@ describe "Resque web" do
 
     it "should contain reverse proxy prefix for asset urls and links" do
       assert last_response.body.include?(reverse_proxy_prefix)
+    end
+  end
+
+  describe "on a state-changing request" do
+    before do
+      Resque::Job.create(:jobs, 'SomeJob')
+      create_failure
+    end
+
+    it "rejects cross-site browser requests" do
+      [
+        { 'HTTP_SEC_FETCH_SITE' => 'cross-site' },
+        { 'HTTP_SEC_FETCH_SITE' => 'same-site' },
+        { 'HTTP_SEC_FETCH_SITE' => 'cross-site', 'HTTP_ORIGIN' => 'http://localhost' },
+        { 'HTTP_ORIGIN' => 'http://evil.example' },
+        { 'HTTP_ORIGIN' => 'null' }
+      ].each do |headers|
+        post "/failed/clear", {}, headers
+        assert_equal 403, last_response.status, headers.inspect
+
+        post "/queues/jobs/remove", {}, headers
+        assert_equal 403, last_response.status, headers.inspect
+      end
+
+      assert_equal 1, Resque::Failure.count
+      assert_equal 1, Resque.size(:jobs)
+    end
+
+    it "allows same-origin and non-browser requests" do
+      [
+        { 'HTTP_SEC_FETCH_SITE' => 'same-origin' },
+        { 'HTTP_SEC_FETCH_SITE' => 'none' },
+        { 'HTTP_ORIGIN' => 'http://localhost' },
+        { 'HTTP_ORIGIN' => 'https://localhost' },
+        {}
+      ].each do |headers|
+        create_failure
+        post "/failed/clear", {}, headers
+
+        assert_equal 302, last_response.status, headers.inspect
+        assert_equal 0, Resque::Failure.count, headers.inspect
+      end
     end
   end
 
@@ -162,6 +209,34 @@ describe "Resque web" do
 
     it "should respond with success" do
       assert last_response.ok?, last_response.errors
+    end
+  end
+
+  describe "on a failed job" do
+    before do
+      create_failure
+    end
+
+    it "renders Retry and Remove as POST forms" do
+      get "/failed"
+      body = CGI.unescapeHTML(last_response.body)
+
+      assert_includes body, %(<form method="POST" action="/failed/requeue/0" class="retry">)
+      assert_includes body, %(<form method="POST" action="/failed/remove/0">)
+    end
+
+    it "retries over POST" do
+      post "/failed/requeue/0", {}, 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'
+
+      assert_equal Resque::Failure.all(0)['retried_at'], last_response.body
+      assert_equal 1, Resque.size(:jobs)
+    end
+
+    it "removes over POST" do
+      post "/failed/remove/0"
+
+      assert_equal 302, last_response.status
+      assert_equal 0, Resque::Failure.count
     end
   end
 
