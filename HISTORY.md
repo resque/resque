@@ -1,3 +1,9 @@
+## 3.2.0
+
+### Security
+
+* resque-web: Reject cross-site non-GET requests, and make single failed-job retry and remove POST-only (#1980)
+
 ## 3.1.0
 
 ### Breaking Changes
