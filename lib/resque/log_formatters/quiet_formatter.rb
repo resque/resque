@@ -1,6 +1,6 @@
 module Resque
   class QuietFormatter
-    def call(serverity, datetime, progname, msg)
+    def call(severity, datetime, progname, msg)
       ""
     end
   end

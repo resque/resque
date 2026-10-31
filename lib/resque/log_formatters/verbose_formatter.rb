@@ -1,6 +1,6 @@
 module Resque
   class VerboseFormatter
-    def call(serverity, datetime, progname, msg)
+    def call(severity, datetime, progname, msg)
       "*** #{msg}\n"
     end
   end
