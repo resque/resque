@@ -655,7 +655,7 @@ module Resque
         # If the worker hasn't sent a heartbeat, remove it from the registry.
         #
         # If the worker hasn't ever sent a heartbeat, we won't remove it since
-        # the first heartbeat is sent before the worker is registred it means
+        # the first heartbeat is sent before the worker is registered it means
         # that this is a worker that doesn't support heartbeats, e.g., another
         # client library or an older version of Resque. We won't touch these.
         log_with_severity :info, "Pruning dead worker: #{worker}"
