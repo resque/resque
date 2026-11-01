@@ -79,8 +79,13 @@ module Resque
     # Force a reconnect to Redis without closing the connection in the parent
     # process after a fork.
     def reconnect
-      @redis.disconnect!
-      @redis.ping
+      if Gem::Version.new(Redis::VERSION) < Gem::Version.new("5")
+        # redis-rb 4's disconnect! sends a TLS close_notify on the socket shared with the parent
+        @redis._client.connect
+      else
+        @redis.disconnect!
+        @redis.ping
+      end
       nil
     end
 
