@@ -28,7 +28,7 @@ class RedisRunner
     '/tmp/redis.dtach'
   end
 
-  # Just check for existance of dtach socket
+  # Just check for existence of dtach socket
   def self.running?
     File.exist? dtach_socket
   end
