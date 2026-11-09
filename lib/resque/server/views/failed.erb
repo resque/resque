@@ -11,7 +11,7 @@
 
 <% unless params[:queue] %>
   <form method="POST" action="<%= u "failed/clear_retried" %>">
-    <input type="submit" name="" value="Clear Retried Jobs" onclick='return confirm("Are you absolutely sure? This cannot be undone.");' />
+    <input type="submit" name="" value="Clear Retried Jobs" class="confirmSubmission" />
   </form>
 <% end %>
 <form method="POST" action="<%= h u("failed#{'/' + params[:queue] if params[:queue]}/requeue/all") %>">

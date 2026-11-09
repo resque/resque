@@ -240,6 +240,22 @@ describe "Resque web" do
     end
   end
 
+  describe "on every page" do
+    before do
+      Resque.push(:jobs, 'class' => 'SomeJob', 'args' => [])
+      create_failure
+    end
+
+    %w(/overview /queues /queues/jobs /working /workers /failed /stats/resque /stats/redis /stats/keys).each do |path|
+      it "renders #{path} without inline event handlers" do
+        get path
+
+        assert last_response.ok?, last_response.errors
+        refute_match(/\son[a-z]+=/i, last_response.body)
+      end
+    end
+  end
+
   # Stats
   describe "on GET to /stats/resque" do
     before { get "/stats/resque" }
