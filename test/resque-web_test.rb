@@ -251,7 +251,7 @@ describe "Resque web" do
         get path
 
         assert last_response.ok?, last_response.errors
-        refute_match(/\son[a-z]+=/i, last_response.body)
+        refute_match(/\son[a-z]+\s*=/i, last_response.body)
       end
     end
   end
