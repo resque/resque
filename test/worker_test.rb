@@ -1439,6 +1439,17 @@ describe "Resque::Worker" do
       assert_equal Resque.redis.ping, "PONG"
     end
 
+    if Gem::Version.new(Redis::VERSION) < Gem::Version.new("5")
+      it "does not close the parent's socket when reconnecting after forking" do
+        Resque.redis.ping
+        parent_socket = Resque.redis._client.connection.instance_variable_get(:@sock)
+
+        closed_in_child = run_in_job { parent_socket.closed? }
+
+        refute closed_in_child
+      end
+    end
+
     it "tries to reconnect three times before giving up and the failure does not unregister the parent" do
       @worker.data_store.stubs(:reconnect).raises(Redis::BaseConnectionError)
       @worker.stubs(:sleep)
